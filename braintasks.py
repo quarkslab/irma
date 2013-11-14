@@ -1,9 +1,7 @@
 from celery import Celery
-import brainstorage
-import time
 
 celery=Celery('braintasks')
-celery.config_from_object('celeryconfig')
+celery.config_from_object('celery_brainconfig')
 
 @celery.task
 def ping():
