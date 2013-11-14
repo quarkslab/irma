@@ -1,12 +1,22 @@
-import brainstorage
 from celery import Celery
+import brainstorage
+import sondetasks
 
 celery=Celery('braintasks')
 celery.config_from_object('celeryconfig')
 
 @celery.task
 def ping():
-    return 1
+   res = "Brain is up and running\n"
+   try:   
+      task = sondetasks.ping.delay()        
+      while not task.ready():
+         time.sleep(1)
+      res += task.get(timeout=IRMA_TIMEOUT)
+   except celery.exceptions.TimeoutError:
+      res += "Sonde is down"
+   return res
+
         
 @celery.task(serializer='pickle')
 def scan(oid):
