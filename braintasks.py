@@ -24,7 +24,7 @@ def ping():
 @celery.task(serializer='pickle')
 def scan(oid):
    try:   
-      task = sondetasks.scan.delay()        
+      task = sondetasks.sonde_scan.delay()        
       while not task.ready():
          time.sleep(1)
       res = task.get(timeout=IRMA_TIMEOUT)
