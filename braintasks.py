@@ -1,5 +1,6 @@
-from celery import Celery,exceptions
+import time
 import brainstorage
+from celery import Celery,exceptions
 from sonde import sondetasks
 
 celery=Celery('braintasks')
