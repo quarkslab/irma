@@ -31,5 +31,28 @@ def scan(oid):
    except exceptions.TimeoutError:
       res = "Sonde is down"
    return res
-        
+ 
+@celery.task(serializer='pickle')
+def scanarchive(oid):
+   try:   
+      archfile = libarchive.Archive('my_archive.zip')
+      oidlist = []
+      for entry in archfile:
+          oid = brainstorage.store_file(archfile.read())
+          oidlist.append(oid)
+      archfile.close()
+      tasklist = []
+      for oid in oidlist:
+         task = sondetasks.sonde_scan.delay(oid)
+      while tasklist:
+         t = tasklist.pop()
+         if not t.ready():
+            tasklist.append(t)
+            time.sleep(0.1)
+         else:
+            res += t.get(timeout=IRMA_TIMEOUT)
+   except exceptions.TimeoutError:
+      res = "Sonde is down"
+   return res
+           
 
