@@ -47,7 +47,9 @@ def scan(oid):
       tasklist = []
       for oid in oidlist:
          task = sondetasks.sonde_scan.delay(oid)
+         time.sleep(0.1)
       while tasklist:
+         print "Tasklist contains: %d",len(tasklist)
          t = tasklist.pop()
          if not t.ready():
             tasklist.append(t)
