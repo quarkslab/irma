@@ -20,7 +20,7 @@ def ping():
       res += "Sonde is down"
    return res
 
-  '''      
+'''      
 @celery.task(serializer='pickle')
 def scan(oid):
    try:   
@@ -31,7 +31,8 @@ def scan(oid):
    except exceptions.TimeoutError:
       res = "Sonde is down"
    return res
- '''
+'''
+
 @celery.task(serializer='pickle')
 def scan(oid):
    try:   
