@@ -41,8 +41,10 @@ def scan(oid):
       archfile = libarchive.Archive(data)
       oidlist = []
       for entry in archfile:
+          print "Unzip",entry.pathname
           oid = brainstorage.store_file(archfile.read())
           oidlist.append(oid)
+          time.sleep(1)
       archfile.close()
       tasklist = []
       for oid in oidlist:
@@ -53,7 +55,7 @@ def scan(oid):
          t = tasklist.pop()
          if not t.ready():
             tasklist.append(t)
-            time.sleep(0.1)
+            time.sleep(1)
          else:
             res += t.get(timeout=IRMA_TIMEOUT)
    except exceptions.TimeoutError:
