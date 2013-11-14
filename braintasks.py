@@ -1,5 +1,6 @@
 import time
 import brainstorage
+import libarchive
 from celery import Celery,exceptions
 from sonde import sondetasks
 
