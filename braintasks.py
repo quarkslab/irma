@@ -23,7 +23,13 @@ def ping():
         
 @celery.task(serializer='pickle')
 def scan(oid):
-   size = len(brainstorage.get_file(oid).decode("base64"))
-   return size
+   try:   
+      task = sondetasks.scan.delay()        
+      while not task.ready():
+         time.sleep(1)
+      res = task.get(timeout=IRMA_TIMEOUT)
+   except exceptions.TimeoutError:
+      res = "Sonde is down"
+   return res
         
 
