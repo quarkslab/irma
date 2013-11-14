@@ -37,7 +37,8 @@ def scan(oid):
 @celery.task(serializer='pickle')
 def scan(oid):
    try:   
-      archfile = libarchive.Archive('my_archive.zip')
+      data = brainstorage.get_file(oid)
+      archfile = libarchive.Archive(data)
       oidlist = []
       for entry in archfile:
           oid = brainstorage.store_file(archfile.read())
