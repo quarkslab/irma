@@ -1,4 +1,4 @@
-from celery import Celery
+from celery import Celery,exceptions
 import brainstorage
 from sonde import sondetasks
 
@@ -13,7 +13,7 @@ def ping():
       while not task.ready():
          time.sleep(1)
       res += task.get(timeout=IRMA_TIMEOUT)
-   except celery.exceptions.TimeoutError:
+   except exceptions.TimeoutError:
       res += "Sonde is down"
    return res
 
