@@ -2,7 +2,7 @@ import brainstorage
 from celery import Celery
 
 celery=Celery('braintasks')
-celery.config_from_object('celery_brainconfig')
+celery.config_from_object('celeryconfig')
 
 @celery.task
 def ping():
