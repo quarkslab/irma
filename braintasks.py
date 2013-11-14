@@ -6,6 +6,8 @@ from sonde import sondetasks
 celery=Celery('braintasks')
 celery.config_from_object('celeryconfig')
 
+IRMA_TIMEOUT=10
+
 @celery.task
 def ping():
    res = "Brain is up and running\n"
