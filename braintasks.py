@@ -1,6 +1,6 @@
 from celery import Celery
 import brainstorage
-import sondetasks
+from sonde import sondetasks
 
 celery=Celery('braintasks')
 celery.config_from_object('celeryconfig')
