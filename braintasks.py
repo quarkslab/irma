@@ -1,3 +1,4 @@
+import brainstorage
 from celery import Celery
 
 celery=Celery('braintasks')
