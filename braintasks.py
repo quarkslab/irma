@@ -23,7 +23,7 @@ def ping():
 
 @celery.task(serializer='pickle')
 def scan(oid):
-   jobs = group(sondetasks.sonde_scan.subtask(o) for o in oid)
+   jobs = group(sondetasks.sonde_scan.s(o) for o in oid)
    return jobs.apply_async().join()
 
 @celery.task(serializer='pickle')
