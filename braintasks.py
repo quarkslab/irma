@@ -4,11 +4,10 @@ import libarchive
 from celery import Celery,exceptions
 from celery.task import chord
 from sonde import sondetasks
+from config.config import IRMA_TIMEOUT
 
 celery=Celery('braintasks')
 celery.config_from_object('config.brainconfig')
-
-IRMA_TIMEOUT=10
 
 @celery.task
 def ping():
@@ -55,4 +54,4 @@ def scanarchive(oid):
       res = "Sonde is down"
    return res
            
-
+brainconfig.py
