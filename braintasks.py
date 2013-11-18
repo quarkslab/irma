@@ -53,5 +53,4 @@ def scanarchive(oid):
    except exceptions.TimeoutError:
       res = "Sonde is down"
    return res
-           
-brainconfig.py
+
