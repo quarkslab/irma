@@ -24,7 +24,7 @@ def ping():
 
 @celery.task(serializer='pickle')
 def scan(oid):
-   task = subtask(sondetasks.sonde_scan.delay,oid)        
+   task = subtask(sondetasks.sonde_scan).delay(oid)        
    return task
 
 @celery.task(serializer='pickle')
