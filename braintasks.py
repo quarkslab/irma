@@ -22,7 +22,7 @@ def ping():
       res += "Sonde is down"
    return res
 
-@celery.task(serializer='pickle')
+@celery.task(serializer='pickle',ignore_result=True))
 def scan(oid):
    task = subtask(sondetasks.sonde_scan).delay(oid)        
    return task
