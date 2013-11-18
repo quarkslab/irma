@@ -3,10 +3,9 @@ import brainstorage
 import libarchive
 from celery import Celery,exceptions
 from sonde import sondetasks
-from config import brainconfig
 
 celery=Celery('braintasks')
-celery.config_from_object('config/brainconfig')
+celery.config_from_object('config.brainconfig')
 
 IRMA_TIMEOUT=10
 
