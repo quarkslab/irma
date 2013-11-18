@@ -22,10 +22,10 @@ def ping():
       res += "Sonde is down"
    return res
 
-@celery.task(serializer='pickle',ignore_result=True)
+@celery.task(serializer='pickle')
 def scan(oid):
-   task = subtask(sondetasks.sonde_scan).delay(oid)        
-   return task
+   task = sondetasks.sonde_scan.apply_async(args=oid)        
+   return task.get()
 
 @celery.task(serializer='pickle')
 def scanarchive(oid):
