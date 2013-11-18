@@ -2,6 +2,7 @@ import time
 import brainstorage
 import libarchive
 from celery import Celery,exceptions
+from celery.task.sets import subtask
 from sonde import sondetasks
 
 celery=Celery('braintasks')
@@ -23,7 +24,7 @@ def ping():
 
 @celery.task(serializer='pickle')
 def scan(oid,t):
-   t = sondetasks.sonde_scan.delay(oid)        
+   task = subtask(sondetasks.sonde_scan.delay,oid)        
    return task
 
 @celery.task(serializer='pickle')
