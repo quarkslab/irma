@@ -2,7 +2,7 @@ import time
 import brainstorage
 import libarchive
 from celery import Celery,exceptions
-from celery.task import chord
+from celery.task import group
 from sonde import sondetasks
 from config.config import IRMA_TIMEOUT
 
@@ -23,8 +23,8 @@ def ping():
 
 @celery.task(serializer='pickle')
 def scan(oid):
-   c = chord(sondetasks.sonde_scan.subtask(o) for o in oid)
-   return c.get()
+   jobs = group(sondetasks.sonde_scan.subtask(o) for o in oid)
+   return jobs.apply_async()
 
 @celery.task(serializer='pickle')
 def scanarchive(oid):
