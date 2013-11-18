@@ -21,21 +21,13 @@ def ping():
       res += "Sonde is down"
    return res
 
-'''      
 @celery.task(serializer='pickle')
 def scan(oid):
-   try:   
-      task = sondetasks.sonde_scan.delay(oid)        
-      while not task.ready():
-         time.sleep(1)
-      res = task.get(timeout=IRMA_TIMEOUT)
-   except exceptions.TimeoutError:
-      res = "Sonde is down"
-   return res
-'''
+   task = sondetasks.sonde_scan.delay(oid)        
+   return task
 
 @celery.task(serializer='pickle')
-def scan(oid):
+def scanarchive(oid):
    try:   
       data = brainstorage.get_file(oid)
       archfile = libarchive.Archive(data)
