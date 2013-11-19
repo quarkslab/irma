@@ -24,8 +24,8 @@ def ping():
 @celery.task(serializer='pickle')
 def scan(oid):
    # create one subtask per oid to scan
-   job = sondetasks.sonde_scan.s(oid)
-   return job.apply_async()
+   job = sondetasks.sonde_scan.delay(oid)
+   return job
 
 @celery.task(serializer='pickle')
 def scanarchive(oid):
