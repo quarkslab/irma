@@ -21,13 +21,13 @@ def ping():
       res += "Sonde is down"
    return res
 
-@celery.task(serializer='pickle')
+@celery.task()
 def scan(oid):
    # create one subtask per oid to scan
-   job = sondetasks.sonde_scan.delay(oid)
-   return job
+   job = sondetasks.sonde_scan.s(oid)
+   return job.join()
 
-@celery.task(serializer='pickle')
+@celery.task()
 def scanarchive(oid):
    try:   
       data = brainstorage.get_file(oid)
