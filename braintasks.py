@@ -25,7 +25,7 @@ def ping():
 def scan(oid):
    # create one subtask per oid to scan
    job = group(sondetasks.sonde_scan.s(oid))
-   return job.join()
+   return job()
    
 @celery.task()
 def scanarchive(oid):
