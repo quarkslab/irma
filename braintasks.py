@@ -1,5 +1,4 @@
 import time
-import brainstorage
 import libarchive
 from celery import Celery,exceptions
 from celery.task import group
@@ -24,7 +23,7 @@ def ping():
 @celery.task()
 def scan(oid):
    # create one subtask per oid to scan
-   job = sondetasks.sonde_scan.delay(oid)
+   job = sondetasks.sonde_scan.apply_async(oid, queue='transient')
    return job.get()
    
 @celery.task()
