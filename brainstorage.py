@@ -16,7 +16,7 @@ class BrainStorage(object):
       self.dbh = None
       return
       
-   def __dbconn():
+   def __dbconn(self):
       client = MongoClient('mongodb://192.168.130.133:27017/')
       db = client.irma_test_database
       self.dbh = gridfs.GridFS(db)  
@@ -27,7 +27,7 @@ class BrainStorage(object):
       oid = str(self.dbh.put(data))
       return oid
       
-   def get_file(oid):
+   def get_file(self,oid):
       if not self.dbh:
          self.__dbconn()
       return self.dbh.get(ObjectId(oid)).read()
