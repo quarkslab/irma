@@ -17,6 +17,7 @@ class BrainStorage(object):
       return
       
    def __dbconn(self):
+      print "New Client"
       client = MongoClient('mongodb://192.168.130.133:27017/')
       db = client.irma_test_database
       self.dbh = gridfs.GridFS(db)  
