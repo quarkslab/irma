@@ -2,7 +2,7 @@ import time
 import libarchive
 from celery import Celery,exceptions
 from celery.task import group
-from sonde import clamavtasks
+from sonde import sondetasks
 from config.config import IRMA_TIMEOUT
 
 celery=Celery('braintasks')
@@ -12,7 +12,7 @@ celery.config_from_object('config.brainconfig')
 def ping():
    res = "Brain is up and running\n"
    try:   
-      task = clamavtasks.ping.delay()        
+      task = sondetasks.ping.delay()        
       while not task.ready():
          time.sleep(1)
       res += task.get(timeout=IRMA_TIMEOUT)
