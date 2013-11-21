@@ -1,6 +1,7 @@
 import time
 import libarchive
 from celery import Celery,exceptions
+from celery.result import GroupResult
 from celery.task import group
 from sonde import sondetasks
 from config.config import IRMA_TIMEOUT
