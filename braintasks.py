@@ -23,7 +23,7 @@ def ping():
 @celery.task()
 def scan(oid):
    # create one subtask per oid to scan
-   job = sondetasks.sonde_scan.aaply_async(args=[oid],queue='clamav')
+   job = sondetasks.sonde_scan.apply_async(args=[oid],queue='clamav')
    return job.get()
    
 @celery.task()
