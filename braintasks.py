@@ -23,8 +23,11 @@ def ping():
 @celery.task()
 def scan(oid):
    # create one subtask per oid to scan
-   job = sondetasks.sonde_scan.apply_async(args=[oid],queue='symantec')
-   return job.get()
+   job = group(
+      sondetasks.sonde_scan.apply_async(args=[oid],queue='symantec'),
+      sondetasks.sonde_scan.apply_async(args=[oid],queue='clamav')
+      )
+   return job.join()
    
 @celery.task()
 def scanarchive(oid):
