@@ -26,7 +26,8 @@ def scan(oid):
    # create one subtask per oid to scan
    t1 = sondetasks.sonde_scan.apply_async(args=[oid],queue='kaspersky')
    t2 = sondetasks.sonde_scan.apply_async(args=[oid],queue='clamav')
-   res = GroupResult(results=[t1,t2])
+   t3 = sondetasks.sonde_scan.apply_async(args=[oid],queue='sophos')
+   res = GroupResult(results=[t1,t2,t3])
    return res.get()
    
 @celery.task()
