@@ -29,7 +29,7 @@ def scan(oids):
    for oid in oids:
       for av in ['kaspersky','clamav']:
          tasks.append(sondetasks.sonde_scan.s(args=[oid],queue=av))
-   res = group(tasks)()
+   res = group(tasks).apply_async()
    return res.get()
    
 @celery.task()
