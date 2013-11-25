@@ -25,6 +25,7 @@ def ping():
 def scan(oids):
    # create one subtask per oid to scan per antivirus queue
    tasks = []
+   print "Received oids",oids
    for oid in oids:
       for av in ['kaspersky','clamav']:
          tasks.append(sondetasks.sonde_scan.s(args=[oid],queue=av))
