@@ -25,12 +25,11 @@ def ping():
 def scan(oids):
    # create one subtask per oid to scan per antivirus queue
    tasks = []
-   print "Received oids",oids
    for oid in oids:
       for av in ['kaspersky','clamav']:
-         tasks.append(sondetasks.sonde_scan.s(args=[oid],queue=av))
+         tasks.append(sondetasks.sonde_scan.s(oid,queue=av))
    res = group(tasks).apply_async()
-   return res.get()
+   return res.join()
    
 @celery.task()
 def scanarchive(oid):
