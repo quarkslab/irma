@@ -29,7 +29,7 @@ def scan(oids):
       for av in ['kaspersky','clamav']:
          print "Task av %s oid %s"%(av,oid)
          tasks.append(sondetasks.sonde_scan.s(oid,queue=av))
-         sondetasks.sonde_scan(oid).apply_async(queue=av)
+         sondetasks.sonde_scan.apply_async(args=[oid],queue=av)
    res = group(tasks)()
    return res.join()
    
