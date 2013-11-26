@@ -27,7 +27,6 @@ def scan(oids):
    tasks = []
    for oid in oids:
       for av in ['kaspersky','clamav']:
-         print "Task av %s oid %s"%(av,oid)
          tasks.append(sondetasks.sonde_scan.subtask(args=[oid],queue=av))
    res = group(tasks).apply_async()
    return res.get()  
