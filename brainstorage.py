@@ -61,6 +61,6 @@ class BrainStorage(object):
       dbh = self.dbh.SCANCOLL
       scan = dbh.find_one({'_id':ObjectId(scan_oid)})
       scan['oids'][file_oid].append(res_oid)
-      scan.save()
+      dbh.save(scan)
       return
       
