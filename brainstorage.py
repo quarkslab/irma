@@ -38,7 +38,7 @@ class BrainStorage(object):
       return fsdbh.get(ObjectId(oid))
 
 
-   def create_scan_record(self, oids):
+   def create_scan_record(self, oids, avlist):
       if not self.dbh:
          self.__dbconn()
       dbh = self.dbh.SCANCOLL
@@ -52,6 +52,16 @@ class BrainStorage(object):
       dbh = self.dbh.SCANCOLL
       record = dbh.find_one({"_id":ObjectId(scan_oid)})
       return record['oids']
+
+   def update_scan(self,scan_oid, update):
+      """ update scan record with update """
+      if not self.dbh:
+         self.__dbconn()
+      dbh = self.dbh.SCANCOLL
+      scan = dbh.find_one({'_id':ObjectId(scan_oid)})
+      scan.append(update)
+      dbh.save(scan)
+      return  
    
    def update_result(self,scan_oid, file_oid, result):
       """ put result from sonde into resultdb and link with scan """
