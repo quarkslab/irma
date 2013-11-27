@@ -45,13 +45,13 @@ class BrainStorage(object):
       oid = dbh.save({'oids':{oid:[] for oid in oids}})
       return str(oid)
 
-   def get_scanid_oids(self,scan_oid):
+   def get_scanid(self,scan_oid):
       """ get list of oids associated with scanid """
       if not self.dbh:
          self.__dbconn()  
       dbh = self.dbh.SCANCOLL
       record = dbh.find_one({"_id":ObjectId(scan_oid)})
-      return record['oids']
+      return record
 
    def update_scan(self,scan_oid, update):
       """ update scan record with update """
