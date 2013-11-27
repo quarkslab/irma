@@ -26,8 +26,8 @@ class BrainStorage(object):
          self.__dbconn()
       fsdbh = gridfs.GridFS(self.dbh)        
       datahash = self.hash(data).hexdigest()
-      oid = str(fsdbh.put(data, filename=name, hexdigest=datahash, date_lastresult=date_lastresult))
-      return oid
+      oid = fsdbh.put(data, filename=name, hexdigest=datahash, date_lastresult=date_lastresult)
+      return str(oid)
       
    def get_file(self,oid):
       """ get data from gridfs by file object-id """
@@ -57,7 +57,7 @@ class BrainStorage(object):
       if not self.dbh:
          self.__dbconn()
       dbh = self.dbh.RESCOLL
-      res_oid = dbh.save(result)
+      res_oid = str(dbh.save(result))
       dbh = self.dbh.SCANCOLL
       scan = dbh.find_one({'_id':ObjectId(scan_oid)})
       scan['oids'][file_oid].append(res_oid)
