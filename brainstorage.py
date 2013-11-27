@@ -54,9 +54,10 @@ class BrainStorage(object):
       for key, value in update.items():
          scan['key'] = value
       dbh.save(scan)
-      return  
+      return
 
    def update_scan_record(self, scan_oid, avlist, nbscan):
+      print "DEBUG UPDATE %s %d"%(avlist,nbscan)
       self.__update_scan(scan_oid,{'avlist':avlist, 'nbscan':nbscan})
       return
 
