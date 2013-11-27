@@ -7,8 +7,9 @@ import hashlib
         
 class BrainStorage(object):
    DBNAME = "irma_test"
-   COLLECTION = "results"
-   
+   RESCOLL = "results"
+   SCANCOLL = "scan"
+
    def __init__(self):
       self.dbh = None
       self.hash = hashlib.sha256
@@ -23,38 +24,42 @@ class BrainStorage(object):
       """ put data into gridfs and get file object-id """
       if not self.dbh:
          self.__dbconn()
-      fsdb = gridfs.GridFS(self.dbh)        
+      fsdbh = gridfs.GridFS(self.dbh)        
       datahash = self.hash(data).hexdigest()
-      oid = str(fsdb.put(data, filename=name, hexdigest=datahash, date_lastresult=date_lastresult))
+      oid = str(fsdbh.put(data, filename=name, hexdigest=datahash, date_lastresult=date_lastresult))
       return oid
       
    def get_file(self,oid):
       """ get data from gridfs by file object-id """
       if not self.dbh:
          self.__dbconn()
-      fsdb = gridfs.GridFS(self.dbh)        
-      return fsdb.get(ObjectId(oid))
+      fsdbh = gridfs.GridFS(self.dbh)        
+      return fsdbh.get(ObjectId(oid))
 
 
    def create_scan_record(self, oids):
       if not self.dbh:
          self.__dbconn()
       dbh = self.dbh.COLLECTION
-      oid = dbh.save({"oids":oids})
+      oid = dbh.save({oid:[] for oid in oids})
       return str(oid)
 
    def get_scanid_oids(self,scanid):
       """ get list of oids associated with scanid """
       if not self.dbh:
          self.__dbconn()  
-      dbh = self.dbh.COLLECTION
+      dbh = self.dbh.SCANCOLL
       record = dbh.find_one({"_id":ObjectId(scanid)})
       return record['oids']
    
-   def update_avresult(self,oid, avname, result):
-      """ put result from av scan into db """
-      if not self.client:
+   def update_result(self,file_oid,scan_oid, result):
+      """ put result from sonde into resultdb and link with scan """
+      if not self.dbh:
          self.__dbconn()
-      dbh = gridfs.GridFS(client.FILE_DB)        
+      dbh = self.dbh.RESCOLL
+      res_oid = dbh.save(result)
+      dbh = self.dbh.SCANCOLL
+      scan = dbh.find_one({'_id':ObjetId(scan_oid)})
+      scan[file_oid].append(res_oid)
       return
       
