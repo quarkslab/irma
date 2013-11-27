@@ -22,11 +22,11 @@ def ping():
    return res
 
 @celery_brain.task(name="brain.scan")
-def scan(oids):
+def scan(scanid, oids):
    # create one subtask per oid to scan per antivirus queue
    tasks = []
    for oid in oids:
       for av in ['kaspersky','clamav']:
-         tasks.append(sondetasks.sonde_scan.subtask(args=[oid],queue=av))
+         tasks.append(sondetasks.sonde_scan.subtask(args=[scanid,oid],queue=av))
    res = group(tasks).apply_async()
    return res.get()  
