@@ -44,15 +44,15 @@ class BrainStorage(object):
       oid = dbh.save({'oids':{oid:[] for oid in oids}})
       return str(oid)
 
-   def get_scanid_oids(self,scanid):
+   def get_scanid_oids(self,scan_oid):
       """ get list of oids associated with scanid """
       if not self.dbh:
          self.__dbconn()  
       dbh = self.dbh.SCANCOLL
-      record = dbh.find_one({"_id":ObjectId(scanid)})
+      record = dbh.find_one({"_id":ObjectId(scan_oid)})
       return record['oids']
    
-   def update_result(self,file_oid, scan_oid, result):
+   def update_result(self,scan_oid, file_oid, result):
       """ put result from sonde into resultdb and link with scan """
       if not self.dbh:
          self.__dbconn()
