@@ -38,12 +38,26 @@ class BrainStorage(object):
       return fsdbh.get(ObjectId(oid))
 
 
-   def create_scan_record(self, oids, avlist):
+   def create_scan_record(self, file_oids):
       if not self.dbh:
          self.__dbconn()
       dbh = self.dbh.SCANCOLL
-      oid = dbh.save({'oids':{oid:[] for oid in oids}})
-      return str(oid)
+      scan_oid = dbh.save({'oids':{oid:[] for oid in file_oids}, 'avlist':[], 'nbscan':0})
+      return str(scan_oid)
+
+   def __update_scan(self,scan_oid, update):
+      """ update scan record with update """
+      if not self.dbh:
+         self.__dbconn()
+      dbh = self.dbh.SCANCOLL
+      scan = dbh.find_one({'_id':ObjectId(scan_oid)})
+      scan.append(update)
+      dbh.save(scan)
+      return  
+
+   def update_scan_record(self, scan_oid, avlist, nbscan):
+      self.__update_scan(scan_oid,{'avlist':avlist, 'nbscan':nbscan})
+      return
 
    def get_scanid(self,scan_oid):
       """ get list of oids associated with scanid """
@@ -53,15 +67,6 @@ class BrainStorage(object):
       record = dbh.find_one({"_id":ObjectId(scan_oid)})
       return record
 
-   def update_scan(self,scan_oid, update):
-      """ update scan record with update """
-      if not self.dbh:
-         self.__dbconn()
-      dbh = self.dbh.SCANCOLL
-      scan = dbh.find_one({'_id':ObjectId(scan_oid)})
-      scan.append(update)
-      dbh.save(scan)
-      return  
    
    def update_result(self,scan_oid, file_oid, result):
       """ put result from sonde into resultdb and link with scan """

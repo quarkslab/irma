@@ -32,5 +32,5 @@ def scan(scanid, oids):
       for av in avlist:
          tasks.append(sondetasks.sonde_scan.subtask(args=[scanid,oid],queue=av))
    res = group(tasks).apply_async()
-   bstorage.update_scan(scanid,{'avlist':avlist, 'nbscan':len(avlist)*len(oids)})
+   bstorage.update_scan_info(scanid,avlist,len(avlist)*len(oids))
    return res.get()  
