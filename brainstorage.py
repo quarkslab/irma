@@ -31,5 +31,5 @@ class BrainStorage(object):
       """ get data from gridfs by file object-id """
       if not self.dbh:
          self.__dbconn()
-      return self.dbh.get(ObjectId(file_oid))
+      return self.dbh.get(ObjectId(oid))
 
