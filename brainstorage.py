@@ -7,7 +7,6 @@ import copy
 
         
 class BrainStorage(object):
-   DBNAME = "irma_test"
    RESCOLL = "results"
    SCANCOLL = "scan"
 
@@ -18,7 +17,7 @@ class BrainStorage(object):
       
    def __dbconn(self):
       client = pymongo.MongoClient('mongodb://192.168.130.133:27017/')
-      self.dbh = client.DBNAME
+      self.dbh = client.irma_test
       return 
          
    def store_file(self,data, name=None , date_lastresult=None):
