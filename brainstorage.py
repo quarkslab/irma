@@ -59,7 +59,7 @@ class BrainStorage(object):
       dbh = self.dbh.RESCOLL
       res_oid = dbh.save(result)
       dbh = self.dbh.SCANCOLL
-      scan = dbh.find_one({'_id':ObjetId(scan_oid)})
+      scan = dbh.find_one({'_id':ObjectId(scan_oid)})
       scan[file_oid].append(res_oid)
       return
       
