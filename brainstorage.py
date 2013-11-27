@@ -40,7 +40,7 @@ class BrainStorage(object):
    def create_scan_record(self, oids):
       if not self.dbh:
          self.__dbconn()
-      dbh = self.dbh.COLLECTION
+      dbh = self.dbh.SCANCOLL
       oid = dbh.save({oid:[] for oid in oids})
       return str(oid)
 
