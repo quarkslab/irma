@@ -51,7 +51,8 @@ class BrainStorage(object):
          self.__dbconn()
       dbh = self.dbh.SCANCOLL
       scan = dbh.find_one({'_id':ObjectId(scan_oid)})
-      scan.append(update)
+      for key, value in update.items():
+         scan['key'] = value
       dbh.save(scan)
       return  
 
