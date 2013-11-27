@@ -3,6 +3,7 @@ import uuid
 from bson import ObjectId
 import pymongo
 import hashlib
+import copy
 
         
 class BrainStorage(object):
@@ -57,7 +58,7 @@ class BrainStorage(object):
       if not self.dbh:
          self.__dbconn()
       dbh = self.dbh.RESCOLL
-      res_oid = str(dbh.save(result))
+      res_oid = str(dbh.save(copy.copy(result)))
       dbh = self.dbh.SCANCOLL
       scan = dbh.find_one({'_id':ObjectId(scan_oid)})
       scan['oids'][file_oid].append(res_oid)
