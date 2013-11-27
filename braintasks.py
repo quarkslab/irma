@@ -5,6 +5,7 @@ from celery.result import GroupResult
 from celery.task import group
 from sonde import sondetasks
 from config.config import IRMA_TIMEOUT
+from brain import brainstorage
 
 celery_brain=Celery('braintasks')
 celery_brain.config_from_object('config.brainconfig')
