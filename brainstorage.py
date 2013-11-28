@@ -61,7 +61,7 @@ class BrainStorage(object):
 
    def create_scan_record(self, file_oids_map):
       dbh = self.__dbconn(SCANCOLL)
-      scan_oid = dbh.save({'oids': file_oids_map, 'avlist':[], 'nblaunched': 0, 'nbsuccess':0 })
+      scan_oid = dbh.save({'oids': file_oids_map, 'avlist':[]})
       return str(scan_oid)
 
    def update_scan_record(self, scan_oid, avlist, nbscan):      
@@ -82,6 +82,14 @@ class BrainStorage(object):
       for (file_oid,filename) in record['oids'].items():
          res[filename] = self.get_result(file_oid)
       return res
+      
+   def get_scan_progress(self,scan_oid):
+      """ get list of file oids associated with scanid """
+      dbh = self.__dbconn(SCANCOLL)
+      scan = dbh.find_one({"_id":ObjectId(scan_oid)})
+      nb_launched = len(scan['oids'])*len(scan['avlist'])
+      nb_results = self.get_result_nb(scan['oids'].keys(), scan['avlist'])
+      return "%d/%d"%(nb_results,nb_launched)
 #______________________________________________________________ RESULTS API   
    
 
@@ -94,9 +102,15 @@ class BrainStorage(object):
    def get_result(self,file_oid):
       """ get list of results associated with scanid """
       dbh = self.__dbconn(RESCOLL)
-      return dbh.find_one({"_id":file_oid})
+      return dbh.find_one({'_id':ObjectId(file_oid)},{'_id': False})
 
-   
+   def get_result_nb(self, file_oids, avlist):
+      dbh = self.__dbconn(RESCOLL)
+      oids = map(lambda o: ObjectId(o), file_oids)
+      res = 0
+      for r  in dbh.find({'_id': {'$in': oids}}, {'_id': False}):
+         res += len(filter(lambda a: a in avlist, r.keys()))
+      return res
   
    
       
