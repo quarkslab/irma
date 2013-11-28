@@ -5,10 +5,11 @@ import pymongo
 import hashlib
 import copy
 
-        
+RESCOLL = "res"
+SCANCOLL = "scan"
+     
 class BrainStorage(object):
-   RESCOLL = "res"
-   SCANCOLL = "scan"
+
    
    def __init__(self):
       self.dbh = None
@@ -47,6 +48,10 @@ class BrainStorage(object):
       self.__dbconn()
       fsdbh = gridfs.GridFS(self.dbh)        
       return fsdbh.get(ObjectId(file_oid))
+
+   def get_file_data(self,file_oid):
+      """ get data from gridfs by file object-id """
+      return self.get_file(file_oid).read()
 
 #______________________________________________________________ SCAN API
 
