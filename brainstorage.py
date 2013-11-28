@@ -91,10 +91,9 @@ class BrainStorage(object):
       dbh = self.__dbconn(RESCOLL)
       res = {}
       for file_oid in file_oids:     
-         res.append(dbh.find_one({"_id":file_oid}))
-      return record
+         res[file_oid] = dbh.find_one({"_id":file_oid})
+      return res
    
-
-      
+  
    
       
