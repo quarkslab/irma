@@ -55,9 +55,9 @@ class BrainStorage(object):
 
 #______________________________________________________________ SCAN API
 
-   def create_scan_record(self, file_oids):
+   def create_scan_record(self, file_oids_map):
       dbh = self.__dbconn(SCANCOLL)
-      scan_oid = dbh.save({'oids': file_oids, 'avlist':[], 'nblaunched': 0, 'nbsuccess':0 })
+      scan_oid = dbh.save({'oids': file_oids_map, 'avlist':[], 'nblaunched': 0, 'nbsuccess':0 })
       return str(scan_oid)
 
    def update_scan_record(self, scan_oid, avlist, nbscan):      
@@ -70,10 +70,18 @@ class BrainStorage(object):
       record = dbh.find_one({"_id":ObjectId(scan_oid)})
       return record['oids']
    
+   def get_scan_results(self,scan_oid):
+      """ get list of file oids associated with scanid """
+      dbh = self.__dbconn(SCANCOLL)
+      record = dbh.find_one({"_id":ObjectId(scan_oid)})
+      res = {}
+      for (file_oid,filename) in record['oids'].items():
+         res[filename] = self.get_result(file_oid)
+      return res
 #______________________________________________________________ RESULTS API   
    
     
-   def create_result(self, file_oid, result):
+   def create_result(self, file_oid):
       """ put result from scan into resultdb and link with file_oid """
       dbh = self.__dbconn(RESCOLL)
       result['_id']=file_oid
@@ -86,13 +94,11 @@ class BrainStorage(object):
       return
       
  
-   def get_results_from_fileoid(self,file_oids):
+   def get_result(self,file_oid):
       """ get list of results associated with scanid """
       dbh = self.__dbconn(RESCOLL)
-      res = {}
-      for file_oid in file_oids:     
-         res[file_oid] = dbh.find_one({"_id":file_oid})
-      return res
+      return dbh.find_one({"_id":file_oid})
+
    
   
    
