@@ -80,7 +80,7 @@ class BrainStorage(object):
       return
       
  
-   def get_res_from_fileoid(self,file_oids):
+   def get_results_from_fileoid(self,file_oids):
       """ get list of results associated with scanid """
       dbh = self.__dbconn(RESCOLL)
       res = {}
