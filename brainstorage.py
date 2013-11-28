@@ -76,7 +76,8 @@ class BrainStorage(object):
    def create_result(self, file_oid, result):
       """ put result from scan into resultdb and link with file_oid """
       dbh = self.__dbconn(RESCOLL)
-      dbh.save({'_id':file_oid}.append(result))
+      result['_id']=file_oid
+      dbh.save(result)
       return
 
    def update_result(self, file_oid, update):
