@@ -63,7 +63,7 @@ class BrainStorage(object):
       return str(scan_oid)
 
    def update_scan_record(self, scan_oid, avlist, nbscan):      
-      self.__update_record(SCANCOLL, scan_oid, {'avlist':avlist, 'nblaunched':nbscan})
+      self.__create_update_record(SCANCOLL, scan_oid, {'avlist':avlist, 'nblaunched':nbscan})
       return
 
    def get_scan_fileoid(self,scan_oid):
