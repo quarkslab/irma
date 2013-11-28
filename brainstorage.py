@@ -4,6 +4,7 @@ from bson import ObjectId
 import pymongo
 import hashlib
 import copy
+from config.config import MONGODB
 
 RESCOLL = "res"
 SCANCOLL = "scan"
@@ -19,7 +20,7 @@ class BrainStorage(object):
    def __dbconn(self, collection_name=None):
       """ connect if needed to the database and returns a dbhandler to the collection specified """
       if not self.dbh:
-         client = pymongo.MongoClient('mongodb://192.168.130.133:27017/')
+         client = pymongo.MongoClient(MONGODB)
          self.dbh = client.irma_test
       if collection_name:
          return self.dbh[collection_name]
@@ -45,10 +46,13 @@ class BrainStorage(object):
       dbh = self.__dbconn(FSFILESCOLL)
       fsdbh = gridfs.GridFS(self.dbh)        
       datahash = self.hash(data).hexdigest()
+      # Check if hash is already present in db
       fr = dbh.find_one({'hexdigest':datahash})
       if fr:
+         # if yes return the existing file_oid
          return str(fr['_id'])
       else:
+         # if not create a new record
          file_oid = fsdbh.put(data, filename=name, hexdigest=datahash)
          return str(file_oid)
       
@@ -96,13 +100,11 @@ class BrainStorage(object):
       nb_results = self.get_result_nb(scan['oids'].keys(), scan['avlist'])
       return "%d/%d"%(nb_results,nb_launched)
 #______________________________________________________________ RESULTS API   
-   
 
    def update_result(self, file_oid, update):
       """ put result from sonde into resultdb and link with  """
       self.__create_update_record(RESCOLL, file_oid, update)
       return
-      
  
    def get_result(self,file_oid):
       """ get list of results associated with scanid """
