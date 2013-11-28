@@ -7,6 +7,7 @@ import copy
 
 RESCOLL = "res"
 SCANCOLL = "scan"
+FSFILESCOLL = "fs.files"
      
 class BrainStorage(object):
    
@@ -41,11 +42,15 @@ class BrainStorage(object):
               
    def store_file(self, data, name=None):
       """ put data into gridfs and get file object-id """
-      self.__dbconn()
+      dbh = self.__dbconn(FSFILESCOLL)
       fsdbh = gridfs.GridFS(self.dbh)        
       datahash = self.hash(data).hexdigest()
-      file_oid = fsdbh.put(data, filename=name, hexdigest=datahash)
-      return str(file_oid)
+      fr = dbh.find_one({'hexdigest':datahash})
+      if fr:
+         return str(fr['_id'])
+      else:
+         file_oid = fsdbh.put(data, filename=name, hexdigest=datahash)
+         return str(file_oid)
       
    def get_file(self,file_oid):
       """ get data from gridfs by file object-id """
