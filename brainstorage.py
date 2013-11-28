@@ -24,10 +24,12 @@ class BrainStorage(object):
          return self.dbh[collection_name]
       return
       
-   def __update_record(self, collection_name, oid, update):
+   def __create_update_record(self, collection_name, oid, update):
       """ update scan record with update """      
       dbh = self.__dbconn(collection_name)
       record = dbh.find_one({'_id':ObjectId(oid)})
+      if not record:
+         record=dict({'_id':ObjectId(oid)})
       for key, value in update.items():
          record[key] = value
       dbh.save(record)
@@ -80,17 +82,10 @@ class BrainStorage(object):
       return res
 #______________________________________________________________ RESULTS API   
    
-    
-   def create_result(self, file_oid):
-      """ put result from scan into resultdb and link with file_oid """
-      dbh = self.__dbconn(RESCOLL)
-      result['_id']=file_oid
-      dbh.save(result)
-      return
 
    def update_result(self, file_oid, update):
       """ put result from sonde into resultdb and link with  """
-      self.__update_record(RESCOLL, file_oid, update)
+      self.__create_update_record(RESCOLL, file_oid, update)
       return
       
  
