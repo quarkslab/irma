@@ -9,7 +9,6 @@ RESCOLL = "res"
 SCANCOLL = "scan"
      
 class BrainStorage(object):
-
    
    def __init__(self):
       self.dbh = None
@@ -17,6 +16,7 @@ class BrainStorage(object):
       return
       
    def __dbconn(self, collection_name=None):
+      """ connect if needed to the database and returns a dbhandler to the collection specified """
       if not self.dbh:
          client = pymongo.MongoClient('mongodb://192.168.130.133:27017/')
          self.dbh = client.irma_test
@@ -25,13 +25,15 @@ class BrainStorage(object):
       return
       
    def __create_update_record(self, collection_name, oid, update):
-      """ update scan record with update """      
+      """ update record with update dict"""      
       dbh = self.__dbconn(collection_name)
       record = dbh.find_one({'_id':ObjectId(oid)})
       if not record:
+         print "DEBUG New result object created"
          record=dict({'_id':ObjectId(oid)})
       for key, value in update.items():
          record[key] = value
+      print "DEBUG Update with ",record
       dbh.save(record)
       return
      
