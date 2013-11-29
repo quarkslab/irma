@@ -18,7 +18,6 @@ def scan(scanid, oids):
          tasks.append(sondetasks.sonde_scan.s(args=[scanid,oid],queue=av))
    job = group(tasks).apply_async()
    job.save()
-   print "DEBUG Group saved:",job.id
-   bstorage.update_scan_record(scanid,avlist,len(avlist)*len(oids))
+   bstorage.update_scan_record(scanid,{'avlist':avlist})
    return job.get()
 
