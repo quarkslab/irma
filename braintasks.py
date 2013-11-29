@@ -8,7 +8,7 @@ celery_brain= celery.Celery('braintasks')
 celery_brain.config_from_object('config.brainconfig')
 bstorage = brainstorage.BrainStorage()
 
-@celery_brain.task(name="brain.scan", ignore_result=True)
+@celery_brain.task(name="brain.scan")
 def scan(scanid, oids):
    # create one subtask per oid to scan per antivirus queue
    tasks = []
