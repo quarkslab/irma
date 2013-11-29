@@ -50,6 +50,7 @@ class BrainStorage(object):
       fr = dbh.find_one({'hexdigest':datahash})
       if fr:
          # if yes return the existing file_oid
+         print "File is already here:",str(fr['_id'])
          return str(fr['_id'])
       else:
          # if not create a new record
