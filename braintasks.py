@@ -1,13 +1,10 @@
-import time
-import libarchive
-from celery import Celery,exceptions
-from celery.result import GroupResult
+import celery
 from celery.task import group
+from brain import brainstorage
 from sonde import sondetasks
 from config.config import IRMA_TIMEOUT
-from brain import brainstorage
 
-celery_brain=Celery('braintasks')
+celery_brain= celery.Celery('braintasks')
 celery_brain.config_from_object('config.brainconfig')
 bstorage = brainstorage.BrainStorage()
 
@@ -23,5 +20,5 @@ def scan(scanid, oids):
    job.save()
    print "DEBUG Group saved:",job.id
    bstorage.update_scan_record(scanid,avlist,len(avlist)*len(oids))
-   return job.get()  
+   return job.get()
 
