@@ -18,7 +18,7 @@ def scan(scanid, oids):
       for av in avlist:
          tasks.append(sondetasks.sonde_scan.subtask(args=(scanid,oid), options={'queue':av}))
    job = group(tasks)
-   job.apply_async()
-   job.save()
-   bstorage.update_scan_record(scanid,{'taskid':job.id , 'avlist':avlist})
-   return job.join()
+   res = job.apply_async()
+   res.save()
+   bstorage.update_scan_record(scanid,{'taskid':res.id , 'avlist':avlist})
+   return res.join()
