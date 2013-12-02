@@ -91,7 +91,10 @@ class BrainStorage(object):
       """ get list of file oids associated with scanid """
       dbh = self.__dbconn(SCANCOLL)
       scan = dbh.find_one({"_id":ObjectId(scan_oid)})
-      return scan['taskid']
+      if 'taskid' in scan:
+         return scan['taskid']
+      else:
+         return None
 #______________________________________________________________ RESULTS API
 
    def update_result(self, file_oid, update):
