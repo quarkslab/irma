@@ -15,7 +15,7 @@ def scan(scanid, oids):
    avlist = ['kaspersky','clamav']
    for oid in oids:
       for av in avlist:
-         tasks.append(sondetasks.sonde_scan.si(args=[scanid,oid],queue=av))
+         tasks.append(sondetasks.sonde_scan.s(args=[scanid,oid],queue=av))
    job = group(tasks).apply_async()
    job.save()
    bstorage.update_scan_record(scanid,{'taskid':job.id , 'avlist':avlist})
