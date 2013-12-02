@@ -4,6 +4,7 @@ from brain import brainstorage
 from sonde import sondetasks
 from config.config import IRMA_TIMEOUT
 
+
 celery_brain= celery.Celery('braintasks')
 celery_brain.config_from_object('config.brainconfig')
 bstorage = brainstorage.BrainStorage()
@@ -15,9 +16,8 @@ def scan(scanid, oids):
    avlist = ['clamav']
    for oid in oids:
       for av in avlist:
-         tasks.append(sondetasks.sonde_scan.s(args=[scanid,oid],queue=av))
+         tasks.append(sondetasks.sonde_scan.subtasks(args=[scanid,oid],options={'queue',av}))
    job = group(tasks).apply_async()
    job.save()
    bstorage.update_scan_record(scanid,{'taskid':job.id , 'avlist':avlist})
    return job.join()
-
