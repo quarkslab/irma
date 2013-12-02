@@ -16,7 +16,7 @@ def scan(scanid, oids):
    avlist = ['clamav']
    for oid in oids:
       for av in avlist:
-         tasks.append(sondetasks.sonde_scan.subtask(args=(scanid,oid), options={'queue',av}))
+         tasks.append(sondetasks.sonde_scan.subtask(args=(scanid,oid), options={'queue':av}))
    job = group(tasks)
    job.apply_async()
    job.save()
