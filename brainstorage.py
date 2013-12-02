@@ -31,11 +31,9 @@ class BrainStorage(object):
       dbh = self.__dbconn(collection_name)
       record = dbh.find_one({'_id':ObjectId(oid)})
       if not record:
-         print "DEBUG New result object created"
          record=dict({'_id':ObjectId(oid)})
       for key, value in update.items():
          record[key] = value
-      print "DEBUG Update with ",record
       dbh.save(record)
       return
 
