@@ -19,5 +19,5 @@ def scan(scanid, oids):
    job = group(tasks).apply_async()
    job.save()
    bstorage.update_scan_record(scanid,{'taskid':job.id , 'avlist':avlist})
-   return job.res()
+   return job.join()
 
