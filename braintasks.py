@@ -13,7 +13,7 @@ bstorage = brainstorage.BrainStorage()
 def scan(scanid, oids):
    # create one subtask per oid to scan per antivirus queue
    tasks = []
-   avlist = ['clamav']
+   avlist = ['clamav','kaspersky']
    for oid in oids:
       for av in avlist:
          tasks.append(sondetasks.sonde_scan.subtask(args=(scanid,oid), options={'queue':av}))
