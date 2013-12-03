@@ -2,7 +2,7 @@ import celery
 from celery.task import group
 from brain import brainstorage
 from sonde import sondetasks
-from config.config import IRMA_TIMEOUT,SCAN_STATUS_INIT,SCAN_STATUS_FINISHED,SCAN_STATUS_CANCELLED
+from config.config import IRMA_TIMEOUT,SCAN_STATUS_LAUNCHED,SCAN_STATUS_FINISHED,SCAN_STATUS_CANCELLED
 
 
 celery_brain= celery.Celery('braintasks')
@@ -21,7 +21,7 @@ def scan(scanid, oids):
    res = job.apply_async()
    # keep the groupresult object for task status/cancel
    res.save()
-   bstorage.update_scan_record(scanid,{'status':SCAN_STATUS_INIT, 'taskid':res.id , 'avlist':avlist})
+   bstorage.update_scan_record(scanid,{'status':SCAN_STATUS_LAUNCHED, 'taskid':res.id , 'avlist':avlist})
    return
 
 @celery_brain.task(ignore_result=True)
