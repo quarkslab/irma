@@ -70,11 +70,13 @@ class BrainStorage(object):
       self.__create_update_record(SCANCOLL, scan_oid, update)
       return
 
-   def get_scan_fileoid(self,scan_oid):
-      """ get list of file oids associated with scanid """
+   def __get_scan_field(self,scan_oid, field):
+      """ get field value for scanid """
       dbh = self.__dbconn(SCANCOLL)
-      record = dbh.find_one({"_id":ObjectId(scan_oid)})
-      return record['oids']
+      scan = dbh.find_one({"_id":ObjectId(scan_oid)})
+      if field in scan:
+         return scan[field]
+      return None
 
    def get_scan_results(self,scan_oid):
       """ get list of file oids associated with scanid """
@@ -85,14 +87,17 @@ class BrainStorage(object):
          res[filename] = self.get_result(file_oid)
       return res
 
+   def get_scan_fileoid(self,scan_oid):
+      """ get list of file oids associated with scanid """
+      return self.__get_scan_field(scan_oid,"oids")
+
    def get_scan_taskid(self,scan_oid):
       """ get list of file oids associated with scanid """
-      dbh = self.__dbconn(SCANCOLL)
-      scan = dbh.find_one({"_id":ObjectId(scan_oid)})
-      if 'taskid' in scan:
-         return scan['taskid']
-      else:
-         return None
+      return self.__get_scan_field(scan_oid,'taskid')
+
+   def get_scan_status(self,scan_oid):
+      """ get list of file oids associated with scanid """
+      return self.__get_scan_field(scan_oid,'status')
 #______________________________________________________________ RESULTS API
 
    def update_result(self, file_oid, update):
