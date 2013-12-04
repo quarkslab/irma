@@ -80,7 +80,7 @@ class VirtualMachineManager(MachineManager):
         """
         raise NotImplementedError
 
-    def delete(self, label=None):
+    def remove(self, label=None):
         """Delete a machine
         @param label: machine name
         @raise NotImplementedError: this method is abstract.

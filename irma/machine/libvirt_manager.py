@@ -398,7 +398,7 @@ class LibVirtMachineManager(VirtualMachineManager):
             raise IrmaMachineManagerError("Cannot clone a running machine {0}".format(src_label))
         self._clone_machine(src_label, dst_label)
 
-    def delete(self, label=None):
+    def remove(self, label=None):
         """Delete a machine
         @param label: machine name
         @raise NotImplementedError: this method is abstract.

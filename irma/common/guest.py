@@ -1,6 +1,3 @@
-import pymongo
-from pymongo import Connection
-
 # See http://stackoverflow.com/questions/1305532/
 
 class Guest:
