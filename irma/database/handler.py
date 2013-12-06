@@ -91,18 +91,16 @@ class Database(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
         return res
-    
+
     def save(self, db_name, collection_name, dict_object):
         """ save entry in collection"""
         collection = self._table(db_name, collection_name)
         try:
-            print "Save ",dict_object
             _id = collection.save(dict_object)
-            print "_id:",_id
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
         return _id
-            
+
     def update(self, db_name, collection_name, update_dict):
         """ Update entries in collection according to the dictionnary specified"""
         collection = self._table(db_name, collection_name)
@@ -110,7 +108,7 @@ class Database(Singleton):
             collection.update(update_dict)
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
-            
+
     def remove(self, db_name, collection_name, _id):
         """ Delete entrie in collection according to the dictionnary specified"""
         collection = self._table(db_name, collection_name)
@@ -118,4 +116,3 @@ class Database(Singleton):
             collection.remove({'_id':_id})
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
-        
