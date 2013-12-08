@@ -76,10 +76,6 @@ class LibVirtMachineManager(VirtualMachineManager):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
-        if self._conn:
-            self._disconnect()
-
     ##########################################################################
     # Parametric Singleton
     ##########################################################################
