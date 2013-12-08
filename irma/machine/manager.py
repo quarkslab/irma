@@ -31,14 +31,14 @@ class MachineManager(object):
         """
         raise NotImplementedError
 
-    def acquire(self, label=None):
+    def acquire(self, label):
         """Acquire a machine to start analysis.
         @param label: machine name.
         @raise NotImplementedError: this method is abstract.
         """
         raise NotImplementedError
 
-    def release(self, label=None):
+    def release(self, label):
         """Release a machine.
         @param label: machine name.
         @raise NotImplementedError: this method is abstract.
@@ -58,21 +58,21 @@ class VirtualMachineManager(MachineManager):
     def __init__(self):
         pass
 
-    def start(self, label=None):
+    def start(self, label):
         """Start a machine
         @param label: machine name
         @raise NotImplementedError: this method is abstract.
         """
         raise NotImplementedError
 
-    def stop(self):
+    def stop(self, label, force=False):
         """Stop a machine
         @param label: machine name
         @raise NotImplementedError: this method is abstract.
         """
         raise NotImplementedError
 
-    def clone(self, src_label=None, dst_label=None):
+    def clone(self, src_label, dst_label):
         """Clone a machine
         @param src_label: source machine name
         @param dst_label: destination machine name
@@ -80,7 +80,7 @@ class VirtualMachineManager(MachineManager):
         """
         raise NotImplementedError
 
-    def remove(self, label=None):
+    def delete(self, label):
         """Delete a machine
         @param label: machine name
         @raise NotImplementedError: this method is abstract.
