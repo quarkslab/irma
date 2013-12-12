@@ -35,7 +35,7 @@ def scan_new():
         oids[file_oid] = filename
     scanid = str(ObjectId())
     # s = signature("braintasks.scan", args=(scanid, oids))
-    brain_celery.send_task("braintasks.scan", args=(scanid, oids))
+    brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids))
     bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_INIT, 'oids': oids, 'avlist':[]})
     return {"scanid":scanid}
 
