@@ -2,8 +2,8 @@ import re
 import os
 import celery
 from celery import signature
-from bottle import route, request, default_app, abort, run
-from brain import braintasks, brainstorage
+from bottle import route, request, default_app, run
+from brain import brainstorage
 from config.dbconfig import SCAN_STATUS_INIT, SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED
 from bson import ObjectId
 
@@ -34,8 +34,8 @@ def scan_new():
         file_oid = bstorage.store_file(data, name=filename)
         oids[file_oid] = filename
     scanid = str(ObjectId())
-    # s = signature("braintasks.scan", args=(scanid, oids))
-    brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids))
+    s = signature("braintasks.scan", args=(scanid, oids))
+    brain_celery.send_task(s)
     bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_INIT, 'oids': oids, 'avlist':[]})
     return {"scanid":scanid}
 
