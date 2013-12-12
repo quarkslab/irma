@@ -1,12 +1,16 @@
 import re
 import os
 import celery
+from celery import signature
 from bottle import route, request, default_app, abort, run
 from brain import braintasks, brainstorage
-from config.dbconfig import SCAN_STATUS_INIT, SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED
+from config.dbconfig import SCAN_STATUS_INIT, SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED
 from bson import ObjectId
 
 bstorage = brainstorage.BrainStorage()
+brain_celery = celery.Celery('braintasks')
+brain_celery.config_from_object('config.brainconfig')
+
 sonde_celery = celery.Celery('sondetasks')
 sonde_celery.config_from_object('config.sondeconfig')
 
@@ -30,7 +34,8 @@ def scan_new():
         file_oid = bstorage.store_file(data, name=filename)
         oids[file_oid] = filename
     scanid = str(ObjectId())
-    celery.chord(braintasks.scan.s(scanid, oids), braintasks.scan_finished.s(scanid))()
+    # s = signature("braintasks.scan", args=(scanid, oids))
+    brain_celery.send_task("braintasks.scan", args=(scanid, oids))
     bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_INIT, 'oids': oids, 'avlist':[]})
     return {"scanid":scanid}
 
