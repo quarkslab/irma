@@ -1,14 +1,16 @@
 import celery
 from brain import brainstorage
+import config.brainconfig as brainconfig
+import config.sondeconfig as sondeconfig
 from config.dbconfig import SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED, SCAN_STATUS_INIT, SCAN_STATUS_CANCELLING
 import uuid
 
 celery_brain = celery.Celery('braintasks')
-celery_brain.config_from_object('config.brainconfig')
+celery_brain.config_from_object(brainconfig)
 bstorage = brainstorage.BrainStorage()
 
 sonde_celery = celery.Celery('sondetasks')
-sonde_celery.config_from_object('config.sondeconfig')
+sonde_celery.config_from_object('sondeconfig')
 
 @celery_brain.task(ignore_result=True)
 def scan(scanid, oids):
