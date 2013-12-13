@@ -76,10 +76,6 @@ class LibVirtMachineManager(VirtualMachineManager):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
-        if self._conn:
-            self._disconnect()
-
     ##########################################################################
     # Parametric Singleton
     ##########################################################################
@@ -264,48 +260,70 @@ class LibVirtMachineManager(VirtualMachineManager):
         if not src_label or not dst_label:
             raise IrmaMachineManagerError("Invalid parameters")
 
+        # Check if machine is active
+        machine = self._lookup(src_label)
+        if machine.isActive():
+            raise IrmaMachineManagerError("Cannot clone an active machine")
+
+        # Dumping configuration 
         try:
-            machine = self._lookup(src_label)
-            # dumping configuration for next boot
             src_xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
             log.debug("Initial XML configuration (from '%s')", src_label)
             log.debug("%s", src_xml)
-            try:
-                dst_xml = etree.fromstring(src_xml)
-                # modify machine name
-                name_tag = dst_xml.xpath("name")
-                name_tag[0].text = dst_label
-                # modify uuid
-                while True:
-                    uuid = _uuid_to_str(_random_uuid())
-                    # Check for uuid collisions
-                    if not self._uuid_collision(uuid):
-                        break
-                uuid_tag = dst_xml.xpath("uuid")
-                uuid_tag[0].text = uuid
-                # modify mac
-                macs_tag = dst_xml.xpath("devices/interface/mac[@address]")
-                for mac in macs_tag:
-                    mac.attrib["address"] = _random_mac()
-                # modify disk
-                disk_source_tag = dst_xml.xpath("devices/disk[contains(@device, 'disk')]/source")
-                src_disk = disk_source_tag[0].attrib["file"]
-                extension = os.path.splitext(src_disk)[1]
-                directory = os.path.dirname(src_disk)
-                dst_disk = "{0}{1}".format(uuid, extension)
-                disk_source_tag[0].attrib["file"] = "{0}/{1}".format(directory, dst_disk)
-                # clone disk
-                self._clone_disk(src_disk, dst_disk)
-                # create a new virtual machine
-                dst_xml = etree.tostring(dst_xml)
-                log.debug("XML configuration for '%s'", dst_label)
-                log.debug("%s", dst_xml)
-                self._conn.defineXML(dst_xml)
-            except Exception as e:
-                 raise IrmaMachineManagerError("Error cloning virtual machine {0} to {1}: {2}".format(src_label, dst_label, e))
+        except libvirt.libvirtError as e:
+            raise IrmaMachineManagerError("Error while dumping virtual machine {0} XML configuration: {1}".format(src_label, e))
+
+        # Modifying configuration
+        try:
+            dst_xml = etree.fromstring(src_xml)
+            # modify machine name
+            name_tag = dst_xml.xpath("name")
+            name_tag[0].text = dst_label
+            # modify uuid
+            while True:
+                uuid = _uuid_to_str(_random_uuid())
+                # Check for uuid collisions
+                if not self._uuid_collision(uuid):
+                    break
+            uuid_tag = dst_xml.xpath("uuid")
+            uuid_tag[0].text = uuid
+            # modify mac
+            macs_tag = dst_xml.xpath("devices/interface/mac[@address]")
+            for mac in macs_tag:
+                mac.attrib["address"] = _random_mac()
+            # modify disk
+            disk_source_tag = dst_xml.xpath("devices/disk[contains(@device, 'disk')]/source")
+            src_disk = disk_source_tag[0].attrib["file"]
+            extension = os.path.splitext(src_disk)[1]
+            directory = os.path.dirname(src_disk)
+            dst_disk = "{0}{1}".format(uuid, extension)
+            disk_source_tag[0].attrib["file"] = "{0}/{1}".format(directory, dst_disk)
+        except Exception as e:
+            raise IrmaMachineManagerError("Error while modify XML for machine {0}: {1}".format(dst_label, e))
+
+        self._clone_disk(src_disk, dst_disk)
+        
+        # create a new virtual machine
+        try:
+            dst_xml = etree.tostring(dst_xml)
+            log.debug("XML configuration for '%s'", dst_label)
+            log.debug("%s", dst_xml)
+            self._conn.defineXML(dst_xml)
         except libvirt.libvirtError as e:
             raise IrmaMachineManagerError("Error cloning virtual machine {0} to {1}: {2}".format(src_label, dst_label, e))
    
+    def _delete_disk(self, disk_path):
+        if not disk_path:
+            raise IrmaMachineManagerError("Invalid parameters")
+
+        try:
+            volume = self._conn.storageVolLookupByPath(disk_path)
+            # extra flags; not used yet, so callers should always pass 0
+            volume.delete(flags=0)
+        except Exception as e:
+            raise IrmaMachineManagerError("Couldn't delete volume object: {0}".format(e))
+
+
 
     ##########################################################################
     # public methods
@@ -388,7 +406,7 @@ class LibVirtMachineManager(VirtualMachineManager):
             raise IrmaMachineManagerError("Error stopping virtual machine {0}: {1}".format(label, e))
         self._wait(label, self.HALTED)
 
-    def clone(self, src_label=None, dst_label=None):
+    def clone(self, src_label, dst_label):
         """Clone a machine
         @param src_label: source machine name
         @param dst_label: destination machine name
@@ -396,11 +414,49 @@ class LibVirtMachineManager(VirtualMachineManager):
         """
         if self._status(src_label) == self.RUNNING:
             raise IrmaMachineManagerError("Cannot clone a running machine {0}".format(src_label))
+        
+        try:
+            machine_exists = False
+            machine = self._lookup(dst_label)
+            machine_exists = True
+        except:
+            pass
+        if machine_exists:
+            raise IrmaMachineManagerError("machine '{0}' already exists".format(dst_label))
         self._clone_machine(src_label, dst_label)
 
-    def remove(self, label=None):
+    def delete(self, label):
         """Delete a machine
         @param label: machine name
         @raise NotImplementedError: this method is abstract.
         """
-        raise NotImplementedError
+        flags = 0
+
+        machine = self._lookup(label)
+        try: 
+            if machine.isActive():
+                raise IrmaMachineManagerError("Cannot delete a running machine.")
+
+            # extra flags; not used yet, so callers should always pass 0
+            if machine.hasManagedSaveImage(flags=0):
+                flags |= libvirt.VIR_DOMAIN_UNDEFINE_MANAGED_SAVE
+
+            # extra flags; not used yet, so callers should always pass 0
+            if machine.hasCurrentSnapshot(flags=0):
+                flags |= libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA
+
+            # Destroy volumes
+            xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
+            try:
+                xml = etree.fromstring(xml)
+                disks = xml.xpath("devices/disk[contains(@device, 'disk')]/source")
+            except Exception as e:
+                raise IrmaMachineManagerError("Unable to lookup disk for '{0}': {1}".format(label, e))
+
+            for disk in disks:
+                self._delete_disk(disk.attrib["file"])
+
+            # Undefine 
+            machine.undefine()
+        except libvirt.libvirtError as e:
+            raise IrmaMachineManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
