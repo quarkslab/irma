@@ -74,15 +74,6 @@ class BrainStorage(object):
             return scan[field]
         return None
 
-    def get_scan_results(self, scan_oid):
-        """ get list of file oids associated with scanid """
-        dbh = self.__dbconn(dbconfig.COLL_SCANINFO)
-        record = dbh.find_one({"_id":ObjectId(scan_oid)})
-        res = {}
-        for (file_oid, filename) in record['oids'].items():
-            res[filename] = self.get_result(file_oid)
-        return res
-
     def get_scan_fileoid(self, scan_oid):
         """ get list of file oids associated with scanid """
         return self.__get_scan_field(scan_oid, "oids")

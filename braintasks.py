@@ -1,6 +1,7 @@
 import celery
 from brain import brainstorage
 import config
+from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RETCODE_ERROR
 from config.dbconfig import SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED, SCAN_STATUS_INIT, SCAN_STATUS_CANCELLING
 import uuid
 
@@ -10,6 +11,16 @@ bstorage = brainstorage.BrainStorage()
 
 sonde_celery = celery.Celery('sondetasks')
 sonde_celery.config_from_object('config.sondeconfig')
+
+def success(info):
+    return (IRMA_RETCODE_OK, info)
+
+def warning(info):
+    return (IRMA_RETCODE_WARNING, info)
+
+def error(info):
+    return (IRMA_RETCODE_ERROR, info)
+
 
 @celery_brain.task(ignore_result=True)
 def scan(scanid, oids):
@@ -39,7 +50,7 @@ def scan(scanid, oids):
         bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_FINISHED, 'taskid':None , 'avlist':avlist})
     return
 
-@celery_brain.task()
+@celery_brain.task(ignore_result=True)
 def scan_finished(scanid):
     bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_FINISHED})
     return
@@ -48,14 +59,14 @@ def scan_finished(scanid):
 def scan_progress(scanid):
     status = bstorage.get_scan_status(scanid)
     if status == SCAN_STATUS_INIT:
-        return {"result":"success", "info":"task not launched"}
+        return warning("task not launched")
     elif status == SCAN_STATUS_LAUNCHED:
         task_id = bstorage.get_scan_taskid(scanid)
         if not task_id:
-            return {"result":"error", "info":"task_id not set"}
+            return error("task_id not set")
         job = sonde_celery.GroupResult.restore(task_id)
         if not job:
-            return {"result":"error", "info":"not a valid taskid"}
+            return error("not a valid taskid")
         else:
             nbcompleted = nbsuccessful = 0
             for j in job:
@@ -63,14 +74,14 @@ def scan_progress(scanid):
                 if j.successful(): nbsuccessful += 1
             if nbsuccessful == len(job):
                 bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_FINISHED})
-            return {"result": "success", "info":{"total":len(job), "finished":nbcompleted, "successful":nbsuccessful}}
+            return success({"total":len(job), "finished":nbcompleted, "successful":nbsuccessful})
     elif status == SCAN_STATUS_FINISHED:
-        return {"result":"success", "info":"finished"}
+        return warning("finished")
     elif status == SCAN_STATUS_CANCELLING:
-        return {"result":"success", "info":"cancelling"}
+        return warning("cancelling")
     elif status == SCAN_STATUS_CANCELLED:
-        return {"result":"success", "info":"cancelled"}
-    return {"result":"error", "info":"unknown status %d" % status}
+        return warning("cancelled")
+    return error("unknown status %d" % status)
 
 
 @celery_brain.task()
@@ -79,12 +90,12 @@ def scan_cancel(scanid):
 
     status = bstorage.get_scan_status(scanid)
     if status == SCAN_STATUS_INIT:
-        return {"result":"error", "info":"task not launched"}
+        return error("task not launched")
     elif status == SCAN_STATUS_LAUNCHED:
         task_id = bstorage.get_scan_taskid(scanid)
         job = sonde_celery.GroupResult.restore(task_id)
         if not job:
-            return {"result":"error", "info":"not a valid taskid"}
+            return error("not a valid taskid")
         else:
             nbcompleted = nbcancelled = 0
             for j in job:
@@ -94,10 +105,20 @@ def scan_cancel(scanid):
                     j.revoke(terminate=True)
                     nbcancelled += 1
             bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_CANCELLED})
-            return {"result": "success", "info": {"total":len(job), "finished":nbcompleted, "cancelled":nbcancelled}}
+            return success({"total":len(job), "finished":nbcompleted, "cancelled":nbcancelled})
     elif status == SCAN_STATUS_FINISHED:
-        return {"result":"success", "info":"finished"}
+        return warning("finished")
     elif status == SCAN_STATUS_CANCELLED:
-        return {"result":"success", "info":"cancelled"}
+        return warning("cancelled")
+    return error("unknown status %d" % status)
 
-    return {"result":"error"}
+@celery_brain.task()
+def scan_result(scanid):
+    oids = bstorage.get_scan_fileoid(scanid)
+    res = {}
+    for (oid, info) in oids.items():
+        res[info['name']] = bstorage.get_result(oid)
+    return success(res)
+
+
+
