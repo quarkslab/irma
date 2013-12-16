@@ -28,7 +28,7 @@ def scan(scanid, oids):
     s.oids = oids
     s.save()
 
-    avlist = ['clamav', 'kaspersky']
+    avlist = ['clamav', 'kaspersky', 'sophos']
     s.avlist = avlist
     res = []
     for (oid, oid_info) in oids.items():
@@ -78,7 +78,7 @@ def scan_progress(scanid):
             for j in job:
                 if j.ready(): nbcompleted += 1
                 if j.successful(): nbsuccessful += 1
-            if nbsuccessful == len(job):
+            if nbcompleted == len(job):
                 s.status = SCAN_STATUS_FINISHED
                 s.save()
             return success({"total":len(job), "finished":nbcompleted, "successful":nbsuccessful})
