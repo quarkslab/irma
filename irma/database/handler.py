@@ -34,9 +34,6 @@ class Database(Singleton):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
-        if self._db_conn:
-            self._disconnect()
 
     ##########################################################################
     # Private methods
