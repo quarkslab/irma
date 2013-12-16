@@ -84,7 +84,7 @@ def scan_cancel(scanid):
         return error("not a valid scanid")
     # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = brain_celery.send_task("brain.braintasks.scan_cancel", args=(scanid))
+        task = brain_celery.send_task("brain.braintasks.scan_cancel", args=[scanid])
         (status, res) = task.get(timeout=IRMA_TIMEOUT)
     except celery.exceptions.TimeoutError:
         return error("timeout")
