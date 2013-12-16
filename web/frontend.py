@@ -1,22 +1,39 @@
 import re
 import os
 import celery
-from bottle import route, request, default_app, abort, run
-from brain import braintasks, brainstorage
-from config.dbconfig import SCAN_STATUS_INIT, SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED
+from bottle import route, request, default_app, run
+from brain import brainstorage
+from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RETCODE_ERROR
 from bson import ObjectId
+from config.config import IRMA_TIMEOUT
 
 bstorage = brainstorage.BrainStorage()
-sonde_celery = celery.Celery('sondetasks')
-sonde_celery.config_from_object('config.sondeconfig')
+brain_celery = celery.Celery('braintasks')
+brain_celery.config_from_object('config.brainconfig')
+
+# ______________________________________________________________ RESPONSE FORMATTER
+
+def response(code, info):
+    return {"result":code, "info":info}
+
+def error(info):
+    return response(IRMA_RETCODE_ERROR, info)
+
+def warning(info):
+    return response(IRMA_RETCODE_WARNING, info)
+
+def success(info):
+    return response(IRMA_RETCODE_OK, info)
+
+# ______________________________________________________________ SERVER ROOT
 
 @route("/")
 def svr_index():
-    return "This is irma-brain:\n"
-
+    return success("This is irma-brain")
 # ______________________________________________________________ API SCAN
 
 def validid(scanid):
+    # scanid is a str(ObjectId)
     return re.match(r'[0-9a-fA-F]{24}', scanid)
 
 @route("/scan", method='POST')
@@ -27,89 +44,66 @@ def scan_new():
         filename = os.path.basename(f)
         upfile = request.files.get(f)
         data = upfile.file.read()
-        file_oid = bstorage.store_file(data, name=filename)
-        oids[file_oid] = filename
+        (new, file_oid) = bstorage.store_file(data, name=filename)
+        oids[file_oid] = {"name": filename, "new": new}
     scanid = str(ObjectId())
-    celery.chord(braintasks.scan.s(scanid, oids), braintasks.scan_finished.s(scanid))()
-    bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_INIT, 'oids': oids, 'avlist':[]})
-    return {"scanid":scanid}
+    brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids))
+    return success({"scanid":scanid})
 
 @route("/scan/results/<scanid>", method='GET')
 def scan_results(scanid):
+    # Filter malformed scanid
     if not validid(scanid):
-        return {"error": "not a valid scanid"}
-    res = bstorage.get_scan_results(scanid)
-    return {"result": res}
+        return error("not a valid scanid")
+    # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
+    try:
+        task = brain_celery.send_task("brain.braintasks.scan_result", args=[scanid])
+        (status, res) = task.get(timeout=IRMA_TIMEOUT)
+    except celery.exceptions.TimeoutError:
+        return error("timeout")
+    return response(status, res)
 
 @route("/scan/progress/<scanid>", method='GET')
 def scan_progress(scanid):
+    # Filter malformed scanid
     if not validid(scanid):
-        return {"result":"error", "info":"not a valid scanid"}
-    status = bstorage.get_scan_status(scanid)
-    if status == SCAN_STATUS_INIT:
-        return {"result":"not ready", "info":"task not launched"}
-    elif status == SCAN_STATUS_LAUNCHED:
-        task_id = bstorage.get_scan_taskid(scanid)
-        if not task_id:
-            return {"result":"error", "info":"task_id not set"}
-        job = sonde_celery.GroupResult.restore(task_id)
-        if not job:
-            return {"result":"error", "info":"not a valid taskid"}
-        else:
-            nbcompleted = nbsuccessful = 0
-            for j in job:
-                if j.ready(): nbcompleted += 1
-                if j.successful(): nbsuccessful += 1
-            return {"result": "in progress", "total":len(job), "finished":nbcompleted, "successful":nbsuccessful}
-    elif status == SCAN_STATUS_FINISHED:
-        return {"result":"finished"}
-    elif status == SCAN_STATUS_CANCELLED:
-        return {"result":"cancelled"}
-    return {"result":"unknown status %d" % status}
+        return error("not a valid scanid")
+    # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
+    try:
+        task = brain_celery.send_task("brain.braintasks.scan_progress", args=[scanid])
+        (status, res) = task.get(timeout=IRMA_TIMEOUT)
+    except celery.exceptions.TimeoutError:
+        return error("timeout")
+    return response(status, res)
 
 
 @route("/scan/cancel/<scanid>", method='GET')
 def scan_cancel(scanid):
+    # Filter malformed scanid
     if not validid(scanid):
-        return {"result":"error", "info":"not a valid scanid"}
-
-    status = bstorage.get_scan_status(scanid)
-    if status == SCAN_STATUS_INIT:
-        return {"result":"not ready", "info":"task not launched"}
-    elif status == SCAN_STATUS_LAUNCHED:
-        task_id = bstorage.get_scan_taskid(scanid)
-        job = sonde_celery.GroupResult.restore(task_id)
-        if not job:
-            return {"result":"error", "info":"not a valid taskid"}
-        else:
-            nbcompleted = nbcancelled = 0
-            for j in job:
-                if j.ready():
-                    nbcompleted += 1
-                else:
-                    j.revoke(terminate=True)
-                    nbcancelled += 1
-            return {"result": "cancelling", "total":len(job), "finished":nbcompleted, "cancelled":nbcancelled}
-    elif status == SCAN_STATUS_FINISHED:
-        return {"result":"finished"}
-    elif status == SCAN_STATUS_CANCELLED:
-        return {"result":"cancelled"}
-    return {"result":"unknown status %d" % status}
+        return error("not a valid scanid")
+    # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
+    try:
+        task = brain_celery.send_task("brain.braintasks.scan_cancel", args=(scanid))
+        (status, res) = task.get(timeout=IRMA_TIMEOUT)
+    except celery.exceptions.TimeoutError:
+        return error("timeout")
+    return response(status, res)
 # ______________________________________________________________ API STATUS
 
 @route("/status")
 def status():
-    return {"result": "TODO"}
+    return error("TODO")
 
 # ______________________________________________________________ API EXPORT
 
 def export(filename, oid):
     """ retrieve a file previously sent to the brain """
-    return {"result": "TODO"}
+    return error("TODO")
 
 # ______________________________________________________________ MAIN
 
 application = default_app()
 
 if __name__ == "__main__":
-    run(host='192.168.130.1', port=8080)
+    run(host='0.0.0.0', port=8080)
