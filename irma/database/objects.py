@@ -14,6 +14,9 @@ class DatabaseObject(object):
         if self._id:
             self.load(self._id)
 
+    def __del__(self):
+        self.save()
+
     # TODO: Add support for both args and kwargs
     def from_dict(self, dict_object):
         for k, v in dict_object.items():
@@ -36,7 +39,9 @@ class DatabaseObject(object):
         self._id = _id
         db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
         dict_object = db.load(self.dbname, self.collection, self._id)
-        self.from_dict(dict_object)
+        # dict_object could be empty if we init a dbobject with a given id
+        if dict_object:
+            self.from_dict(dict_object)
         return
 
     def remove(self):
@@ -75,19 +80,18 @@ class ScanInfo(DatabaseObject):
     dbname = dbconfig.DB_NAME
     collection = dbconfig.COLL_SCANINFO
 
-    def __init__(self, scanid=None, oids=[], taskid=None, avlist=[]):
+    def __init__(self, _id=None, oids=[], taskid=None, avlist=[]):
         self.oids = oids
         self.taskid = taskid
         self.avlist = avlist
         self.status = dbconfig.SCAN_STATUS_INIT
-        super(ScanInfo, self).__init__(_id=scanid)
+        super(ScanInfo, self).__init__(_id=_id)
 
 class ScanResults(DatabaseObject):
     dbname = dbconfig.DB_NAME
     collection = dbconfig.COLL_RESINFO
 
-    def __init__(self, fileoid=None, clamav=None, kaspersky=None, sophos=None):
-        self.clamav = None
-        self.kaspersky = None
-        self.sophos = None
-        super(ScanResults, self).__init__(_id=fileoid)
+    def __init__(self, _id=None, clamav=None, kaspersky=None, sophos=None):
+        self.avlist = []
+        self.results = {}
+        super(ScanResults, self).__init__(_id=_id)
