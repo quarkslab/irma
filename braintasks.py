@@ -1,13 +1,13 @@
 import celery
-from brain import brainstorage
 import config
 from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RETCODE_ERROR
+from lib.irma.database.objects import ScanInfo, ScanResults
 from config.dbconfig import SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED, SCAN_STATUS_INIT, SCAN_STATUS_CANCELLING
 import uuid
+import copy
 
 celery_brain = celery.Celery('braintasks')
 celery_brain.config_from_object('config.brainconfig')
-bstorage = brainstorage.BrainStorage()
 
 sonde_celery = celery.Celery('sondetasks')
 sonde_celery.config_from_object('config.sondeconfig')
@@ -21,12 +21,15 @@ def warning(info):
 def error(info):
     return (IRMA_RETCODE_ERROR, info)
 
-
 @celery_brain.task(ignore_result=True)
 def scan(scanid, oids):
-    bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_INIT, 'oids': oids, 'avlist':[]})
+    s = ScanInfo(_id=scanid)
+    s.status = SCAN_STATUS_INIT
+    s.oids = oids
+    s.save()
 
     avlist = ['clamav', 'kaspersky']
+    s.avlist = avlist
     res = []
     for (oid, oid_info) in oids.items():
         for av in avlist:
@@ -35,36 +38,44 @@ def scan(scanid, oids):
                 res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
             else:
                 # TODO update new filename for known oid if different
-                # TODO check if resuls for all av is present else launch specific scan
-                print "oid %s (%s) already scanned not launching" % (oid, oid_info['name'])
+                # check if resuls for all av is present else launch specific scan
+                r = ScanResults(_id=oid)
+                for av in avlist:
+                    if av not in r.results.keys():
+                        res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
+                    else:
+                        print "oid %s (%s) already scanned by %s not launching" % (oid, oid_info['name'], av)
 
     if len(res) != 0:
         # Build a result set with all job AsyncResult for progress/cancel operations
         groupid = str(uuid.uuid4())
         groupres = sonde_celery.GroupResult(id=groupid, results=res)
-
+        print "Saving groupid %s with %d jobs" % (groupid, len(res))
         # keep the groupresult object for task status/cancel
         groupres.save()
-        bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_LAUNCHED, 'taskid':groupid , 'avlist':avlist})
+        s.status = SCAN_STATUS_LAUNCHED
+        s.taskid = groupid
     else:
-        bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_FINISHED, 'taskid':None , 'avlist':avlist})
+        s.status = SCAN_STATUS_FINISHED
+    s.save()
     return
 
 @celery_brain.task(ignore_result=True)
 def scan_finished(scanid):
-    bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_FINISHED})
+    s = ScanInfo(_id=scanid)
+    s.status = SCAN_STATUS_FINISHED
+    s.save()
     return
 
 @celery_brain.task()
 def scan_progress(scanid):
-    status = bstorage.get_scan_status(scanid)
-    if status == SCAN_STATUS_INIT:
+    s = ScanInfo(_id=scanid)
+    if s.status == SCAN_STATUS_INIT:
         return warning("task not launched")
-    elif status == SCAN_STATUS_LAUNCHED:
-        task_id = bstorage.get_scan_taskid(scanid)
-        if not task_id:
+    elif s.status == SCAN_STATUS_LAUNCHED:
+        if not s.taskid:
             return error("task_id not set")
-        job = sonde_celery.GroupResult.restore(task_id)
+        job = sonde_celery.GroupResult.restore(s.taskid)
         if not job:
             return error("not a valid taskid")
         else:
@@ -72,28 +83,29 @@ def scan_progress(scanid):
             for j in job:
                 if j.ready(): nbcompleted += 1
                 if j.successful(): nbsuccessful += 1
-            if nbsuccessful == len(job):
-                bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_FINISHED})
+            if nbcompleted == len(job):
+                s.status = SCAN_STATUS_FINISHED
+                s.save()
             return success({"total":len(job), "finished":nbcompleted, "successful":nbsuccessful})
-    elif status == SCAN_STATUS_FINISHED:
+    elif s.status == SCAN_STATUS_FINISHED:
         return warning("finished")
-    elif status == SCAN_STATUS_CANCELLING:
+    elif s.status == SCAN_STATUS_CANCELLING:
         return warning("cancelling")
-    elif status == SCAN_STATUS_CANCELLED:
+    elif s.status == SCAN_STATUS_CANCELLED:
         return warning("cancelled")
-    return error("unknown status %d" % status)
-
+    return error("unknown status %d" % s.status)
 
 @celery_brain.task()
 def scan_cancel(scanid):
-    bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_CANCELLING})
+    s = ScanInfo(_id=scanid)
+    status = copy.copy(s.status)
+    s.status = SCAN_STATUS_CANCELLING
+    s.save()
 
-    status = bstorage.get_scan_status(scanid)
     if status == SCAN_STATUS_INIT:
         return error("task not launched")
     elif status == SCAN_STATUS_LAUNCHED:
-        task_id = bstorage.get_scan_taskid(scanid)
-        job = sonde_celery.GroupResult.restore(task_id)
+        job = sonde_celery.GroupResult.restore(s.taskid)
         if not job:
             return error("not a valid taskid")
         else:
@@ -104,7 +116,8 @@ def scan_cancel(scanid):
                 else:
                     j.revoke(terminate=True)
                     nbcancelled += 1
-            bstorage.update_scan_record(scanid, {'status':SCAN_STATUS_CANCELLED})
+            s.status = SCAN_STATUS_CANCELLED
+            s.save()
             return success({"total":len(job), "finished":nbcompleted, "cancelled":nbcancelled})
     elif status == SCAN_STATUS_FINISHED:
         return warning("finished")
@@ -114,11 +127,9 @@ def scan_cancel(scanid):
 
 @celery_brain.task()
 def scan_result(scanid):
-    oids = bstorage.get_scan_fileoid(scanid)
+    s = ScanInfo(_id=scanid)
     res = {}
-    for (oid, info) in oids.items():
-        res[info['name']] = bstorage.get_result(oid)
+    for (oid, info) in s.oids.items():
+        r = ScanResults(_id=oid)
+        res[info['name']] = r.results
     return success(res)
-
-
-
