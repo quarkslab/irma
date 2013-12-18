@@ -4,7 +4,6 @@ from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RE
 from lib.irma.database.objects import ScanInfo, ScanResults
 from config.dbconfig import SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED, SCAN_STATUS_INIT, SCAN_STATUS_CANCELLING
 import uuid
-import copy
 
 celery_brain = celery.Celery('braintasks')
 celery_brain.config_from_object('config.brainconfig')
@@ -25,10 +24,11 @@ def error(info):
 def scan(scanid, oids):
     s = ScanInfo(_id=scanid)
     s.status = SCAN_STATUS_INIT
-    s.oids = oids
+    for (oid, oid_info) in oids:
+        s.oids.append(oid)
     s.save()
 
-    avlist = ['clamav', 'kaspersky', 'sophos']
+    avlist = ['clamav', 'kaspersky']
     s.avlist = avlist
     res = []
     for (oid, oid_info) in oids.items():
@@ -38,8 +38,13 @@ def scan(scanid, oids):
                 res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
             else:
                 # TODO update new filename for known oid if different
-                # TODO check if resuls for all av is present else launch specific scan
-                print "oid %s (%s) already scanned not launching" % (oid, oid_info['name'])
+                # check if resuls for all av is present else launch specific scan
+                r = ScanResults(_id=oid)
+                for av in avlist:
+                    if av not in r.results.keys():
+                        res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
+                    else:
+                        print "oid %s (%s) already scanned by %s not launching" % (oid, oid_info['name'], av)
 
     if len(res) != 0:
         # Build a result set with all job AsyncResult for progress/cancel operations
@@ -52,14 +57,12 @@ def scan(scanid, oids):
         s.taskid = groupid
     else:
         s.status = SCAN_STATUS_FINISHED
-    s.save()
     return
 
 @celery_brain.task(ignore_result=True)
 def scan_finished(scanid):
     s = ScanInfo(_id=scanid)
     s.status = SCAN_STATUS_FINISHED
-    s.save()
     return
 
 @celery_brain.task()
@@ -80,7 +83,6 @@ def scan_progress(scanid):
                 if j.successful(): nbsuccessful += 1
             if nbcompleted == len(job):
                 s.status = SCAN_STATUS_FINISHED
-                s.save()
             return success({"total":len(job), "finished":nbcompleted, "successful":nbsuccessful})
     elif s.status == SCAN_STATUS_FINISHED:
         return warning("finished")
@@ -93,13 +95,10 @@ def scan_progress(scanid):
 @celery_brain.task()
 def scan_cancel(scanid):
     s = ScanInfo(_id=scanid)
-    status = copy.copy(s.status)
-    s.status = SCAN_STATUS_CANCELLING
-    s.save()
 
-    if status == SCAN_STATUS_INIT:
+    if s.status == SCAN_STATUS_INIT:
         return error("task not launched")
-    elif status == SCAN_STATUS_LAUNCHED:
+    elif s.status == SCAN_STATUS_LAUNCHED:
         job = sonde_celery.GroupResult.restore(s.taskid)
         if not job:
             return error("not a valid taskid")
@@ -112,13 +111,12 @@ def scan_cancel(scanid):
                     j.revoke(terminate=True)
                     nbcancelled += 1
             s.status = SCAN_STATUS_CANCELLED
-            s.save()
             return success({"total":len(job), "finished":nbcompleted, "cancelled":nbcancelled})
-    elif status == SCAN_STATUS_FINISHED:
+    elif s.status == SCAN_STATUS_FINISHED:
         return warning("finished")
-    elif status == SCAN_STATUS_CANCELLED:
+    elif s.status == SCAN_STATUS_CANCELLED:
         return warning("cancelled")
-    return error("unknown status %d" % status)
+    return error("unknown status %d" % s.status)
 
 @celery_brain.task()
 def scan_result(scanid):
