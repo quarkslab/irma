@@ -1,15 +1,9 @@
-import celery
-import config
+from config.brainconfig import brain_celery
+from config.sondeconfig import sonde_celery
 from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RETCODE_ERROR
 from lib.irma.database.objects import ScanInfo, ScanResults
 from config.dbconfig import SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED, SCAN_STATUS_INIT, SCAN_STATUS_CANCELLING
 import uuid
-
-celery_brain = celery.Celery('braintasks')
-celery_brain.config_from_object('config.brainconfig')
-
-sonde_celery = celery.Celery('sondetasks')
-sonde_celery.config_from_object('config.sondeconfig')
 
 def success(info):
     return (IRMA_RETCODE_OK, info)
@@ -20,18 +14,16 @@ def warning(info):
 def error(info):
     return (IRMA_RETCODE_ERROR, info)
 
-@celery_brain.task(ignore_result=True)
+@brain_celery.task(ignore_result=True)
 def scan(scanid, oids):
     s = ScanInfo(_id=scanid)
     s.status = SCAN_STATUS_INIT
-    for (oid, oid_info) in oids:
-        s.oids.append(oid)
     s.save()
-
     avlist = ['clamav', 'kaspersky']
     s.avlist = avlist
     res = []
     for (oid, oid_info) in oids.items():
+        s.oids[oid] = oid_info['name']
         for av in avlist:
             if oid_info['new']:
                 # create one subtask per oid to scan per antivirus queue
@@ -59,13 +51,13 @@ def scan(scanid, oids):
         s.status = SCAN_STATUS_FINISHED
     return
 
-@celery_brain.task(ignore_result=True)
+@brain_celery.task(ignore_result=True)
 def scan_finished(scanid):
     s = ScanInfo(_id=scanid)
     s.status = SCAN_STATUS_FINISHED
     return
 
-@celery_brain.task()
+@brain_celery.task()
 def scan_progress(scanid):
     s = ScanInfo(_id=scanid)
     if s.status == SCAN_STATUS_INIT:
@@ -92,7 +84,7 @@ def scan_progress(scanid):
         return warning("cancelled")
     return error("unknown status %d" % s.status)
 
-@celery_brain.task()
+@brain_celery.task()
 def scan_cancel(scanid):
     s = ScanInfo(_id=scanid)
 
@@ -118,11 +110,11 @@ def scan_cancel(scanid):
         return warning("cancelled")
     return error("unknown status %d" % s.status)
 
-@celery_brain.task()
+@brain_celery.task()
 def scan_result(scanid):
     s = ScanInfo(_id=scanid)
     res = {}
-    for (oid, info) in s.oids.items():
+    for (oid, name) in s.oids.items():
         r = ScanResults(_id=oid)
-        res[info['name']] = r.results
+        res[name] = r.results
     return success(res)
