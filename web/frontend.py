@@ -6,9 +6,7 @@ from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RE
 from lib.irma.fileobject.handler import FileObject
 from bson import ObjectId
 from config.config import IRMA_TIMEOUT
-
-brain_celery = celery.Celery('braintasks')
-brain_celery.config_from_object('config.brainconfig')
+from config.brainconfig import brain_celery
 
 # ______________________________________________________________ RESPONSE FORMATTER
 
@@ -45,7 +43,7 @@ def scan_new():
         data = upfile.file.read()
         fobj = FileObject()
         new = fobj.save(data, filename)
-        oids[f._id] = {"name": filename, "new": new}
+        oids[fobj._id] = {"name": filename, "new": new}
     scanid = str(ObjectId())
     brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids))
     return success({"scanid":scanid})
