@@ -80,7 +80,7 @@ class ScanInfo(DatabaseObject):
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_SCANINFO
 
-    def __init__(self, _id=None, oids=[], taskid=None, avlist=[]):
+    def __init__(self, _id=None, oids={}, taskid=None, avlist=[]):
         self.oids = oids
         self.taskid = taskid
         self.avlist = avlist
