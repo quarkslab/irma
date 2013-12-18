@@ -4,6 +4,7 @@ from lib.irma.common.helpers import UUID
 
 from lxml import etree
 from eulxml.xpath import ast, parse, serialize
+from types import ListType, FloatType
 
 from eulxml.xmlmap import fields
 from eulxml.xmlmap.fields import Field
@@ -191,19 +192,16 @@ class NodeDictManager(object):
         self.key = key
 
     def get(self, xpath, node, context, mapper, xast):
-        print "NodeDictManager.get", xpath, node, context, mapper, xast
         value = NodeDict(xpath, self.key, node, context, mapper, xast)
         return value
 
     def delete(self, xpath, xast, node, context, mapper):
         current_list = self.get(xpath, node, context, mapper, xast)
-        print "NodeDictManager.delete", current_list, xpath, node, context, mapper, xast
         for key in current_list:
             del current_list[key]
 
     def set(self, xpath, xast, node, context, mapper, value):
         current_list = self.get(xpath, node, context, mapper, xast)
-        print "NodeDictManager.set", current_list, xpath, node, context, mapper, xast
         # for each value in the new list, set the equivalent value
         # in the NodeList
         for i in range(len(value)):
@@ -233,7 +231,7 @@ class StringMapper(fields.StringMapper):
 
     def to_python(self, node):
         value = super(StringMapper, self).to_python(node) 
-        if self.choices and value not in self.choices:
+        if value and self.choices and value not in self.choices:
             raise Exception("String field value '%s' is not in authorized values '%s'" % (value, self.choices))
         return value
 
@@ -473,7 +471,6 @@ class IntegerField(Field):
                 manager = SingleNodeManager(),
                 mapper = IntegerMapper(ranges=ranges), *args, **kwargs)
 
-
 class IntegerListField(Field):
 
     """Map an XPath expression to a list of Python integers. If the XPath
@@ -489,41 +486,6 @@ class IntegerListField(Field):
         super(IntegerListField, self).__init__(xpath,
                 manager = NodeListManager(),
                 mapper = IntegerMapper(ranges=ranges), *args, **kwargs)
-
-class UnixPermissionField(IntegerField):
-
-    _pattern = "[0-7]{3}"
-
-    def __init__(self, xpath, *args, **kwargs):
-        super(UnixPermissionField, self).__init__(xpath, UnixPermissionField._pattern, *args, **kwargs)
-
-class UUIDField(Field):
-
-    def __init__(self, xpath, normalize=False, *args, **kwargs):
-        super(UUIDField, self).__init__(xpath,
-                manager = SingleNodeManager(),
-                mapper = UUIDMapper(normalize=normalize), *args, **kwargs)
-
-class NameField(Field):
-
-    def __init__(self, xpath, normalize=False, *args, **kwargs):
-        super(NameField, self).__init__(xpath,
-                manager = SingleNodeManager(),
-                mapper = NameMapper(normalize=normalize), *args, **kwargs)
-
-class AbsFilePathField(Field):
-
-    def __init__(self, xpath, normalize=False, *args, **kwargs):
-        super(AbsFilePathField, self).__init__(xpath,
-                manager = SingleNodeManager(),
-                mapper = AbsFilePathMapper(normalize=normalize), *args, **kwargs)
-
-class FilePathField(Field):
-
-    def __init__(self, xpath, normalize=False, *args, **kwargs):
-        super(FilePathField, self).__init__(xpath,
-                manager = SingleNodeManager(),
-                mapper = FilePathMapper(normalize=normalize), *args, **kwargs)
 
 class StringDictField(DictField):
 
