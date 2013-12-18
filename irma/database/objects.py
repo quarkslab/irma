@@ -6,8 +6,8 @@ class DatabaseObjectList(object):
     pass
 
 class DatabaseObject(object):
-    dbname = None
-    collection = None
+    _dbname = None
+    _collection = None
 
     def __init__(self, _id=None):
         self._id = _id
@@ -32,13 +32,13 @@ class DatabaseObject(object):
 
     def save(self):
         db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
-        self._id = db.save(self.dbname, self.collection, self.to_dict())
+        self._id = db.save(self._dbname, self._collection, self.to_dict())
         return
 
     def load(self, _id):
         self._id = _id
         db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
-        dict_object = db.load(self.dbname, self.collection, self._id)
+        dict_object = db.load(self._dbname, self._collection, self._id)
         # dict_object could be empty if we init a dbobject with a given id
         if dict_object:
             self.from_dict(dict_object)
@@ -46,13 +46,13 @@ class DatabaseObject(object):
 
     def remove(self):
         db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
-        db.remove(self.dbname, self.collection, self._id)
+        db.remove(self._dbname, self._collection, self._id)
         return
 
 
 class Machine(DatabaseObject):
-    dbname = dbconfig.DB_NAME
-    collection = dbconfig.COLL_MACHINE
+    _dbname = dbconfig.DB_NAME
+    _collection = dbconfig.COLL_MACHINE
 
     def __init__(self, _id=None, label=None, uuid=None, disks=None, ip=None, os_type=None, os_variant=None, master=None):
         self.label = label
@@ -77,8 +77,8 @@ class Machine(DatabaseObject):
     """
 
 class ScanInfo(DatabaseObject):
-    dbname = dbconfig.DB_NAME
-    collection = dbconfig.COLL_SCANINFO
+    _dbname = dbconfig.DB_NAME
+    _collection = dbconfig.COLL_SCANINFO
 
     def __init__(self, _id=None, oids=[], taskid=None, avlist=[]):
         self.oids = oids
@@ -88,8 +88,8 @@ class ScanInfo(DatabaseObject):
         super(ScanInfo, self).__init__(_id=_id)
 
 class ScanResults(DatabaseObject):
-    dbname = dbconfig.DB_NAME
-    collection = dbconfig.COLL_RESINFO
+    _dbname = dbconfig.DB_NAME
+    _collection = dbconfig.COLL_RESINFO
 
     def __init__(self, _id=None, clamav=None, kaspersky=None, sophos=None):
         self.avlist = []

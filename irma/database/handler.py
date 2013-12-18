@@ -1,9 +1,13 @@
 import logging
+import gridfs
+import hashlib
 
 from pymongo import Connection
+from bson import ObjectId
 
 from lib.irma.common.exceptions import IrmaDatabaseError
 from lib.irma.common.oopatterns import Singleton
+from config.dbconfig import COLL_FS
 
 log = logging.getLogger(__name__)
 
@@ -85,18 +89,18 @@ class Database(Singleton):
         collection = self._table(db_name, collection_name)
         try:
             res = collection.find_one({'_id':_id})
+            return res
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
-        return res
 
     def save(self, db_name, collection_name, dict_object):
         """ save entry in collection"""
         collection = self._table(db_name, collection_name)
         try:
             _id = collection.save(dict_object)
+            return _id
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
-        return _id
 
     def update(self, db_name, collection_name, update_dict):
         """ Update entries in collection according to the dictionnary specified"""
@@ -111,5 +115,45 @@ class Database(Singleton):
         collection = self._table(db_name, collection_name)
         try:
             collection.remove({'_id':_id})
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
+
+    def exists_file(self, db_name, collection_name, hashvalue):
+        """ check if file already exits in gridfs by checking hash value"""
+        collection = self._table(db_name, collection_name + ".files")
+        # check if record exists
+        try:
+            res = collection.find_one({'hashvalue' :hashvalue}, {'_id': 1})
+            if res:
+                return str(res['_id'])
+            else:
+                return None
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
+
+    def put_file(self, db_name, collection_name, data, name, hashvalue, altnames):
+        """ put data into gridfs """
+        fsdbh = gridfs.GridFS(self._database(db_name), collection=collection_name)
+        # create a new record
+        try:
+            file_oid = fsdbh.put(data, filename=name, hashvalue=hashvalue, altnames=altnames)
+            return str(file_oid)
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
+
+    def update_file_altnames(self, db_name, collection_name, _id, altnames):
+        """ update file (currently removing and re-inserting)"""
+        collection = self._table(db_name, collection_name + ".files")
+        # check if record exists
+        try:
+            collection.update({"_id": ObjectId(_id)}, {"$set": {"altnames": altnames}})
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
+
+    def get_file(self, db_name, collection_name, file_oid):
+        """ get data from gridfs by file object-id """
+        fsdbh = gridfs.GridFS(self._database(db_name), collection=collection_name)
+        try:
+            return fsdbh.get(ObjectId(file_oid))
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
