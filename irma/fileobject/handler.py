@@ -7,22 +7,24 @@ class FileObject(object):
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_FS
 
-    def __init__(self, _id=None):
+    def __init__(self, dbname=None, _id=None):
+        if dbname:
+            self._dbname = dbname
         self._dbfile = None
         if _id:
             self._id = _id
             self.load()
 
     def _exists(self, hashvalue):
-        db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
+        db = Database(self._dbname, dbconfig.MONGODB)
         return db.exists_file(self._dbname, self._collection, hashvalue)
 
     def load(self):
-        db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
+        db = Database(self._dbname, dbconfig.MONGODB)
         self._dbfile = db.get_file(self._dbname, self._collection, self._id)
 
     def save(self, data, name):
-        db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
+        db = Database(self._dbname, dbconfig.MONGODB)
         hashvalue = hashlib.sha256(data).hexdigest()
         self._id = self._exists(hashvalue)
         if not self._id:
@@ -37,7 +39,7 @@ class FileObject(object):
             return False
 
     def update_altnames(self, altnames):
-        db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
+        db = Database(self._dbname, dbconfig.MONGODB)
         db.update_file_altnames(self._dbname, self._collection, self._id, altnames)
         self.load()
 

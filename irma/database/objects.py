@@ -54,7 +54,9 @@ class Machine(DatabaseObject):
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_MACHINE
 
-    def __init__(self, _id=None, label=None, uuid=None, disks=None, ip=None, os_type=None, os_variant=None, master=None):
+    def __init__(self, dbname=None, _id=None, label=None, uuid=None, disks=None, ip=None, os_type=None, os_variant=None, master=None):
+        if dbname:
+            self._dbname = dbname
         self.label = label
         self.uuid = uuid
         self.disks = disks
@@ -80,7 +82,9 @@ class ScanInfo(DatabaseObject):
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_SCANINFO
 
-    def __init__(self, _id=None, oids={}, taskid=None, avlist=[]):
+    def __init__(self, dbname=None, _id=None, oids={}, taskid=None, avlist=[]):
+        if dbname:
+            self._dbname = dbname
         self.oids = oids
         self.taskid = taskid
         self.avlist = avlist
@@ -91,7 +95,9 @@ class ScanResults(DatabaseObject):
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_RESINFO
 
-    def __init__(self, _id=None, clamav=None, kaspersky=None, sophos=None):
+    def __init__(self, dbname=None, _id=None, clamav=None, kaspersky=None, sophos=None):
+        if dbname:
+            self._dbname = dbname
         self.avlist = []
         self.results = {}
         super(ScanResults, self).__init__(_id=_id)
