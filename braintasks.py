@@ -16,7 +16,8 @@ def error(info):
 
 @brain_celery.task(ignore_result=True)
 def scan(scanid, oids):
-    s = ScanInfo(_id=scanid)
+    # TODO remove empty dict hack for oids init
+    s = ScanInfo(_id=scanid, oids={})
     s.status = SCAN_STATUS_INIT
     s.save()
     avlist = ['clamav', 'kaspersky']
@@ -32,11 +33,8 @@ def scan(scanid, oids):
                 # TODO update new filename for known oid if different
                 # check if resuls for all av is present else launch specific scan
                 r = ScanResults(_id=oid)
-                for av in avlist:
-                    if av not in r.results.keys():
-                        res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
-                    else:
-                        print "oid %s (%s) already scanned by %s not launching" % (oid, oid_info['name'], av)
+                if av not in r.results.keys():
+                    res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
 
     if len(res) != 0:
         # Build a result set with all job AsyncResult for progress/cancel operations
