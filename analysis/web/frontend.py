@@ -2,14 +2,11 @@ import re
 import os
 import celery
 from bottle import route, request, default_app, run
-from brain import brainstorage
 from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RETCODE_ERROR
+from lib.irma.fileobject.handler import FileObject
 from bson import ObjectId
 from config.config import IRMA_TIMEOUT
-
-bstorage = brainstorage.BrainStorage()
-brain_celery = celery.Celery('braintasks')
-brain_celery.config_from_object('config.brainconfig')
+from config.brainconfig import brain_celery
 
 # ______________________________________________________________ RESPONSE FORMATTER
 
@@ -44,8 +41,9 @@ def scan_new():
         filename = os.path.basename(f)
         upfile = request.files.get(f)
         data = upfile.file.read()
-        (new, file_oid) = bstorage.store_file(data, name=filename)
-        oids[file_oid] = {"name": filename, "new": new}
+        fobj = FileObject()
+        new = fobj.save(data, filename)
+        oids[fobj._id] = {"name": filename, "new": new}
     scanid = str(ObjectId())
     brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids))
     return success({"scanid":scanid})
