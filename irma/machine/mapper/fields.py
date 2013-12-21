@@ -1,6 +1,6 @@
 import re
 
-from lib.irma.common.helpers import UUID
+from lib.common.utils import UUID
 
 from lxml import etree
 from eulxml.xpath import ast, parse, serialize

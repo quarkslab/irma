@@ -1,0 +1,154 @@
+import logging, libvirt
+
+from common import compat
+from common.oopatterns import ParametricSingleton
+from virt.core.exceptions import ConnectionManagerError
+
+log = logging.getLogger(__name__)
+
+class ConnectionManager(ParametricSingleton):
+    """Connection manager to a drive a local or remote virtual machine manager"""
+
+    handlers = {}
+
+    ##########################################################################
+    # parametric singleton stuff
+    ##########################################################################
+
+    @staticmethod
+    def depends_on(cls, *args, **kwargs):
+        # singleton depends on the uri parameter
+        (uri,) = args[0]
+        return uri
+
+    ##########################################################################
+    # constants
+    ##########################################################################
+
+    class drivers:
+
+        REMOTE = "remote"
+        TEST = "test"
+
+        XEN = "xen"
+        QEMU = "qemu"
+        VBOX = "vbox"
+
+        LXC = "lxc"
+        UML = "uml"
+        OPENVZ = "openvz"
+
+        HYPERV = "hyperv"
+        POWERVM = "phyp"
+        PARALLELS = "parallels"
+
+        VMWARE_VPX = "vpx"
+        VMWARE_ESX = "esx"
+        VMWARE_GSX = "gsx"
+        VMWARE_PLAYER = "vmwareplayer"
+        VMWARE_WORKSTATION = "vmwarews"
+        VMWARE_FUSION = "vmwarefusion"
+
+    class transport:
+
+        TLS = "tls"
+        UNIX = "unix"
+        SSH = "ssh"
+        EXT = "ext"
+        TCP = "tcp"
+        LIBSSH = "libssh2"        
+
+    ##########################################################################
+    # constructor and destructor stuff
+    ##########################################################################
+    
+    def __init__(self, uri):
+        """Instantiate a connection to the virtual machine manager specified by ``domainuri``
+
+        @param uri: URI to reach the virtual machine manager
+        @raises ConnectionManagerError if ``uri`` provided is not a string or a valid URI
+        """
+        if not isinstance(uri, basestring):
+            raise ConnectionManagerError("'uri' argument must be supplied as a string, not as a {0}".format(type(uri)))
+        elif not ConnectionManager.validate_uri(uri):
+            raise ConnectionManagerError("'uri' field value '{0}' is not valid".format(uri))
+         
+        self._uri = uri
+
+        self._drv = None
+        self._drv = self._connect()
+
+    def __del__(self):
+        if self._drv:
+            self._disconnect()
+
+    ##########################################################################
+    # context manager stuff
+    ##########################################################################
+
+    def __enter__(self):
+        return self
+
+    ##########################################################################
+    # internal helpers
+    ##########################################################################
+    
+    def _connect(self):
+        if self._drv:
+            return self._drv
+        self._drv =  ConnectionManager.handlers.get(self._uri, None)
+        if not self._drv:
+            try:
+                self._drv = libvirt.open(self._uri)
+                ConnectionManager.handlers[self._uri] = self._drv
+            except libvirt.libvirtError as e:
+                raise ConnectionManagerError('{0}'.format(e))
+        return self._drv
+
+    def _disconnect(self):
+        if self._drv:
+            try:
+                self._drv.close()
+            except libvirt.libvirtError as e:
+                raise ConnectionManagerError("{0}".format(e))
+            finally:
+                self._drv = None
+                handler = ConnectionManagerError.handlers.pop(self._uri, None)
+                if handler:
+                    del handler
+
+    ##########################################################################
+    # public methods
+    ##########################################################################
+
+    @property
+    def connection(self):
+        """returns the libvirt connection handle"""
+        return self._drv
+
+    @property
+    def uri(self):
+        """returns the libvirt connection handle"""
+        return self._uri
+
+    @staticmethod
+    def create_uri(param):
+        """create an uri from parameters passed in arguments
+        
+        @return a connection uri string
+        @raise NotImplementedError in any case
+        .. versionadded:: 0.3
+        """
+        raise NotImplementedError("will be implemented in future versions")
+
+    @staticmethod
+    def validate_uri(uri):
+        """checks if the uri passed is valid or not
+
+        @return true if valid else false
+        """
+        # TODO: perform more type checking, format checking and coherence checking
+        valid = False
+        if isinstance(uri, basestring):
+            valid = True
+        return valid

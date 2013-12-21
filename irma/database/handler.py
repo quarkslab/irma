@@ -2,8 +2,8 @@ import logging
 
 from pymongo import Connection
 
+from lib.common.oopatterns import Singleton
 from lib.irma.common.exceptions import IrmaDatabaseError
-from lib.irma.common.oopatterns import Singleton
 
 log = logging.getLogger(__name__)
 
