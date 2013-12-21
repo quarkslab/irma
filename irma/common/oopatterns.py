@@ -97,21 +97,21 @@ Pass either an argument ``depends_on`` in the constructor or define a class
 method called ``depends_on`` that specifies how to compute the parameter value
 used for the hash table storing the instances:
 
-* example with a **class method**:
+* example with a **static method**:
 
 .. code-block:: python
 
     class aParametricSingleton(ParametricSingleton):
   
-        @classmethod
+        @staticmethod
         def depends_on(*args, **kwargs):
             return "my key"
 
-* example with a **``lambda`` wrapped with a class method**:
+* example with a **``lambda`` wrapped with a static method**:
 
 .. code-block:: python
         
     class aParametricSingleton(ParametricSingleton):
 
-        depends_on = classmethod(lambda cls, *args, **kwargs: "my key")
+        depends_on = staticmethod(lambda *args, **kwargs: "my key")
 """
