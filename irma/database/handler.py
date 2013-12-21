@@ -5,8 +5,8 @@ import hashlib
 from pymongo import Connection
 from bson import ObjectId
 
+from lib.common.oopatterns import Singleton
 from lib.irma.common.exceptions import IrmaDatabaseError
-from lib.irma.common.oopatterns import Singleton
 from config.dbconfig import COLL_FS
 
 log = logging.getLogger(__name__)

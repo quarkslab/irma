@@ -6,7 +6,15 @@ import types
 ##############################################################################
 
 class SingletonMetaClass(type):
-    """Metaclass for singleton design pattern"""
+    """Metaclass for singleton design pattern.
+
+    .. warning::
+
+            This metaclass should not be used directly. To declare a class
+            using the singleton pattern, one should use the :class:`Singleton`
+            class instead.
+
+    """
 
     _instances = {}
 
@@ -17,14 +25,41 @@ class SingletonMetaClass(type):
 
 # Metaclass compatible with python 2 and 3. Inherit from this for singletons
 Singleton = SingletonMetaClass('Singleton', (object, ), {})
+"""Base class for singleton
 
+This class implements the singleton design pattern. One can inherit from this
+base class to make a class implement the singleton design pattern.
+
+    .. code-block:: python
+
+        # a class implementing a singleton
+        class aParametricSingleton(Singleton):
+            
+            # do some stuff here
+            pass
+
+        # let us verify that it is really a singleton
+        print(id(aParametricSingleton())
+        print(id(aParametricSingleton())
+
+"""
 
 ##############################################################################
 # Parametric Singleton Design Pattern
 ##############################################################################
 
 class ParametricSingletonMetaClass(type):
-    """Metaclass for singleton design pattern"""
+    """Metaclass for parametric singleton design pattern
+
+    .. warning::
+
+            This metaclass should not be used directly. To declare a class
+            using the singleton pattern, one should use the
+            :class:`ParametricSingleton` class instead and precise the
+            parameter used for the dict using a class method named
+            ``depends_on``.
+
+    """
 
     _instances = {}
 
@@ -52,25 +87,31 @@ class ParametricSingletonMetaClass(type):
             cls._instances[key] = super(ParametricSingletonMetaClass, cls).__call__(*args, **kwargs)
         return cls._instances[key]
 
-# Metaclass compatible with python 2 and 3. Inherit from this for parametric
-# singletons. Then, pass either an argument "depends_on" in the constructor or
-# define a class method called "depends_on" that specifies how to compute the
-# parameter value used for the hash table storing the instances:
-#
-# example with a class method:
-# 
-# class aParametricSingleton(ParametricSingleton):
-#
-#     @classmethod
-#     def depends_on(*args, **kwargs):
-#         return "my key"
-#
-# example with a lambda wrapped with a class method:
-#
-# class aParametricSingleton(ParametricSingleton):
-#
-#     depends_on = classmethod(lambda cls, *args, **kwargs: "my key")
-
+# Metaclass compatible with python 2 and 3. Inherit from this for parametric singletons
 ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton', (object, ), {})
+"""Base class for parametric singletons
 
+This class implements the parametric singleton design pattern. One can inherit
+from this base class to make a class implement a parametric singleton pattern.
+Pass either an argument ``depends_on`` in the constructor or define a class
+method called ``depends_on`` that specifies how to compute the parameter value
+used for the hash table storing the instances:
 
+* example with a **static method**:
+
+.. code-block:: python
+
+    class aParametricSingleton(ParametricSingleton):
+  
+        @staticmethod
+        def depends_on(*args, **kwargs):
+            return "my key"
+
+* example with a **``lambda`` wrapped with a static method**:
+
+.. code-block:: python
+        
+    class aParametricSingleton(ParametricSingleton):
+
+        depends_on = staticmethod(lambda *args, **kwargs: "my key")
+"""
