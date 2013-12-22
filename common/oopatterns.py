@@ -83,9 +83,11 @@ class ParametricSingletonMetaClass(type):
             key = getattr(cls, "depends_on")(cls, args, kwargs)
 
         # check for instance
-        if key not in cls._instances:
-            cls._instances[key] = super(ParametricSingletonMetaClass, cls).__call__(*args, **kwargs)
-        return cls._instances[key]
+        if cls not in cls._instances:
+            cls._instances[cls] = {}
+        if key not in cls._instances[cls]:
+            cls._instances[cls][key] = super(ParametricSingletonMetaClass, cls).__call__(*args, **kwargs)
+        return cls._instances[cls][key]
 
 # Metaclass compatible with python 2 and 3. Inherit from this for parametric singletons
 ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton', (object, ), {})
