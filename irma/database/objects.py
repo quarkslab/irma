@@ -82,12 +82,12 @@ class ScanInfo(DatabaseObject):
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_SCANINFO
 
-    def __init__(self, dbname=None, _id=None, oids={}, taskid=None, avlist=[]):
+    def __init__(self, dbname=None, _id=None):
         if dbname:
             self._dbname = dbname
-        self.oids = oids
-        self.taskid = taskid
-        self.avlist = avlist
+        self.oids = {}
+        self.taskid = None
+        self.avlist = []
         self.status = dbconfig.SCAN_STATUS_INIT
         super(ScanInfo, self).__init__(_id=_id)
 
@@ -95,7 +95,7 @@ class ScanResults(DatabaseObject):
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_RESINFO
 
-    def __init__(self, dbname=None, _id=None, clamav=None, kaspersky=None, sophos=None):
+    def __init__(self, dbname=None, _id=None):
         if dbname:
             self._dbname = dbname
         self.avlist = []
