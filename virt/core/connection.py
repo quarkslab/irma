@@ -1,8 +1,8 @@
 import logging, libvirt
 
-from common import compat
-from common.oopatterns import ParametricSingleton
-from virt.core.exceptions import ConnectionManagerError
+from lib.common import compat
+from lib.common.oopatterns import ParametricSingleton
+from lib.virt.core.exceptions import ConnectionManagerError
 
 log = logging.getLogger(__name__)
 
@@ -25,38 +25,36 @@ class ConnectionManager(ParametricSingleton):
     # constants
     ##########################################################################
 
-    class drivers:
+    # Available drivers
+    REMOTE = "remote"
+    TEST = "test"
 
-        REMOTE = "remote"
-        TEST = "test"
+    XEN = "xen"
+    QEMU = "qemu"
+    VBOX = "vbox"
 
-        XEN = "xen"
-        QEMU = "qemu"
-        VBOX = "vbox"
+    LXC = "lxc"
+    UML = "uml"
+    OPENVZ = "openvz"
 
-        LXC = "lxc"
-        UML = "uml"
-        OPENVZ = "openvz"
+    HYPERV = "hyperv"
+    POWERVM = "phyp"
+    PARALLELS = "parallels"
 
-        HYPERV = "hyperv"
-        POWERVM = "phyp"
-        PARALLELS = "parallels"
+    VMWARE_VPX = "vpx"
+    VMWARE_ESX = "esx"
+    VMWARE_GSX = "gsx"
+    VMWARE_PLAYER = "vmwareplayer"
+    VMWARE_WORKSTATION = "vmwarews"
+    VMWARE_FUSION = "vmwarefusion"
 
-        VMWARE_VPX = "vpx"
-        VMWARE_ESX = "esx"
-        VMWARE_GSX = "gsx"
-        VMWARE_PLAYER = "vmwareplayer"
-        VMWARE_WORKSTATION = "vmwarews"
-        VMWARE_FUSION = "vmwarefusion"
-
-    class transport:
-
-        TLS = "tls"
-        UNIX = "unix"
-        SSH = "ssh"
-        EXT = "ext"
-        TCP = "tcp"
-        LIBSSH = "libssh2"        
+    # Available transports
+    TLS = "tls"
+    UNIX = "unix"
+    SSH = "ssh"
+    EXT = "ext"
+    TCP = "tcp"
+    LIBSSH = "libssh2"        
 
     ##########################################################################
     # constructor and destructor stuff
@@ -152,3 +150,15 @@ class ConnectionManager(ParametricSingleton):
         if isinstance(uri, basestring):
             valid = True
         return valid
+
+    def version(self):
+        """get the libvirt version
+        
+        @return (major, minor, release) tuple
+        """
+        version = self._drv.getLibVersion()
+        # version has the format major * 1,000,000 + minor * 1,000 + release.
+        major = (version / 1000000)
+        minor = (version % 1000000) / 1000
+        release = version % 1000
+        return (major, minor, release)
