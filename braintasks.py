@@ -17,8 +17,7 @@ def error(info):
 @brain_celery.task(ignore_result=True)
 def scan(scanid, oids):
     # TODO remove empty dict hack for oids init
-    s = ScanInfo(_id=scanid, oids={})
-    s.status = SCAN_STATUS_INIT
+    s = ScanInfo(_id=scanid)
     s.save()
     avlist = ['clamav', 'kaspersky']
     s.avlist = avlist
