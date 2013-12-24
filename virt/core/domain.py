@@ -579,7 +579,7 @@ class DomainManager(ParametricSingleton):
             result = tuple(result)
         return result
 
-    def coredump(self, domains, name=None, flags=DUMP_CRASH):
+    def coredump(self, domains, name=None, flags=DUMP_LIVE):
         """perform a core dump on specified domains
         @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
@@ -618,7 +618,7 @@ class DomainManager(ParametricSingleton):
         return result
 
     def memdump(self, domains, start=None, size=None, flags=MEMORY_PHYSICAL):
-        result = None
+        result = (None, None)
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
@@ -632,10 +632,10 @@ class DomainManager(ParametricSingleton):
                             size =  1 * 1024 * 1024
                         else:
                             size = 16 * 1024 * 1024
-                        print version
-                    result = domains.memoryPeek(start, size, flags)
+                    data = domains.memoryPeek(start, size, flags)
+                    result = (len(data), data)
             except libvirt.libvirtError as e:
-                result = False
+                result = (False, None)
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if domains.has_key('domain'):
