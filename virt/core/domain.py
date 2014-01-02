@@ -82,9 +82,9 @@ class DomainManager(ParametricSingleton):
     def __init__(self, connection, prefetch=False):
         """Instantiate a domain manager for specified connection
 
-        @param connection: either an instance of a ``ConnectionManager`` or directly a libvirt connection handler
-        @param prefetch: set to True if prefetching domain handlers for this connection is required
-        @raises DomainManagerError if ``connection`` is not an expected type or None
+        :param connection: either an instance of a ``ConnectionManager`` or directly a libvirt connection handler
+        :param prefetch: set to True if prefetching domain handlers for this connection is required
+        :raises: DomainManagerError if ``connection`` is not an expected type or None
         """
         if not connection:
             raise DomainManagerError("'connection' field value '{0}' is not valid".format(connection))
@@ -247,9 +247,9 @@ class DomainManager(ParametricSingleton):
     def list(self, filter=ACTIVE|INACTIVE):
         """list machines on this domain
 
-        @param filter: either DomainManager.ACTIVE or DomainManager.INACTIVE 
+        :param filter: either DomainManager.ACTIVE or DomainManager.INACTIVE 
                to respectively active or inactive machines
-        @return a tuple containing domain names (w.r.t specified filter)
+        :returns: a tuple containing domain names (w.r.t specified filter)
         """
         labels = list()
 
@@ -277,9 +277,9 @@ class DomainManager(ParametricSingleton):
     def state(self, domains):
         """get state of the machines specified via domains
 
-        @param domains: either a label, uuid, id, virDomain object or a list
+        :param domains: either a label, uuid, id, virDomain object or a list
                         of label, uuid, id, a virDomain object.
-        @return (state, a string description) tuple if domains is a label, a
+        :returns: (state, a string description) tuple if domains is a label, a
                 uuid, a id, a virDomain or a tuple of (state, a string
                 description) if domains is a list. If an error (state, a
                 string description) equals to (None, None).
@@ -305,10 +305,10 @@ class DomainManager(ParametricSingleton):
     def start(self, domains, flags=0):
         """start specified domains
 
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @param flags: default flag if not specified otherwise
-        @return False if failed, True if success if domains is a label, a uuid,
+        :param flags: default flag if not specified otherwise
+        :returns: False if failed, True if success if domains is a label, a uuid,
                 a id, a virDomain or a tuple if domains is a list. When domain
                 is None, returns None.
         """
@@ -338,11 +338,11 @@ class DomainManager(ParametricSingleton):
     def stop(self, domains, force=False, flags=0):
         """stop specified domains
 
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @param force: default policy for force if not specified otherwise
-        @param flags: default flag if not specified otherwise
-        @return False if failed, True if success if domains is a label, a uuid,
+        :param force: default policy for force if not specified otherwise
+        :param flags: default flag if not specified otherwise
+        :returns: False if failed, True if success if domains is a label, a uuid,
                 a id, a virDomain or a tuple if domains is a list. When domain
                 is None, returns None.
         """
@@ -376,12 +376,13 @@ class DomainManager(ParametricSingleton):
     def autostart(self, domains, autostart=True):
         """set autostart on specified domains
 
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
-        @param autostart: default autostart value if not specified otherwise
-        @return False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :param domains: either a label, uuid, id, a virDomain, a dict (to
+                        specify flags) or a list of label, uuid, id, virDomain
+                        object or a list of dict.
+        :param autostart: default autostart value if not specified otherwise
+        :returns: False if failed, True if success if domains is a label, a
+                  uuid, a id, a virDomain or a tuple if domains is a list. When
+                  domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -409,12 +410,12 @@ class DomainManager(ParametricSingleton):
     def reboot(self, domains, flags=0):
         """reboot specified domains
 
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @param flags: default flags value if not specified otherwise
-        @return False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :param flags: default flags value if not specified otherwise
+        :returns: False if failed, True if success if domains is a label, a uuid,
+                  a id, a virDomain or a tuple if domains is a list. When domain
+                  is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -442,11 +443,11 @@ class DomainManager(ParametricSingleton):
     def reset(self, domains):
         """reset specified domains
 
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @return False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :returns: False if failed, True if success if domains is a label, a uuid,
+                  a id, a virDomain or a tuple if domains is a list. When domain
+                  is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -474,11 +475,11 @@ class DomainManager(ParametricSingleton):
     def resume(self, domains):
         """resume specified domains
 
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @return False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :returns: False if failed, True if success if domains is a label, a uuid,
+                  a id, a virDomain or a tuple if domains is a list. When domain
+                  is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -506,11 +507,11 @@ class DomainManager(ParametricSingleton):
     def suspend(self, domains):
         """suspend specified domains
 
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @return False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :returns: False if failed, True if success if domains is a label, a uuid,
+                  a id, a virDomain or a tuple if domains is a list. When domain
+                  is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -537,13 +538,14 @@ class DomainManager(ParametricSingleton):
 
     def screenshot(self, domains, name=None, screen=0):
         """perform screenshot on specified domains
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @param name: default name value if not specified otherwise
-        @param screen: default screen value if not specified otherwise
-        @return False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :param name: default name value if not specified otherwise
+        :param screen: default screen value if not specified otherwise
+        :returns: False if failed, True if success if domains is a label, a uuid,
+                  a id, a virDomain or a tuple if domains is a list. When domain
+                  is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -581,13 +583,14 @@ class DomainManager(ParametricSingleton):
 
     def coredump(self, domains, name=None, flags=DUMP_LIVE):
         """perform a core dump on specified domains
-        @param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
                         or a list of label, uuid, id, virDomain object or a list of dict.
-        @param flags: default flags value if not specified otherwise
-        @param name: default name value if not specified otherwise
-        @return False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :param flags: default flags value if not specified otherwise
+        :param name: default name value if not specified otherwise
+        :returns: False if failed, True if success if domains is a label, a uuid,
+                  a id, a virDomain or a tuple if domains is a list. When domain
+                  is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):

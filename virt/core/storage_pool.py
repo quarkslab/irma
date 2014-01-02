@@ -52,9 +52,9 @@ class StoragePoolManager(ParametricSingleton):
     def __init__(self, connection, prefetch=False):
         """Instantiate a storage pool manager for specified connection
 
-        @param connection: either an instance of a ``ConnectionManager`` or directly a libvirt connection handler
-        @param prefetch: set to True if prefetching storage pool handlers for this connection is required
-        @raises StoragePoolManagerError if ``connection`` is not an expected type or None
+        :param connection: either an instance of a ``ConnectionManager`` or directly a libvirt connection handler
+        :param prefetch: set to True if prefetching storage pool handlers for this connection is required
+        :raises: StoragePoolManagerError if ``connection`` is not an expected type or None
         """
         if not connection:
             raise StoragePoolManagerError("'connection' field value '{0}' is not valid".format(connection))
@@ -174,9 +174,9 @@ class StoragePoolManager(ParametricSingleton):
     def list(self, filter=ACTIVE|INACTIVE):
         """list storage pools on this domain
 
-        @param filter: either StoragePoolManager.ACTIVE or StoragePoolManager.INACTIVE 
-               to respectively active or inactive storage pools
-        @return a tuple containing storage pools names (w.r.t specified filter)
+        :param filter: either StoragePoolManager.ACTIVE or StoragePoolManager.INACTIVE 
+                       to respectively active or inactive storage pools
+        :returns: a tuple containing storage pools names (w.r.t specified filter)
         """
         labels = list()
 
@@ -199,9 +199,9 @@ class StoragePoolManager(ParametricSingleton):
     def state(self, pools):
         """get state of the storage pools specified via pools
 
-        @param pools: either a label, uuid, virStoragePool object or a list
-                        of label, uuid, id, a virStoragePool object.
-        @return (state, a string description) tuple if pools is a label, a
+        :param pools: either a label, uuid, virStoragePool object or a list
+                      of label, uuid, id, a virStoragePool object.
+        :returns: (state, a string description) tuple if pools is a label, a
                 uuid, a virStoragePool or a tuple of (state, a string
                 description) if pool is a list. If an error (state, a
                 string description) equals to (None, None).
@@ -226,9 +226,9 @@ class StoragePoolManager(ParametricSingleton):
     def start(self, pools, flags=0):
         """start specified pools
 
-        @param pools: either a label, uuid, a virStoragePool, a dict (to specify flags) 
-                        or a list of label, uuid, virStoragePool object or a list of dict.
-        @return False if failed, True if success if domains is a label, a uuid,
+        :param pools: either a label, uuid, a virStoragePool, a dict (to specify flags) 
+                      or a list of label, uuid, virStoragePool object or a list of dict.
+        :returns: False if failed, True if success if domains is a label, a uuid,
                 a id, a virStoragePool or a tuple if domains is a list. When domain
                 is None, returns None.
         """
@@ -259,12 +259,12 @@ class StoragePoolManager(ParametricSingleton):
     def stop(self, pools):
         """stop specified storage pools
 
-	@param pools: either a label, uuid, a virStoragePool, a dict ('pool'
-		      key is used to pass parameter) or a list of label, uuid,
+        :param pools: either a label, uuid, a virStoragePool, a dict ('pool'
+                      key is used to pass parameter) or a list of label, uuid,
                       virStoragePool object or a list of dict.
-        @return False if failed, True if success if pools is a label, a uuid,
-                a id, a virStoragePool or a tuple if pools is a list. When pool
-                is None, returns None.
+        :returns: False if failed, True if success if pools is a label, a uuid,
+                  a id, a virStoragePool or a tuple if pools is a list. When pool
+                  is None, returns None.
         """
         result = None
         if isinstance(pools, libvirt.virStoragePool):
@@ -291,12 +291,12 @@ class StoragePoolManager(ParametricSingleton):
     def autostart(self, pools, autostart=True):
         """set autostart on specified storage pools
 
-        @param pools: either a label, uuid, a virStoragePool, a dict (to specify flags) 
+        :param pools: either a label, uuid, a virStoragePool, a dict (to specify flags) 
                       or a list of label, uuid, virStoragePool object or a list of dict.
-        @param autostart: default autostart value if not specified otherwise
-        @return False if failed, True if success if pools is a label, a uuid,
-                a id, a virStoragePool or a tuple if poolss is a list. When domain
-                is None, returns None.
+        :param autostart: default autostart value if not specified otherwise
+        :returns: False if failed, True if success if pools is a label, a uuid,
+                  a id, a virStoragePool or a tuple if poolss is a list. When domain
+                  is None, returns None.
         """
         result = None
         if isinstance(pools, libvirt.virStoragePool):

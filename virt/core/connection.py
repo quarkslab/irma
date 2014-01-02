@@ -63,8 +63,8 @@ class ConnectionManager(ParametricSingleton):
     def __init__(self, uri):
         """Instantiate a connection to the virtual machine manager specified by ``domainuri``
 
-        @param uri: URI to reach the virtual machine manager
-        @raises ConnectionManagerError if ``uri`` provided is not a string or a valid URI
+        :param uri: URI to reach the virtual machine manager
+        :raises: ConnectionManagerError if ``uri`` provided is not a string or a valid URI
         """
         if not isinstance(uri, basestring):
             raise ConnectionManagerError("'uri' argument must be supplied as a string, not as a {0}".format(type(uri)))
@@ -133,8 +133,8 @@ class ConnectionManager(ParametricSingleton):
     def create_uri(param):
         """create an uri from parameters passed in arguments
         
-        @return a connection uri string
-        @raise NotImplementedError in any case
+        :returns: a connection uri string
+        :raises: NotImplementedError in any case
         .. versionadded:: 0.3
         """
         raise NotImplementedError("will be implemented in future versions")
@@ -143,7 +143,7 @@ class ConnectionManager(ParametricSingleton):
     def validate_uri(uri):
         """checks if the uri passed is valid or not
 
-        @return true if valid else false
+        :returns: true if valid else false
         """
         # TODO: perform more type checking, format checking and coherence checking
         valid = False
@@ -154,7 +154,7 @@ class ConnectionManager(ParametricSingleton):
     def version(self):
         """get the libvirt version
         
-        @return (major, minor, release) tuple
+        :returns: (major, minor, release) tuple
         """
         version = self._drv.getLibVersion()
         # version has the format major * 1,000,000 + minor * 1,000 + release.
