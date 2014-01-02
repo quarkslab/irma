@@ -105,7 +105,7 @@ class DomainManager(ParametricSingleton):
         if prefetch:
             domains = self.list()
             for domain in domains:
-                self._lookupByName(domain)
+                self.lookup(domain)
 
     ##########################################################################
     # context manager stuff
@@ -131,7 +131,7 @@ class DomainManager(ParametricSingleton):
     def _list_inactive(self):
         labels = list()
         try:
-            labels = self._drv.listDefinedDomains()
+            labels.extend(self._drv.listDefinedDomains())
         except libvirt.libvirtError as e:
             raise DomainManagerError("{0}".format(e))
         return tuple(labels)
@@ -202,8 +202,8 @@ class DomainManager(ParametricSingleton):
         # domain not in cache, retrieve and cache it
         else:
             try:
-                handle= self._drv.lookupByUUID(uuid)
-                name = res.name()
+                handle = self._drv.lookupByUUID(uuid)
+                name = handle.name()
                 where = {'name': name, 'uuid': uuid}
                 # if handle is not active, id is not available
                 if handle.isActive(): 
@@ -229,8 +229,8 @@ class DomainManager(ParametricSingleton):
         handle = None
         if isinstance(domain, (tuple, list)):
             handle = list()
-            for domain in domain:
-                handle.append(self.lookup(domain))
+            for dom in domain:
+                handle.append(self.lookup(dom))
             handle = tuple(handle)
         elif isinstance(domain, int):
             handle = self._lookupByID(domain)
