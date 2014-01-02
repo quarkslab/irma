@@ -136,25 +136,6 @@ class DomainManager(ParametricSingleton):
             raise DomainManagerError("{0}".format(e))
         return tuple(labels)
 
-    def _lookup(self, domain):
-        handle = None
-        if isinstance(domain, (tuple, list)):
-            handle = list()
-            for domain in domain:
-                handle.append(self._lookup(domain))
-            handle = tuple(handle)
-        elif isinstance(domain, int):
-            handle = self._lookupByID(domain)
-        elif isinstance(domain, basestring):
-            handle = self._lookupByName(domain)
-            if not handle and UUID.validate(domain):
-                handle = self._lookupByUUID(domain)
-            if not handle and domain.isdigit():
-                handle = self._lookupByID(int(domain))
-            if not handle:
-                log.warn("Unable to find domain {0} on {1}", domain, self._uri)
-        return handle
-
     def _cache_handle(self, cache, entry, where=None):
         if not isinstance(cache, dict):
             raise ValueError("'cache' fields must be a dict")
@@ -244,6 +225,25 @@ class DomainManager(ParametricSingleton):
     # public methods
     ##########################################################################
 
+    def lookup(self, domain):
+        handle = None
+        if isinstance(domain, (tuple, list)):
+            handle = list()
+            for domain in domain:
+                handle.append(self.lookup(domain))
+            handle = tuple(handle)
+        elif isinstance(domain, int):
+            handle = self._lookupByID(domain)
+        elif isinstance(domain, basestring):
+            handle = self._lookupByName(domain)
+            if not handle and UUID.validate(domain):
+                handle = self._lookupByUUID(domain)
+            if not handle and domain.isdigit():
+                handle = self._lookupByID(int(domain))
+            if not handle:
+                log.warn("Unable to find domain {0} on {1}", domain, self._uri)
+        return handle
+
     def list(self, filter=ACTIVE|INACTIVE):
         """list machines on this domain
 
@@ -294,7 +294,7 @@ class DomainManager(ParametricSingleton):
             except libvirt.libvirtError as e:
                 log.error('{0}'.format(e))
         elif isinstance(domains, (basestring, int)):
-            result = self.state(self._lookup(domains))
+            result = self.state(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -327,7 +327,7 @@ class DomainManager(ParametricSingleton):
                 flags = domains.get('flags', flags)
                 result = self.start(domain, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.start(self._lookup(domains), flags)
+            result = self.start(self.lookup(domains), flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -365,7 +365,7 @@ class DomainManager(ParametricSingleton):
                 force = domains.get('force', force)
                 result = self.stop(domain, force, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.stop(self._lookup(domains), force, flags)
+            result = self.stop(self.lookup(domains), force, flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -398,7 +398,7 @@ class DomainManager(ParametricSingleton):
                 autostart = domains.get('autostart', autostart)
                 result = self.autostart(domain, autostart)
         elif isinstance(domains, (basestring, int)):
-            result = self.autostart(self._lookup(domains), autostart)
+            result = self.autostart(self.lookup(domains), autostart)
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -431,7 +431,7 @@ class DomainManager(ParametricSingleton):
                 autostart = domains.get('flags', flags)
                 result = self.reboot(domain, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.reboot(self._lookup(domains), flags)
+            result = self.reboot(self.lookup(domains), flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -463,7 +463,7 @@ class DomainManager(ParametricSingleton):
                 domain = domains.get('domain', None)
                 result = self.reset(domain)
         elif isinstance(domains, (basestring, int)):
-            result = self.reset(self._lookup(domains))
+            result = self.reset(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -495,7 +495,7 @@ class DomainManager(ParametricSingleton):
                 domain = domains.get('domain', None)
                 result = self.resume(domain)
         elif isinstance(domains, (basestring, int)):
-            result = self.reset(self._lookup(domains))
+            result = self.reset(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -527,7 +527,7 @@ class DomainManager(ParametricSingleton):
                 domain = domains.get('domain', None)
                 result = self.suspend(domain)
         elif isinstance(domains, (basestring, int)):
-            result = self.suspend(self._lookup(domains))
+            result = self.suspend(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -571,7 +571,7 @@ class DomainManager(ParametricSingleton):
                 screen = domains.get('screen', screen)
                 result = self.screenshot(domain, name, screen)
         elif isinstance(domains, (basestring, int)):
-            result = self.screenshot(self._lookup(domains), name, screen)
+            result = self.screenshot(self.lookup(domains), name, screen)
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -609,7 +609,7 @@ class DomainManager(ParametricSingleton):
                 flags = domains.get('flags', flags)
                 result = self.coredump(domain, name, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.coredump(self._lookup(domains), name, flags)
+            result = self.coredump(self.lookup(domains), name, flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
@@ -645,7 +645,7 @@ class DomainManager(ParametricSingleton):
                 flags = domains.get('flags', flags)
                 result = self.memdump(domain, start, size, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.memdump(self._lookup(domains), start, size, flags)
+            result = self.memdump(self.lookup(domains), start, size, flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
             for domain in domains:
