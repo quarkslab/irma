@@ -10,7 +10,12 @@ ADDRESS = "http://localhost:8080"
 
 def sonde_list(args):
     resp = requests.get(url=ADDRESS + '/sonde_list')
-    print resp.content
+    try:
+        data = json.loads(resp.content)
+        if data['result'] == "success":
+            print "Available analysis : " + ", ".join(data["info"])
+    except:
+        print "Error getting analysis list"
     return
 
 def scan_cancel(args):
@@ -23,48 +28,56 @@ def scan_cancel(args):
 def scan_status(args):
     scanid = args.scanid
     resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
-    data = json.loads(resp.content)
-    if data['result'] == "success":
-        results = data['info']
-        finished = results['finished']
-        successful = results['successful']
-        total = results['total']
-        rate_total = rate_success = 0
-        if total != 0 : rate_total = finished * 100 / total
-        if finished != 0 : rate_success = successful * 100 / finished
-        print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
-        if finished == total:
+    try:
+        data = json.loads(resp.content)
+        if data['result'] == "success":
+            results = data['info']
+            finished = results['finished']
+            successful = results['successful']
+            total = results['total']
+            rate_total = rate_success = 0
+            if total != 0 : rate_total = finished * 100 / total
+            if finished != 0 : rate_success = successful * 100 / finished
+            print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
+            if finished == total:
+                scan_results(scanid)
+        elif data['result'] == 'warning' and data['info'] == "finished":
             scan_results(scanid)
-    elif data['result'] == 'warning' and data['info'] == "finished":
-        scan_results(scanid)
-    else:
-        print data['info']
+        else:
+            print data['info']
+    except:
+        print "Error getting scan status"
     return
 
 def scan_results(scanid):
     resp = requests.get(url=ADDRESS + '/scan/results/' + scanid)
-    data = json.loads(resp.content)
-    if data['result'] == "success":
-        files = data['info']
-    else:
-        sys.exit(0)
-    for (name, res) in files.items():
-        print "%s" % name
-        for av in res:
-            print "\t%s%s" % (av.ljust(12), res[av]['result'].strip())
+    try:
+        data = json.loads(resp.content)
+        if data['result'] == "success":
+            files = data['info']
+        else:
+            sys.exit(0)
+        for (name, res) in files.items():
+            print "%s" % name
+            for av in res:
+                print "\t%s%s" % (av.ljust(12), res[av]['result'].strip())
+    except:
+        print "Error getting scan results"
     return
 
 
 def scan(args):
-    postfiles = dict(map(lambda t: (t, open(t, 'rb')), args.filenames))
-    resp = requests.post(ADDRESS + '/scan', files=postfiles, params={'force':args.force, 'sondelist':args.sonde})
-    data = json.loads(resp.content)
+    try:
+        postfiles = dict(map(lambda t: (t, open(t, 'rb')), args.filenames))
+        resp = requests.post(ADDRESS + '/scan', files=postfiles, params={'force':args.force, 'sondelist':args.sonde})
 
-    if data['result'] == "success":
-        scanid = data['info']['scanid']
-        print "Scanid:", scanid
-    else:
-        raise 'Error'
+        data = json.loads(resp.content)
+
+        if data['result'] == "success":
+            scanid = data['info']['scanid']
+            print "scanid:", scanid
+    except:
+        print "Error creating new scan"
     return
 
 # create the top-level parser
