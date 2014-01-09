@@ -87,7 +87,7 @@ class ScanInfo(DatabaseObject):
             self._dbname = dbname
         self.oids = {}
         self.taskid = None
-        self.avlist = []
+        self.sondelist = []
         self.status = dbconfig.SCAN_STATUS_INIT
         super(ScanInfo, self).__init__(_id=_id)
 
@@ -98,6 +98,6 @@ class ScanResults(DatabaseObject):
     def __init__(self, dbname=None, _id=None):
         if dbname:
             self._dbname = dbname
-        self.avlist = []
+        self.sondelist = []
         self.results = {}
         super(ScanResults, self).__init__(_id=_id)
