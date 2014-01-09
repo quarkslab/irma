@@ -1,7 +1,7 @@
 import re
 import os
 import celery
-from bottle import route, request, default_app, run
+from bottle import route, request, default_app, run, static_file
 from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RETCODE_ERROR
 from lib.irma.fileobject.handler import FileObject
 from bson import ObjectId
@@ -36,6 +36,11 @@ def validid(scanid):
 @route("/scan", method='POST')
 def scan_new():
     """ send list of filename for scanning """
+    force = request.params['force']
+    if 'sondelist' in request.params:
+        sondelist = request.params['sondelist']
+    else:
+        sondelist = None
     oids = {}
     for f in request.files:
         filename = os.path.basename(f)
@@ -45,8 +50,8 @@ def scan_new():
         new = fobj.save(data, filename)
         oids[fobj._id] = {"name": filename, "new": new}
     scanid = str(ObjectId())
-    brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids))
-    return success({"scanid":scanid})
+    brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids, sondelist, force))
+    return success({"scanid":scanid, "sondelist":sondelist})
 
 @route("/scan/results/<scanid>", method='GET')
 def scan_results(scanid):
@@ -89,15 +94,23 @@ def scan_cancel(scanid):
     return response(status, res)
 # ______________________________________________________________ API STATUS
 
-@route("/status")
+@route("/sonde_list")
 def status():
-    return error("TODO")
+    # Check active queues with a synchronous task (blocking for max IRMA_TIMEOUT seconds)
+    try:
+        task = brain_celery.send_task("brain.braintasks.sonde_list", args=[])
+        (status, res) = task.get(timeout=IRMA_TIMEOUT)
+    except celery.exceptions.TimeoutError:
+        return error("timeout")
+    return response(status, res)
 
 # ______________________________________________________________ API EXPORT
 
-def export(filename, oid):
+@route('/download/<file_oid>')
+def download(file_oid):
     """ retrieve a file previously sent to the brain """
-    return error("TODO")
+    fobj = FileObject(_id=file_oid)
+    return static_file(fobj.name, download=fobj.data)
 
 # ______________________________________________________________ MAIN
 
