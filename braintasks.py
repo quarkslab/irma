@@ -4,6 +4,23 @@ from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RE
 from lib.irma.database.objects import ScanInfo, ScanResults
 from config.dbconfig import SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STATUS_CANCELLED, SCAN_STATUS_INIT, SCAN_STATUS_CANCELLING
 import uuid
+import time
+
+cache_sonde = {'list':None, 'time':None}
+
+def get_sondelist():
+    now = time.time()
+    if not cache_sonde['list'] or (now - cache_sonde['time']) > 60:
+        slist = list()
+        i = sonde_celery.control.inspect()
+        queues = i.active_queues()
+        for infolist in queues.values():
+            for info in infolist:
+                if info['name'] not in slist:
+                    slist.append(info['name'])
+        cache_sonde['list'] = slist
+        cache_sonde['time'] = now
+    return cache_sonde['list']
 
 def success(info):
     return (IRMA_RETCODE_OK, info)
@@ -14,18 +31,24 @@ def warning(info):
 def error(info):
     return (IRMA_RETCODE_ERROR, info)
 
+@brain_celery.task()
+def sonde_list():
+    return success(get_sondelist())
+
 @brain_celery.task(ignore_result=True)
-def scan(scanid, oids):
+def scan(scanid, oids, sondelist, force):
     # TODO remove empty dict hack for oids init
     s = ScanInfo(_id=scanid)
     s.save()
-    avlist = ['clamav', 'kaspersky']
-    s.avlist = avlist
+    if sondelist:
+        s.sondelist = sondelist
+    else:
+        s.sondelist = get_sondelist()
     res = []
     for (oid, oid_info) in oids.items():
         s.oids[oid] = oid_info['name']
-        for av in avlist:
-            if oid_info['new']:
+        for av in s.sondelist:
+            if oid_info['new'] or force:
                 # create one subtask per oid to scan per antivirus queue
                 res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
             else:
@@ -46,7 +69,7 @@ def scan(scanid, oids):
         s.taskid = groupid
     else:
         s.status = SCAN_STATUS_FINISHED
-    return
+    return "%d jobs launched" % len(res)
 
 @brain_celery.task(ignore_result=True)
 def scan_finished(scanid):
