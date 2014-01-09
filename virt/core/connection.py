@@ -119,6 +119,12 @@ class ConnectionManager(ParametricSingleton):
     # public methods
     ##########################################################################
 
+    def reconnect(self):
+        """In case the connection drops, can be used to reconnect"""
+        self._drv = None
+        ConnectionManager.handlers.set(self._uri, None)
+        self._connect()
+
     @property
     def connection(self):
         """returns the libvirt connection handle"""
