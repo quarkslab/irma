@@ -8,7 +8,7 @@ import argparse
 ADDRESS = "http://localhost:8080"
 
 
-def sonde_list(args):
+def sonde_list():
     resp = requests.get(url=ADDRESS + '/sonde_list')
     try:
         data = json.loads(resp.content)
@@ -18,15 +18,13 @@ def sonde_list(args):
         print "Error getting analysis list"
     return
 
-def scan_cancel(args):
-    scanid = args.scanid
+def scan_cancel(scanid=None):
     resp = requests.get(url=ADDRESS + '/scan/cancel/' + scanid)
     print resp.content
     return
 
 
-def scan_status(args):
-    scanid = args.scanid
+def scan_status(scanid=None):
     resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
     try:
         data = json.loads(resp.content)
@@ -40,16 +38,16 @@ def scan_status(args):
             if finished != 0 : rate_success = successful * 100 / finished
             print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
             if finished == total:
-                scan_results(scanid)
+                scan_results(scanid=scanid)
         elif data['result'] == 'warning' and data['info'] == "finished":
-            scan_results(scanid)
+            scan_results(scanid=scanid)
         else:
             print data['info']
     except:
         print "Error getting scan status"
     return
 
-def scan_results(scanid):
+def scan_results(scanid=None):
     resp = requests.get(url=ADDRESS + '/scan/results/' + scanid)
     try:
         data = json.loads(resp.content)
@@ -65,14 +63,14 @@ def scan_results(scanid):
         print "Error getting scan results"
     return
 
-
-def scan(args):
+def scan(filename=None, force=None, sonde=None):
     try:
-        postfiles = dict(map(lambda t: (t, open(t, 'rb')), args.filenames))
-        resp = requests.post(ADDRESS + '/scan', files=postfiles, params={'force':args.force, 'sondelist':args.sonde})
-
+        postfiles = dict(map(lambda t: (t, open(t, 'rb')), filename))
+        params = {'force':force}
+        if sonde:
+            params['sonde'] = ','.join(sonde)
+        resp = requests.post(ADDRESS + '/scan', files=postfiles, params=params)
         data = json.loads(resp.content)
-
         if data['result'] == "success":
             scanid = data['info']['scanid']
             print "scanid:", scanid
@@ -80,30 +78,35 @@ def scan(args):
         print "Error creating new scan"
     return
 
-# create the top-level parser
-parser = argparse.ArgumentParser(description='command line interface for IRMA')
-subparsers = parser.add_subparsers(help='sub-command help')
+if __name__ == "__main__":
+    # create the top-level parser
+    parser = argparse.ArgumentParser(description='command line interface for IRMA')
+    subparsers = parser.add_subparsers(help='sub-command help')
 
-# create the parser for the "list" command
-list_parser = subparsers.add_parser('list', help='list available analysis')
-list_parser.set_defaults(func=sonde_list)
+    # create the parser for the "list" command
+    list_parser = subparsers.add_parser('list', help='list available analysis')
+    list_parser.set_defaults(func=sonde_list)
 
-# create the parser for the "scan" command
-scan_parser = subparsers.add_parser('scan', help='scan given filename list')
-scan_parser.add_argument('filenames', nargs='+', help='a filename to analyze')
-scan_parser.add_argument('--force', dest='force', action='store_true', help='force new analysis')
-scan_parser.add_argument('--sonde', nargs='+', help='specify analysis list')
-scan_parser.set_defaults(func=scan)
+    # create the parser for the "scan" command
+    scan_parser = subparsers.add_parser('scan', help='scan given filename list')
+    scan_parser.add_argument('--force', dest='force', action='store_true', help='force new analysis')
+    scan_parser.add_argument('--sonde', nargs='+', help='specify analysis list')
+    scan_parser.add_argument('--filename', nargs='+', help='a filename to analyze', required=True)
+    scan_parser.set_defaults(func=scan)
 
-# create the parser for the "results" command
-res_parser = subparsers.add_parser('results', help='print scan results')
-res_parser.add_argument('scanid', help='scanid returned by scan command')
-res_parser.set_defaults(func=scan_status)
+    # create the parser for the "results" command
+    res_parser = subparsers.add_parser('results', help='print scan results')
+    res_parser.add_argument('scanid', help='scanid returned by scan command')
+    res_parser.set_defaults(func=scan_status)
 
-# create the parser for the "cancel" command
-cancel_parser = subparsers.add_parser('cancel', help='cancel scan')
-cancel_parser.add_argument('scanid', help='scanid returned by scan command')
-cancel_parser.set_defaults(func=scan_cancel)
+    # create the parser for the "cancel" command
+    cancel_parser = subparsers.add_parser('cancel', help='cancel scan')
+    cancel_parser.add_argument('scanid', help='scanid returned by scan command')
+    cancel_parser.set_defaults(func=scan_cancel)
 
-args = parser.parse_args()
-args.func(args)
+    args = vars(parser.parse_args())
+    func = args.pop('func')
+    # with 'func' removed, args is now a kwargs with only
+    # the specific arguments for each subfunction
+    # useful for interactive mode.
+    func(**args)

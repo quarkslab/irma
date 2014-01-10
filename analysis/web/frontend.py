@@ -36,11 +36,15 @@ def validid(scanid):
 @route("/scan", method='POST')
 def scan_new():
     """ send list of filename for scanning """
-    force = request.params['force']
-    if 'sondelist' in request.params:
-        sondelist = request.params['sondelist']
-    else:
-        sondelist = None
+    # analyze parameters
+    force = False
+    if request.params['force'] == 'True':
+        force = True
+    sondelist = None
+    if 'sonde' in request.params:
+        sondelist = request.params['sonde'].split(',')
+
+    # save file in db
     oids = {}
     for f in request.files:
         filename = os.path.basename(f)
@@ -49,6 +53,8 @@ def scan_new():
         fobj = FileObject()
         new = fobj.save(data, filename)
         oids[fobj._id] = {"name": filename, "new": new}
+
+    # launch new celery task
     scanid = str(ObjectId())
     brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids, sondelist, force))
     return success({"scanid":scanid, "sondelist":sondelist})
