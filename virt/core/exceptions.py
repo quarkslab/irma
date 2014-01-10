@@ -9,3 +9,7 @@ class DomainManagerError(Exception):
 class StoragePoolManagerError(Exception):
     """Error on managing a storage pool"""
     pass
+
+class StorageVolumeManagerError(Exception):
+    """Error on managing a storage volume"""
+    pass

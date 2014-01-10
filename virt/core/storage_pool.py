@@ -1,8 +1,9 @@
-import logging, libvirt
+import logging, libvirt, xmltodict
 
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.common.oopatterns import ParametricSingleton
+from lib.virt.core.mapper import VirtObject
 from lib.virt.core.connection import ConnectionManager
 from lib.virt.core.exceptions import StoragePoolManagerError
 
@@ -22,12 +23,12 @@ class StoragePoolManager(ParametricSingleton):
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
         if not isinstance(handler, libvirt.virConnect):
-            raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
+            raise StoragePoolManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
 
         try:
             uri = handler.getURI()          
         except libvirt.libvirtError as e:
-            raise DomainManagerError("unable to get domain uri from connection handle")
+            raise StoragePoolManagerError("unable to get domain uri from connection handle")
         return uri
 
     ##########################################################################

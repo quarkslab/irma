@@ -1,8 +1,12 @@
-import logging, libvirt, tempfile, mimetypes
+import logging, libvirt, xmltodict, tempfile, mimetypes, os.path
 
 from lib.common import compat
-from lib.common.utils import UUID
+from lib.common.utils import UUID, MAC
 from lib.common.oopatterns import ParametricSingleton
+
+from lib.virt.core.storage_pool import StoragePoolManager
+from lib.virt.core.storage_volume import StorageVolumeManager
+
 from lib.virt.core.connection import ConnectionManager
 from lib.virt.core.exceptions import DomainManagerError
 
@@ -653,5 +657,74 @@ class DomainManager(ParametricSingleton):
             result = list()
             for domain in domains:
                 result.append(self.memdump(domain, start, size, flags))
+            result = tuple(result)
+        return result
+ 
+    # TODO: add return value checking
+    # TODO: autogenerate name and allow name to be none
+    # TODO: allow not to clone disk, possible ?
+    def clone(self, domains, name):
+        """perform screenshot on specified domains
+
+        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
+                        or a list of label, uuid, id, virDomain object or a list of dict.
+        :param name: default name value if not specified otherwise
+        :param screen: default screen value if not specified otherwise
+        :returns: False if failed, True if success if domains is a label, a uuid,
+                  a id, a virDomain or a tuple if domains is a list. When domain
+                  is None, returns None.
+        """
+        if not name:
+            raise DomainManagerError("'name' field value '{0}' is invalid".format(name))
+
+        result = None
+        if isinstance(domains, libvirt.virDomain):
+            try:
+                if domains and not domains.isActive():
+                    orig_xml = domains.XMLDesc(0)
+                    orig_dict = xmltodict.parse(orig_xml)
+
+                    # modify configuration
+                    new_dict = orig_dict
+                    dom = self.lookup(name)
+                    if dom:
+                        raise DomainManagerError("domain '{0}' already exists".format(name))
+                    while True:
+                        uuid = UUID.generate()
+                        if not self.lookup(uuid):
+                            break
+                    new_dict['domain']['name'] = name
+                    new_dict['domain']['uuid'] = uuid
+                    # TODO: handle multiple ethernet card
+                    new_dict['domain']['devices']['interface']['mac']['@address'] = MAC.generate()
+                    # TODO: handle if only one disk
+                    for disk in new_dict['domain']['devices']['disk']:
+                        if not disk['@device'] == 'disk':
+                            continue
+                        orig_filename = disk['source']['@file']
+                        orig_ext = os.path.splitext(orig_filename)[1]
+                        # TODO: use StorageVolumeManager here
+                        orig_vol = self._drv.storageVolLookupByPath(orig_filename)
+                        # TODO: what if the pool does not exist ?
+                        orig_pool = orig_vol.storagePoolLookupByVolume()
+                        vol_man = StorageVolumeManager(self._drv, orig_pool)
+                        new_vol = vol_man.clone(orig_vol.name(), ''.join([name, orig_ext]))
+                        disk['source']['@file'] = new_vol.path()
+                    new_xml = xmltodict.unparse(new_dict)
+                    self._drv.defineXML(new_xml)
+            except libvirt.libvirtError as e:
+                result = False
+                log.error('{0}'.format(e))
+        elif isinstance(domains, dict):
+            if domains.has_key('domain'):
+                domain = domains.get('domain', None)
+                name = domains.get('name', None)
+                result = self.clone(domain, name)
+        elif isinstance(domains, (basestring, int)):
+            result = self.clone(self.lookup(domains), name)
+        elif isinstance(domains, (list, tuple)):
+            result = list()
+            for domain in domains:
+                result.append(self.clone(domain), name)
             result = tuple(result)
         return result
