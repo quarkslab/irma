@@ -6,6 +6,7 @@ from config.dbconfig import SCAN_STATUS_LAUNCHED, SCAN_STATUS_FINISHED, SCAN_STA
 import uuid
 import time
 
+
 cache_sonde = {'list':None, 'time':None}
 
 def get_sondelist():
@@ -37,39 +38,50 @@ def sonde_list():
 
 @brain_celery.task(ignore_result=True)
 def scan(scanid, oids, sondelist, force):
-    # TODO remove empty dict hack for oids init
-    s = ScanInfo(_id=scanid)
-    s.save()
+    scaninfo = ScanInfo(_id=scanid)
+    scaninfo.save()
+
+    all_sonde = get_sondelist()
+    print "Received sondelist %r" % sondelist
     if sondelist:
-        s.sondelist = sondelist
+        # check if sonde exists
+        for x in sondelist:
+            if x not in all_sonde:
+                print x + " not in " + "-".join(all_sonde)
+                raise 'Unknown sonde :' + x
+        scaninfo.sondelist = sondelist
     else:
-        s.sondelist = get_sondelist()
-    res = []
+        scaninfo.sondelist = all_sonde
+
+    jobs_list = []
+    print "Scan received with %d files and analysis (%s) and force %r" % (len(oids), scaninfo.sondelist, force)
     for (oid, oid_info) in oids.items():
-        s.oids[oid] = oid_info['name']
-        for av in s.sondelist:
+        scaninfo.oids[oid] = oid_info['name']
+        for sonde in scaninfo.sondelist:
             if oid_info['new'] or force:
                 # create one subtask per oid to scan per antivirus queue
-                res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
+                jobs_list.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=sonde))
+                print 'Append new job to %s queue' % sonde
             else:
                 # TODO update new filename for known oid if different
-                # check if resuls for all av is present else launch specific scan
-                r = ScanResults(_id=oid)
-                if av not in r.results.keys():
-                    res.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=av))
+                # check if resuls for all sonde is already there else launch specific scan
+                scanresult = ScanResults(_id=oid)
+                if sonde not in scanresult.results.keys():
+                    jobs_list.append(sonde_celery.send_task("sonde.sondetasks.sonde_scan", args=(scanid, oid), queue=sonde))
+                    print 'Append add job to %s queue' % sonde
 
-    if len(res) != 0:
+    if len(jobs_list) != 0:
         # Build a result set with all job AsyncResult for progress/cancel operations
         groupid = str(uuid.uuid4())
-        groupres = sonde_celery.GroupResult(id=groupid, results=res)
+        groupres = sonde_celery.GroupResult(id=groupid, results=jobs_list)
 
         # keep the groupresult object for task status/cancel
         groupres.save()
-        s.status = SCAN_STATUS_LAUNCHED
-        s.taskid = groupid
+        scaninfo.status = SCAN_STATUS_LAUNCHED
+        scaninfo.taskid = groupid
     else:
-        s.status = SCAN_STATUS_FINISHED
-    return "%d jobs launched" % len(res)
+        scaninfo.status = SCAN_STATUS_FINISHED
+    return "%d jobs launched" % len(jobs_list)
 
 @brain_celery.task(ignore_result=True)
 def scan_finished(scanid):
@@ -136,5 +148,5 @@ def scan_result(scanid):
     res = {}
     for (oid, name) in s.oids.items():
         r = ScanResults(_id=oid)
-        res[name] = r.results
+        res[name] = dict((k, v) for (k, v) in r.results.iteritems() if k in s.sondelist)
     return success(res)
