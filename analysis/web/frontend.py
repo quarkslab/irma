@@ -2,31 +2,19 @@ import re
 import os
 import celery
 from bottle import route, request, default_app, run, static_file
-from lib.irma.common.utils import IRMA_RETCODE_OK, IRMA_RETCODE_WARNING, IRMA_RETCODE_ERROR
+from lib.irma.common.utils import success, error, response
 from lib.irma.fileobject.handler import FileObject
 from bson import ObjectId
 from config.config import IRMA_TIMEOUT
 from config.brainconfig import brain_celery
-
-# ______________________________________________________________ RESPONSE FORMATTER
-
-def response(code, info):
-    return {"result":code, "info":info}
-
-def error(info):
-    return response(IRMA_RETCODE_ERROR, info)
-
-def warning(info):
-    return response(IRMA_RETCODE_WARNING, info)
-
-def success(info):
-    return response(IRMA_RETCODE_OK, info)
+from config.adminconfig import admin_celery
+from lib.irma.common.utils import IrmaRetCode
 
 # ______________________________________________________________ SERVER ROOT
 
 @route("/")
 def svr_index():
-    return success("This is irma-brain")
+    return response(IrmaRetCode.success, "This is irma-brain")
 # ______________________________________________________________ API SCAN
 
 def validid(scanid):
@@ -36,13 +24,14 @@ def validid(scanid):
 @route("/scan", method='POST')
 def scan_new():
     """ send list of filename for scanning """
+    print request.params
     # analyze parameters
     force = False
     if request.params['force'] == 'True':
         force = True
-    sondelist = None
-    if 'sonde' in request.params:
-        sondelist = request.params['sonde'].split(',')
+    probelist = None
+    if 'probe' in request.params:
+        probelist = request.params['probe'].split(',')
 
     # save file in db
     oids = {}
@@ -56,8 +45,8 @@ def scan_new():
 
     # launch new celery task
     scanid = str(ObjectId())
-    brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids, sondelist, force))
-    return success({"scanid":scanid, "sondelist":sondelist})
+    brain_celery.send_task("brain.braintasks.scan", args=(scanid, oids, probelist, force))
+    return response(IrmaRetCode.success, {"scanid":scanid, "probelist":probelist})
 
 @route("/scan/results/<scanid>", method='GET')
 def scan_results(scanid):
@@ -100,11 +89,11 @@ def scan_cancel(scanid):
     return response(status, res)
 # ______________________________________________________________ API STATUS
 
-@route("/sonde_list")
+@route("/probe_list")
 def status():
     # Check active queues with a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = brain_celery.send_task("brain.braintasks.sonde_list", args=[])
+        task = brain_celery.send_task("brain.braintasks.probe_list", args=[])
         (status, res) = task.get(timeout=IRMA_TIMEOUT)
     except celery.exceptions.TimeoutError:
         return error("timeout")

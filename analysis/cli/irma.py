@@ -8,25 +8,30 @@ import argparse
 ADDRESS = "http://localhost:8080"
 
 
-def sonde_list():
-    resp = requests.get(url=ADDRESS + '/sonde_list')
+def probe_list():
     try:
+        resp = requests.get(url=ADDRESS + '/probe_list')
         data = json.loads(resp.content)
         if data['result'] == "success":
             print "Available analysis : " + ", ".join(data["info"])
-    except:
-        print "Error getting analysis list"
+    except requests.exceptions.ConnectionError:
+        print "Error connecting to frontend"
+    except Exception, e:
+        print "Error getting analysis list: %s", e
     return
 
 def scan_cancel(scanid=None):
-    resp = requests.get(url=ADDRESS + '/scan/cancel/' + scanid)
-    print resp.content
+    try:
+        resp = requests.get(url=ADDRESS + '/scan/cancel/' + scanid)
+        print resp.content
+    except requests.exceptions.ConnectionError:
+        print "Error connecting to frontend"
     return
 
 
 def scan_status(scanid=None):
-    resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
     try:
+        resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
         data = json.loads(resp.content)
         if data['result'] == "success":
             results = data['info']
@@ -43,13 +48,15 @@ def scan_status(scanid=None):
             scan_results(scanid=scanid)
         else:
             print data['info']
-    except:
-        print "Error getting scan status"
+    except requests.exceptions.ConnectionError:
+        print "Error connecting to frontend"
+    except Exception, e:
+        print "Error getting scan status: %s" % e
     return
 
 def scan_results(scanid=None):
-    resp = requests.get(url=ADDRESS + '/scan/results/' + scanid)
     try:
+        resp = requests.get(url=ADDRESS + '/scan/results/' + scanid)
         data = json.loads(resp.content)
         if data['result'] == "success":
             files = data['info']
@@ -59,23 +66,27 @@ def scan_results(scanid=None):
             print "%s" % name
             for av in res:
                 print "\t%s%s" % (av.ljust(12), res[av]['result'].strip())
-    except:
-        print "Error getting scan results"
+    except requests.exceptions.ConnectionError:
+        print "Error connecting to frontend"
+    except Exception, e:
+        print "Error getting scan results: %s" % e
     return
 
-def scan(filename=None, force=None, sonde=None):
+def scan(filename=None, force=None, probe=None):
     try:
         postfiles = dict(map(lambda t: (t, open(t, 'rb')), filename))
         params = {'force':force}
-        if sonde:
-            params['sonde'] = ','.join(sonde)
+        if probe:
+            params['probe'] = ','.join(probe)
         resp = requests.post(ADDRESS + '/scan', files=postfiles, params=params)
         data = json.loads(resp.content)
         if data['result'] == "success":
             scanid = data['info']['scanid']
             print "scanid:", scanid
-    except:
-        print "Error creating new scan"
+    except requests.exceptions.ConnectionError:
+        print "Error connecting to frontend"
+    except Exception, e:
+        print "Error creating new scan: %s" % e
     return
 
 if __name__ == "__main__":
@@ -85,12 +96,12 @@ if __name__ == "__main__":
 
     # create the parser for the "list" command
     list_parser = subparsers.add_parser('list', help='list available analysis')
-    list_parser.set_defaults(func=sonde_list)
+    list_parser.set_defaults(func=probe_list)
 
     # create the parser for the "scan" command
     scan_parser = subparsers.add_parser('scan', help='scan given filename list')
     scan_parser.add_argument('--force', dest='force', action='store_true', help='force new analysis')
-    scan_parser.add_argument('--sonde', nargs='+', help='specify analysis list')
+    scan_parser.add_argument('--probe', nargs='+', help='specify analysis list')
     scan_parser.add_argument('--filename', nargs='+', help='a filename to analyze', required=True)
     scan_parser.set_defaults(func=scan)
 
