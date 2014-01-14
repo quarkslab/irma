@@ -1,6 +1,7 @@
 import importlib
 from config.probeconfig import probe_celery
 from lib.irma.common.objects import ScanResults
+from lib.irma.common.utils import IrmaTaskReturn
 from lib.irma.fileobject.handler import FileObject
 from config.config import AVNAME
 
@@ -14,5 +15,5 @@ def probe_scan(scan_oid, file_oid):
     if AVNAME not in r.probelist:
         r.probelist.append(AVNAME)
         r.results.update({AVNAME:scan_results})
-    return {'scan_oid':scan_oid, 'file_oid': file_oid, 'avname': AVNAME}
+    return IrmaTaskReturn.success({'scan_oid':scan_oid, 'file_oid': file_oid, 'avname': AVNAME})
 
