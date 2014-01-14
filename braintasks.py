@@ -1,6 +1,6 @@
 from config.brainconfig import brain_celery
 import config.probeconfig as probeconfig
-from lib.irma.common.utils import success, warning, error
+from lib.irma.common.utils import IrmaTaskReturn
 from lib.irma.common.objects import ScanInfo, ScanResults, ScanStatus
 import uuid
 import time
@@ -27,7 +27,7 @@ def get_probelist():
 
 @brain_celery.task()
 def probe_list():
-    return success(get_probelist())
+    return IrmaTaskReturn.success(get_probelist())
 
 @brain_celery.task(ignore_result=True)
 def scan(scanid, oids, probelist, force):
@@ -35,33 +35,28 @@ def scan(scanid, oids, probelist, force):
     scaninfo.save()
 
     all_probe = get_probelist()
-    print "Received probelist %r" % probelist
     if probelist:
         # check if probe exists
         for x in probelist:
             if x not in all_probe:
-                print x + " not in " + "-".join(all_probe)
                 raise 'Unknown probe :' + x
         scaninfo.probelist = probelist
     else:
         scaninfo.probelist = all_probe
 
     jobs_list = []
-    print "Scan received with %d files and analysis (%s) and force %r" % (len(oids), scaninfo.probelist, force)
     for (oid, oid_info) in oids.items():
         scaninfo.oids[oid] = oid_info['name']
         for probe in scaninfo.probelist:
             if oid_info['new'] or force:
                 # create one subtask per oid to scan per antivirus queue
                 jobs_list.append(probeconfig.probe_celery.send_task("probe.probetasks.probe_scan", args=(scanid, oid), queue=probe))
-                print 'Append new job to %s queue' % probe
             else:
                 # TODO update new filename for known oid if different
                 # check if resuls for all probe is already there else launch specific scan
                 scanresult = ScanResults(_id=oid)
                 if probe not in scanresult.results.keys():
                     jobs_list.append(probeconfig.probe_celery.send_task("probe.probetasks.probe_scan", args=(scanid, oid), queue=probe))
-                    print 'Append add job to %s queue' % probe
 
     if len(jobs_list) != 0:
         # Build a result set with all job AsyncResult for progress/cancel operations
@@ -74,7 +69,8 @@ def scan(scanid, oids, probelist, force):
         scaninfo.taskid = groupid
     else:
         scaninfo.status = ScanStatus.finished
-    return "%d jobs launched" % len(jobs_list)
+    print "%d jobs launched" % len(jobs_list)
+    return
 
 @brain_celery.task(ignore_result=True)
 def scan_finished(scanid):
@@ -86,13 +82,13 @@ def scan_finished(scanid):
 def scan_progress(scanid):
     s = ScanInfo(_id=scanid)
     if s.status == ScanStatus.init:
-        return warning("task not launched")
+        return IrmaTaskReturn.warning("task not launched")
     elif s.status == ScanStatus.launched:
         if not s.taskid:
-            return error("task_id not set")
+            return IrmaTaskReturn.error("task_id not set")
         job = probeconfig.probe_celery.GroupResult.restore(s.taskid)
         if not job:
-            return error("not a valid taskid")
+            return IrmaTaskReturn.error("not a valid taskid")
         else:
             nbcompleted = nbsuccessful = 0
             for j in job:
@@ -100,24 +96,24 @@ def scan_progress(scanid):
                 if j.successful(): nbsuccessful += 1
             if nbcompleted == len(job):
                 s.status = ScanStatus.finished
-            return success({"total":len(job), "finished":nbcompleted, "successful":nbsuccessful})
+            return IrmaTaskReturn.success({"total":len(job), "finished":nbcompleted, "successful":nbsuccessful})
     elif s.status == ScanStatus.finished:
-        return warning("finished")
+        return IrmaTaskReturn.warning("finished")
     elif s.status == ScanStatus.cancelling:
-        return warning("cancelling")
+        return IrmaTaskReturn.warning("cancelling")
     elif s.status == ScanStatus.cancelled:
-        return warning("cancelled")
-    return error("unknown status %d" % s.status)
+        return IrmaTaskReturn.warning("cancelled")
+    return IrmaTaskReturn.error("unknown status %d" % s.status)
 
 @brain_celery.task()
 def scan_cancel(scanid):
     s = ScanInfo(_id=scanid)
     if s.status == ScanStatus.init:
-        return error("task not launched")
+        return IrmaTaskReturn.error("task not launched")
     elif s.status == ScanStatus.launched:
         job = probeconfig.probe_celery.GroupResult.restore(s.taskid)
         if not job:
-            return error("not a valid taskid")
+            return IrmaTaskReturn.error("not a valid taskid")
         else:
             nbcompleted = nbcancelled = 0
             for j in job:
@@ -127,14 +123,14 @@ def scan_cancel(scanid):
                     j.revoke(terminate=True)
                     nbcancelled += 1
             s.status = ScanStatus.cancelled
-            return success({"total":len(job), "finished":nbcompleted, "cancelled":nbcancelled})
+            return IrmaTaskReturn.success({"total":len(job), "finished":nbcompleted, "cancelled":nbcancelled})
     elif s.status == ScanStatus.finished:
-        return warning("finished")
+        return IrmaTaskReturn.warning("finished")
     elif s.status == ScanStatus.cancelled:
-        return warning("cancelled")
-    return error("unknown status %d" % s.status)
+        return IrmaTaskReturn.warning("cancelled")
+    return IrmaTaskReturn.error("unknown status %d" % s.status)
 
 @brain_celery.task()
 def scan_result(scanid):
     s = ScanInfo(_id=scanid)
-    return success(s.get_results())
+    return IrmaTaskReturn.success(s.get_results())
