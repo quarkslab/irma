@@ -15,5 +15,5 @@ class IrmaDatabaseError(Exception):
     pass
 
 class IrmaConfigurationError(Exception):
-    """Error on a database manager."""
+    """Error wrong configuration."""
     pass
