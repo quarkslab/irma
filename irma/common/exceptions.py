@@ -6,6 +6,10 @@ class IrmaMachineManagerError(Exception):
     """Error on a machine manager."""
     pass
 
+class IrmaAdminError(Exception):
+    """Error on a machine manager."""
+    pass
+
 class IrmaMachineError(Exception):
     """Error on a machine."""
     pass

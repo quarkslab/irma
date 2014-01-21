@@ -2,7 +2,7 @@ import time, logging, random, os.path
 
 from lxml import etree
 
-from lib.irma.common.exceptions import IrmaMachineManagerError
+from lib.irma.common.exceptions import IrmaMachineManagerError, IrmaDependencyError
 from lib.irma.machine.manager import VirtualMachineManager
 
 log = logging.getLogger(__name__)
@@ -114,7 +114,7 @@ class LibVirtMachineManager(VirtualMachineManager):
         @raise IrmaMachineManagerError: if cannot disconnect from libvirt.
         """
         # check if connection has been initialized
-        if self._conn: 
+        if self._conn:
             try:
                 self._conn.close()
                 self._conn = None
@@ -131,7 +131,7 @@ class LibVirtMachineManager(VirtualMachineManager):
         except libvirt.libvirtError as e:
             raise IrmaMachineManagerError("{0}".format(e))
         return labels
-    
+
     def _active_machines(self):
         labels = list()
         try:
@@ -265,7 +265,7 @@ class LibVirtMachineManager(VirtualMachineManager):
         if machine.isActive():
             raise IrmaMachineManagerError("Cannot clone an active machine")
 
-        # Dumping configuration 
+        # Dumping configuration
         try:
             src_xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
             log.debug("Initial XML configuration (from '%s')", src_label)
@@ -302,7 +302,7 @@ class LibVirtMachineManager(VirtualMachineManager):
             raise IrmaMachineManagerError("Error while modify XML for machine {0}: {1}".format(dst_label, e))
 
         self._clone_disk(src_disk, dst_disk)
-        
+
         # create a new virtual machine
         try:
             dst_xml = etree.tostring(dst_xml)
@@ -311,7 +311,7 @@ class LibVirtMachineManager(VirtualMachineManager):
             self._conn.defineXML(dst_xml)
         except libvirt.libvirtError as e:
             raise IrmaMachineManagerError("Error cloning virtual machine {0} to {1}: {2}".format(src_label, dst_label, e))
-   
+
     def _delete_disk(self, disk_path):
         if not disk_path:
             raise IrmaMachineManagerError("Invalid parameters")
@@ -359,7 +359,7 @@ class LibVirtMachineManager(VirtualMachineManager):
         @raise IrmaMachineManagerError: if unable to start virtual machine.
         """
         log.debug("Starting machine '%s'", label)
-        
+
         # sanity checks
         if self._status(label) == self.UNDEFINED:
             raise IrmaMachineManagerError("'{0}' is in an unhandled state, please check for logs".format(label))
@@ -398,7 +398,7 @@ class LibVirtMachineManager(VirtualMachineManager):
                 log.debug("Trying to stop an already stopped machine %s. Skip", label)
             else:
                 if not force:
-                    machine.shutdown() 
+                    machine.shutdown()
                 else:
                     machine.destroy()
                     log.debug("Forcing shutdown for '%s'", label)
@@ -414,7 +414,7 @@ class LibVirtMachineManager(VirtualMachineManager):
         """
         if self._status(src_label) == self.RUNNING:
             raise IrmaMachineManagerError("Cannot clone a running machine {0}".format(src_label))
-        
+
         try:
             machine_exists = False
             machine = self._lookup(dst_label)
@@ -433,7 +433,7 @@ class LibVirtMachineManager(VirtualMachineManager):
         flags = 0
 
         machine = self._lookup(label)
-        try: 
+        try:
             if machine.isActive():
                 raise IrmaMachineManagerError("Cannot delete a running machine.")
 
@@ -456,7 +456,7 @@ class LibVirtMachineManager(VirtualMachineManager):
             for disk in disks:
                 self._delete_disk(disk.attrib["file"])
 
-            # Undefine 
+            # Undefine
             machine.undefine()
         except libvirt.libvirtError as e:
             raise IrmaMachineManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
