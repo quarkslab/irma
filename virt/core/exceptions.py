@@ -13,3 +13,7 @@ class StoragePoolManagerError(Exception):
 class StorageVolumeManagerError(Exception):
     """Error on managing a storage volume"""
     pass
+
+class StorageVolumeError(Exception):
+    """Error on managing a storage volume"""
+    pass

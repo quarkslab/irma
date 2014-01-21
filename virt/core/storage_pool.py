@@ -3,7 +3,6 @@ import logging, libvirt, xmltodict
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.common.oopatterns import ParametricSingleton
-from lib.virt.core.mapper import VirtObject
 from lib.virt.core.connection import ConnectionManager
 from lib.virt.core.exceptions import StoragePoolManagerError
 
