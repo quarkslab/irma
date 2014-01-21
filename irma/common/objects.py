@@ -61,9 +61,9 @@ class ScanResults(DatabaseObject):
 class Node(LibVirtMachineManager):
     """ currently using libvirt to manage vms """
     def get_probes(self):
-        for label in self.inactive_machines():
+        for label in self.list(LibVirtMachineManager.INACTIVE):
             self.probes.append(Probe(label, self.driver, Probe.halted))
-        for label in self.running_machines():
+        for label in self.list(LibVirtMachineManager.ACTIVE):
             self.probes.append(Probe(label, self.driver, Probe.running))
 
 class Probe(object):

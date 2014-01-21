@@ -1,5 +1,7 @@
 import logging
 
+from lib.virt.core.domain import DomainManager
+
 log = logging.getLogger(__name__)
 
 class MachineManager(object):
@@ -9,24 +11,6 @@ class MachineManager(object):
     RUNNING   = 1
     HALTED    = 2
     SUSPENDED = 3
-
-    def all_machines(self):
-        """List machines.
-        @raise NotImplementedError: this method is abstract.
-        """
-        raise NotImplementedError
-
-    def running_machines(self):
-        """List machines.
-        @raise NotImplementedError: this method is abstract.
-        """
-        raise NotImplementedError
-
-    def inactive_machines(self):
-        """List machines.
-        @raise NotImplementedError: this method is abstract.
-        """
-        raise NotImplementedError
 
     def acquire(self, label):
         """Acquire a machine to start analysis.
@@ -45,6 +29,24 @@ class MachineManager(object):
 
 class VirtualMachineManager(MachineManager):
     """abstract class for a virtual machine manager"""
+
+    ##########################################################################
+    # constants
+    ##########################################################################
+
+    # Available state
+    ACTIVE = DomainManager.ACTIVE
+    INACTIVE = DomainManager.INACTIVE
+
+    ##########################################################################
+    # public interface
+    ##########################################################################
+
+    def list(self, filter=ACTIVE|INACTIVE):
+        """List machines.
+        @raise NotImplementedError: this method is abstract.
+        """
+        raise NotImplementedError
 
     def start(self, label):
         """Start a machine

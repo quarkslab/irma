@@ -37,14 +37,6 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         return uri
 
     ##########################################################################
-    # constants
-    ##########################################################################
-
-    # Available state
-    ACTIVE = DomainManager.ACTIVE
-    INACTIVE = DomainManager.INACTIVE
-
-    ##########################################################################
     # Constructor and destructor stuffs
     ##########################################################################
 
@@ -89,7 +81,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
     # public methods
     ##########################################################################
 
-    def list(self, filter=ACTIVE|INACTIVE):
+    def list(self, filter=VirtualMachineManager.ACTIVE|VirtualMachineManager.INACTIVE):
         """List all (running and inactive) virtual machines 
         @return list of virtual machines names
         @raise IrmaMachineManagerError: if unable to list machines
