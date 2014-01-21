@@ -10,9 +10,6 @@ class MachineManager(object):
     HALTED    = 2
     SUSPENDED = 3
 
-    def __init__(self):
-        pass
-
     def all_machines(self):
         """List machines.
         @raise NotImplementedError: this method is abstract.
@@ -44,19 +41,10 @@ class MachineManager(object):
         @raise NotImplementedError: this method is abstract.
         """
         raise NotImplementedError
-   
-    def shutdown(self):
-        """Shutdown the machine manager. Kills all alive machines.
-        @raise NotImplementedError: this method is abstract.
-        """
-        raise NotImplementedError
 
 
 class VirtualMachineManager(MachineManager):
     """abstract class for a virtual machine manager"""
-
-    def __init__(self):
-        pass
 
     def start(self, label):
         """Start a machine
