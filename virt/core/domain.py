@@ -728,3 +728,33 @@ class DomainManager(ParametricSingleton):
                 result.append(self.clone(domain), name)
             result = tuple(result)
         return result
+
+    def delete(self, label, storage=None, wipe=False, managed_save=True, snapshot_metadata=True):
+        # TODO: needs refactoring, more parameters handling
+        try:
+            machine = self.lookup(label)
+            if machine.isActive():
+                raise IrmaMachineManagerError("Cannot delete a running machine.")
+
+            flags = 0
+            # extra flags; not used yet, so callers should always pass 0
+            if managed_save and machine.hasManagedSaveImage(flags=0):
+                flags |= libvirt.VIR_DOMAIN_UNDEFINE_MANAGED_SAVE
+
+            # extra flags; not used yet, so callers should always pass 0
+            if snapshot_metadata and machine.hasCurrentSnapshot(flags=0):
+                flags |= libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA
+
+            # Destroy volumes
+            orig_xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
+            orig_dict = xmltodict.parse(orig_xml)
+            for disk in orig_dict["domain"]["devices"]["disk"]:
+                if not disk["@device"] == 'disk':
+                    continue
+                orig_vol = self._drv.storageVolLookupByPath(disk['source']['@file'])
+                orig_vol.delete(flags)
+
+            # Undefine 
+            machine.undefine()
+        except libvirt.libvirtError as e:
+            raise IrmaMachineManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))

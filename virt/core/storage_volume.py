@@ -369,6 +369,8 @@ connection is required. Set to ``False`` by default
         send_handler = lambda stream, count, filedes: filedes.read(count)
         try:
             if isinstance(filename, basestring):
+                if not os.path.isfile(filename):
+                    raise StorageVolumeManagerError("{0} is not a file".format(filename))
                 file = open(filename, 'rb')
             else:
                 file = filename
