@@ -58,13 +58,19 @@ class ScanResults(DatabaseObject):
         self.results = {}
         super(ScanResults, self).__init__(_id=_id)
 
-class Node(LibVirtMachineManager):
+class Node(object):
     """ currently using libvirt to manage vms """
+    def __init__(self, driver):
+        self.probes = []
+        self.driver = driver
+
     def get_probes(self):
-        for label in self.list(LibVirtMachineManager.INACTIVE):
+        manager = LibVirtMachineManager(self.driver)
+        for label in manager.list(LibVirtMachineManager.INACTIVE):
             self.probes.append(Probe(label, self.driver, Probe.halted))
-        for label in self.list(LibVirtMachineManager.ACTIVE):
+        for label in manager.list(LibVirtMachineManager.ACTIVE):
             self.probes.append(Probe(label, self.driver, Probe.running))
+        return self.probes
 
 class Probe(object):
     halted = 0
