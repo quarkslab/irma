@@ -23,10 +23,12 @@ class DomainManager(ParametricSingleton):
     def depends_on(cls, *args, **kwargs):
         # singleton is based on the uri, extracted from the libvirt handler
         (handler,) = args[0]
+        if isinstance(handler, basestring):
+            handler = ConnectionManager(handler)
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
         if not isinstance(handler, libvirt.virConnect):
-            raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
+            raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(handler)))
 
         try:
             uri = handler.getURI()          
@@ -90,10 +92,8 @@ class DomainManager(ParametricSingleton):
         :param prefetch: set to True if prefetching domain handlers for this connection is required
         :raises: DomainManagerError if ``connection`` is not an expected type or None
         """
-        if not connection:
-            raise DomainManagerError("'connection' field value '{0}' is not valid".format(connection))
-        elif not isinstance(connection, (libvirt.virConnect, ConnectionManager)):
-            raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
+        if isinstance(connection, basestring):
+            connection = ConnectionManager(connection)
         
         self._cache = {'name': {}, 'uuid': {}, 'id': {}}
 

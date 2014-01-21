@@ -267,7 +267,7 @@ connection is required. Set to ``False`` by default
             # clone object and remove key
             clone_obj = origin_obj
             clone_obj.key = None
-            clone_obj.name = dest
+            clone_obj.name = clone
             # rebuild xml corresponding to clone object and create
             clone_xml = clone_obj.unparse()
             clone_vol = self._pool.createXMLFrom(clone_xml, origin_volume, flags)
@@ -275,7 +275,7 @@ connection is required. Set to ``False`` by default
             log.exception(e)
             raise StorageVolumeManagerError(e)
         # update cache
-        return self.lookup(dest)
+        return self.lookup(clone)
 
     def delete(self, name):
         # TODO: enable more formats ?
