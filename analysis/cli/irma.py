@@ -3,9 +3,10 @@ import json
 import sys
 import argparse
 
+# ADDRESS = "http://vmbrain.usr.qb:8080"
 # ADDRESS = "http://brain.irma.qb:8080"
-# ADDRESS = "http://192.168.130.133:8080"
-ADDRESS = "http://localhost:8080"
+ADDRESS = "http://192.168.130.133:8080"
+# ADDRESS = "http://localhost:8080"
 
 
 def probe_list():
@@ -75,6 +76,7 @@ def scan_results(scanid=None):
 def scan(filename=None, force=None, probe=None):
     try:
         postfiles = dict(map(lambda t: (t, open(t, 'rb')), filename))
+        print "postfiles:", len(postfiles)
         params = {'force':force}
         if probe:
             params['probe'] = ','.join(probe)
