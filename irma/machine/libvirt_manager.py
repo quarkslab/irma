@@ -6,7 +6,7 @@ from lib.virt.core.storage_volume import StorageVolumeManager
 from lib.virt.core.connection import ConnectionManager
 from lib.virt.core.exceptions import DomainManagerError
 
-from lib.irma.common.oopatterns import ParametricSingleton
+from lib.common.oopatterns import ParametricSingleton
 from lib.irma.common.exceptions import IrmaMachineManagerError
 from lib.irma.machine.manager import VirtualMachineManager
 
@@ -31,7 +31,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
             raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
 
         try:
-            uri = handler.getURI()          
+            uri = handler.getURI()
         except libvirt.libvirtError as e:
             raise DomainManagerError("unable to get domain uri from connection handle")
         return uri
@@ -81,7 +81,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
     # public methods
     ##########################################################################
 
-    def list(self, filter=VirtualMachineManager.ACTIVE|VirtualMachineManager.INACTIVE):
+    def list(self, filter=VirtualMachineManager.ACTIVE | VirtualMachineManager.INACTIVE):
         """List all (running and inactive) virtual machines 
         @return list of virtual machines names
         @raise IrmaMachineManagerError: if unable to list machines
@@ -131,7 +131,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         state, desc = self._domain.state(origin)
         if state != DomainManager.SHUTOFF:
             raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(origin, desc))
-        
+
         if self._domain.lookup(clone):
             raise IrmaMachineManagerError("clone {0} already exists".format(clone, desc))
 
@@ -150,7 +150,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         state, desc = self._domain.state(label)
         if state != DomainManager.SHUTOFF:
             raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(origin, desc))
-        
+
         try:
             # TODO: add the possibility to keep some disk
             self._domain.delete(label)

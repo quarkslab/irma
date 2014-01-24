@@ -58,19 +58,20 @@ class ScanResults(DatabaseObject):
         self.results = {}
         super(ScanResults, self).__init__(_id=_id)
 
-class Node(object):
+class Node(LibVirtMachineManager):
     """ currently using libvirt to manage vms """
-    def __init__(self, driver):
-        self.probes = []
-        self.driver = driver
+    def __init__(self, node_cs):
+        self._probes = []
+        self._node_cs = node_cs
+        super(Node, self).__init__(node_cs)
 
     def get_probes(self):
-        manager = LibVirtMachineManager(self.driver)
-        for label in manager.list(LibVirtMachineManager.INACTIVE):
-            self.probes.append(Probe(label, self.driver, Probe.halted))
-        for label in manager.list(LibVirtMachineManager.ACTIVE):
-            self.probes.append(Probe(label, self.driver, Probe.running))
-        return self.probes
+        for label in self.list(self.INACTIVE):
+            self._probes.append(Probe(label, self._node_cs, self.INACTIVE))
+        for label in self.list(self.ACTIVE):
+            self._probes.append(Probe(label, self._node_cs, self.ACTIVE))
+        return self._probes
+
 
 class Probe(object):
     halted = 0
@@ -117,6 +118,7 @@ class System(object):
     def _probe_lookup(self, node, label, master_lookup=False):
         # look for probe with label specified
         # node is optional if label is unique
+        self._refresh()
         if not master_lookup and label in [p.label for p in self._master_list()]:
             raise IrmaAdminError("Can not use {0}: master image (clone it first)".format(label))
         if not node:

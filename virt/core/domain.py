@@ -31,7 +31,7 @@ class DomainManager(ParametricSingleton):
             raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(handler)))
 
         try:
-            uri = handler.getURI()          
+            uri = handler.getURI()
         except libvirt.libvirtError as e:
             raise DomainManagerError("unable to get domain uri from connection handle")
         return uri
@@ -52,7 +52,7 @@ class DomainManager(ParametricSingleton):
     SHUTDOWN = libvirt.VIR_DOMAIN_SHUTDOWN
     SHUTOFF = libvirt.VIR_DOMAIN_SHUTOFF
     CRASHED = libvirt.VIR_DOMAIN_CRASHED
-    PMSUSPENDED = libvirt.VIR_DOMAIN_PMSUSPENDED 
+    PMSUSPENDED = libvirt.VIR_DOMAIN_PMSUSPENDED
 
     # start flags
     START_PAUSED = libvirt.VIR_DOMAIN_START_PAUSED              # Launch guest in paused state
@@ -84,7 +84,7 @@ class DomainManager(ParametricSingleton):
     ##########################################################################
     # constructor and destructor stuff
     ##########################################################################
-    
+
     def __init__(self, connection, prefetch=False):
         """Instantiate a domain manager for specified connection
 
@@ -94,15 +94,15 @@ class DomainManager(ParametricSingleton):
         """
         if isinstance(connection, basestring):
             connection = ConnectionManager(connection)
-        
+
         self._cache = {'name': {}, 'uuid': {}, 'id': {}}
 
         self._drv = connection
         if isinstance(self._drv, ConnectionManager):
             self._drv = self._drv.connection
-        
+
         try:
-            self._uri = self._drv.getURI()          
+            self._uri = self._drv.getURI()
         except libvirt.libvirtError as e:
             raise DomainManagerError("unable to get domain uri from connection handle")
 
@@ -121,7 +121,7 @@ class DomainManager(ParametricSingleton):
     ##########################################################################
     # internal helpers
     ##########################################################################
-    
+
     def _list_active(self):
         labels = list()
         try:
@@ -164,7 +164,7 @@ class DomainManager(ParametricSingleton):
                 name = handle.name()
                 uuid = handle.UUIDString()
                 where = {'name': name, 'uuid': uuid}
-                if handle.isActive(): 
+                if handle.isActive():
                     where['id'] = id
                 self._cache_handle(self._cache, handle, where)
             except libvirt.libvirtError as e:
@@ -187,7 +187,7 @@ class DomainManager(ParametricSingleton):
                 uuid = handle.UUIDString()
                 where = {'name': name, 'uuid': uuid}
                 # if handle is not active, id is not available
-                if handle.isActive(): 
+                if handle.isActive():
                     where['id'] = handle.ID()
                 self._cache_handle(self._cache, handle, where)
             except libvirt.libvirtError as e:
@@ -210,7 +210,7 @@ class DomainManager(ParametricSingleton):
                 name = handle.name()
                 where = {'name': name, 'uuid': uuid}
                 # if handle is not active, id is not available
-                if handle.isActive(): 
+                if handle.isActive():
                     where['id'] = res.ID()
                 self._cache_handle(self._cache, handle, where)
             except libvirt.libvirtError as e:
@@ -248,7 +248,7 @@ class DomainManager(ParametricSingleton):
                 log.warn("Unable to find domain {0} on {1}", domain, self._uri)
         return handle
 
-    def list(self, filter=ACTIVE|INACTIVE):
+    def list(self, filter=ACTIVE | INACTIVE):
         """list machines on this domain
 
         :param filter: either DomainManager.ACTIVE or DomainManager.INACTIVE 
@@ -259,7 +259,7 @@ class DomainManager(ParametricSingleton):
 
         # NOTE: virConnectListAllDomains is not binded in python, thus, we have
         # to use other way to list all machines
-        filter = filter & (DomainManager.ACTIVE|DomainManager.INACTIVE)
+        filter = filter & (DomainManager.ACTIVE | DomainManager.INACTIVE)
         if not filter or filter & DomainManager.ACTIVE:
             labels.extend(self._list_active())
         if not filter or filter & DomainManager.INACTIVE:
@@ -636,7 +636,7 @@ class DomainManager(ParametricSingleton):
                         if version < (0, 9, 13):
                             size = 64 * 1024
                         elif version < (1, 0, 6):
-                            size =  1 * 1024 * 1024
+                            size = 1 * 1024 * 1024
                         else:
                             size = 16 * 1024 * 1024
                     data = domains.memoryPeek(start, size, flags)
@@ -659,7 +659,7 @@ class DomainManager(ParametricSingleton):
                 result.append(self.memdump(domain, start, size, flags))
             result = tuple(result)
         return result
- 
+
     # TODO: add return value checking
     # TODO: autogenerate name and allow name to be none
     # TODO: allow not to clone disk, possible ?
@@ -754,7 +754,7 @@ class DomainManager(ParametricSingleton):
                 orig_vol = self._drv.storageVolLookupByPath(disk['source']['@file'])
                 orig_vol.delete(flags)
 
-            # Undefine 
+            # Undefine
             machine.undefine()
         except libvirt.libvirtError as e:
             raise IrmaMachineManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))

@@ -24,7 +24,7 @@ class SingletonMetaClass(type):
         return cls._instances[cls]
 
 # Metaclass compatible with python 2 and 3. Inherit from this for singletons
-Singleton = SingletonMetaClass('Singleton', (object, ), {})
+Singleton = SingletonMetaClass('Singleton', (object,), {})
 """Base class for singleton
 
 This class implements the singleton design pattern. One can inherit from this
@@ -90,7 +90,7 @@ class ParametricSingletonMetaClass(type):
         return cls._instances[cls][key]
 
 # Metaclass compatible with python 2 and 3. Inherit from this for parametric singletons
-ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton', (object, ), {})
+ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton', (object,), {})
 """Base class for parametric singletons
 
 This class implements the parametric singleton design pattern. One can inherit
