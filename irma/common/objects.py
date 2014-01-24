@@ -49,7 +49,7 @@ class ScanInfo(DatabaseObject):
 
 class ScanResults(DatabaseObject):
     _dbname = dbconfig.DB_NAME
-    _collection = dbconfig.COLL_RESINFO
+    _collection = dbconfig.COLL_SCANRES
 
     def __init__(self, dbname=None, _id=None):
         if dbname:
