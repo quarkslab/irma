@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 import config.dbconfig as dbconfig
 from lib.irma.database.objects import DatabaseObject
 from lib.irma.machine.libvirt_manager import LibVirtMachineManager
@@ -34,6 +35,8 @@ class ScanInfo(DatabaseObject):
     def __init__(self, dbname=None, _id=None):
         if dbname:
             self._dbname = dbname
+        self.user = None
+        self.date = datetime.now()
         self.oids = {}
         self.taskid = None
         self.probelist = []
