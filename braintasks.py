@@ -69,7 +69,7 @@ def scan(scanid, oids, probelist, force):
         scaninfo.taskid = groupid
     else:
         scaninfo.status = ScanStatus.finished
-    print "%d jobs launched" % len(jobs_list)
+    print "%d files receives / %d active probe / %d probe used / %d jobs launched" % (len(oids), len(all_probe), len(scaninfo.probelist), len(jobs_list))
     return
 
 @brain_celery.task(ignore_result=True)
