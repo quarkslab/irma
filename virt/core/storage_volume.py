@@ -205,7 +205,9 @@ connection is required. Set to ``False`` by default
     def _lookup_volume(self, name):
         volume = self.lookup(name)
         if not volume:
-            raise StorageVolumeManagerError("Volume '{0}' not found".format(name))
+            e = "Volume '{0}' not found".format(name)
+            log.error(e)
+            raise StorageVolumeManagerError(e)
         return volume
 
     ##########################################################################
@@ -243,7 +245,7 @@ connection is required. Set to ``False`` by default
                 handle = self._lookupByPath(volume)
         # warn if no handle has been found
         if not handle:
-            log.warn("Unable to find volume {0} on {2}", volume, self._drv.getURI())
+            log.warn("Unable to find volume {0} on {1}", volume, self._drv.getURI())
         # return handle
         return handle
 
@@ -276,7 +278,9 @@ connection is required. Set to ``False`` by default
         # check if volume already exists
         handle = self.lookup(volume.name)
         if handle:
-            raise StorageVolumeManagerError("'{0} already exists.".format(handle.path()))
+            e = "'{0} already exists.".format(handle.path())
+            log.error(e)
+            raise StorageVolumeManagerError(e)
         # creating new volume
         try:
             volume_xml = volume.unparse()
@@ -383,7 +387,9 @@ connection is required. Set to ``False`` by default
             try:
                 if isinstance(filename, basestring):
                     if os.path.exists(filename):
-                        raise StorageVolumeManagerError("file {0} already exists".format(filename))
+                        e = "file {0} already exists".format(filename)
+                        log.error(e)
+                        raise StorageVolumeManagerError(e)
                     file = open(filename, 'wb')
                 else:
                     file = filename
@@ -434,7 +440,9 @@ connection is required. Set to ``False`` by default
             try:
                 if isinstance(filename, basestring):
                     if not os.path.isfile(filename):
-                        raise StorageVolumeManagerError("{0} is not a file".format(filename))
+                        e = "{0} is not a file".format(filename)
+                        log.error(e)
+                        raise StorageVolumeManagerError(e)
                     file = open(filename, 'rb')
                 else:
                     file = filename
