@@ -287,3 +287,59 @@ class StoragePoolManager(ParametricSingleton):
                 log.exception(e)
                 raise StoragePoolManagerError(e)
         return result
+
+    def active(self, pool):
+        result = None
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        # TODO: in the future, handle storage pool objects
+        if isinstance(pool, libvirtError.virStoragePool):
+            try:
+                result = pool.isActive()
+            except libvirt.libvirtError as e:
+                log.exception(e)
+                raise StoragePoolManagerError(e)
+        return result
+
+    def persistent(self, pool):
+        result = None
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        # TODO: in the future, handle storage pool objects
+        if isinstance(pool, libvirtError.virStoragePool):
+            try:
+                result = pool.isPersistent()
+            except libvirt.libvirtError as e:
+                log.exception(e)
+                raise StoragePoolManagerError(e)
+        return result
+    
+    def refresh(self, pool, flags=0):
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        # TODO: in the future, handle storage pool objects
+        if isinstance(pool, libvirtError.virStoragePool):
+            try:
+                # extra flags; not used yet, so callers should always pass 0
+                flags = flags & 0
+                pool.refresh(flags=flags)
+            except libvirt.libvirtError as e:
+                log.exception(e)
+                raise StoragePoolManagerError(e)
+
+    def lookupByVolume(self, volume):
+        from lib.virt.core.storage_volume import StorageVolumeManager
+        pool = None
+        if isinstance(volume, basestring):
+            volman = StorageVolumeManager(self._drv, None)
+            volume = volman.lookup(volume)
+        if isinstance(volume, libvirt.virStorageVol):
+            try:
+                pool = volume.storagePoolLookupByVolume()
+                # update pool in volume manager instance
+                volman = StorageVolumeManager(self._drv, None)
+                volman.pool = pool
+            except libvirt.libvirtError as e:
+                log.exception(e)
+                raise StoragePoolManagerError(e)
+        return pool
