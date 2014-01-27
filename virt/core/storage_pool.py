@@ -47,7 +47,7 @@ class StoragePoolManager(ParametricSingleton):
 
     # Available delete flags
     DELETE_NORMAL = libvirt.VIR_STORAGE_POOL_DELETE_NORMAL # Delete metadata only (fast)
-    DELETE_ZEROED = libvirt.VIR_STORAGE_POOL_DELETE_ZEROED # Clear all data to zeros (slow)
+    DELETE_ZEROED = libvirt.VIR_STORAGE_POOL_DELETE_ZEROED # Clear all data to zeros (slow)
     
     ##########################################################################
     # constructor and destructor stuff
@@ -320,7 +320,7 @@ class StoragePoolManager(ParametricSingleton):
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirtError.virStoragePool):
             try:
-                # extra flags; not used yet, so callers should always pass 0
+                # extra flags; not used yet, so callers should always pass 0
                 flags = flags & 0
                 pool.refresh(flags=flags)
             except libvirt.libvirtError as e:
