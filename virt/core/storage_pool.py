@@ -19,15 +19,15 @@ class StoragePoolManager(ParametricSingleton):
     def depends_on(cls, *args, **kwargs):
         # singleton is based on the uri, extracted from the libvirt handler
         (handler,) = args[0]
+        if isinstance(handler, basestring):
+            handler = ConnectionManager(handler)
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
-        if not isinstance(handler, libvirt.virConnect):
-            raise StoragePoolManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
-
         try:
             uri = handler.getURI()          
         except libvirt.libvirtError as e:
-            raise StoragePoolManagerError("unable to get domain uri from connection handle")
+            log.exception(e)
+            raise StoragePoolManagerError(e)
         return uri
 
     ##########################################################################
