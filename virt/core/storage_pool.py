@@ -45,6 +45,10 @@ class StoragePoolManager(ParametricSingleton):
     POOL_DEGRADED = libvirt.VIR_STORAGE_POOL_DEGRADED
     POOL_INACCESSIBLE = libvirt.VIR_STORAGE_POOL_INACCESSIBLE
 
+    # Available delete flags
+    DELETE_NORMAL = libvirt.VIR_STORAGE_POOL_DELETE_NORMAL # Delete metadata only (fast)
+    DELETE_ZEROED = libvirt.VIR_STORAGE_POOL_DELETE_ZEROED # Clear all data to zeros (slow)
+    
     ##########################################################################
     # constructor and destructor stuff
     ##########################################################################
@@ -56,26 +60,13 @@ class StoragePoolManager(ParametricSingleton):
         :param prefetch: set to True if prefetching storage pool handlers for this connection is required
         :raises: StoragePoolManagerError if ``connection`` is not an expected type or None
         """
-        if not connection:
-            raise StoragePoolManagerError("'connection' field value '{0}' is not valid".format(connection))
-        elif not isinstance(connection, (libvirt.virConnect, ConnectionManager)):
-            raise StoragePoolManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
-
+        # handle cache
         self._cache = {'name': {}, 'uuid': {}}
-
-        self._drv = connection
-        if isinstance(self._drv, ConnectionManager):
-            self._drv = self._drv.connection
-           
-        try:
-            self._uri = self._drv.getURI()
-        except libvirt.libvirtError as e:
-            raise StoragePoolManagerError("unable to get domain uri from connection handle")
-
+        # get libvirt.virConnection from connection
+        self._set_drv(connection)
+        # prefetch list of handlers
         if prefetch:
-            pools = self.list()
-            for pool in pools:
-                self.lookup(pool)
+            map(lambda name: self._lookup(_lookupByName(name)), self.list())
 
     ##########################################################################
     # context manager stuff
@@ -87,6 +78,14 @@ class StoragePoolManager(ParametricSingleton):
     ##########################################################################
     # internal helpers
     ##########################################################################
+
+    # libvirt.virConnection from connection 
+    def _set_drv(self, connection):
+        self._drv = connection
+        if isinstance(self._drv, basestring):
+            self._drv = ConnectionManager(self._drv)
+        if isinstance(self._drv, ConnectionManager):
+            self._drv = self._drv.connection       
 
     def _list_active(self):
         labels = list()
