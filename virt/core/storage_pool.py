@@ -92,7 +92,7 @@ class StoragePoolManager(ParametricSingleton):
         try:
             labels.extend(self._drv.listStoragePools())
         except libvirt.libvirtError as e:
-            raise StoragePoolManagerError("{0}".format(e))
+            raise StoragePoolManagerError(e)
         return tuple(labels)
 
     def _list_inactive(self):
@@ -100,7 +100,7 @@ class StoragePoolManager(ParametricSingleton):
         try:
             labels.extend(self._drv.listDefinedStoragePools())
         except libvirt.libvirtError as e:
-            raise StoragePoolManagerError("{0}".format(e))
+            raise StoragePoolManagerError(e)
         return tuple(labels)
 
     def _cache_handle(self, cache, entry, where=None):
@@ -112,10 +112,6 @@ class StoragePoolManager(ParametricSingleton):
                     cache[key][value] = entry
 
     def _lookupByName(self, name):
-        # type checking
-        if not isinstance(name, basestring):
-            raise StoragePoolManagerError("'name' field type '{0}' is not valid".format(type(name)))
-
         handle = None
         # check if storage pool has already been cached
         if name in self._cache['name']:
@@ -128,19 +124,16 @@ class StoragePoolManager(ParametricSingleton):
                 where = {'name': name, 'uuid': uuid}
                 self._cache_handle(self._cache, handle, where)
             except libvirt.libvirtError as e:
-                log.error('{0}'.format(e))
+                # do not raise an exception here, we put a simple warning
+                log.warn(e)
         return handle
 
     def _lookupByUUID(self, uuid):
-        # type checking
-        if not isinstance(uuid, basestring) or not UUID.validate(uuid):
-            raise StoragePoolManagerError("'uuid' field '{0}' is not valid".format(uuid))
-
         handle = None
-        # check if domain has already been cached
+        # check if storage pool has already been cached
         if uuid in self._cache['uuid']:
             handle = self._cache['uuid'][uuid]
-        # domain not in cache, retrieve and cache it
+        # storage pool not in cache, retrieve and cache it
         else:
             try:
                 handle = self._drv.storagePoolLookupByUUIDString(uuid)
@@ -148,8 +141,15 @@ class StoragePoolManager(ParametricSingleton):
                 where = {'name': name, 'uuid': uuid}
                 self._cache_handle(self._cache, handle, where)
             except libvirt.libvirtError as e:
-                log.error('{0}'.format(e))
+                # do not raise an exception here, we put a simple warning
+                log.warn(e)
         return handle
+
+    def _lookup_pool(self, name):
+        pool = self.lookup(name)
+        if not pool:
+            raise StoragePoolManagerError("Pool '{0}' not found".format(name))
+        return pool
 
     ##########################################################################
     # public methods
@@ -157,17 +157,15 @@ class StoragePoolManager(ParametricSingleton):
 
     def lookup(self, pool):
         handle = None
-        if isinstance(pool, (tuple, list)):
-            handle = list()
-            for onepool in pool:
-                handle.append(self.lookup(onepool))
-            handle = tuple(handle)
-        elif isinstance(pool, basestring):
+        if isinstance(pool, basestring):
             handle = self._lookupByName(pool)
             if not handle and UUID.validate(pool):
                 handle = self._lookupByUUID(pool)
-            if not handle:
-                log.warn("Unable to find pool {0} on {1}", pool, self._uri)
+        # TODO: in the future, handle storage pool objects
+        # warn if no handle has been found
+        if not handle:
+            log.warn("Unable to find pool '{0}' on '{1}'", pool, self._drv.getURI())
+        # return handle
         return handle
 
     def list(self, filter=ACTIVE|INACTIVE):
@@ -178,13 +176,13 @@ class StoragePoolManager(ParametricSingleton):
         :returns: a tuple containing storage pools names (w.r.t specified filter)
         """
         labels = list()
-
+        # modifying filters
         filter = filter & (StoragePoolManager.ACTIVE|StoragePoolManager.INACTIVE)
+        # fetching labels according to filters
         if not filter or filter & StoragePoolManager.ACTIVE:
             labels.extend(self._list_active())
         if not filter or filter & StoragePoolManager.INACTIVE:
             labels.extend(self._list_inactive())
-
         return tuple(labels)
 
     state_desc = {
@@ -195,127 +193,97 @@ class StoragePoolManager(ParametricSingleton):
         POOL_INACCESSIBLE : "is running, but not accessible"
     }
 
-    def state(self, pools):
-        """get state of the storage pools specified via pools
+    def state(self, pool):
+        """get state of the storage pool specified via pool
 
-        :param pools: either a label, uuid, virStoragePool object or a list
-                      of label, uuid, id, a virStoragePool object.
-        :returns: (state, a string description) tuple if pools is a label, a
-                uuid, a virStoragePool or a tuple of (state, a string
-                description) if pool is a list. If an error (state, a
-                string description) equals to (None, None).
+        :param pool: either a label, uuid, virStoragePool object 
+        :returns: (state, a string description) tuple if pool is a label, a uuid, a virStoragePool.
         """
         result = (None, None)
-        if isinstance(pools, libvirt.virStoragePool):
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        # TODO: in the future, handle storage pool objects
+        if isinstance(pool, libvirt.virStoragePool):
             try:
-                state, capacity, allocation, available = pools.info()
+                state, capacity, allocation, available = pool.info()
                 descr = StoragePoolManager.state_desc[state]
                 result = (state, descr)
             except libvirt.libvirtError as e:
-                log.error('{0}'.format(e))
-        elif isinstance(pools, basestring):
-            result = self.state(self.lookup(pools))
-        elif isinstance(pools, (list, tuple)):
-            result = list()
-            for pool in pools:
-                result.append(self.state(pool))
-            result = tuple(result)
+                log.exception(e)
+                raise StoragePoolManagerError(e)
         return result
 
-    def start(self, pools, flags=0):
-        """start specified pools
+    def start(self, pool, flags=0):
+        """start specified pool
 
-        :param pools: either a label, uuid, a virStoragePool, a dict (to specify flags) 
-                      or a list of label, uuid, virStoragePool object or a list of dict.
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                a id, a virStoragePool or a tuple if domains is a list. When domain
-                is None, returns None.
+        :param pool: either a label, uuid, a virStoragePool 
         """
-        result = None
-        if isinstance(pools, libvirt.virStoragePool):
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        if isinstance(pool, libvirt.virStoragePool):
             try:
-                if pools and not pools.isActive():
-                    # extra flags; not used yet, so callers should always pass 0
-                    pools.create(flags=0)
-                    result = True
+                if not pool.isActive():
+                    e = "Pool '{0}' is not active, aborting.".format(pool)
+                    log.error(e)
+                    raise StoragePoolManagerError(e)
+                # extra flags; not used yet, so callers should always pass 0
+                flags = flags & 0
+                pool.create(flags=flags)
             except libvirt.libvirtError as e:
-                result = False
-                log.error('{0}'.format(e))
-        elif isinstance(pools, dict):
-            if pools.has_key('pool'):
-                pool = pools.get('pool', None)
-                flags = pools.get('flags', 0)
-                result = self.start(pool, flags=0)
-        elif isinstance(pools, basestring):
-            result = self.start(self.lookup(pools), flags=0)
-        elif isinstance(pools, (list, tuple)):
-            result = list()
-            for pool in pools:
-                result.append(self.start(pool, flags=0))
-            result = tuple(result)
-        return result
+                log.exception(e)
+                raise StoragePoolManagerError(e)
 
-    def stop(self, pools):
-        """stop specified storage pools
+    def stop(self, pool):
+        """stop specified storage pool
 
-        :param pools: either a label, uuid, a virStoragePool, a dict ('pool'
-                      key is used to pass parameter) or a list of label, uuid,
-                      virStoragePool object or a list of dict.
-        :returns: False if failed, True if success if pools is a label, a uuid,
-                  a id, a virStoragePool or a tuple if pools is a list. When pool
-                  is None, returns None.
+        :param pool: either a label, uuid, a virStoragePool
         """
-        result = None
-        if isinstance(pools, libvirt.virStoragePool):
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        # TODO: in the future, handle storage pool objects
+        if isinstance(pool, libvirt.virStoragePool):
             try:
-                if pools and pools.isActive():
-                    pools.destroy()
-                    result = True
+                if not pool.isActive():
+                    e = "Pool '{0}' is not active, aborting.".format(pool)
+                    log.error(e)
+                    raise StoragePoolManagerError(e)
+                pool.destroy()
             except libvirt.libvirtError as e:
-                result = False
-                log.error('{0}'.format(e))
-        elif isinstance(pools, dict):
-            if pools.has_key('pool'):
-                pool = pools.get('pool', None)
-                result = self.stop(pool)
-        elif isinstance(pools, basestring):
-            result = self.stop(self.lookup(pools))
-        elif isinstance(pools, (list, tuple)):
-            result = list()
-            for pool in pools:
-                result.append(self.stop(pool))
-            result = tuple(result)
-        return result
+                log.exception(e)
+                raise StoragePoolManagerError(e)
 
-    def autostart(self, pools, autostart=True):
+    def delete(self, pool, flags=0):
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        # TODO: in the future, handle storage pool objects
+        if isinstance(pool, libvirtError.virStoragePool):
+            try:
+                # sanitize flags
+                flags = flags & (StoragePoolManager.DELETE_NORMAL|StoragePoolManager.DELETE_ZEROED)
+                pool.delete(flags=flags)
+            except libvirt.libvirtError as e:
+                log.exception(e)
+                raise StoragePoolManagerError(e)
+
+    def autostart(self, pool, autostart=None):
         """set autostart on specified storage pools
 
-        :param pools: either a label, uuid, a virStoragePool, a dict (to specify flags) 
-                      or a list of label, uuid, virStoragePool object or a list of dict.
-        :param autostart: default autostart value if not specified otherwise
-        :returns: False if failed, True if success if pools is a label, a uuid,
-                  a id, a virStoragePool or a tuple if poolss is a list. When domain
-                  is None, returns None.
+        :param pools: either a label, uuid, a virStoragePool
         """
         result = None
-        if isinstance(pools, libvirt.virStoragePool):
+        if isinstance(pool, basestring):
+            pool = self._lookup_pool(pool)
+        # TODO: in the future, handle storage pool objects
+        if isinstance(pool, libvirt.virStoragePool):
             try:
-                if pools and pools.autostart() != autostart:
-                    pools.setAutostart(autostart)
-                    result = True
+                result = pool.autostart()
+                if autostart is not None:
+                    if result != autostart:
+                        pool.setAutostart(autostart)
+                        result = autostart
+                    else:
+                        log.warn("Pool {0} already have autostart set to '{1}'".format(pool, result))
             except libvirt.libvirtError as e:
-                result = False
-                log.error('{0}'.format(e))
-        elif isinstance(pools, dict):
-            if pools.has_key('pool'):
-                pool = pools.get('pool', None)
-                autostart = pools.get('autostart', autostart)
-                result = self.autostart(pool, autostart)
-        elif isinstance(pools, basestring):
-            result = self.autostart(self.lookup(pools), autostart)
-        elif isinstance(pools, (list, tuple)):
-            result = list()
-            for pool in pools:
-                result.append(self.autostart(pool, autostart))
-            result = tuple(result)
+                log.exception(e)
+                raise StoragePoolManagerError(e)
         return result
