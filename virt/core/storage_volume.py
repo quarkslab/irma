@@ -53,24 +53,23 @@ class StorageVolumeManager(ParametricSingleton):
     MAX_ALLOCATION = 197632 # determined empirically
 
     # create/clone flags
-    CREATE_PREALLOC_METADATA = 1
+    CREATE_PREALLOC_METADATA = 1 # libvirt.VIR_STORAGE_VOL_CREATE_PREALLOC_METADATA is not defined in libvirt.py
 
     # resize flags
-    RESIZE_ALLOCATE =  1    # force allocation of new size
-    RESIZE_DELTA =  2       # size is relative to current
-    RESIZE_SHRINK =  4      # allow decrease in capacity
+    RESIZE_ALLOCATE = libvirt.VIR_STORAGE_VOL_RESIZE_ALLOCATE # force allocation of new size
+    RESIZE_DELTA = libvirt.VIR_STORAGE_VOL_RESIZE_DELTA # size is relative to current
+    RESIZE_SHRINK = libvirt.VIR_STORAGE_VOL_RESIZE_SHRINK # allow decrease in capacity
 
     # wipe algorithms
-    WIPE_ALG_ZERO = 0       # 1-pass, all zeroes
-    WIPE_ALG_NNSA = 1       # 4-pass NNSA Policy Letter NAP-14.1-C (XVI-8)
-    WIPE_ALG_DOD = 2        # 4-pass DoD 5220.22-M section 8-306 procedure
-    WIPE_ALG_BSI = 3        # 9-pass method recommended by the German Center of Security in Information Technologies
-    WIPE_ALG_GUTMANN = 4    # The canonical 35-pass sequence
-    WIPE_ALG_SCHNEIER = 5   # 7-pass method described by Bruce Schneier in "Applied Cryptography" (1996)
-    WIPE_ALG_PFITZNER7 = 6  # 7-pass random
-    WIPE_ALG_PFITZNER33 = 7 # 33-pass random
-    WIPE_ALG_RANDOM = 8     # 1-pass random
-    WIPE_ALG_LAST = 9       # last algorithm supported by this version of the libvirt API.
+    WIPE_ALG_ZERO = libvirt.VIR_STORAGE_VOL_WIPE_ALG_ZERO # 1-pass, all zeroes
+    WIPE_ALG_NNSA = libvirt.VIR_STORAGE_VOL_WIPE_ALG_NNSA # 4-pass NNSA Policy Letter NAP-14.1-C (XVI-8)
+    WIPE_ALG_DOD = libvirt.VIR_STORAGE_VOL_WIPE_ALG_DOD # 4-pass DoD 5220.22-M section 8-306 procedure
+    WIPE_ALG_BSI = libvirt.VIR_STORAGE_VOL_WIPE_ALG_BSI # 9-pass method recommended by the German Center of Security in Information Technologies
+    WIPE_ALG_GUTMANN = libvirt.VIR_STORAGE_VOL_WIPE_ALG_GUTMANN # The canonical 35-pass sequence
+    WIPE_ALG_SCHNEIER = libvirt.VIR_STORAGE_VOL_WIPE_ALG_SCHNEIER # 7-pass method described by Bruce Schneier in "Applied Cryptography" (1996)
+    WIPE_ALG_PFITZNER7 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER7 # 7-pass random
+    WIPE_ALG_PFITZNER33 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER33 # 33-pass random
+    WIPE_ALG_RANDOM = libvirt.VIR_STORAGE_VOL_WIPE_ALG_RANDOM # 1-pass random
 
     ##########################################################################
     # constructor and destructor stuff
