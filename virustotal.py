@@ -6,7 +6,7 @@ url = "https://www.virustotal.com/vtapi/v2/file/report"
 
 def get_scan_result(hashvalue):
     parameters = {"resource": hashvalue,
-                  "apikey": "6fefa39e251406923092e224cb866cf3bd906faed308f363d7d5f8b943a90adb"}
+                  "apikey": "-=- YOUR KEY HERE -=-"}
     data = urllib.urlencode(parameters)
     req = urllib2.Request(url, data)
     res = urllib2.urlopen(req)
