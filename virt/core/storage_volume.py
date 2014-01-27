@@ -147,10 +147,10 @@ connection is required. Set to ``False`` by default
 
     def _lookupByName(self, name):
         handle = None
-        # check if storage pool has already been cached
+        # check if storage volume has already been cached
         if name in self._cache['name']:
             handle = self._cache['name'][name]
-        # storage pool not in cache, retrieve and cache it
+        # storage volume not in cache, retrieve and cache it
         else:
             if self._pool:
                 try:
@@ -168,10 +168,10 @@ connection is required. Set to ``False`` by default
 
     def _lookupByKey(self, key):
         handle = None
-        # check if domain has already been cached
+        # check if storage volume has already been cached
         if key in self._cache['key']:
             handle = self._cache['key'][key]
-        # domain not in cache, retrieve and cache it
+        # storage volume not in cache, retrieve and cache it
         else:
             try:
                 handle = self._drv.storageVolLookupByKey(key)
@@ -186,10 +186,10 @@ connection is required. Set to ``False`` by default
 
     def _lookupByPath(self, path):
         handle = None
-        # check if domain has already been cached
+        # check if storage volume has already been cached
         if path in self._cache['path']:
             handle = self._cache['path'][path]
-        # domain not in cache, retrieve and cache it
+        # storage volume not in cache, retrieve and cache it
         else:
             try:
                 handle = self._drv.storageVolLookupByPath(path)
