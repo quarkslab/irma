@@ -290,7 +290,9 @@ connection is required. Set to ``False`` by default
                 size = allocation["#text"]
                 unit = allocation["@unit"]
                 log.warning("allocation of {0}{1} asked for {2}, only {3} really allocated.".format(size, unit, volume.name, StorageVolumeManager.MAX_ALLOCATION))
-            self._pool.createXML(volume_xml, flags)
+            # sanitizing flags
+            flags = flags & StorageVolumeManager.CREATE_PREALLOC_METADATA
+            self._pool.createXML(volume_xml, flags=flags)
         except (libvirt.libvirtError, StorageVolumeError) as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -315,7 +317,9 @@ connection is required. Set to ``False`` by default
             clone_obj.name = clone
             # rebuild xml corresponding to clone object and create
             clone_xml = clone_obj.unparse()
-            clone_vol = self._pool.createXMLFrom(clone_xml, origin_volume, flags)
+            # sanitizing flags
+            flags = flags & StorageVolumeManager.CREATE_PREALLOC_METADATA
+            clone_vol = self._pool.createXMLFrom(clone_xml, origin_volume, flags=flags)
         except (libvirt.libvirtError, StorageVolumeError) as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -350,7 +354,9 @@ connection is required. Set to ``False`` by default
             volume = self._lookup_volume(name)
         # resize the volume
         try:
-            volume.resize(capacity, flags)
+            # sanitizing flags
+            flags = flags & (StorageVolumeManager.RESIZE_ALLOCATE|StorageVolumeManager.RESIZE_DELTA|StorageVolumeManager.RESIZE_SHRINK)
+            volume.resize(capacity, flags=flags)
         except libvirt.libvirtError as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -367,10 +373,13 @@ connection is required. Set to ``False`` by default
         # perform volume wipe
         try:
             # future flags, use 0 for now
+            flags = flags & 0
             if algorithm:
-                volume.wipePattern(algorithm, flags)
+                # sanitize algorithm
+                algorithm = algorithm & (StorageVolumeManager.WIPE_ALG_ZERO|StorageVolumeManager.WIPE_ALG_NNSA|StorageVolumeManager.WIPE_ALG_DOD|StorageVolumeManager.WIPE_ALG_BSI|StorageVolumeManager.WIPE_ALG_GUTMANN|StorageVolumeManager.WIPE_ALG_SCHNEIER|StorageVolumeManager.WIPE_ALG_PFITZNER7|StorageVolumeManager.WIPE_ALG_PFITZNER33|StorageVolumeManager.WIPE_ALG_RANDOM)
+                volume.wipePattern(algorithm, flags=flags)
             else:
-                volume.wipe(flags)
+                volume.wipe(flags=flags)
         except libvirt.libvirtError as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
