@@ -6,6 +6,7 @@ from lib.virt.core.storage_volume import StorageVolumeManager
 from lib.virt.core.connection import ConnectionManager
 from lib.virt.core.exceptions import DomainManagerError
 
+from lib.common.utils import UUID, MAC
 from lib.common.oopatterns import ParametricSingleton
 from lib.irma.common.exceptions import IrmaMachineManagerError
 from lib.irma.machine.manager import VirtualMachineManager
@@ -122,12 +123,13 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         except DomainManagerError as e:
             raise IrmaMachineManagerError(e)
 
-    def clone(self, origin, clone):
+    def clone(self, origin, clone, use_backing_file=True):
         """Clone a machine
         @param src_label: source machine name
         @param dst_label: destination machine name
         @raise NotImplementedError: this method is abstract.
         """
+        # TODO: move checking in the lib.virt.core api
         state, desc = self._domain.state(origin)
         if state != DomainManager.SHUTOFF:
             raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(origin, desc))
@@ -136,9 +138,55 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
             raise IrmaMachineManagerError("clone {0} already exists".format(clone, desc))
 
         try:
-            # TODO: check if has a backing storage
-            # if not, create a backing storage and use create instead of clone
-            self._domain.clone(origin, clone)
+            orig_dict = self._domain.info(origin)
+            # if we do not want to use backing files, simply clone
+            if not use_backing_file:
+                print "simply clone things"
+                #self._domain.clone(origin, clone)
+            # we want backing files, check for disks
+            else:
+                print "try to create backing storage"
+                clone_dict = orig_dict
+                # generate a new uuid
+                while True:
+                    uuid = UUID.generate()
+                    if not self._domain.lookup(uuid):
+                        break
+                # set new name and new uuid
+                clone_dict['name'] = clone
+                clone_dict['uuid'] = uuid
+                # change devices
+                for type, device in clone_dict['devices'].items():
+                    if type == 'interface':
+                        interfaces = device if isinstance(device, list) else [device]
+                        for interface in interfaces:
+                            interface['mac']['@address'] = MAC.generate()
+                    elif type == 'disk':
+                        disks = device if isinstance(device, list) else [device]
+                        for disk in disks:
+                            disk_path = disk['source']['@file']
+                            volman = StorageVolumeManager(self._connection, None)
+                            poolman = StoragePoolManager(self._connection)
+                            volman.pool = poolman.lookupByVolume(volman.lookup(disk_path))
+                            # TODO: handle case when pool is not defined, have to create one
+                            volume = volman.info(disk_path)
+                            # check if has a backing storage
+                            if volume.backingstore is not None:
+                                new_vol = volman.clone(orig_dict['name'], '.'.join([clone, volume.target['format']['@type']]))
+                                disk['source']['@file'] = new_vol.path()
+                            # if not, create a backing storage and use create instead of clone
+                            else:
+                                log.warning("No backing storage found for '{0}', creating one.".format(disk_path))
+                                backingvol = volume
+                                backingvol.key = None
+                                backingvol.target['path'] = os.path.dirname(backingvol.target['path']) + '.'.join([clone, volume.target['format']['@type']])
+                                backingvol.backingstore = {'path': disk_path, 'format': { '@type': volume.target['format']['@type'] }}
+                                backingvol.name = '.'.join([clone, volume.target['format']['@type']])
+                                new_vol = volman.create(backingvol)
+                                disk['source']['@file'] = new_vol.path()
+                                print backingvol.unparse(pretty=True)
+                print clone_dict.unparse(pretty=True)
+                self._domain.create(clone_dict)
         except DomainManagerError as e:
             raise IrmaMachineManagerError(e)
 
