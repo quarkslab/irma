@@ -15,5 +15,5 @@ class StorageVolumeManagerError(Exception):
     pass
 
 class StorageVolumeError(Exception):
-    """Error on managing a storage volume"""
+    """Error on creating a storage volume"""
     pass
