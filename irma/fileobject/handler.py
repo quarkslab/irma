@@ -4,6 +4,7 @@ import hashlib
 
 
 class FileObject(object):
+    _uri = dbconfig.MONGODB
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_FS
 
@@ -16,15 +17,15 @@ class FileObject(object):
             self.load()
 
     def _exists(self, hashvalue):
-        db = Database(self._dbname, dbconfig.MONGODB)
+        db = Database(self._dbname, self._uri)
         return db.exists_file(self._dbname, self._collection, hashvalue)
 
     def load(self):
-        db = Database(self._dbname, dbconfig.MONGODB)
+        db = Database(self._dbname, self._uri)
         self._dbfile = db.get_file(self._dbname, self._collection, self._id)
 
     def save(self, data, name):
-        db = Database(self._dbname, dbconfig.MONGODB)
+        db = Database(self._dbname, self._uri)
         hashvalue = hashlib.sha256(data).hexdigest()
         self._id = self._exists(hashvalue)
         if not self._id:
@@ -39,7 +40,7 @@ class FileObject(object):
             return False
 
     def update_altnames(self, altnames):
-        db = Database(self._dbname, dbconfig.MONGODB)
+        db = Database(self._dbname, self._uri)
         db.update_file_altnames(self._dbname, self._collection, self._id, altnames)
         self.load()
 

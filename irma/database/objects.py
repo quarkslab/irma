@@ -1,4 +1,3 @@
-import config.dbconfig as dbconfig
 from handler import Database
 
 class DatabaseObjectList(object):
@@ -9,7 +8,7 @@ class DatabaseObject(object):
     """ Generic class to map an object to a db entry
     load will create an object from a db entry
     save will create/update a db entry with object's values"""
-
+    _uri = None
     _dbname = None
     _collection = None
 
@@ -35,13 +34,13 @@ class DatabaseObject(object):
         return dict((key, getattr(self, key)) for key in dir(self) if key not in dir(self.__class__) and getattr(self, key) is not None)
 
     def save(self):
-        db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
+        db = Database(self._dbname, self._uri)
         self._id = db.save(self._dbname, self._collection, self.to_dict())
         return
 
     def load(self, _id):
         self._id = _id
-        db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
+        db = Database(self._dbname, self._uri)
         dict_object = db.load(self._dbname, self._collection, self._id)
         # dict_object could be empty if we init a dbobject with a given id
         if dict_object:
@@ -49,7 +48,7 @@ class DatabaseObject(object):
         return
 
     def remove(self):
-        db = Database(dbconfig.DB_NAME, dbconfig.MONGODB)
+        db = Database(self._dbname, self._uri)
         db.remove(self._dbname, self._collection, self._id)
         return
 

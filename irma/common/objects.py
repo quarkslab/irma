@@ -24,8 +24,7 @@ class ScanStatus:
     }
 
 class ScanInfo(DatabaseObject):
-    # TODO add date"
-    # TODO add accounting
+    _uri = dbconfig.MONGODB
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_SCANINFO
 
@@ -48,6 +47,7 @@ class ScanInfo(DatabaseObject):
         return res
 
 class ScanResults(DatabaseObject):
+    _uri = dbconfig.MONGODB
     _dbname = dbconfig.DB_NAME
     _collection = dbconfig.COLL_SCANRES
 
