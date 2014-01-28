@@ -6,6 +6,10 @@ class DomainManagerError(Exception):
     """Error on managing a domain"""
     pass
 
+class DomainError(Exception):
+    """Error on creating a domain"""
+    pass
+
 class StoragePoolManagerError(Exception):
     """Error on managing a storage pool"""
     pass
