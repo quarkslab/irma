@@ -757,4 +757,5 @@ class DomainManager(ParametricSingleton):
             # Undefine
             machine.undefine()
         except libvirt.libvirtError as e:
-            raise IrmaMachineManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
+            raise DomainManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
+
