@@ -1,6 +1,6 @@
 from config.adminconfig import admin_celery
 from lib.irma.common.utils import IrmaTaskReturn
-from lib.irma.common.objects import System
+from lib.irma.common.adminobjects import System
 from lib.irma.common.exceptions import IrmaAdminError
 
 
