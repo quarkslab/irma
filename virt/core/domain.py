@@ -759,3 +759,19 @@ class DomainManager(ParametricSingleton):
         except libvirt.libvirtError as e:
             raise DomainManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
 
+    def info(self, label):
+        # TODO: need refactoring, temporary
+        try:
+            domain = self.lookup(label)
+            xml = domain.XMLDesc(0)
+            return Domain.parse(xml)
+        except libvirt.libvirtError as e:
+            raise DomainManagerError(e)
+
+    def create(self, domain):
+        # TODO: need refactoring, temporary
+        try:
+            xml = domain.unparse()
+            self._drv.defineXML(xml)
+        except libvirt.libvirtError as e:
+            raise DomainManagerError(e)
