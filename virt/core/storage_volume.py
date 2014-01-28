@@ -1,4 +1,6 @@
-import logging, libvirt, os.path
+import logging, libvirt, time, os.path
+
+from multiprocessing import Array, Process as Task
 
 from lib.common import compat
 from lib.common.utils import UUID
@@ -34,7 +36,9 @@ class StorageVolumeManager(ParametricSingleton):
         # get attribute and add to singleton
         try:
             uri = conn_handler.getURI()
-            pool_name = pool_handler.name()
+            pool_name = None
+            if pool_handler:
+                pool_name = pool_handler.name()
         except (AttributeError, libvirt.libvirtError) as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -49,24 +53,23 @@ class StorageVolumeManager(ParametricSingleton):
     MAX_ALLOCATION = 197632 # determined empirically
 
     # create/clone flags
-    CREATE_PREALLOC_METADATA = 1
+    CREATE_PREALLOC_METADATA = 1 # libvirt.VIR_STORAGE_VOL_CREATE_PREALLOC_METADATA is not defined in libvirt.py
 
     # resize flags
-    RESIZE_ALLOCATE =  1    # force allocation of new size
-    RESIZE_DELTA =  2       # size is relative to current
-    RESIZE_SHRINK =  4      # allow decrease in capacity
+    RESIZE_ALLOCATE = libvirt.VIR_STORAGE_VOL_RESIZE_ALLOCATE # force allocation of new size
+    RESIZE_DELTA = libvirt.VIR_STORAGE_VOL_RESIZE_DELTA # size is relative to current
+    RESIZE_SHRINK = libvirt.VIR_STORAGE_VOL_RESIZE_SHRINK # allow decrease in capacity
 
     # wipe algorithms
-    WIPE_ALG_ZERO = 0       # 1-pass, all zeroes
-    WIPE_ALG_NNSA = 1       # 4-pass NNSA Policy Letter NAP-14.1-C (XVI-8)
-    WIPE_ALG_DOD = 2        # 4-pass DoD 5220.22-M section 8-306 procedure
-    WIPE_ALG_BSI = 3        # 9-pass method recommended by the German Center of Security in Information Technologies
-    WIPE_ALG_GUTMANN = 4    # The canonical 35-pass sequence
-    WIPE_ALG_SCHNEIER = 5   # 7-pass method described by Bruce Schneier in "Applied Cryptography" (1996)
-    WIPE_ALG_PFITZNER7 = 6  # 7-pass random
-    WIPE_ALG_PFITZNER33 = 7 # 33-pass random
-    WIPE_ALG_RANDOM = 8     # 1-pass random
-    WIPE_ALG_LAST = 9       # last algorithm supported by this version of the libvirt API.
+    WIPE_ALG_ZERO = libvirt.VIR_STORAGE_VOL_WIPE_ALG_ZERO # 1-pass, all zeroes
+    WIPE_ALG_NNSA = libvirt.VIR_STORAGE_VOL_WIPE_ALG_NNSA # 4-pass NNSA Policy Letter NAP-14.1-C (XVI-8)
+    WIPE_ALG_DOD = libvirt.VIR_STORAGE_VOL_WIPE_ALG_DOD # 4-pass DoD 5220.22-M section 8-306 procedure
+    WIPE_ALG_BSI = libvirt.VIR_STORAGE_VOL_WIPE_ALG_BSI # 9-pass method recommended by the German Center of Security in Information Technologies
+    WIPE_ALG_GUTMANN = libvirt.VIR_STORAGE_VOL_WIPE_ALG_GUTMANN # The canonical 35-pass sequence
+    WIPE_ALG_SCHNEIER = libvirt.VIR_STORAGE_VOL_WIPE_ALG_SCHNEIER # 7-pass method described by Bruce Schneier in "Applied Cryptography" (1996)
+    WIPE_ALG_PFITZNER7 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER7 # 7-pass random
+    WIPE_ALG_PFITZNER33 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER33 # 33-pass random
+    WIPE_ALG_RANDOM = libvirt.VIR_STORAGE_VOL_WIPE_ALG_RANDOM # 1-pass random
 
     ##########################################################################
     # constructor and destructor stuff
@@ -84,19 +87,15 @@ connection is required. Set to ``False`` by default
         # create handle cache
         self._cache = {'name': {}, 'key': {}, 'path': {}}
         # get libvirt.virConnection from connection
-        self._drv = connection
-        if isinstance(self._drv, basestring):
-            self._drv = ConnectionManager(self._drv)
-        if isinstance(self._drv, ConnectionManager):
-            self._drv = self._drv.connection
+        self._set_drv(connection)
         # get libvirt.virStoragePool from virStoragePool
         # TODO: in the future, also handle StoragePool objects
-        self._pool = pool
+        self._set_pool(pool)
         if isinstance(self._pool, basestring):
             manager = StoragePoolManager(conn_handler)
             self._pool = manager.lookup(self._pool)
         # prefetch list of handlers
-        if prefetch:
+        if self._pool and prefetch:
             # extra flags; not used yet, so callers should always pass 0
             self._pool.refresh(flags=0)
             map(lambda name: self._lookupByName(name), self.list())
@@ -119,30 +118,60 @@ connection is required. Set to ``False`` by default
                 if key in cache:
                     cache[key][value] = entry
 
+    # libvirt.virConnection from connection 
+    def _set_drv(self, connection):
+        self._drv = connection
+        if isinstance(self._drv, basestring):
+            self._drv = ConnectionManager(self._drv)
+        if isinstance(self._drv, ConnectionManager):
+            self._drv = self._drv.connection       
+
+    # libvirt.virStoragePool from virStoragePool
+    def _set_pool(self, pool):
+        self._pool = pool
+        if isinstance(self._pool, basestring):
+            manager = StoragePoolManager(self._drv)
+            self._pool = manager.lookup(self._pool)
+        
+    def _update_pool(self, pool):
+        opool = getattr(self, "_pool", None)
+        self._set_pool(pool)
+        # update parametric singleton
+        if opool != self._pool:
+            drv_uri = self._drv.getURI()
+            opool_name = opool
+            if isinstance(opool_name, libvirt.virStoragePool):
+                opool_name = opool_name.name()
+            pool_name = self._pool.name()
+            StorageVolumeManager.update_key((drv_uri, opool_name), (drv_uri, pool_name))
+
     def _lookupByName(self, name):
         handle = None
-        # check if storage pool has already been cached
+        # check if storage volume has already been cached
         if name in self._cache['name']:
             handle = self._cache['name'][name]
-        # storage pool not in cache, retrieve and cache it
+        # storage volume not in cache, retrieve and cache it
         else:
-            try:
-                handle = self._pool.storageVolLookupByName(name)
-                key = handle.key()
-                path = handle.path()
-                where = {'name': name, 'key': key, 'path': path}
-                self._cache_handle(self._cache, handle, where)
-            except libvirt.libvirtError as e:
-                # do not raise an exception here, we put a simple warning
-                log.warn(e)
+            if self._pool:
+                try:
+                    handle = self._pool.storageVolLookupByName(name)
+                    key = handle.key()
+                    path = handle.path()
+                    where = {'name': name, 'key': key, 'path': path}
+                    self._cache_handle(self._cache, handle, where)
+                except libvirt.libvirtError as e:
+                    # do not raise an exception here, we put a simple warning
+                    log.warn(e)
+            else:
+                log.warn("pool is not set, skipping storageVolLookupByName()")
         return handle
 
     def _lookupByKey(self, key):
         handle = None
-        # check if domain has already been cached
+        # check if storage volume has already been cached
         if key in self._cache['key']:
             handle = self._cache['key'][key]
-        # domain not in cache, retrieve and cache it
+        # storage volume not in cache, retrieve and cache it
         else:
             try:
                 handle = self._drv.storageVolLookupByKey(key)
@@ -157,10 +186,10 @@ connection is required. Set to ``False`` by default
 
     def _lookupByPath(self, path):
         handle = None
-        # check if domain has already been cached
+        # check if storage volume has already been cached
         if path in self._cache['path']:
             handle = self._cache['path'][path]
-        # domain not in cache, retrieve and cache it
+        # storage volume not in cache, retrieve and cache it
         else:
             try:
                 handle = self._drv.storageVolLookupByPath(path)
@@ -176,12 +205,16 @@ connection is required. Set to ``False`` by default
     def _lookup_volume(self, name):
         volume = self.lookup(name)
         if not volume:
-            raise StorageVolumeManagerError("Volume '{0}' not found".format(name))
+            e = "Volume '{0}' not found".format(name)
+            log.error(e)
+            raise StorageVolumeManagerError(e)
         return volume
 
     ##########################################################################
     # public methods
     ##########################################################################
+
+    pool = property(None, _update_pool)
 
     def lookup(self, volume):
         """lookup a volume and return the corresponding libvirt.virStoragePool
@@ -191,7 +224,8 @@ connection is required. Set to ``False`` by default
         """
         handle = None
         # TODO: move refresh when there is a cache miss of flush
-        self._pool.refresh(flags=0)
+        if self._pool:
+            self._pool.refresh(flags=0)
         # perform lookup first by name, then by key and finally by path
         if isinstance(volume, basestring):
             handle = self._lookupByName(volume)
@@ -211,7 +245,7 @@ connection is required. Set to ``False`` by default
                 handle = self._lookupByPath(volume)
         # warn if no handle has been found
         if not handle:
-            log.warn("Unable to find volume {0} in {1} on {2}", volume, self._pool.name(), self._drv.getURI())
+            log.warn("Unable to find volume {0} on {1}", volume, self._drv.getURI())
         # return handle
         return handle
 
@@ -228,22 +262,37 @@ connection is required. Set to ``False`` by default
             log.exception(e)
         return tuple(labels)
 
+    def info(self, volume):
+        if isinstance(volume, basestring):
+            volume = self._lookup_volume(volume)
+        try:
+            # extra flags; not used yet, so callers should always pass 0
+            xml = volume.XMLDesc(0)
+            return StorageVolume.parse(xml)
+        except (libvirt.libvirtError, StorageVolumeError) as e:
+            log.exception(e)
+            raise StorageVolumeManagerError(e)
+
     def create(self, volume, flags=0):
         # TODO: enable more input formats ?
         # check if volume already exists
         handle = self.lookup(volume.name)
         if handle:
-            raise StorageVolumeManagerError("'{0} already exists.".format(handle.path()))
+            e = "'{0} already exists.".format(handle.path())
+            log.error(e)
+            raise StorageVolumeManagerError(e)
         # creating new volume
         try:
             volume_xml = volume.unparse()
-            # check if 
+            # add a warning for allocation
             allocation = volume.allocation
             if allocation and allocation["#text"] > StorageVolumeManager.MAX_ALLOCATION:
                 size = allocation["#text"]
                 unit = allocation["@unit"]
-                log.warning("Allocation of {0}{1} asked for {2}, only {3} really allocated.".format(size, unit, volume.name, StorageVolumeManager.MAX_ALLOCATION))
-            self._pool.createXML(volume_xml, flags)
+                log.warning("allocation of {0}{1} asked for {2}, only {3} really allocated.".format(size, unit, volume.name, StorageVolumeManager.MAX_ALLOCATION))
+            # sanitizing flags
+            flags = flags & StorageVolumeManager.CREATE_PREALLOC_METADATA
+            self._pool.createXML(volume_xml, flags=flags)
         except (libvirt.libvirtError, StorageVolumeError) as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -261,16 +310,16 @@ connection is required. Set to ``False`` by default
             origin_volume = self._lookup_volume(origin)
         # perform cloning
         try:
-            # extra flags; not used yet, so callers should always pass 0
-            origin_xml = origin_volume.XMLDesc(0)
-            origin_obj = StorageVolume.parse(origin_xml)
             # clone object and remove key
+            origin_obj = self.info(origin_volume.name())
             clone_obj = origin_obj
             clone_obj.key = None
             clone_obj.name = clone
             # rebuild xml corresponding to clone object and create
             clone_xml = clone_obj.unparse()
-            clone_vol = self._pool.createXMLFrom(clone_xml, origin_volume, flags)
+            # sanitizing flags
+            flags = flags & StorageVolumeManager.CREATE_PREALLOC_METADATA
+            clone_vol = self._pool.createXMLFrom(clone_xml, origin_volume, flags=flags)
         except (libvirt.libvirtError, StorageVolumeError) as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -305,7 +354,9 @@ connection is required. Set to ``False`` by default
             volume = self._lookup_volume(name)
         # resize the volume
         try:
-            volume.resize(capacity, flags)
+            # sanitizing flags
+            flags = flags & (StorageVolumeManager.RESIZE_ALLOCATE|StorageVolumeManager.RESIZE_DELTA|StorageVolumeManager.RESIZE_SHRINK)
+            volume.resize(capacity, flags=flags)
         except libvirt.libvirtError as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -322,42 +373,100 @@ connection is required. Set to ``False`` by default
         # perform volume wipe
         try:
             # future flags, use 0 for now
+            flags = flags & 0
             if algorithm:
-                volume.wipePattern(algorithm, flags)
+                # sanitize algorithm
+                algorithm = algorithm & (StorageVolumeManager.WIPE_ALG_ZERO|StorageVolumeManager.WIPE_ALG_NNSA|StorageVolumeManager.WIPE_ALG_DOD|StorageVolumeManager.WIPE_ALG_BSI|StorageVolumeManager.WIPE_ALG_GUTMANN|StorageVolumeManager.WIPE_ALG_SCHNEIER|StorageVolumeManager.WIPE_ALG_PFITZNER7|StorageVolumeManager.WIPE_ALG_PFITZNER33|StorageVolumeManager.WIPE_ALG_RANDOM)
+                volume.wipePattern(algorithm, flags=flags)
             else:
-                volume.wipe(flags)
+                volume.wipe(flags=flags)
         except libvirt.libvirtError as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
 
-    def download(self, volume, filename, offset=0, length=0, flags=0):
+    def download(self, volume, filename, offset=0, length=0, flags=0, async=False):
+
+        def _recv_handler(stream, buffer, opaque):
+            filedes, status = opaque
+            filedes.write(buffer)
+            if status:
+                status[0] += len(buffer)
+
+        def _download_worker(volume, filename, offset, length, flags, status):
+            try:
+                if isinstance(filename, basestring):
+                    if os.path.exists(filename):
+                        e = "file {0} already exists".format(filename)
+                        log.error(e)
+                        raise StorageVolumeManagerError(e)
+                    file = open(filename, 'wb')
+                else:
+                    file = filename
+                stream = self._drv.newStream(flags=0)
+                # extra flags; not used yet, so callers should always pass 0
+                mime = volume.download(stream, offset, length, flags=0)
+                # perform download
+                stream.recvAll(_recv_handler, (file, status))
+                stream.finish()
+                file.close()
+            except (IOError, libvirt.libvirtError) as e:
+                stream.abort()
+                file.close()
+                if os.path.exists(filename):
+                    os.unlink(filename)
+                log.exception(e)
+                raise StorageVolumeManagerError(e)
+
         # TODO: enable more formats ?
         if isinstance(volume, StorageVolume):
             volume = self._lookup_volume(volume.name)
         elif isinstance(volume, basestring):
             volume = self._lookup_volume(volume)
-        # perform download
-        recv_handler = lambda stream, buffer, filedes: filedes.write(buffer)
-        try:
-            if isinstance(filename, basestring):
-                if os.path.exists(filename):
-                    raise StorageVolumeManagerError("file {0} already exists".format(filename))
-                file = open(filename, 'wb')
-            else:
-                file = filename
-            stream = self._drv.newStream(flags=0)
-            # extra flags; not used yet, so callers should always pass 0
-            mime = volume.download(stream, offset, length, flags=0)
-            stream.recvAll(recv_handler, file)
-            stream.finish()
-            file.close()
-        except (IOError, libvirt.libvirtError) as e:
-            stream.abort()
-            file.close()
-            log.exception(e)
-            raise StorageVolumeManagerError(e)
+        # determining byte count to download
+        bytecount = length
+        if not length:
+            type, capacity, bytecount = volume.info()
+        # creating shared memory to get status
+        status = Array('L', [0, bytecount]) if async else None
+        task = Task(target=_download_worker, args=(volume, filename, offset, length, flags, status))
+        task.start()
+        # if not asynchronous, wait for the task to finish
+        if async:
+            # NOTE: (status[0], status[1]) contain (already copied, total) bytes count
+            return task, status
+        else:
+            task.join()
+        
+    def upload(self, volume, filename, offset=0, length=0, flags=0, async=False):
 
-    def upload(self, volume, filename, offset=0, length=0, flags=0):
+        def _send_handler(stream, count, opaque):
+            filedes, status = opaque
+            data = filedes.read(count)
+            if status:
+                status[0] += len(data)
+
+        def _upload_worker(volume, filename, offset, length, flags, status):
+            try:
+                if isinstance(filename, basestring):
+                    if not os.path.isfile(filename):
+                        e = "{0} is not a file".format(filename)
+                        log.error(e)
+                        raise StorageVolumeManagerError(e)
+                    file = open(filename, 'rb')
+                else:
+                    file = filename
+                stream = self._drv.newStream(flags=0)
+                # extra flags; not used yet, so callers should always pass 0
+                mime = volume.upload(stream, offset, length, flags=0)
+                stream.sendAll(_send_handler, (file, status))
+                stream.finish()
+                file.close()
+            except (IOError, libvirt.libvirtError) as e:
+                stream.abort()
+                file.close()
+                log.exception(e)
+                raise StorageVolumeManagerError(e)
+
         # TODO: enable more formats ?
         if isinstance(name, StorageVolume):
             volume = self._lookup_volume(name.name)
@@ -365,23 +474,17 @@ connection is required. Set to ``False`` by default
             volume = name
         else:
             volume = self._lookup_volume(name)
-        # perform upload
-        send_handler = lambda stream, count, filedes: filedes.read(count)
-        try:
-            if isinstance(filename, basestring):
-                if not os.path.isfile(filename):
-                    raise StorageVolumeManagerError("{0} is not a file".format(filename))
-                file = open(filename, 'rb')
-            else:
-                file = filename
-            stream = self._drv.newStream(flags=0)
-            # extra flags; not used yet, so callers should always pass 0
-            mime = volume.upload(stream, offset, length, flags=0)
-            stream.sendAll(send_handler, file)
-            stream.finish()
-            file.close()
-        except (IOError, libvirt.libvirtError) as e:
-            stream.abort()
-            file.close()
-            log.exception(e)
-            raise StorageVolumeManagerError(e)
+        # determining byte count to upload
+        bytecount = length
+        if not length:
+            type, capacity, bytecount = volume.info()
+        # creating shared memory to get status
+        status = Array('L', [0, bytecount]) if async else None
+        task = Task(target=_upload_worker, args=(volume, filename, offset, length, flags, status))
+        task.start()
+        # if not asynchronous, wait for the task to finish
+        if async:
+            # NOTE: (status[0], status[1]) contain (already copied, total) bytes count
+            return task, status
+        else:
+            task.join()

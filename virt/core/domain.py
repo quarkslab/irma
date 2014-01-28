@@ -4,6 +4,8 @@ from lib.common import compat
 from lib.common.utils import UUID, MAC
 from lib.common.oopatterns import ParametricSingleton
 
+from lib.virt.core.mapper.domain import Domain
+
 from lib.virt.core.storage_pool import StoragePoolManager
 from lib.virt.core.storage_volume import StorageVolumeManager
 
@@ -685,33 +687,35 @@ class DomainManager(ParametricSingleton):
                     orig_dict = xmltodict.parse(orig_xml)
 
                     # modify configuration
-                    new_dict = orig_dict
+                    clone_dict = orig_dict
                     dom = self.lookup(name)
                     if dom:
                         raise DomainManagerError("domain '{0}' already exists".format(name))
+
                     while True:
                         uuid = UUID.generate()
                         if not self.lookup(uuid):
                             break
-                    new_dict['domain']['name'] = name
-                    new_dict['domain']['uuid'] = uuid
-                    # TODO: handle multiple ethernet card
-                    new_dict['domain']['devices']['interface']['mac']['@address'] = MAC.generate()
-                    # TODO: handle if only one disk
-                    for disk in new_dict['domain']['devices']['disk']:
-                        if not disk['@device'] == 'disk':
-                            continue
-                        orig_filename = disk['source']['@file']
-                        orig_ext = os.path.splitext(orig_filename)[1]
-                        # TODO: use StorageVolumeManager here
-                        orig_vol = self._drv.storageVolLookupByPath(orig_filename)
-                        # TODO: what if the pool does not exist ?
-                        orig_pool = orig_vol.storagePoolLookupByVolume()
-                        vol_man = StorageVolumeManager(self._drv, orig_pool)
-                        new_vol = vol_man.clone(orig_vol.name(), ''.join([name, orig_ext]))
-                        disk['source']['@file'] = new_vol.path()
-                    new_xml = xmltodict.unparse(new_dict)
-                    self._drv.defineXML(new_xml)
+                    clone_dict['name'] = clone
+                    clone_dict['uuid'] = uuid
+                    # change devices
+                    for type, device in clone_dict['devices'].items():
+                        if type == 'interface':
+                            interfaces = device if isinstance(device, list) else [device]
+                            for interface in interfaces:
+                                interface['mac']['@address'] = MAC.generate()
+                        elif type == 'disk':
+                            disks = device if isinstance(device, list) else [device]
+                            for disk in disks:
+                                disk_path = disk['source']['@file']
+                                volman = StorageVolumeManager(self._connection, None)
+                                poolman = StoragePoolManager(self._connection)
+                                volman.pool = poolman.lookupByVolume(volman.lookup(disk_path))
+                                # TODO: handle case when pool is not defined, have to create one
+                                volume = volman.info(disk_path)
+                                new_vol = volman.clone(orig_dict['name'], '.'.join([clone, volume.target['format']['@type']]))
+                                disk['source']['@file'] = new_vol.path()
+                    self.create(clone_dict)
             except libvirt.libvirtError as e:
                 result = False
                 log.error('{0}'.format(e))
@@ -757,4 +761,21 @@ class DomainManager(ParametricSingleton):
             # Undefine
             machine.undefine()
         except libvirt.libvirtError as e:
-            raise IrmaMachineManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
+            raise DomainManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
+
+    def info(self, label):
+        # TODO: need refactoring, temporary
+        try:
+            domain = self.lookup(label)
+            xml = domain.XMLDesc(0)
+            return Domain.parse(xml)
+        except libvirt.libvirtError as e:
+            raise DomainManagerError(e)
+
+    def create(self, domain):
+        # TODO: need refactoring, temporary
+        try:
+            xml = domain.unparse()
+            self._drv.defineXML(xml)
+        except libvirt.libvirtError as e:
+            raise DomainManagerError(e)

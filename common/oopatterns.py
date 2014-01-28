@@ -89,8 +89,11 @@ class ParametricSingletonMetaClass(type):
             cls._instances[cls][key] = super(ParametricSingletonMetaClass, cls).__call__(*args, **kwargs)
         return cls._instances[cls][key]
 
+    def update_key(cls, old_key, new_key):
+        cls._instances[cls][new_key] = cls._instances[cls].pop(old_key)
+
 # Metaclass compatible with python 2 and 3. Inherit from this for parametric singletons
-ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton', (object,), {})
+ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton', (object,), {'test': "coucou"})
 """Base class for parametric singletons
 
 This class implements the parametric singleton design pattern. One can inherit
