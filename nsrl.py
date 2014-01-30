@@ -1,40 +1,20 @@
 import hashlib
-from pymongo import MongoClient
+import leveldb
 from lib.irma.common.exceptions import IrmaDatabaseError
+import binascii
 
-class NsrlInfo(object):
-    _uri = "mongodb://localhost:27017/"
-    _dbname = "nsrl"
-    _collection = "hashset"
+NSRL_DB = "/home/irma/nsrldb"
 
-    def __init__(self):
-        self._dbh = None
+global db
+db = leveldb.LevelDB(NSRL_DB, block_cache_size=1 << 30, max_open_files=3000)
 
-    def _connect(self):
-        try:
-            if not self._dbh:
-                print "DEBUG: mongo connection"
-                client = MongoClient(self._uri)
-                dbh = client[self._dbname]
-                self._dbh = dbh[self._collection]
-        except Exception as e:
-            raise IrmaDatabaseError("{0}".format(e))
-
-
-    def get_info(self, sha1):
-        try:
-            self._connect()
-            res = self._collection.find_one({'SHA-1':sha1}, {'_id': False})
-            if not res:
-                return 'Not found'
-            return res
-        except Exception as e:
-            raise IrmaDatabaseError("{0}".format(e))
-
-nsrlinfo = NsrlInfo()
+def get_info(sha1):
+    global db
+    res = db.Get(binascii.unhexlify(sha1))
+    return eval(res)
 
 def scan(sfile):
     res = {}
     sha1 = hashlib.sha1(sfile.data).hexdigest()
-    res['result'] = nsrlinfo.get_info(sha1.upper())
+    res['result'] = get_info(sha1)
     return res
