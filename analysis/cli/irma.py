@@ -53,18 +53,28 @@ def scan_status(scanid=None):
         print "Error getting scan status: %s" % e
     return
 
+def print_results(list_res, justify=12):
+    for (name, res) in list_res.items():
+        print "%s" % name
+        for av in res:
+            print "\t%s" % (av.ljust(justify)),
+            avres = res[av]['result']
+            if type(avres) == str:
+                print avres.strip()
+            elif type(avres) == list:
+                print ("\n\t " + " "*justify).join(avres)
+            else:
+                print avres
+
 def scan_results(scanid=None):
     try:
         resp = requests.get(url=ADDRESS + '/scan/results/' + scanid)
         data = json.loads(resp.content)
         if data['result'] == "success":
-            files = data['info']
+            list_res = data['info']
         else:
             sys.exit(0)
-        for (name, res) in files.items():
-            print "%s" % name
-            for av in res:
-                print "\t%s%s" % (av.ljust(12), res[av]['result'].strip())
+        print_results(list_res)
     except requests.exceptions.ConnectionError:
         print "Error connecting to frontend"
     except Exception, e:
