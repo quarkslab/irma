@@ -10,10 +10,11 @@ class Node(LibVirtMachineManager):
         super(Node, self).__init__(node_cs)
 
     def get_probes(self):
+        self._probes = []
         for label in self.list(self.INACTIVE):
-            self._probes.append(Probe(label, self._node_cs, self.INACTIVE))
+            self._probes.append(Probe(label, self._node_cs, Probe.halted))
         for label in self.list(self.ACTIVE):
-            self._probes.append(Probe(label, self._node_cs, self.ACTIVE))
+            self._probes.append(Probe(label, self._node_cs, Probe.running))
         return self._probes
 
 
@@ -38,7 +39,7 @@ class System(object):
         """ init system with nodes connection string list """
         self.probes = []
         self.nodes_cs = nodes_cs
-        if self.nodes_cs:
+        if len(self.nodes_cs) != 0:
             self._refresh()
         return
 
@@ -78,7 +79,7 @@ class System(object):
 
     def _probe_set_state(self, node, label, state):
         p = self._probe_lookup(node, label)
-        n = Node(driver=p.node)
+        n = Node(p.node)
         if state == Probe.halted:
             n.stop(p.label)
         if state == Probe.running:
@@ -110,7 +111,7 @@ class System(object):
 
     def probe_clone(self, node, label, dstlabel):
         p = self._probe_lookup(node, label, master_lookup=True)
-        n = Node(driver=p.node)
+        n = Node(p.node)
         n.clone(label, dstlabel)
         np = Probe(dstlabel, p.node, Probe.halted)
         self.probes.append(np)
@@ -118,4 +119,4 @@ class System(object):
 
     def node_list(self):
         # refresh list and state of each probe by directly connect to node
-        return self.node_cs
+        return self.nodes_cs
