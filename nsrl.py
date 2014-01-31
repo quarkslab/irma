@@ -1,6 +1,5 @@
 import hashlib
 import leveldb
-from lib.irma.common.exceptions import IrmaDatabaseError
 import binascii
 
 NSRL_DB = "/home/irma/nsrldb"
@@ -10,8 +9,11 @@ db = leveldb.LevelDB(NSRL_DB, block_cache_size=1 << 30, max_open_files=3000)
 
 def get_info(sha1):
     global db
-    res = db.Get(binascii.unhexlify(sha1))
-    return eval(res)
+    try:
+        res = eval(db.Get(binascii.unhexlify(sha1)))
+    except KeyError:
+        res = "Not found"
+    return res
 
 def scan(sfile):
     res = {}
