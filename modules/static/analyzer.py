@@ -17,7 +17,6 @@ class StaticAnalyzer(object):
     @classmethod
     def analyze(cls, filename=None, data=None, **kwargs):
         # check parameters
-        print filename, data, kwargs
         if not filename and not data:
             return None
         if filename and data:
@@ -33,6 +32,7 @@ class StaticAnalyzer(object):
                 # guess mimetype for file
                 mimetype = Magic.from_file(filename)
         # look for handle
+        result = None
         if mimetype:
             handler_found = False
             for (pattern, handler) in cls._handlers.items():
@@ -41,6 +41,4 @@ class StaticAnalyzer(object):
                     handler_found = True
             if not handler_found:
                 log.warning("{0} not yet handled".format(mimetype))
-        else:
-            result = None
         return result
