@@ -1,10 +1,12 @@
+#!/usr/bin/env python
+
 import requests
 import json
 import sys
 import argparse
 
-# ADDRESS = "http://brain.irma.qb:8080"
-ADDRESS = "http://192.168.130.133:8080"
+ADDRESS = "http://brain.irma.qb:8080"
+# ADDRESS = "http://192.168.130.133:8080"
 
 
 def probe_list():
@@ -28,7 +30,7 @@ def scan_cancel(scanid=None):
     return
 
 
-def scan_status(scanid=None):
+def scan_status(scanid=None, partial=None):
     try:
         resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
         data = json.loads(resp.content)
@@ -41,7 +43,7 @@ def scan_status(scanid=None):
             if total != 0 : rate_total = finished * 100 / total
             if finished != 0 : rate_success = successful * 100 / finished
             print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
-            if finished == total:
+            if finished == total or partial:
                 scan_results(scanid=scanid)
         elif data['result'] == 'warning' and data['info'] == "finished":
             scan_results(scanid=scanid)
@@ -116,6 +118,7 @@ if __name__ == "__main__":
 
     # create the parser for the "results" command
     res_parser = subparsers.add_parser('results', help='print scan results')
+    res_parser.add_argument('--partial', dest='partial', action='store_true', help='print results as soon as they are available')
     res_parser.add_argument('scanid', help='scanid returned by scan command')
     res_parser.set_defaults(func=scan_status)
 
