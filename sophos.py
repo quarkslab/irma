@@ -16,7 +16,9 @@ def resultfromoutput(code, stdout):
 def get_version():
     global version
     p = Popen(["sav32cli.exe", "-v"], stdout=PIPE)
-    res, err = p.communicate()
+    out, err = p.communicate()
+    # win fr charset to utf8
+    res = out.decode("cp1252")
     if p.returncode == 0:
         version = "\n".join(res.splitlines()[11:])
     else:
@@ -30,7 +32,9 @@ def get_scan_result(data):
     tmpfile.close()
     os.close(fd)
     p = Popen(["sav32cli.exe", "-ss", "-nc", "-nb", filename], stdout=PIPE)
-    res, err = p.communicate()
+    out, err = p.communicate()
+    # win fr charset to utf8
+    res = out.decode("cp1252")
     retcode = p.returncode
     os.unlink(filename)
     return resultfromoutput(retcode, res)

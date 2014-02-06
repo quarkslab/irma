@@ -4,28 +4,24 @@ import re
 from subprocess import Popen, PIPE
 
 version = None
-regex = re.compile(r'(detected|suspicion)\t(.*)\r')
+regex = re.compile(r'Found the (^\n+)\n')
 
 def resultfromoutput(code, stdout):
-    if code == 0:
-        return "clean"
-    elif code == 2 or code == 3:
-        m = regex.search(stdout)
-        if m:
-            return m.group(2)
-        else:
-            return stdout
+    m = regex.search(stdout)
+    if m:
+        return m.group(1) + "(%d)" % code
     else:
-        return "Unknown retcode %d" % code
+        return "clean (%d)" % code
 
 def get_version():
     global version
-    p = Popen(["avp.com", "help"], stdout=PIPE)
+    p = Popen(["scan.exe", "/VERSION"], stdout=PIPE)
     out, err = p.communicate()
     # win fr charset to utf8
     res = out.decode("cp1252")
     if p.returncode == 0:
-        version = res.splitlines()[0]
+        ver_array = res.splitlines()
+        version = "\n".join(ver_array[0] + ver_array[4:])
     else:
         version = "unknown"
     return
@@ -36,12 +32,12 @@ def get_scan_result(data):
     tmpfile.write(data)
     tmpfile.close()
     os.close(fd)
-    p = Popen(["avp.com", "scan", "/i0", filename], stdout=PIPE)
+    p = Popen(["scan.exe", "/NOMEM", filename], stdout=PIPE)
     out, err = p.communicate()
     # win fr charset to utf8
     res = out.decode("cp1252")
-    retcode = p.returncode
     os.unlink(filename)
+    retcode = p.returncode
     return resultfromoutput(retcode, res)
 
 

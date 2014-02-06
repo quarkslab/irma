@@ -14,6 +14,6 @@ def probe_scan(scan_oid, file_oid):
     r = ScanResults(_id=file_oid)
     if AVNAME not in r.probelist:
         r.probelist.append(AVNAME)
-        r.results.update({AVNAME:scan_results})
+    r.results.update({AVNAME:scan_results})
     return IrmaTaskReturn.success({'scan_oid':scan_oid, 'file_oid': file_oid, 'avname': AVNAME})
 
