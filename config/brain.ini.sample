@@ -1,0 +1,31 @@
+[mongodb]
+host = 127.0.0.1
+port = 27017
+dbname = irma
+
+[collections]
+scan_info = scan_info
+scan_results = scan_res
+scan_files = scan_files
+scan_file_fs = fs
+
+[broker_brain]
+host = 127.0.0.1
+vhost = mqbrain
+username = brain
+password = brain
+queue = brain
+
+[broker_probe]
+host = 127.0.0.1
+vhost = mqprobe
+username = probe
+password = probe
+
+[backend_brain]
+host = 127.0.0.1
+db = 0
+
+[backend_probe]
+host = 127.0.0.1
+db = 1
