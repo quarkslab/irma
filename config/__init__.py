@@ -64,8 +64,8 @@ def conf_celery_queue(app, queue):
 
 # ______________________________________________________________________________ BACKEND HELPERS
 
-def _get_backend_uri(brain_config):
-    return "redis://%s:%s/%s" % (brain_config.host, brain_config.port, brain_config.db)
+def _get_backend_uri(backend_config):
+    return "redis://%s:%s/%s" % (backend_config.host, backend_config.port, backend_config.db)
 
 def get_brain_backend_uri():
     return _get_backend_uri(brain_config.backend_brain)
