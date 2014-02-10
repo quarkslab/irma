@@ -7,28 +7,32 @@ from lib.irma.configuration.ini import TemplatedConfiguration
 template_frontend_config = {
                          'mongodb': (('host', TemplatedConfiguration.string, None),
                                       ('port', TemplatedConfiguration.integer, 27017),
-                                      ('dbname', TemplatedConfiguration.string, None)
+                                      ('dbname', TemplatedConfiguration.string, None),
                                     ),
                          'collections': (('scan_info', TemplatedConfiguration.string, None),
                                           ('scan_results', TemplatedConfiguration.string, None),
                                           ('scan_files', TemplatedConfiguration.string, None),
-                                          ('scan_file_fs', TemplatedConfiguration.string, None)
+                                          ('scan_file_fs', TemplatedConfiguration.string, None),
                                          ),
+                         'celery_brain': (('timeout', TemplatedConfiguration.integer, 10),
+                                          ),
+                         'celery_admin': (('timeout', TemplatedConfiguration.integer, 10),
+                                          ),
                          'broker_brain': (
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 5671),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
-                                    ('queue' , TemplatedConfiguration.string, None)
+                                    ('queue' , TemplatedConfiguration.string, None),
                                     ),
                          'broker_admin': (
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 5671),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
-                                    ('password' , TemplatedConfiguration.string, None)
-                                    ('queue' , TemplatedConfiguration.string, None)
+                                    ('password' , TemplatedConfiguration.string, None),
+                                    ('queue' , TemplatedConfiguration.string, None),
                                     ),
                          'backend_brain': (
                                    ('host', TemplatedConfiguration.string, None),
@@ -66,6 +70,11 @@ def conf_celery_queue(app, queue):
 def get_db_uri():
     return "mongodb://%s:%s/" % (frontend_config.mongodb.host, frontend_config.mongodb.port)
 
+def get_brain_celery_timeout():
+    return frontend_config.celery_brain.timeout
+
+def get_admin_celery_timeout():
+    return frontend_config.celery_admin.timeout
 # ______________________________________________________________________________ BACKEND HELPERS
 
 def _get_backend_uri(backend_config):

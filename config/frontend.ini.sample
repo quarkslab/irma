@@ -21,6 +21,7 @@ host = 127.0.0.1
 vhost = mqadmin	
 username = admin
 password = admin
+queue = admin
 
 [backend_brain]
 host = 127.0.0.1

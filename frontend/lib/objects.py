@@ -1,5 +1,6 @@
-from lib.irma.database.objects import DatabaseObject
 import config
+from lib.irma.database.objects import DatabaseObject
+from lib.irma.fileobject.handler import FileObject
 from datetime import datetime
 
 cfg_dburi = config.get_db_uri()
@@ -55,3 +56,7 @@ class ScanResults(DatabaseObject):
         self.results = {}
         super(ScanResults, self).__init__(_id=_id)
 
+class ScanFile(FileObject):
+    _uri = cfg_dburi
+    _dbname = cfg_dbname
+    _collection = cfg_coll.scan_file
