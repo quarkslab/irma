@@ -4,15 +4,14 @@ import celery
 from bottle import route, request, default_app, run, response
 from lib.irma.common.utils import IrmaFrontendReturn
 from lib.irma.fileobject.handler import FileObject
-import frontend
-import frontend.lib
-import frontend.lib.objects
 from frontend.lib.objects import ScanInfo
 from bson import ObjectId
 import config
 
 cfg_timeout = config.get_brain_celery_timeout()
 brain_celery = celery.Celery('braintasks')
+config.conf_celery(brain_celery)
+config.conf_celery_queue(brain_celery, "brain")
 admin_celery = celery.Celery('admintasks')
 # ______________________________________________________________ SERVER ROOT
 
