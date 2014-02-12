@@ -16,7 +16,7 @@ template_brain_config = {
                                          ),
                          'broker_brain': (
                                     ('host', TemplatedConfiguration.string, None),
-                                    ('port', TemplatedConfiguration.integer, 5671),
+                                    ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
@@ -24,7 +24,7 @@ template_brain_config = {
                                     ),
                          'broker_probe': (
                                     ('host', TemplatedConfiguration.string, None),
-                                    ('port', TemplatedConfiguration.integer, 5671),
+                                    ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None)
@@ -46,21 +46,34 @@ brain_config = TemplatedConfiguration("brain.ini", template_brain_config)
 
 # ______________________________________________________________________________ CELERY HELPERS
 
-def conf_celery(app):
+def _conf_celery(app, broker, backend, queue=None):
     app.conf.update(
-                    CELERY_ACCEPT_CONTENT=['json'],
-                    CELERY_TASK_SERIALIZER='json',
-                    CELERY_RESULT_SERIALIZER='json'
-    )
+                     BROKER_URL=broker,
+                     CELERY_RESULT_BACKEND=backend,
+                     CELERY_ACCEPT_CONTENT=['json'],
+                     CELERY_TASK_SERIALIZER='json',
+                     CELERY_RESULT_SERIALIZER='json'
+                     )
+    if queue:
+        app.conf.update(
+                        CELERY_DEFAULT_QUEUE=queue,
+                        # delivery_mode=1 enable transient mode (don't survive to a server restart)
+                        CELERY_QUEUES=(
+                                       Queue(queue, routing_key=queue, delivery_mode=1),
+                                       )
+                        )
+    return
 
-def conf_celery_queue(app, queue):
-    app.conf.update(
-                    CELERY_DEFAULT_QUEUE=queue,
-                    # delivery_mode=1 enable transient mode (don't survive to a server restart)
-                    CELERY_QUEUES=(
-                                   Queue(queue, routing_key=queue, delivery_mode=1),
-                                   )
-                    )
+def conf_brain_celery(app):
+    broker = get_brain_broker_uri()
+    backend = get_brain_backend_uri()
+    queue = brain_config.broker_brain.queue
+    _conf_celery(app, broker, backend, queue)
+
+def conf_probe_celery(app):
+    broker = get_probe_broker_uri()
+    backend = get_probe_backend_uri()
+    _conf_celery(app, broker, backend)
 
 # ______________________________________________________________________________ BACKEND HELPERS
 
