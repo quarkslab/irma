@@ -1,12 +1,11 @@
-from config import dbconfig
 from lib.irma.database.handler import Database
 import hashlib
 
 
 class FileObject(object):
-    _uri = dbconfig.MONGODB
-    _dbname = dbconfig.DB_NAME
-    _collection = dbconfig.COLL_FS
+    _uri = None
+    _dbname = None
+    _collection = None
 
     def __init__(self, dbname=None, _id=None):
         if dbname:

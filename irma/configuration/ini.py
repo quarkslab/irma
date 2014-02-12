@@ -40,9 +40,8 @@ class TemplatedConfiguration(Configuration):
         config = ConfigParser()
         config.read(cfg_file)
         for section in template.keys():
-            # Check if section is present in ini file
-            if section not in config.sections():
-                raise IrmaConfigurationError("file <%s> missing section [%s]" % (cfg_file, section,))
+            # setattr even if section is not present in ini file
+            # as it may have default value, check at value fetching
             setattr(self, section, ConfigurationSection())
 
             for (key_name, key_type, key_def_value) in template[section]:
@@ -52,7 +51,7 @@ class TemplatedConfiguration(Configuration):
                         setattr(getattr(self, section), key_name, key_def_value)
                         continue
                     else:
-                        raise IrmaConfigurationError("file <%s> section [%s] missing key [%s]" % (cfg_file, section, key_name,))
+                        raise IrmaConfigurationError("file <%s> missing section [%s] key [%s]" % (cfg_file, section, key_name,))
                 try:
                     if key_type == self.boolean:
                         value = config.getboolean(section, key_name)

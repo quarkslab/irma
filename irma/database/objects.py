@@ -1,4 +1,5 @@
 from handler import Database
+from bson import ObjectId
 
 class DatabaseObjectList(object):
     # TODO derived class from UserList to handle list of databaseobject, group remove, group update...
@@ -13,7 +14,7 @@ class DatabaseObject(object):
     _collection = None
 
     def __init__(self, _id=None):
-        self._id = _id
+        self._id = ObjectId(_id)
         if self._id:
             self.load(self._id)
 
@@ -51,4 +52,9 @@ class DatabaseObject(object):
         db = Database(self._dbname, self._uri)
         db.remove(self._dbname, self._collection, self._id)
         return
+
+    @property
+    def id(self):
+        """Return str version of ObjectId"""
+        return str(self._id)
 
