@@ -14,8 +14,9 @@ class DatabaseObject(object):
     _collection = None
 
     def __init__(self, _id=None):
-        self._id = ObjectId(_id)
-        if self._id:
+        self._id = None
+        if _id:
+            self._id = ObjectId(_id)
             self.load(self._id)
 
     def __del__(self):
@@ -56,5 +57,8 @@ class DatabaseObject(object):
     @property
     def id(self):
         """Return str version of ObjectId"""
-        return str(self._id)
+        if not self._id:
+            return None
+        else:
+            return str(self._id)
 

@@ -1,6 +1,7 @@
 import re
-from lib.irma.machine.libvirt_manager import LibVirtMachineManager
-from lib.irma.common.exceptions import IrmaAdminError
+
+from irma.machine.libvirt_manager import LibVirtMachineManager
+from irma.common.exceptions import IrmaAdminError
 
 class Node(LibVirtMachineManager):
     """ currently using libvirt to manage vms """
