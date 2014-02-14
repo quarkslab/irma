@@ -44,7 +44,7 @@ class TemplatedConfiguration(Configuration):
             # as it may have default value, check at value fetching
             setattr(self, section, ConfigurationSection())
             if type(template[section]) != list:
-                raise IrmaConfigurationError
+                raise IrmaConfigurationError("Malformed Template section type should be list")
             for (key_name, key_type, key_def_value) in template[section]:
                 if not config.has_option(section, key_name):
                     # If key not found but a default value exists, set it
