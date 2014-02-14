@@ -1,8 +1,31 @@
 import logging, hashlib
 from irma.common.exceptions import IrmaFtpError
 from ftplib import FTP_TLS
+import ssl
 
 log = logging.getLogger(__name__)
+
+class FTP_TLS_Data(FTP_TLS):
+    """ Only improvement is to allow transfer of data directly instead of reading data from fp """
+
+    def storbinarydata(self, cmd, data, blocksize=8192, callback=None, rest=None):
+        self.voidcmd('TYPE I')
+        conn = self.transfercmd(cmd, rest)
+        try:
+            index = 0
+            while 1:
+                buf = data[index:index + blocksize]
+                index += blocksize
+                if len(buf) == 0: break
+                conn.sendall(buf)
+                if callback: callback(buf)
+            # shutdown ssl layer
+            if isinstance(conn, ssl.SSLSocket):
+                conn.unwrap()
+        finally:
+            conn.close()
+        return self.voidresp()
+
 
 class FtpTls(object):
     """Internal database.
@@ -35,6 +58,8 @@ class FtpTls(object):
     def __enter__(self):
         return self
 
+    def __exit__(self, type, value, tb):
+        self.__del__()
 
     ##########################################################################
     # Private methods
@@ -44,7 +69,7 @@ class FtpTls(object):
         if self._conn:
             logging.warn("Already connected to ftp server")
         try:
-            self._conn = FTP_TLS(self._host, self._user, self._passwd)
+            self._conn = FTP_TLS_Data(self._host, self._user, self._passwd)
             # Explicitely ask for secure data channel
             self._conn.prot_p()
         except Exception as e:
@@ -58,19 +83,16 @@ class FtpTls(object):
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
-    def _hash(self, filename):
+    def _hash(self, data):
         try:
-            with open(filename, "rb") as f:
-                data = f.read()
             return self.hashfunc(data).hexdigest()
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
-    def _check_hash(self, digest, filename):
+    def _check_hash(self, digest, data):
         try:
-            with open(filename, "rb") as f:
-                if self.hashfunc(f.read()).hexdigest != digest:
-                    raise IrmaFtpError("Integrity check file failed")
+            if self.hashfunc(data).hexdigest != digest:
+                raise IrmaFtpError("Integrity check file failed")
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
@@ -91,12 +113,21 @@ class FtpTls(object):
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
-    def upload(self, path, filename):
-        """ Upload <data> to remote <filename> into directory <path>"""
+    def upload_file(self, path, filename):
+        """ Upload <filename> content into directory <path>"""
         try:
-            dstname = self._hash(filename)
             with open(filename, "rb") as f:
+                dstname = self._hash(f.read())
                 self._conn.storbinary("STOR {0}/{1}".format(path, dstname), f)
+            return dstname
+        except Exception as e:
+            raise IrmaFtpError("{0}".format(e))
+
+    def upload_data(self, path, data):
+        """ Upload <data> to remote directory <path>"""
+        try:
+            dstname = self._hash(data)
+            self._conn.storbinarydata("STOR {0}/{1}".format(path, dstname), data)
             return dstname
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
@@ -104,10 +135,11 @@ class FtpTls(object):
     def download(self, path, remotename, dstname):
         """ Download <data> to remote <filename> into directory <path>"""
         try:
+            data = ""
             with open(dstname, 'wb') as f:
-                self._conn.retrbinary("RETR {0}/{1}".format(path, remotename), lambda data: f.write(data))
-            # as remotename is the digest value of the file
-            self._check_hash(remotename, dstname)
+                self._conn.retrbinary("RETR {0}/{1}".format(path, remotename), lambda x: data.append(x))
+                self._check_hash(remotename, data)
+                f.write(data)
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
