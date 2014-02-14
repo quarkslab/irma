@@ -3,8 +3,7 @@ import os
 import celery
 from bottle import route, request, default_app, run, response
 from lib.irma.common.utils import IrmaFrontendReturn
-from lib.irma.fileobject.handler import FileObject
-from frontend.lib.objects import ScanInfo
+from frontend.lib.objects import ScanInfo, ScanFile
 import config
 
 cfg_timeout = config.get_brain_celery_timeout()
@@ -50,10 +49,9 @@ def scan_add(scanid):
             filename = os.path.basename(f)
             upfile = request.files.get(f)
             data = upfile.file.read()
-            fobj = FileObject()
+            fobj = ScanFile()
             new = fobj.save(data, filename)
             si.oids[fobj._id] = {"name": filename, "new": new}
-        si.save()
         return IrmaFrontendReturn.success({"scanid":scanid, "nb_files": len(si.oids)})
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
@@ -75,7 +73,6 @@ def scan_launch(scanid):
             probelist = request.params['probe'].split(',')
 
         si.probelist = probelist
-        si.save()
         # launch ftp upload via frontend task
         frontend_celery.send_task("frontend.tasks.frontendtasks.scan_launch", args=(si.id, si.oids, si.probelist, force))
         return IrmaFrontendReturn.success({"scanid":si.id, "probelist":si.probelist})
@@ -146,7 +143,7 @@ def status():
 @route('/download/<file_oid>')
 def download(file_oid):
     """ retrieve a file previously sent to the brain """
-    fobj = FileObject(_id=file_oid)
+    fobj = ScanFile(_id=file_oid)
     response.headers['Content-disposition'] = 'attachment; filename="%s"' % fobj.name
     return fobj.data
 
