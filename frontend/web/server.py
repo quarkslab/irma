@@ -50,8 +50,8 @@ def scan_add(scanid):
             upfile = request.files.get(f)
             data = upfile.file.read()
             fobj = ScanFile()
-            new = fobj.save(data, filename)
-            si.oids[fobj._id] = {"name": filename, "new": new}
+            fobj.save(data, filename)
+            si.oids[fobj._id] = filename
         return IrmaFrontendReturn.success({"scanid":scanid, "nb_files": len(si.oids)})
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))

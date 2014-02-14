@@ -17,12 +17,12 @@ config.conf_brain_celery(brain_celery)
 def scan_launch(scanid, file_oids, probelist, force):
     ftp_config = config.frontend_config.ftp_brain
     try:
-        # remove files already scanned
-        # FIXME check probelist results available
         if force:
             filtered_file_oids = file_oids
         else:
-            filtered_file_oids = dict((k, v) for k, v in file_oids.items() if v['new'])
+            # remove files already scanned
+            # FIXME check probelist results available
+            filtered_file_oids = file_oids
 
         # If nothing left return
         if len(filtered_file_oids) == 0:
@@ -31,12 +31,12 @@ def scan_launch(scanid, file_oids, probelist, force):
         with FtpTls(ftp_config.host, ftp_config.port, ftp_config.username, ftp_config.password) as ftps:
             files = []
             ftps.mkdir(scanid)
-            for (oid, info) in filtered_file_oids.items():
+            for (oid, filename) in filtered_file_oids.items():
                 f = ScanFile(_id=oid)
                 # our ftp handler store file under with its sha256 name
                 hashname = ftps.upload_data(scanid, f.data)
                 if hashname != f.hashvalue:
-                    return IrmaTaskReturn.error("Ftp Error: integrity failure while uploading file {0} for scanid {1}".format(scanid, info['name']))
+                    return IrmaTaskReturn.error("Ftp Error: integrity failure while uploading file {0} for scanid {1}".format(scanid, filename))
                 files.append(hashname)
                 # launch new celery task
                 brain_celery.send_task("brain.braintasks.scan", args=(scanid, files, probelist))
