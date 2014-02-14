@@ -8,6 +8,10 @@ import argparse
 # ADDRESS = "http://brain.irma.qb:8080"
 ADDRESS = "http://192.168.130.163:8080"
 
+class IrmaError(Exception):
+    """Error on cli script"""
+    pass
+
 
 def probe_list():
     try:
@@ -104,14 +108,14 @@ def scan_new():
         scanid = data['info']['scanid']
         return scanid
     else:
-        raise ValueError
+        raise IrmaError("{0}: {1}".format(data['result'], data['info']))
 
 def scan_add(scanid, filename):
     postfiles = dict(map(lambda t: (t, open(t, 'rb')), filename))
     resp = requests.post(ADDRESS + '/scan/add/' + scanid, files=postfiles)
     data = json.loads(resp.content)
-    if data['result'] == "success":
-        print "files added:", filename
+    if data['result'] != "success":
+        raise IrmaError("{0}: {1}".format(data['result'], data['info']))
     return
 
 
@@ -122,7 +126,7 @@ def scan_launch(scanid, force, probe):
     resp = requests.get(ADDRESS + '/scan/launch/' + scanid, params=params)
     data = json.loads(resp.content)
     if data['result'] == "success":
-        print "scanid %s launched" % scanid
+        print "scanid {0} launched".format(scanid)
     return
 
 if __name__ == "__main__":
