@@ -16,17 +16,18 @@ username = brain
 password = brain
 queue = brain
 
-[broker_admin]
+[broker_frontend]
 host = 127.0.0.1
-vhost = mqadmin	
-username = admin
-password = admin
-queue = admin
+vhost = mqfrontend
+username = frontend
+password = frontent
+queue = frontend
 
 [backend_brain]
 host = 127.0.0.1
 db = 0
 
-[backend_admin]
+[ftp_brain]
 host = 127.0.0.1
-db = 2
+username=frontend
+password=frontend

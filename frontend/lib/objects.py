@@ -4,7 +4,7 @@ from lib.irma.fileobject.handler import FileObject
 from datetime import datetime
 
 cfg_dburi = config.get_db_uri()
-cfg_dbname = config.frontend_config.mongodb.db_name
+cfg_dbname = config.frontend_config.mongodb.dbname
 cfg_coll = config.frontend_config.collections
 
 class ScanStatus:

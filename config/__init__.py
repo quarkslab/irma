@@ -16,19 +16,19 @@ template_frontend_config = {
                                          ),
                          'celery_brain': (('timeout', TemplatedConfiguration.integer, 10),
                                           ),
-                         'celery_admin': (('timeout', TemplatedConfiguration.integer, 10),
+                         'celery_frontend': (('timeout', TemplatedConfiguration.integer, 10),
                                           ),
                          'broker_brain': (
                                     ('host', TemplatedConfiguration.string, None),
-                                    ('port', TemplatedConfiguration.integer, 5671),
+                                    ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
                                     ('queue' , TemplatedConfiguration.string, None),
                                     ),
-                         'broker_admin': (
+                         'broker_frontend': (
                                     ('host', TemplatedConfiguration.string, None),
-                                    ('port', TemplatedConfiguration.integer, 5671),
+                                    ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
@@ -39,11 +39,18 @@ template_frontend_config = {
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
                                    ),
-                         'backend_admin': (
+                         'backend_frontend': (
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
-                                   )
+                                   ),
+                         'ftp_brain': (
+                                    ('host', TemplatedConfiguration.string, None),
+                                    ('port', TemplatedConfiguration.integer, 21),
+                                    ('username', TemplatedConfiguration.string, None),
+                                    ('password' , TemplatedConfiguration.string, None),
+                                    ),
+
                          }
 
 
@@ -51,21 +58,40 @@ frontend_config = TemplatedConfiguration("frontend.ini", template_frontend_confi
 
 # ______________________________________________________________________________ CELERY HELPERS
 
-def conf_celery(app):
-    app.conf.update(
-                    CELERY_ACCEPT_CONTENT=['json'],
-                    CELERY_TASK_SERIALIZER='json',
-                    CELERY_RESULT_SERIALIZER='json'
-    )
 
-def conf_celery_queue(app, queue):
+
+def _conf_celery(app, broker, backend, queue=None):
     app.conf.update(
-                    CELERY_DEFAULT_QUEUE=queue,
-                    # delivery_mode=1 enable transient mode (don't survive to a server restart)
-                    CELERY_QUEUES=(
-                                   Queue(queue, routing_key=queue, delivery_mode=1),
-                                   )
-                    )
+                     BROKER_URL=broker,
+                     CELERY_RESULT_BACKEND=backend,
+                     CELERY_ACCEPT_CONTENT=['json'],
+                     CELERY_TASK_SERIALIZER='json',
+                     CELERY_RESULT_SERIALIZER='json'
+                     )
+
+    if queue:
+        app.conf.update(
+                        CELERY_DEFAULT_QUEUE=queue,
+                        # delivery_mode=1 enable transient mode (don't survive to a server restart)
+                        CELERY_QUEUES=(
+                                       Queue(queue, routing_key=queue, delivery_mode=1),
+                                       )
+                        )
+    return
+
+def conf_brain_celery(app):
+    broker = get_brain_broker_uri()
+    backend = get_brain_backend_uri()
+    queue = frontend_config.broker_brain.queue
+    _conf_celery(app, broker, backend, queue)
+
+def conf_frontend_celery(app):
+    broker = get_frontend_broker_uri()
+    backend = get_frontend_backend_uri()
+    queue = frontend_config.broker_frontend.queue
+    _conf_celery(app, broker, backend, queue)
+
+
 
 def get_db_uri():
     return "mongodb://%s:%s/" % (frontend_config.mongodb.host, frontend_config.mongodb.port)
@@ -73,7 +99,7 @@ def get_db_uri():
 def get_brain_celery_timeout():
     return frontend_config.celery_brain.timeout
 
-def get_admin_celery_timeout():
+def get_frontend_celery_timeout():
     return frontend_config.celery_admin.timeout
 # ______________________________________________________________________________ BACKEND HELPERS
 
@@ -83,8 +109,8 @@ def _get_backend_uri(backend_config):
 def get_brain_backend_uri():
     return _get_backend_uri(frontend_config.backend_brain)
 
-def get_admin_backend_uri():
-    return _get_backend_uri(frontend_config.backend_admin)
+def get_frontend_backend_uri():
+    return _get_backend_uri(frontend_config.backend_frontend)
 
 # ______________________________________________________________________________ BROKER HELPERS
 
@@ -94,5 +120,5 @@ def _get_broker_uri(broker_config):
 def get_brain_broker_uri():
     return _get_broker_uri(frontend_config.broker_brain)
 
-def get_probe_broker_uri():
-    return _get_broker_uri(frontend_config.broker_admin)
+def get_frontend_broker_uri():
+    return _get_broker_uri(frontend_config.broker_frontend)
