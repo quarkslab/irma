@@ -5,52 +5,51 @@ from lib.irma.configuration.ini import TemplatedConfiguration
 # ______________________________________________________________________________ TEMPLATE
 
 template_frontend_config = {
-                         'mongodb': (('host', TemplatedConfiguration.string, None),
+                         'mongodb': [('host', TemplatedConfiguration.string, None),
                                       ('port', TemplatedConfiguration.integer, 27017),
                                       ('dbname', TemplatedConfiguration.string, None),
-                                    ),
-                         'collections': (('scan_info', TemplatedConfiguration.string, None),
+                                    ],
+                         'collections': [('scan_info', TemplatedConfiguration.string, None),
                                           ('scan_results', TemplatedConfiguration.string, None),
                                           ('scan_files', TemplatedConfiguration.string, None),
                                           ('scan_file_fs', TemplatedConfiguration.string, None),
-                                         ),
-                         'celery_brain': (('timeout', TemplatedConfiguration.integer, 10),
-                                          ),
-                         'celery_frontend': (('timeout', TemplatedConfiguration.integer, 10),
-                                          ),
-                         'broker_brain': (
+                                         ],
+                         'celery_brain': [('timeout', TemplatedConfiguration.integer, 10),
+                                          ],
+                         'celery_frontend': [('timeout', TemplatedConfiguration.integer, 10),
+                                             ],
+                         'broker_brain': [
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
                                     ('queue' , TemplatedConfiguration.string, None),
-                                    ),
-                         'broker_frontend': (
+                                    ],
+                         'broker_frontend': [
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
                                     ('queue' , TemplatedConfiguration.string, None),
-                                    ),
-                         'backend_brain': (
+                                    ],
+                         'backend_brain': [
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
-                                   ),
-                         'backend_frontend': (
+                                   ],
+                         'backend_frontend': [
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
-                                   ),
-                         'ftp_brain': (
+                                   ],
+                         'ftp_brain': [
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 21),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
-                                    ),
-
+                                    ],
                          }
 
 
