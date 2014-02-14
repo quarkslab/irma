@@ -76,6 +76,6 @@ class FileObject(object):
         return
 
     @property
-    def data(self):
-        """Get the file data"""
-        return self._dbfile.read()
+    def dbfile(self):
+        """Get the file descriptor"""
+        return self._dbfile()
