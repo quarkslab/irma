@@ -1,5 +1,7 @@
 from handler import Database
 from bson import ObjectId
+from bson.errors import InvalidId
+from irma.common.exceptions import IrmaDatabaseError
 
 class DatabaseObjectList(object):
     # TODO derived class from UserList to handle list of databaseobject, group remove, group update...
@@ -16,8 +18,12 @@ class DatabaseObject(object):
     def __init__(self, _id=None):
         self._id = None
         if _id:
-            self._id = ObjectId(_id)
-            self.load(self._id)
+            try:
+                self._id = ObjectId(_id)
+                self.load(self._id)
+            except InvalidId as e:
+                raise IrmaDatabaseError(e)
+
 
     def __del__(self):
         self.save()
@@ -47,6 +53,8 @@ class DatabaseObject(object):
         # dict_object could be empty if we init a dbobject with a given id
         if dict_object:
             self.from_dict(dict_object)
+        else:
+            raise IrmaDatabaseError("id not present in collection")
         return
 
     def remove(self):
