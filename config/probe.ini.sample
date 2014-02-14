@@ -1,0 +1,17 @@
+[probe]
+name=avname
+
+[broker]
+host = 127.0.0.1
+vhost = mqprobe
+username = probe
+password = probe
+
+[backend]
+host = 127.0.0.1
+db = 1
+
+[ftp_brain]
+host = 127.0.0.1
+username=probe
+password=probe
