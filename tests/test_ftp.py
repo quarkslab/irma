@@ -46,7 +46,7 @@ class CheckFtpHandler(FtpTestCase):
         ftps = FtpTls(self.test_ftp_host, self.test_ftp_port, self.test_ftp_user, self.test_ftp_passwd)
         hashname = ftps.upload("/", "test.ini")
         self.assertEquals(len(ftps.list("/")), 1)
-        self.assertEquals(hashname , hashlib.sha1(open("test.ini").read()).hexdigest())
+        self.assertEquals(hashname , hashlib.sha256(open("test.ini").read()).hexdigest())
 
     def test_ftp_create_dir(self):
         ftps = FtpTls(self.test_ftp_host, self.test_ftp_port, self.test_ftp_user, self.test_ftp_passwd)
@@ -70,7 +70,7 @@ class CheckFtpHandler(FtpTestCase):
         ftps.mkdir("/test1/test2/test3")
         hashname = ftps.upload("/test1/test2/test3", "test.ini")
         self.assertEquals(len(ftps.list("/test1/test2/test3")), 1)
-        self.assertEquals(hashname , hashlib.sha1(open("test.ini").read()).hexdigest())
+        self.assertEquals(hashname , hashlib.sha256(open("test.ini").read()).hexdigest())
 
     def test_ftp_remove_not_existing_file(self):
         ftps = FtpTls(self.test_ftp_host, self.test_ftp_port, self.test_ftp_user, self.test_ftp_passwd)

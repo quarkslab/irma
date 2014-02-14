@@ -1,8 +1,6 @@
-import logging
-from hashlib import sha1
+import logging, hashlib
 from irma.common.exceptions import IrmaFtpError
 from ftplib import FTP_TLS
-import os
 
 log = logging.getLogger(__name__)
 
@@ -12,6 +10,12 @@ class FtpTls(object):
     This class handles the conection with ftp server over tls
     functions for interacting with it.
     """
+    ##########################################################################
+    # hash function for integrity
+    # each uploaded file is renamed after its digest value
+    # and checked at retrieval
+    ##########################################################################
+    hashfunc = hashlib.sha256
 
     ##########################################################################
     # Constructor and Destructor stuff
@@ -58,14 +62,14 @@ class FtpTls(object):
         try:
             with open(filename, "rb") as f:
                 data = f.read()
-            return sha1(data).hexdigest()
+            return self.hashfunc(data).hexdigest()
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
     def _check_hash(self, digest, filename):
         try:
             with open(filename, "rb") as f:
-                if sha1(f.read()).hexdigest != digest:
+                if self.hashfunc(f.read()).hexdigest != digest:
                     raise IrmaFtpError("Integrity check file failed")
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
