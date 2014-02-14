@@ -59,4 +59,4 @@ class ScanResults(DatabaseObject):
 class ScanFile(FileObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
-    _collection = cfg_coll.scan_file
+    _collection = cfg_coll.scan_files
