@@ -91,7 +91,7 @@ class FtpTls(object):
 
     def _check_hash(self, digest, data):
         try:
-            if self.hashfunc(data).hexdigest != digest:
+            if self.hashfunc(data).hexdigest() != digest:
                 raise IrmaFtpError("Integrity check file failed")
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
@@ -135,11 +135,12 @@ class FtpTls(object):
     def download(self, path, remotename, dstname):
         """ Download <data> to remote <filename> into directory <path>"""
         try:
-            data = ""
+            data = []
             with open(dstname, 'wb') as f:
                 self._conn.retrbinary("RETR {0}/{1}".format(path, remotename), lambda x: data.append(x))
-                self._check_hash(remotename, data)
-                f.write(data)
+                buf = ''.join(data)
+                self._check_hash(remotename, buf)
+                f.write(buf)
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 

@@ -1,4 +1,4 @@
-import hashlib, unittest, tempfile
+import hashlib, unittest, tempfile, os
 from irma.ftp.handler import FtpTls
 from irma.common.exceptions import IrmaFtpError
 
@@ -97,7 +97,18 @@ class CheckFtpHandler(FtpTestCase):
         self.assertEquals(len(hashname), len(altered_name))
         _, tmpname = tempfile.mkstemp(prefix="test_ftp")
         with self.assertRaises(IrmaFtpError):
-            ftps.download(".", altered_name, tmpname)
+            ftps.download("/", altered_name, tmpname)
+        os.unlink(tmpname)
+
+    def test_ftp_download(self):
+        ftps = FtpTls(self.test_ftp_host, self.test_ftp_port, self.test_ftp_user, self.test_ftp_passwd)
+        data = "TEST TEST TEST TEST"
+        hashname = ftps.upload_data(".", data)
+        _, tmpname = tempfile.mkstemp(prefix="test_ftp")
+        ftps.download(".", hashname, tmpname)
+        data2 = open(tmpname).read()
+        os.unlink(tmpname)
+        self.assertEquals(data, data2)
 
 if __name__ == '__main__':
     unittest.main()
