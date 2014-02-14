@@ -58,7 +58,7 @@ class DbTestCase(unittest.TestCase):
             database = dbh[test_db_collection]
             collection = database[test_db_collection]
             assert collection.count() <= 10
-        except Exception as e:
+        except IrmaDatabaseError as e:
             print "TestDatabase Error: {0}".format(e)
             self.skipTest(DbTestCase)
 
@@ -118,7 +118,6 @@ class CheckAddObject(DbTestCase):
         database = dbh[test_db_name]
         collection = database[test_db_collection]
         collection.remove()
-
         t1 = TestObject()
         t1.save()
         t2 = TestObject(_id=t1.id)
@@ -131,85 +130,13 @@ class CheckAddObject(DbTestCase):
         self.assertEquals(type(t2.date), datetime)
         collection.remove()
 
-"""
-class CheckSetValues(unittest.TestCase):
+    def test_check_invalid_id(self):
+        with self.assertRaises(IrmaDatabaseError):
+            TestObject(_id="Jean")
 
-    def test_set_scaninfo(self):
-        db = Database(db_coll, dbconfig.MONGODB)
-        dbh = db.db_instance()
-
-        database = dbh[db_coll]
-        collection = database[dbconfig.COLL_SCANINFO]
-        collection.remove()
-
-        s1 = ScanInfo()
-        s1.probelist = ['clamav', 'kaspersky']
-        s1.oids = ['1', '2', '3']
-        s1.status = ScanStatus.finished
-        s1.taskid = '4'
-        s1.save()
-        s2 = ScanInfo(_id=s1._id)
-        self.assertEquals(s2.probelist, ['clamav', 'kaspersky'])
-        self.assertEquals(s2.oids, ['1', '2', '3'])
-        self.assertEquals(s2.status, ScanStatus.finished)
-        self.assertEquals(s2.taskid, '4')
-
-    def test_set_scanresults(self):
-        db = Database(db_coll, dbconfig.MONGODB)
-        dbh = db.db_instance()
-
-        database = dbh[db_coll]
-        collection = database[dbconfig.COLL_SCANRES]
-        collection.remove()
-
-        r1 = ScanResults()
-        r1.clamav = { "version" : "ClamAV 0.97.8/18197/Wed Dec  4 12:41:26 2013", "result" : "Trojan.Generic.Bredolab-2" }
-        r1.kaspersky = { "version" : "Kaspersky Anti-Virus (R) 14.0.0.4651", "result" : "Worm.Win32.AutoIt.r" }
-        r1.save()
-        r2 = ScanResults(dbname=db_coll, _id=r1._id)
-        self.assertEquals(r2.clamav, { "version" : "ClamAV 0.97.8/18197/Wed Dec  4 12:41:26 2013", "result" : "Trojan.Generic.Bredolab-2" })
-        self.assertEquals(r2.kaspersky, { "version" : "Kaspersky Anti-Virus (R) 14.0.0.4651", "result" : "Worm.Win32.AutoIt.r" })
-
-class CheckDelObjects(unittest.TestCase):
-
-    def test_del_scaninfo(self):
-        db = Database(db_coll, dbconfig.MONGODB)
-        dbh = db.db_instance()
-
-        database = dbh[db_coll]
-        collection = database[dbconfig.COLL_SCANINFO]
-        collection.remove()
-
-        s1 = ScanInfo(dbname=db_coll)
-        self.assertIsNone(s1._id)
-        s1.save()
-        self.assertIsNotNone(s1._id)
-        self.assertEquals(collection.count(), 1)
-
-        s2 = ScanInfo(dbname=db_coll)
-        self.assertIsNone(s2._id)
-        s2.save()
-        self.assertIsNotNone(s2._id)
-        self.assertNotEquals(s1._id, s2._id)
-        self.assertEquals(collection.count(), 2)
-
-    def test_del_scanresults(self):
-        db = Database(db_coll, dbconfig.MONGODB)
-        dbh = db.db_instance()
-
-        database = dbh[db_coll]
-        collection = database[dbconfig.COLL_SCANRES]
-        collection.remove()
-
-        r1 = ScanResults(dbname=db_coll)
-        r1.save()
-
-        r2 = ScanResults(dbname=db_coll)
-        r2.save()
-
-        self.assertNotEquals(r1._id, r2._id)
-        self.assertEquals(collection.count(), 2)
-"""
+    def test_check_not_existing_id(self):
+        with self.assertRaises(IrmaDatabaseError):
+            TestObject(_id="0")
 
 if __name__ == '__main__':
     enable_logging()
