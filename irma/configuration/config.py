@@ -1,4 +1,4 @@
-from lib.irma.common.objects import AttributeDictionary
+from irma.common.objects import AttributeDictionary
 
 class Configuration(AttributeDictionary):
     pass

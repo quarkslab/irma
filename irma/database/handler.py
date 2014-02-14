@@ -109,7 +109,7 @@ class Database(Singleton):
             raise IrmaDatabaseError("{0}".format(e))
 
     def remove(self, db_name, collection_name, _id):
-        """ Delete entrie in collection according to the dictionnary specified"""
+        """ Delete entry in collection according to the given id"""
         collection = self._table(db_name, collection_name)
         try:
             collection.remove({'_id':_id})

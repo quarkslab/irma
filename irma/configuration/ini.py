@@ -3,8 +3,8 @@ try:
 except ImportError:
     # ConfigParser module has been renamed to configparser in python 3
     from configparser import ConfigParser
-from lib.irma.common.exceptions import IrmaConfigurationError
-from lib.irma.configuration.config import Configuration, ConfigurationSection
+from irma.common.exceptions import IrmaConfigurationError
+from irma.configuration.config import Configuration, ConfigurationSection
 
 class IniConfiguration(Configuration):
     """Windows ini-like configuration file parser."""
@@ -43,7 +43,8 @@ class TemplatedConfiguration(Configuration):
             # setattr even if section is not present in ini file
             # as it may have default value, check at value fetching
             setattr(self, section, ConfigurationSection())
-
+            if type(template[section]) != list:
+                raise IrmaConfigurationError
             for (key_name, key_type, key_def_value) in template[section]:
                 if not config.has_option(section, key_name):
                     # If key not found but a default value exists, set it
@@ -51,7 +52,7 @@ class TemplatedConfiguration(Configuration):
                         setattr(getattr(self, section), key_name, key_def_value)
                         continue
                     else:
-                        raise IrmaConfigurationError("file <%s> missing section [%s] key [%s]" % (cfg_file, section, key_name,))
+                        raise IrmaConfigurationError("file {0} missing section {1} key {2}".format(cfg_file, section, key_name))
                 try:
                     if key_type == self.boolean:
                         value = config.getboolean(section, key_name)
@@ -61,4 +62,4 @@ class TemplatedConfiguration(Configuration):
                         value = config.get(section, key_name)
                     setattr(getattr(self, section), key_name, value)
                 except ValueError:
-                    raise IrmaConfigurationError("file <%s> missing section [%s] Wrong type for key [%s]" % (cfg_file, section, key_name,))
+                    raise IrmaConfigurationError("file {0} missing section {1} Wrong type for key {2}".format(cfg_file, section, key_name,))

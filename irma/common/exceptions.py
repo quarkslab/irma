@@ -6,12 +6,13 @@ class IrmaMachineManagerError(Exception):
     """Error on a machine manager."""
     pass
 
-class IrmaAdminError(Exception):
-    """Error on a machine manager."""
-    pass
 
 class IrmaMachineError(Exception):
     """Error on a machine."""
+    pass
+
+class IrmaAdminError(Exception):
+    """Error in admin part."""
     pass
 
 class IrmaDatabaseError(Exception):
@@ -20,4 +21,8 @@ class IrmaDatabaseError(Exception):
 
 class IrmaConfigurationError(Exception):
     """Error wrong configuration."""
+    pass
+
+class IrmaFtpError(Exception):
+    """Error on ftp manager."""
     pass
