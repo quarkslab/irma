@@ -5,14 +5,15 @@ from bottle import route, request, default_app, run, response
 from lib.irma.common.utils import IrmaFrontendReturn
 from lib.irma.fileobject.handler import FileObject
 from frontend.lib.objects import ScanInfo
-from bson import ObjectId
 import config
 
 cfg_timeout = config.get_brain_celery_timeout()
-brain_celery = celery.Celery('braintasks')
-config.conf_celery(brain_celery)
-config.conf_celery_queue(brain_celery, "brain")
-admin_celery = celery.Celery('admintasks')
+
+frontend_celery = celery.Celery()
+config.conf_frontend_celery(frontend_celery)
+
+brain_celery = celery.Celery()
+config.conf_brain_celery(brain_celery)
 # ______________________________________________________________ SERVER ROOT
 
 @route("/")
@@ -29,10 +30,9 @@ def validid(scanid):
 @route("/scan/new")
 def scan_new():
     try:
-        scanid = str(ObjectId())
-        si = ScanInfo(_id=scanid)
+        si = ScanInfo()
         si.save()
-        return IrmaFrontendReturn.success({"scanid":scanid})
+        return IrmaFrontendReturn.success({"scanid":si.id})
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -43,7 +43,6 @@ def scan_add(scanid):
     # Filter malformed scanid
     if not validid(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
-
     try:
         si = ScanInfo(_id=scanid)
         # save file in db
@@ -77,9 +76,9 @@ def scan_launch(scanid):
 
         si.probelist = probelist
         si.save()
-        # launch new celery task
-        brain_celery.send_task("braintasks.scan", args=(si._id, si.oids, probelist, force))
-        return IrmaFrontendReturn.success({"scanid":si._id, "probelist":si.probelist})
+        # launch ftp upload via frontend task
+        frontend_celery.send_task("frontend.tasks.frontendtasks.scan_launch", args=(si.id, si.oids, si.probelist, force))
+        return IrmaFrontendReturn.success({"scanid":si.id, "probelist":si.probelist})
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -104,7 +103,7 @@ def scan_progress(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = brain_celery.send_task("braintasks.scan_progress", args=[scanid])
+        task = brain_celery.send_task("brain.braintasks.scan_progress", args=[scanid])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
@@ -121,7 +120,7 @@ def scan_cancel(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = brain_celery.send_task("braintasks.scan_cancel", args=[scanid])
+        task = brain_celery.send_task("brain.braintasks.scan_cancel", args=[scanid])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
@@ -134,7 +133,7 @@ def scan_cancel(scanid):
 def status():
     """ Check active queues with a synchronous task (blocking for max IRMA_TIMEOUT seconds) """
     try:
-        task = brain_celery.send_task("braintasks.probe_list", args=[])
+        task = brain_celery.send_task("brain.braintasks.probe_list", args=[])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:

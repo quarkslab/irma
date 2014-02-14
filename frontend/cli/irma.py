@@ -5,8 +5,8 @@ import json
 import sys
 import argparse
 
-ADDRESS = "http://brain.irma.qb:8080"
-# ADDRESS = "http://192.168.130.133:8080"
+# ADDRESS = "http://brain.irma.qb:8080"
+ADDRESS = "http://192.168.130.163:8080"
 
 
 def probe_list():
@@ -15,6 +15,8 @@ def probe_list():
         data = json.loads(resp.content)
         if data['result'] == "success":
             print "Available analysis : " + ", ".join(data["info"])
+        else:
+            print "%s: %s" % (data['result'], data["info"])
     except requests.exceptions.ConnectionError:
         print "Error connecting to frontend"
     except Exception, e:
@@ -85,19 +87,42 @@ def scan_results(scanid=None):
 
 def scan(filename=None, force=None, probe=None):
     try:
-        postfiles = dict(map(lambda t: (t, open(t, 'rb')), filename))
-        params = {'force':force}
-        if probe:
-            params['probe'] = ','.join(probe)
-        resp = requests.post(ADDRESS + '/scan', files=postfiles, params=params)
-        data = json.loads(resp.content)
-        if data['result'] == "success":
-            scanid = data['info']['scanid']
-            print "scanid:", scanid
+        scanid = scan_new()
+        scan_add(scanid, filename)
+        scan_launch(scanid, force, probe)
     except requests.exceptions.ConnectionError:
         print "Error connecting to frontend"
     except Exception, e:
         print "Error creating new scan: %s" % e
+
+    return
+
+def scan_new():
+    resp = requests.get(ADDRESS + '/scan/new')
+    data = json.loads(resp.content)
+    if data['result'] == "success":
+        scanid = data['info']['scanid']
+        return scanid
+    else:
+        raise ValueError
+
+def scan_add(scanid, filename):
+    postfiles = dict(map(lambda t: (t, open(t, 'rb')), filename))
+    resp = requests.post(ADDRESS + '/scan/add/' + scanid, files=postfiles)
+    data = json.loads(resp.content)
+    if data['result'] == "success":
+        print "files added:", filename
+    return
+
+
+def scan_launch(scanid, force, probe):
+    params = {'force':force}
+    if probe:
+        params['probe'] = ','.join(probe)
+    resp = requests.get(ADDRESS + '/scan/launch/' + scanid, params=params)
+    data = json.loads(resp.content)
+    if data['result'] == "success":
+        print "scanid %s launched" % scanid
     return
 
 if __name__ == "__main__":
