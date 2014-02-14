@@ -38,7 +38,7 @@ def scan_launch(scanid, file_oids, probelist, force):
                     return IrmaTaskReturn.error("Ftp Error: integrity failure while uploading file {0} for scanid {1}".format(scanid, filename))
                 scan_request.append((hashname, probelist))
                 # launch new celery task
-                brain_celery.send_task("brain.braintasks.scan", args=(scanid, scan_request))
+        brain_celery.send_task("brain.braintasks.scan", args=(scanid, scan_request))
     except IrmaFtpError as e:
         return IrmaTaskReturn.error("Ftp Error: {0}".format(e))
     return IrmaTaskReturn.success("scan launched")
