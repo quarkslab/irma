@@ -7,16 +7,16 @@ regex = re.compile(r'([^\s]+) FOUND')
 def get_version():
     global version
     p = Popen(["clamdscan", "--version"], stdout=PIPE)
-    res, err = p.communicate()
+    res, _ = p.communicate()
     if p.returncode == 0:
         version = res.strip()
     else:
         version = "unknown"
     return
 
-def get_scan_result(data):
-    p = Popen(["clamdscan", "--no-summary", "-"], stdout=PIPE, stdin=PIPE)
-    res, err = p.communicate(input=data)
+def get_scan_result(filename):
+    p = Popen(["clamdscan", "--no-summary"], stdout=PIPE, stdin=PIPE)
+    res, _ = p.communicate(input=filename)
     retcode = p.returncode
     if retcode == 1:
         # remove useless information "stdin :"
@@ -30,10 +30,10 @@ def get_scan_result(data):
     else:
         return "error"
 
-def scan(sfile):
+def scan(filename):
     res = {}
     if version == "":
         get_version()
     res['version'] = version
-    res['result'] = get_scan_result(sfile.data)
+    res['result'] = get_scan_result(filename)
     return res

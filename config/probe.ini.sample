@@ -1,13 +1,24 @@
 [probe]
 name=avname
 
-[broker]
+[broker_brain]
+host = 127.0.0.1
+vhost = mqbrain
+username = brain
+password = brain
+queue = brain
+
+[broker_probe]
 host = 127.0.0.1
 vhost = mqprobe
 username = probe
 password = probe
 
-[backend]
+[backend_brain]
+host = 127.0.0.1
+db = 0
+
+[backend_probe]
 host = 127.0.0.1
 db = 1
 
