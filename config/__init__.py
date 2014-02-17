@@ -5,40 +5,31 @@ from lib.irma.configuration.ini import TemplatedConfiguration
 # ______________________________________________________________________________ TEMPLATE
 
 template_brain_config = {
-                         'mongodb': (('host', TemplatedConfiguration.string, None),
-                                      ('port', TemplatedConfiguration.integer, 27017),
-                                      ('dbname', TemplatedConfiguration.string, None)
-                                    ),
-                         'collections': (('scan_info', TemplatedConfiguration.string, None),
-                                          ('scan_results', TemplatedConfiguration.string, None),
-                                          ('scan_files', TemplatedConfiguration.string, None),
-                                          ('scan_file_fs', TemplatedConfiguration.string, None)
-                                         ),
-                         'broker_brain': (
+                         'broker_brain': [
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None),
                                     ('queue' , TemplatedConfiguration.string, None)
-                                    ),
-                         'broker_probe': (
+                                    ],
+                         'broker_probe': [
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None)
-                                    ),
-                         'backend_brain': (
+                                    ],
+                         'backend_brain': [
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
-                                   ),
-                         'backend_probe': (
+                                   ],
+                         'backend_probe': [
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
-                                   )
+                                   ]
                          }
 
 
