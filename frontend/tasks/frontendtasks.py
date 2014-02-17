@@ -1,6 +1,5 @@
 import celery
 import config
-import ftplib
 from frontend.lib.objects import ScanFile
 from lib.irma.common.exceptions import IrmaFtpError
 from lib.irma.common.utils import IrmaTaskReturn
