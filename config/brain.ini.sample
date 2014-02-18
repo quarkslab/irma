@@ -30,3 +30,7 @@ db = 0
 [backend_probe]
 host = 127.0.0.1
 db = 1
+
+[sql_brain]
+engine = sqlite:///
+dbname = irma_scan

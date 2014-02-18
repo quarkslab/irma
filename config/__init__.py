@@ -21,6 +21,14 @@ template_brain_config = {
                                     ('password' , TemplatedConfiguration.string, None),
                                     ('queue' , TemplatedConfiguration.string, None)
                                     ],
+                         'broker_frontend': [
+                                    ('host', TemplatedConfiguration.string, None),
+                                    ('port', TemplatedConfiguration.integer, 5672),
+                                    ('vhost', TemplatedConfiguration.string, None),
+                                    ('username', TemplatedConfiguration.string, None),
+                                    ('password' , TemplatedConfiguration.string, None),
+                                    ('queue' , TemplatedConfiguration.string, None)
+                                    ],
                          'backend_brain': [
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
@@ -30,7 +38,16 @@ template_brain_config = {
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
-                                   ]
+                                   ],
+                         'backend_frontend': [
+                                   ('host', TemplatedConfiguration.string, None),
+                                   ('port', TemplatedConfiguration.integer, 6379),
+                                   ('db', TemplatedConfiguration.integer, None),
+                                   ],
+                         'sql_brain': [
+                                   ('engine', TemplatedConfiguration.string, None),
+                                   ('dbname', TemplatedConfiguration.string, None),
+                                   ],
                          }
 
 
@@ -67,6 +84,12 @@ def conf_probe_celery(app):
     backend = get_probe_backend_uri()
     _conf_celery(app, broker, backend)
 
+def conf_frontend_celery(app):
+    broker = get_frontend_broker_uri()
+    backend = get_frontend_backend_uri()
+    queue = brain_config.broker_frontend.queue
+    _conf_celery(app, broker, backend, queue)
+
 def conf_results_celery(app):
     broker = get_probe_broker_uri()
     backend = get_probe_backend_uri()
@@ -83,6 +106,9 @@ def get_brain_backend_uri():
 def get_probe_backend_uri():
     return _get_backend_uri(brain_config.backend_probe)
 
+def get_frontend_backend_uri():
+    return _get_backend_uri(brain_config.backend_frontend)
+
 # ______________________________________________________________________________ BROKER HELPERS
 
 def _get_broker_uri(broker_config):
@@ -93,3 +119,6 @@ def get_brain_broker_uri():
 
 def get_probe_broker_uri():
     return _get_broker_uri(brain_config.broker_probe)
+
+def get_frontend_broker_uri():
+    return _get_broker_uri(brain_config.broker_frontend)

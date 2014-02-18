@@ -3,6 +3,8 @@ import uuid
 import time
 from celery import Celery
 import config
+from brain.objects import User, Scan
+from lib.irma.database.sqlhandler import SQLDatabase
 
 # Time to cache the probe list
 # to avoid asking to rabbitmq
@@ -42,7 +44,7 @@ def get_probelist():
         if queues:
             for infolist in queues.values():
                 for info in infolist:
-                    if info['name'] not in slist:
+                    if info['name'] not in slist and info['name'] != config.brain_config['broker_probe'].queue:
                         slist.append(info['name'])
         cache_probelist['list'] = slist
         cache_probelist['time'] = now
@@ -74,12 +76,17 @@ def scan(scanid, scan_request):
         # Build a result set with all job AsyncResult for progress/cancel operations
         groupid = str(uuid.uuid4())
         groupres = probe_app.GroupResult(id=groupid, results=jobs_list)
-
         # keep the groupresult object for task status/cancel
         groupres.save()
-        # TODO keep info scanid <-> taskid
-        # scaninfo.status = ScanStatus.launched
-        # scaninfo.taskid = groupid
+        print "connect to {0} + {1}".format(config.brain_config['sql_brain'].engine, config.brain_config['sql_brain'].dbname)
+        sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
+        user = sql.find(User, rmqvhost="mqfrontend")[0]
+        print user
+        scan = Scan(scanid=scanid, taskid=groupid, nbfiles=len(jobs_list), status=Scan.status_launched)
+        scan.user_id = user.id
+        sql.add(scan)
+        sql.commit()
+        print scan
     print "%d files receives / %d active probe / %d probe used / %d jobs launched" % (len(scan_request), len(available_probelist), len(probelist), len(jobs_list))
     return
 
