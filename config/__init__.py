@@ -6,14 +6,6 @@ from lib.irma.configuration.ini import TemplatedConfiguration
 
 template_probe_config = {
                          'probe': [('avname', TemplatedConfiguration.string, None), ],
-                         'broker_brain': [
-                                    ('host', TemplatedConfiguration.string, None),
-                                    ('port', TemplatedConfiguration.integer, 5672),
-                                    ('vhost', TemplatedConfiguration.string, None),
-                                    ('username', TemplatedConfiguration.string, None),
-                                    ('password' , TemplatedConfiguration.string, None),
-                                    ('queue' , TemplatedConfiguration.string, None)
-                                    ],
                          'broker_probe': [
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 5672),
@@ -21,11 +13,6 @@ template_probe_config = {
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password' , TemplatedConfiguration.string, None)
                                     ],
-                         'backend_brain': [
-                                   ('host', TemplatedConfiguration.string, None),
-                                   ('port', TemplatedConfiguration.integer, 6379),
-                                   ('db', TemplatedConfiguration.integer, None),
-                                   ],
                          'backend_probe': [
                                    ('host', TemplatedConfiguration.string, None),
                                    ('port', TemplatedConfiguration.integer, 6379),
@@ -60,20 +47,15 @@ def _conf_celery(app, broker, backend, queue=None):
                         CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode (don't survive to a server restart)
                         CELERY_QUEUES=(
-                                       Queue(queue, routing_key=queue, delivery_mode=1),
+                                       Queue(queue, routing_key=queue),
                                        )
                         )
     return
 
-def conf_brain_celery(app):
-    broker = get_brain_broker_uri()
-    backend = get_brain_backend_uri()
-    queue = probe_config.broker_brain.queue
-    _conf_celery(app, broker, backend, queue)
-
 def conf_probe_celery(app):
     broker = get_probe_broker_uri()
     backend = get_probe_backend_uri()
+    # Each probe is connected to the queue with the probe name
     queue = probe_config.probe.avname
     _conf_celery(app, broker, backend, queue)
 
@@ -82,9 +64,6 @@ def conf_probe_celery(app):
 def _get_backend_uri(backend_config):
     return "redis://%s:%s/%s" % (backend_config.host, backend_config.port, backend_config.db)
 
-def get_brain_backend_uri():
-    return _get_backend_uri(probe_config.backend_brain)
-
 def get_probe_backend_uri():
     return _get_backend_uri(probe_config.backend_probe)
 
@@ -92,9 +71,6 @@ def get_probe_backend_uri():
 
 def _get_broker_uri(broker_config):
     return  "amqp://%s:%s@%s:%s/%s" % (broker_config.username, broker_config.password, broker_config.host, broker_config.port, broker_config.vhost)
-
-def get_brain_broker_uri():
-    return _get_broker_uri(probe_config.broker_brain)
 
 def get_probe_broker_uri():
     return _get_broker_uri(probe_config.broker_probe)
