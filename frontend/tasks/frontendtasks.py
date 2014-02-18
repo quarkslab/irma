@@ -1,20 +1,20 @@
 import celery
 import config
-from frontend.lib.objects import ScanFile
+from frontend.objects import ScanFile
 from lib.irma.common.exceptions import IrmaFtpError
 from lib.irma.common.utils import IrmaTaskReturn
 from lib.irma.ftp.handler import FtpTls
 
 
-frontend_celery = celery.Celery()
-config.conf_frontend_celery(frontend_celery)
+frontend_app = celery.Celery('frontendtasks')
+config.conf_frontend_celery(frontend_app)
 
-brain_celery = celery.Celery()
-config.conf_brain_celery(brain_celery)
+scan_app = celery.Celery('scantasks')
+config.conf_brain_celery(scan_app)
 
-@frontend_celery.task
+@frontend_app.task
 def scan_launch(scanid, file_oids, probelist, force):
-    ftp_config = config.frontend_config.ftp_brain
+    ftp_config = config.frontend_config['ftp_brain']
     try:
         filtered_file_oids = [(oid, filename, probelist) for (oid, filename) in file_oids.items()]
         if not force:
@@ -37,7 +37,7 @@ def scan_launch(scanid, file_oids, probelist, force):
                     return IrmaTaskReturn.error("Ftp Error: integrity failure while uploading file {0} for scanid {1}".format(scanid, filename))
                 scan_request.append((hashname, probelist))
                 # launch new celery task
-        brain_celery.send_task("brain.braintasks.scan", args=(scanid, scan_request))
+        scan_app.send_task("brain.tasks.scantasks.scan", args=(scanid, scan_request))
     except IrmaFtpError as e:
         return IrmaTaskReturn.error("Ftp Error: {0}".format(e))
     return IrmaTaskReturn.success("scan launched")

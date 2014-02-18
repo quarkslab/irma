@@ -3,16 +3,16 @@ import os
 import celery
 from bottle import route, request, default_app, run, response
 from lib.irma.common.utils import IrmaFrontendReturn
-from frontend.lib.objects import ScanInfo, ScanFile
+from frontend.objects import ScanInfo, ScanFile
 import config
 
 cfg_timeout = config.get_brain_celery_timeout()
 
-frontend_celery = celery.Celery()
-config.conf_frontend_celery(frontend_celery)
+frontend_app = celery.Celery('frontendtasks')
+config.conf_frontend_celery(frontend_app)
 
-brain_celery = celery.Celery()
-config.conf_brain_celery(brain_celery)
+scan_app = celery.Celery('scantasks')
+config.conf_brain_celery(scan_app)
 # ______________________________________________________________ SERVER ROOT
 
 @route("/")
@@ -74,7 +74,7 @@ def scan_launch(scanid):
 
         si.probelist = probelist
         # launch ftp upload via frontend task
-        frontend_celery.send_task("frontend.tasks.frontendtasks.scan_launch", args=(si.id, si.oids, si.probelist, force))
+        frontend_app.send_task("frontend.tasks.frontendtasks.scan_launch", args=(si.id, si.oids, si.probelist, force))
         return IrmaFrontendReturn.success({"scanid":si.id, "probelist":si.probelist})
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
@@ -100,7 +100,7 @@ def scan_progress(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = brain_celery.send_task("brain.braintasks.scan_progress", args=[scanid])
+        task = scan_app.send_task("brain.tasks.scantasks.scan_progress", args=[scanid])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
@@ -117,7 +117,7 @@ def scan_cancel(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = brain_celery.send_task("brain.braintasks.scan_cancel", args=[scanid])
+        task = scan_app.send_task("brain.tasks.scantasks.scan_cancel", args=[scanid])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
@@ -130,7 +130,7 @@ def scan_cancel(scanid):
 def status():
     """ Check active queues with a synchronous task (blocking for max IRMA_TIMEOUT seconds) """
     try:
-        task = brain_celery.send_task("brain.braintasks.probe_list", args=[])
+        task = scan_app.send_task("brain.tasks.scantasks.probe_list", args=[])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
