@@ -9,17 +9,35 @@ import config
 PROBELIST_CACHE_TIME = 60
 cache_probelist = {'list':None, 'time':None}
 
-brain_celery = Celery('braintasks')
-config.conf_brain_celery(brain_celery)
+scan_app = Celery('scantasks')
+config.conf_brain_celery(scan_app)
 
-probe_celery = Celery('probetasks')
-config.conf_probe_celery(probe_celery)
+probe_app = Celery('probetasks')
+config.conf_probe_celery(probe_app)
+
+results_app = Celery('restasks')
+config.conf_results_celery(results_app)
+
+def route(sig):
+    options = sig.app.amqp.router.route(
+        sig.options, sig.task, sig.args, sig.kwargs,
+    )
+    try:
+        queue = options.pop('queue')
+    except KeyError:
+        pass
+    else:
+        options.update(exchange=queue.exchange.name,
+                       routing_key=queue.routing_key)
+    sig.set(**options)
+    return sig
+
 
 def get_probelist():
     now = time.time()
     if not cache_probelist['list'] or (now - cache_probelist['time']) > PROBELIST_CACHE_TIME:
         slist = list()
-        i = probe_celery.control.inspect()
+        i = probe_app.control.inspect()
         queues = i.active_queues()
         if queues:
             for infolist in queues.values():
@@ -30,41 +48,42 @@ def get_probelist():
         cache_probelist['time'] = now
     return cache_probelist['list']
 
-@brain_celery.task()
+@scan_app.task()
 def probe_list():
     return IrmaTaskReturn.success(get_probelist())
 
-@brain_celery.task(ignore_result=True)
-def scan(scanid, oids, probelist):
-    all_probe = get_probelist()
-    if probelist:
-        # check if probe exists
-        for x in probelist:
-            if x not in all_probe:
-                raise 'Unknown probe :' + x
-    else:
-        probelist = all_probe
-
+@scan_app.task(ignore_result=True)
+def scan(scanid, scan_request):
+    available_probelist = get_probelist()
     jobs_list = []
-    for (oid, oid_info) in oids.items():
+    for (filename, probelist) in scan_request:
+        if probelist:
+            for p in probelist:
+                # check if probe exists
+                if p not in available_probelist:
+                    raise "Unknown probe {0}".format(p)
+        else:
+            probelist = available_probelist
+
+        # create one subtask per oid to scan per antivirus queue
         for probe in probelist:
-            # create one subtask per oid to scan per antivirus queue
-            jobs_list.append(probe_celery.send_task("probe.probetasks.probe_scan", args=(scanid, oid), queue=probe))
+            callback_signature = route(results_app.signature("brain.tasks.restasks.scan_result", ("frontend1", scanid, filename, probe)))
+            jobs_list.append(probe_app.send_task("probe.probetasks.probe_scan", args=("frontend1", scanid, filename), queue=probe, link=callback_signature))
 
     if len(jobs_list) != 0:
         # Build a result set with all job AsyncResult for progress/cancel operations
         groupid = str(uuid.uuid4())
-        groupres = probe_celery.GroupResult(id=groupid, results=jobs_list)
+        groupres = probe_app.GroupResult(id=groupid, results=jobs_list)
 
         # keep the groupresult object for task status/cancel
         groupres.save()
         # TODO keep info scanid <-> taskid
         # scaninfo.status = ScanStatus.launched
         # scaninfo.taskid = groupid
-    print "%d files receives / %d active probe / %d probe used / %d jobs launched" % (len(oids), len(all_probe), len(probelist), len(jobs_list))
+    print "%d files receives / %d active probe / %d probe used / %d jobs launched" % (len(scan_request), len(available_probelist), len(probelist), len(jobs_list))
     return
 
-@brain_celery.task(ignore_result=True)
+@scan_app.task(ignore_result=True)
 def scan_finished(scanid):
     """
     s = ScanInfo(_id=scanid)
@@ -72,7 +91,7 @@ def scan_finished(scanid):
     """
     return
 
-@brain_celery.task()
+@scan_app.task()
 def scan_progress(scanid):
     """
     s = ScanInfo(_id=scanid)
@@ -81,7 +100,7 @@ def scan_progress(scanid):
     elif s.status == ScanStatus.launched:
         if not s.taskid:
             return IrmaTaskReturn.error("task_id not set")
-        job = probe_celery.GroupResult.restore(s.taskid)
+        job = probe_app.GroupResult.restore(s.taskid)
         if not job:
             return IrmaTaskReturn.error("not a valid taskid")
         else:
@@ -101,14 +120,14 @@ def scan_progress(scanid):
     """
     return IrmaTaskReturn.error("unknown")
 
-@brain_celery.task()
+@scan_app.task()
 def scan_cancel(scanid):
     """
     s = ScanInfo(_id=scanid)
     if s.status == ScanStatus.init:
         return IrmaTaskReturn.error("task not launched")
     elif s.status == ScanStatus.launched:
-        job = probe_celery.GroupResult.restore(s.taskid)
+        job = probe_app.GroupResult.restore(s.taskid)
         if not job:
             return IrmaTaskReturn.error("not a valid taskid")
         else:
@@ -128,10 +147,3 @@ def scan_cancel(scanid):
         """
     return IrmaTaskReturn.error("unknown")
 
-@brain_celery.task()
-def scan_result(scanid):
-    """
-    s = ScanInfo(_id=scanid)
-    return IrmaTaskReturn.success(s.get_results())
-    """
-    return IrmaTaskReturn.error("unknown")
