@@ -10,7 +10,7 @@ from irma.common.exceptions import IrmaDatabaseError
 log = logging.getLogger(__name__)
 
 # TODO: Create an abstract class so we can use multiple databases, not only mongodb
-class Database(Singleton):
+class NoSQLDatabase(Singleton):
     """Internal database.
 
     This class handles the creation of the internal database and provides some

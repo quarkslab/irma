@@ -1,8 +1,8 @@
 import logging, unittest
 
 from irma.common.exceptions import IrmaDatabaseError
-from irma.database.handler import Database
-from irma.database.objects import DatabaseObject
+from irma.database.nosqlhandler import NoSQLDatabase
+from irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
 import bson
 
@@ -12,7 +12,7 @@ test_db_name = "unitest"
 test_db_collection = "testobject"
 
 # test object
-class TestObject(DatabaseObject):
+class TestObject(NoSQLDatabaseObject):
     _uri = test_db_uri
     _dbname = test_db_name
     _collection = test_db_collection
@@ -53,7 +53,7 @@ class DbTestCase(unittest.TestCase):
     def database_running_and_empty(self):
         # check that unittest database is empty before testing
         try:
-            db = Database(test_db_name, test_db_uri)
+            db = NoSQLDatabase(test_db_name, test_db_uri)
             dbh = db.db_instance()
             database = dbh[test_db_collection]
             collection = database[test_db_collection]
@@ -66,14 +66,14 @@ class DbTestCase(unittest.TestCase):
 class CheckSingleton(DbTestCase):
 
     def test_singleton(self):
-        self.assertEquals(id(Database(test_db_name, test_db_uri)), id(Database(test_db_name, test_db_uri)))
+        self.assertEquals(id(NoSQLDatabase(test_db_name, test_db_uri)), id(NoSQLDatabase(test_db_name, test_db_uri)))
 
 
 class CheckAddObject(DbTestCase):
 
 
     def test_add_testobject(self):
-        db = Database(test_db_name, test_db_uri)
+        db = NoSQLDatabase(test_db_name, test_db_uri)
         dbh = db.db_instance()
         database = dbh[test_db_name]
         collection = database[test_db_collection]
@@ -86,7 +86,7 @@ class CheckAddObject(DbTestCase):
         self.assertEquals(collection.count(), 1)
 
     def test_id_type_testobject(self):
-        db = Database(test_db_name, test_db_uri)
+        db = NoSQLDatabase(test_db_name, test_db_uri)
         dbh = db.db_instance()
         database = dbh[test_db_name]
         collection = database[test_db_collection]
@@ -98,7 +98,7 @@ class CheckAddObject(DbTestCase):
         self.assertEquals(type(t1.id), str)
 
     def test_add_two_testobjects(self):
-        db = Database(test_db_name, test_db_uri)
+        db = NoSQLDatabase(test_db_name, test_db_uri)
         dbh = db.db_instance()
         database = dbh[test_db_name]
         collection = database[test_db_collection]
@@ -113,7 +113,7 @@ class CheckAddObject(DbTestCase):
 
 
     def test_check_type(self):
-        db = Database(test_db_name, test_db_uri)
+        db = NoSQLDatabase(test_db_name, test_db_uri)
         dbh = db.db_instance()
         database = dbh[test_db_name]
         collection = database[test_db_collection]
