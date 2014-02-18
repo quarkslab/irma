@@ -18,7 +18,8 @@ template_brain_config = {
                                     ('port', TemplatedConfiguration.integer, 5672),
                                     ('vhost', TemplatedConfiguration.string, None),
                                     ('username', TemplatedConfiguration.string, None),
-                                    ('password' , TemplatedConfiguration.string, None)
+                                    ('password' , TemplatedConfiguration.string, None),
+                                    ('queue' , TemplatedConfiguration.string, None)
                                     ],
                          'backend_brain': [
                                    ('host', TemplatedConfiguration.string, None),
@@ -50,7 +51,7 @@ def _conf_celery(app, broker, backend, queue=None):
                         CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode (don't survive to a server restart)
                         CELERY_QUEUES=(
-                                       Queue(queue, routing_key=queue, delivery_mode=1),
+                                       Queue(queue, routing_key=queue),
                                        )
                         )
     return
@@ -66,6 +67,11 @@ def conf_probe_celery(app):
     backend = get_probe_backend_uri()
     _conf_celery(app, broker, backend)
 
+def conf_results_celery(app):
+    broker = get_probe_broker_uri()
+    backend = get_probe_backend_uri()
+    queue = brain_config.broker_probe.queue
+    _conf_celery(app, broker, backend, queue)
 # ______________________________________________________________________________ BACKEND HELPERS
 
 def _get_backend_uri(backend_config):

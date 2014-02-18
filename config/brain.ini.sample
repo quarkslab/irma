@@ -21,6 +21,7 @@ host = 127.0.0.1
 vhost = mqprobe
 username = probe
 password = probe
+queue = results
 
 [backend_brain]
 host = 127.0.0.1
