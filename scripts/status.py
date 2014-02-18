@@ -1,16 +1,23 @@
-import sys, os
-sys.path.append(os.path.realpath('..'))
+import sys
+import os
 
-from config.dbconfig import MONGODB
-from config.config import AMQP_ADDRESS, AMQP_PORT, ADMIN_AMQP_USER, ADMIN_AMQP_PASSWORD, ADMIN_AMQP_VHOST_BROKER, BRAIN_AMQP_USER, BRAIN_AMQP_PASSWORD, BRAIN_AMQP_VHOST_BROKER, PROBE_AMQP_USER, PROBE_AMQP_PASSWORD, PROBE_AMQP_VHOST_BROKER
-from config.adminconfig import admin_celery
-from config.brainconfig import brain_celery
-from config.probeconfig import probe_celery
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
+import config
+from celery import Celery
+
 import pymongo
 import amqp
 import requests
 import libvirt
 
+scan_app = Celery('scantasks')
+config.conf_brain_celery(scan_app)
+
+probe_app = Celery('probetasks')
+config.conf_probe_celery(probe_app)
+
+frontend_app = Celery('frontendtasks')
+config.conf_frontend_celery(frontend_app)
 
 class bcolors:
     HEADER = '\033[95m'
@@ -81,20 +88,14 @@ def ping_libvirt(uri):
         return [(status_ko, 'libvirt %s is down' % uri)]
     return
 
-print_hdr("MongoDb")
-print_msg(ping_db(MONGODB))
-
 print_hdr("RabbitMQ")
-for usr, pwd, vhost in [
-                          (ADMIN_AMQP_USER, ADMIN_AMQP_PASSWORD, ADMIN_AMQP_VHOST_BROKER),
-                          (BRAIN_AMQP_USER, BRAIN_AMQP_PASSWORD, BRAIN_AMQP_VHOST_BROKER),
-                          (PROBE_AMQP_USER, PROBE_AMQP_PASSWORD, PROBE_AMQP_VHOST_BROKER)]:
-    print_msg(ping_rabbitmq(AMQP_ADDRESS, AMQP_PORT, usr, pwd, vhost))
+for broker in [ 'broker_brain', 'broker_probe', 'broker_frontend']:
+    print_msg(ping_rabbitmq(config.brain_config[broker].host, config.brain_config[broker].port, config.brain_config[broker].username, config.brain_config[broker].password, config.brain_config[broker].vhost))
 
 print_hdr("Frontend")
 print_msg(ping_frontend("http://192.168.130.133:8080"))
 
 print_hdr("Celery")
-for app in [admin_celery, brain_celery, probe_celery]:
+for app in [scan_app, probe_app, frontend_app]:
     print_msg(ping_celery_app(app))
 print
