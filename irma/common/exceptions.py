@@ -26,3 +26,7 @@ class IrmaConfigurationError(Exception):
 class IrmaFtpError(Exception):
     """Error on ftp manager."""
     pass
+
+class IrmaTaskError(Exception):
+    """Error while processing celery tasks."""
+    pass

@@ -75,3 +75,10 @@ class SQLDatabase(object):
 
     def delete(self, obj):
         return self._session.delete(obj)
+
+    def sum(self, field, **kwargs):
+        t = self.find(field, **kwargs)
+        res = 0
+        for x in t:
+            res += x[0]
+        return res
