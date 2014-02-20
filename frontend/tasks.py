@@ -51,7 +51,8 @@ def scan_result(scanid, file_hash, probe, result):
                 break
         if f.hashvalue == file_hash:
             scan_res = ScanResults()
-            scan_res._id = f._id
+            # Fix result id
+            scan_res.id = f.id
             if probe not in scan_res.probelist:
                 scan_res.probelist.append(probe)
             print "Update result of file {0} with {1}:{2}".format(filename, probe, result)
