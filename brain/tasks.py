@@ -2,6 +2,7 @@ import uuid
 import time
 from celery import Celery
 import config
+from datetime import datetime, timedelta
 from brain.objects import User, Scan
 from lib.irma.common.utils import IrmaTaskReturn
 from lib.irma.common.exceptions import IrmaTaskError
@@ -28,32 +29,15 @@ config.conf_frontend_celery(frontend_app)
 # ______________________________________________________________________________ SQL Helpers
 
 
-def get_user(sql, vhost_name):
-    """ returns the user object linked to the vhost_name - must be unique raise if not """
-    users = sql.find(User, rmqvhost=vhost_name)
-    # Should be one user per frontend
-    if len(users) == 0:
-        raise IrmaTaskError("Unknown user")
-    elif len(users) > 1:
-        raise IrmaTaskError("User not unique on frontend {0}".format(vhost_name))
-    return users[0]
-
 def get_quota(sql, user):
     if user.quota == 0:
         # quota=0 means quota disabled
         quota = None
     else:
-        quota = user.quota - sql.sum(Scan.nbfiles, user_id=user.id)
+        # Quota are set per 24 hours
+        delta = timedelta(hours=24)
+        quota = user.quota - sql.sum(Scan.nbfiles, "user_id={0} and date >= '{1}'".format(user.id, datetime.now() - delta))
     return quota
-
-def get_scan(sql, scanid, userid):
-    """ returns the scan object with given scanid and userid - must be unique raise if not """
-    scans = sql.find(Scan, scanid=scanid, user_id=userid)
-    if len(scans) == 0:
-        raise IrmaTaskError("Unknown scan {0}".format(scanid))
-    elif len(scans) > 1:
-        raise IrmaTaskError("Scanid {0} not unique".format(scanid))
-    return scans[0]
 
 def get_groupresult(taskid):
     if not taskid:
@@ -116,7 +100,7 @@ def scan(scanid, scan_request):
     # FIXME get rmq_vhost
     rmqvhost = "mqfrontend"
     try:
-        user = get_user(sql, rmqvhost)
+        user = sql.one_by(User, rmqvhost=rmqvhost)
         quota = get_quota(sql, user)
         if quota is not None:
             print "Found user {0} quota remaining {1}/{2}".format(user.name, quota, user.quota)
@@ -151,7 +135,7 @@ def scan(scanid, scan_request):
         # keep the groupresult object for task status/cancel
         groupres.save()
 
-        scan = Scan(scanid=scanid, taskid=groupid, nbfiles=len(jobs_list), status=Scan.status_launched, user_id=user.id)
+        scan = Scan(scanid=scanid, taskid=groupid, nbfiles=len(jobs_list), status=Scan.status_launched, user_id=user.id, date=datetime.now())
         sql.add(scan)
     print "%d files receives / %d active probe / %d probe used / %d jobs launched" % (len(scan_request), len(available_probelist), len(probelist), len(jobs_list))
     return
@@ -162,8 +146,8 @@ def scan_progress(scanid):
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
         # FIXME get rmq_vhost
         rmqvhost = "mqfrontend"
-        user = get_user(sql, rmqvhost)
-        scan = get_scan(sql, scanid, user.id)
+        user = sql.one_by(User, rmqvhost=rmqvhost)
+        scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
         if scan.status == Scan.status_launched:
             if not scan.taskid:
                 return IrmaTaskReturn.error("task_id not set")
@@ -185,8 +169,8 @@ def scan_cancel(scanid):
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
         # FIXME get rmq_vhost
         rmqvhost = "mqfrontend"
-        user = get_user(sql, rmqvhost)
-        scan = get_scan(sql, scanid, user.id)
+        user = sql.one_by(User, rmqvhost=rmqvhost)
+        scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
         if scan.status == Scan.status_launched:
             scan.status = Scan.status_cancelling
             # commit as soon as possible to avoid cancelling again
@@ -214,8 +198,8 @@ def scan_result(result, frontend, scanid, filename, probe):
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
         # FIXME get rmq_vhost
         rmqvhost = "mqfrontend"
-        user = get_user(sql, rmqvhost)
-        scan = get_scan(sql, scanid, user.id)
+        user = sql.one_by(User, rmqvhost=rmqvhost)
+        scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
         gr = get_groupresult(scan.taskid)
         nbtotal = len(gr)
         nbcompleted = nbsuccessful = 0
