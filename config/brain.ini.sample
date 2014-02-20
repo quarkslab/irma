@@ -33,4 +33,10 @@ db = 1
 
 [sql_brain]
 engine = sqlite:///
-dbname = irma_scan
+dbname = db/irma_scan
+
+
+[ftp_brain]
+host = 127.0.0.1
+username=probe
+password=probe
