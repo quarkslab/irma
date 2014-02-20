@@ -43,7 +43,7 @@ def scan_add(scanid):
     if not validid(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        si = ScanInfo(_id=scanid)
+        si = ScanInfo(id=scanid)
         # save file in db
         for f in request.files:
             filename = os.path.basename(f)
@@ -51,7 +51,7 @@ def scan_add(scanid):
             data = upfile.file.read()
             fobj = ScanFile()
             fobj.save(data, filename)
-            si.oids[fobj._id] = filename
+            si.oids[fobj.id] = filename
         return IrmaFrontendReturn.success({"scanid":scanid, "nb_files": len(si.oids)})
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
@@ -63,7 +63,7 @@ def scan_launch(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
 
     try:
-        si = ScanInfo(_id=scanid)
+        si = ScanInfo(id=scanid)
         # analyze parameters
         force = False
         if request.params['force'] == 'True':
@@ -74,7 +74,7 @@ def scan_launch(scanid):
 
         si.probelist = probelist
         # launch ftp upload via frontend task
-        frontend_app.send_task("frontend.tasks.frontendtasks.scan_launch", args=(si.id, si.oids, si.probelist, force))
+        frontend_app.send_task("frontend.tasks.scan_launch", args=(si.id, si.oids, si.probelist, force))
         return IrmaFrontendReturn.success({"scanid":si.id, "probelist":si.probelist})
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
@@ -87,7 +87,7 @@ def scan_results(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
         # fetch results in db
-        si = ScanInfo(_id=scanid)
+        si = ScanInfo(id=scanid)
         return IrmaFrontendReturn.success(si.get_results())
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
@@ -100,7 +100,7 @@ def scan_progress(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = scan_app.send_task("brain.tasks.scantasks.scan_progress", args=[scanid])
+        task = scan_app.send_task("brain.tasks.scan_progress", args=[scanid])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
@@ -117,7 +117,7 @@ def scan_cancel(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     # Launch a synchronous task (blocking for max IRMA_TIMEOUT seconds)
     try:
-        task = scan_app.send_task("brain.tasks.scantasks.scan_cancel", args=[scanid])
+        task = scan_app.send_task("brain.tasks.scan_cancel", args=[scanid])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
@@ -130,7 +130,7 @@ def scan_cancel(scanid):
 def status():
     """ Check active queues with a synchronous task (blocking for max IRMA_TIMEOUT seconds) """
     try:
-        task = scan_app.send_task("brain.tasks.scantasks.probe_list", args=[])
+        task = scan_app.send_task("brain.tasks.probe_list", args=[])
         (status, res) = task.get(timeout=cfg_timeout)
         return IrmaFrontendReturn.response(status, res)
     except celery.exceptions.TimeoutError:
@@ -143,7 +143,7 @@ def status():
 @route('/download/<file_oid>')
 def download(file_oid):
     """ retrieve a file previously sent to the brain """
-    fobj = ScanFile(_id=file_oid)
+    fobj = ScanFile(id=file_oid)
     response.headers['Content-disposition'] = 'attachment; filename="%s"' % fobj.name
     return fobj.data
 
