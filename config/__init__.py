@@ -42,7 +42,7 @@ def _conf_celery(app, broker, backend, queue=None):
                      CELERY_TASK_SERIALIZER='json',
                      CELERY_RESULT_SERIALIZER='json'
                      )
-    if queue:
+    if queue is not None:
         app.conf.update(
                         CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode (don't survive to a server restart)
