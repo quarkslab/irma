@@ -128,19 +128,45 @@ class CheckAddObject(DbTestCase):
             test = db.one_by(TestObject, size=50)
 
     def test_time_filter(self):
-        db = SQLDatabase(test_dbengine)
-        test1 = TestObject(name="test1", size=10, date=datetime.now() - timedelta(hours=48))
-        test2 = TestObject(name="test2", size=10, date=datetime.now() - timedelta(hours=24))
-        test3 = TestObject(name="test3", size=40, date=datetime.now() - timedelta(hours=12))
-        test4 = TestObject(name="test4", size=10, date=datetime.now())
-        db.add_all([test1, test2, test3, test4])
+        with SQLDatabase(test_dbengine) as db:
+            test1 = TestObject(name="test1", size=10, date=datetime.now() - timedelta(hours=48))
+            test2 = TestObject(name="test2", size=10, date=datetime.now() - timedelta(hours=24))
+            test3 = TestObject(name="test3", size=40, date=datetime.now() - timedelta(hours=12))
+            test4 = TestObject(name="test4", size=10, date=datetime.now())
+            db.add_all([test1, test2, test3, test4])
         del(db)
         db = SQLDatabase(test_dbengine)
         self.assertEquals(len(db.find(TestObject, "date >= '{0}'".format(datetime.now() - timedelta(hours=16)))), 2)
         self.assertEquals(len(db.find(TestObject, "date >= '{0}'".format(datetime.now() - timedelta(hours=36)))), 3)
         self.assertEquals(len(db.find(TestObject, "date >= '{0}'".format(datetime.now() - timedelta(hours=72)))), 4)
 
+    def test_and_filter(self):
+        with SQLDatabase(test_dbengine) as db:
+            test1 = TestObject(name="test1", size=10, date=datetime.now() - timedelta(hours=12))
+            test2 = TestObject(name="test2", size=10, date=datetime.now() - timedelta(hours=12))
+            test3 = TestObject(name="test3", size=40, date=datetime.now() - timedelta(hours=12))
+            test4 = TestObject(name="test4", size=10, date=datetime.now())
+            test5 = TestObject(name="test5", size=50, date=datetime.now())
+            db.add_all([test1, test2, test3, test4, test5])
+        del(db)
+        db = SQLDatabase(test_dbengine)
+        self.assertEquals(len(db.find(TestObject, "size == 10 and date <= '{0}'".format(datetime.now() - timedelta(hours=4)))), 2)
+        self.assertEquals(len(db.find(TestObject, "name == 'test1' and date <= '{0}'".format(datetime.now() - timedelta(hours=4)))), 1)
+
+    def test_or_filter(self):
+        with SQLDatabase(test_dbengine) as db:
+            test1 = TestObject(name="test1", size=10, date=datetime.now() - timedelta(hours=12))
+            test2 = TestObject(name="test2", size=10, date=datetime.now() - timedelta(hours=12))
+            test3 = TestObject(name="test3", size=40, date=datetime.now() - timedelta(hours=12))
+            test4 = TestObject(name="test4", size=10, date=datetime.now())
+            test5 = TestObject(name="test5", size=50, date=datetime.now())
+            db.add_all([test1, test2, test3, test4, test5])
+        del(db)
+        db = SQLDatabase(test_dbengine)
+        self.assertEquals(len(db.find(TestObject, "size == 10 or date <= '{0}'".format(datetime.now() - timedelta(hours=4)))), 4)
+
 
 if __name__ == '__main__':
     enable_logging()
     unittest.main()
+
