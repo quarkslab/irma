@@ -1,4 +1,3 @@
-import tempfile
 import os
 import re
 from subprocess import Popen, PIPE
@@ -16,7 +15,7 @@ def resultfromoutput(code, stdout):
 def get_version():
     global version
     p = Popen(["scan.exe", "/VERSION"], stdout=PIPE)
-    out, err = p.communicate()
+    out, _ = p.communicate()
     # win fr charset to utf8
     res = out.decode("cp1252")
     if p.returncode == 0:
@@ -28,7 +27,7 @@ def get_version():
 
 def get_scan_result(filename):
     p = Popen(["scan.exe", "/NOMEM", filename], stdout=PIPE)
-    out, err = p.communicate()
+    out, _ = p.communicate()
     # win fr charset to utf8
     res = out.decode("cp1252")
     os.unlink(filename)
