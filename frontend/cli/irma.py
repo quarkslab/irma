@@ -51,7 +51,7 @@ def scan_status(scanid=None, partial=None):
             print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
             if finished == total or partial:
                 scan_results(scanid=scanid)
-        elif data['result'] == 'warning' and data['info'] == "finished":
+        elif data['result'] == 'warning' and data['info'] == "scan finished":
             scan_results(scanid=scanid)
         else:
             print data['info']
