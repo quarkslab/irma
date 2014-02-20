@@ -1,4 +1,3 @@
-import tempfile
 import os
 import re
 from subprocess import Popen, PIPE
@@ -16,7 +15,7 @@ def resultfromoutput(code, stdout):
 def get_version():
     global version
     p = Popen(["sav32cli.exe", "-v"], stdout=PIPE)
-    out, err = p.communicate()
+    out, _ = p.communicate()
     # win fr charset to utf8
     res = out.decode("cp1252")
     if p.returncode == 0:
@@ -25,14 +24,9 @@ def get_version():
         version = "unknown"
     return
 
-def get_scan_result(data):
-    (fd, filename) = tempfile.mkstemp()
-    tmpfile = open(filename, "wb")
-    tmpfile.write(data)
-    tmpfile.close()
-    os.close(fd)
+def get_scan_result(filename):
     p = Popen(["sav32cli.exe", "-ss", "-nc", "-nb", filename], stdout=PIPE)
-    out, err = p.communicate()
+    out, _ = p.communicate()
     # win fr charset to utf8
     res = out.decode("cp1252")
     retcode = p.returncode
@@ -40,10 +34,10 @@ def get_scan_result(data):
     return resultfromoutput(retcode, res)
 
 
-def scan(sfile):
+def scan(filename):
     res = {}
     if not version:
         get_version()
     res['version'] = version
-    res['result'] = get_scan_result(sfile.data)
+    res['result'] = get_scan_result(filename)
     return res

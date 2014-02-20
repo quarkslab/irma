@@ -15,8 +15,9 @@ def get_info(sha1):
         res = "Not found"
     return res
 
-def scan(sfile):
+def scan(filename):
     res = {}
-    sha1 = hashlib.sha1(sfile.data).hexdigest()
+    with open("filename", "rb") as f:
+        sha1 = hashlib.sha1(f.read()).hexdigest()
     res['result'] = get_info(sha1)
     return res

@@ -1,6 +1,5 @@
-import json
-import urllib
-import urllib2
+import json, hashlib
+import urllib, urllib2
 
 url = "https://www.virustotal.com/vtapi/v2/file/report"
 
@@ -20,7 +19,9 @@ def get_scan_result(hashvalue):
     except:
         return "Error fetching online result"
 
-def scan(sfile):
+def scan(filename):
     res = {}
-    res['result'] = get_scan_result(sfile.hashvalue)
+    with open("filename", "rb") as f:
+        sha256 = hashlib.sha256(f.read()).hexdigest()
+    res['result'] = get_scan_result(sha256)
     return res

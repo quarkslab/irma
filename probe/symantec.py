@@ -1,5 +1,4 @@
-import tempfile
-import os, os.path
+import os
 import glob
 import re
 from datetime import date
@@ -27,9 +26,9 @@ def resultfromlog(filename):
             try:
                 entries = line.split(',')
                 result = filename.search(entries[FILE_FIELD])
-                if result: 
+                if result:
                     break
-            except Exception as e:
+            except Exception:
                 pass
 
     if not result:
@@ -43,7 +42,7 @@ def resultfromlog(filename):
 
 def get_version():
     logfile = glob.glob(AV_PATH_REGEX)
-    
+
     if not logfile:
         return "Unknown"
 
@@ -51,13 +50,12 @@ def get_version():
         match = AV_VERS_REGEX.search(name)
         if match:
             break
-        
+
     return match.group(1)
 
 def get_scan_result(filename):
     p = Popen(["DoSCan", "/ScanFile", filename], stdout=PIPE)
-    res, err = p.communicate()
-    retcode = p.returncode
+    p.communicate()
     try:
         os.unlink(filename)
     except:

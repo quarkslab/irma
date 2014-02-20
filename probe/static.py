@@ -1,4 +1,4 @@
-import logging, os, tempfile
+import os
 from probe.modules.static.analyzer import StaticAnalyzer
 
 version = None
