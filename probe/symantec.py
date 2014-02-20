@@ -54,12 +54,7 @@ def get_version():
         
     return match.group(1)
 
-def get_scan_result(data):
-    (fd, filename) = tempfile.mkstemp()
-    tmpfile = open(filename, "wb")
-    tmpfile.write(data)
-    tmpfile.close()
-    os.close(fd)
+def get_scan_result(filename):
     p = Popen(["DoSCan", "/ScanFile", filename], stdout=PIPE)
     res, err = p.communicate()
     retcode = p.returncode
@@ -69,10 +64,10 @@ def get_scan_result(data):
         pass
     return resultfromlog(os.path.basename(filename))
 
-def scan(sfile):
+def scan(filename):
     res = {}
     if version == "":
         get_version()
     res['version'] = version
-    res['result'] = get_scan_result(sfile.data)
+    res['result'] = get_scan_result(filename)
     return res
