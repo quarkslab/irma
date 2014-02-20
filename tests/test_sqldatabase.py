@@ -165,6 +165,31 @@ class CheckAddObject(DbTestCase):
         db = SQLDatabase(test_dbengine)
         self.assertEquals(len(db.find(TestObject, "size == 10 or date <= '{0}'".format(datetime.now() - timedelta(hours=4)))), 4)
 
+    def test_sum(self):
+        with SQLDatabase(test_dbengine) as db:
+            test1 = TestObject(name="test1", size=10, date=datetime.now() - timedelta(hours=12))
+            test2 = TestObject(name="test2", size=20, date=datetime.now() - timedelta(hours=12))
+            test3 = TestObject(name="test3", size=30, date=datetime.now() - timedelta(hours=12))
+            test4 = TestObject(name="test4", size=40, date=datetime.now())
+            test5 = TestObject(name="test5", size=50, date=datetime.now())
+            db.add_all([test1, test2, test3, test4, test5])
+        del(db)
+        db = SQLDatabase(test_dbengine)
+        self.assertEquals(db.sum(TestObject.size, "date >= '{0}'".format(datetime.now() - timedelta(hours=4))), 90)
+        self.assertEquals(db.sum(TestObject.size, "date >= '{0}'".format(datetime.now() - timedelta(hours=20))), 150)
+
+    def test_sum_by(self):
+        with SQLDatabase(test_dbengine) as db:
+            test1 = TestObject(name="test1", size=10, date=datetime.now() - timedelta(hours=12))
+            test2 = TestObject(name="test1", size=20, date=datetime.now() - timedelta(hours=12))
+            test3 = TestObject(name="test1", size=30, date=datetime.now() - timedelta(hours=12))
+            test4 = TestObject(name="test2", size=40, date=datetime.now())
+            test5 = TestObject(name="test2", size=50, date=datetime.now())
+            db.add_all([test1, test2, test3, test4, test5])
+        del(db)
+        db = SQLDatabase(test_dbengine)
+        self.assertEquals(db.sum_by(TestObject.size, name="test1"), 60)
+        self.assertEquals(db.sum_by(TestObject.size, name="test2"), 90)
 
 if __name__ == '__main__':
     enable_logging()

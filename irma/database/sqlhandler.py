@@ -107,5 +107,5 @@ class SQLDatabase(object):
         return self._sum(t)
 
     def sum(self, field, filter_expr):
-        t = self.find_by(field, filter_expr)
+        t = self.find(field, filter_expr)
         return self._sum(t)
