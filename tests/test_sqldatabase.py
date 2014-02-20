@@ -1,8 +1,8 @@
 import logging, unittest
-
+from datetime import datetime, timedelta
 from irma.common.exceptions import IrmaDatabaseError
 from irma.database.sqlhandler import SQLDatabase
-from irma.database.sqlobjects import Base, Column, Integer, String
+from irma.database.sqlobjects import Base, Column, Integer, String, DateTime
 
 test_dbengine = "sqlite:///irma_test.db"
 
@@ -12,6 +12,7 @@ class TestObject(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     size = Column(Integer)
+    date = Column(DateTime)
 
 ##############################################################################
 # Logging options
@@ -66,7 +67,7 @@ class CheckAddObject(DbTestCase):
             db.add(test1)
         del(db)
         db = SQLDatabase(test_dbengine)
-        test = db.find(TestObject, name="test1")
+        test = db.find_by(TestObject, name="test1")
         self.assertEquals(type(test), list)
         self.assertEquals(len(test), 1)
         test1 = test[0]
@@ -75,40 +76,70 @@ class CheckAddObject(DbTestCase):
 
     def test_add_multiple_testobject(self):
         db = SQLDatabase(test_dbengine)
-        test1 = TestObject(name="test1", size=10)
-        test2 = TestObject(name="test2", size=20)
-        test3 = TestObject(name="test3", size=30)
+        test1 = TestObject(name="test1", size=10, date=datetime.now())
+        test2 = TestObject(name="test2", size=20, date=datetime.now())
+        test3 = TestObject(name="test3", size=30, date=datetime.now())
         db.add_all([test1, test2, test3])
         del(db)
         db = SQLDatabase(test_dbengine)
         self.assertEquals(db.count(TestObject), 3)
 
     def test_find_by_attribute(self):
-        db = SQLDatabase(test_dbengine)
-        test1 = TestObject(name="test1", size=10)
-        test2 = TestObject(name="test2", size=10)
-        test3 = TestObject(name="test3", size=40)
-        test4 = TestObject(name="test4", size=10)
-        db.add_all([test1, test2, test3, test4])
+        with SQLDatabase(test_dbengine) as db:
+            test1 = TestObject(name="test1", size=10, date=datetime.now())
+            test2 = TestObject(name="test2", size=10, date=datetime.now())
+            test3 = TestObject(name="test3", size=40, date=datetime.now())
+            test4 = TestObject(name="test4", size=10, date=datetime.now())
+            db.add_all([test1, test2, test3, test4])
         del(db)
         db = SQLDatabase(test_dbengine)
-        self.assertEquals(len(db.find(TestObject, size=10)), 3)
-        self.assertEquals([i.name for i in db.find(TestObject, size=10)], ["test1", "test2", "test4"])
+        self.assertEquals(len(db.find_by(TestObject, size=10)), 3)
+        self.assertEquals([i.name for i in db.find_by(TestObject, size=10)], ["test1", "test2", "test4"])
 
     def test_delete(self):
-        db = SQLDatabase(test_dbengine)
-        test1 = TestObject(name="test1", size=10)
-        test2 = TestObject(name="test2", size=10)
-        test3 = TestObject(name="test3", size=40)
-        test4 = TestObject(name="test4", size=10)
-        db.add_all([test1, test2, test3, test4])
+        with SQLDatabase(test_dbengine) as db:
+            test1 = TestObject(name="test1", size=10, date=datetime.now())
+            test2 = TestObject(name="test2", size=10, date=datetime.now())
+            test3 = TestObject(name="test3", size=40, date=datetime.now())
+            test4 = TestObject(name="test4", size=10, date=datetime.now())
+            db.add_all([test1, test2, test3, test4])
         del(db)
         db = SQLDatabase(test_dbengine)
         self.assertEquals(db.count(TestObject), 4)
+        test1 = db.find_by(TestObject, name="test1")[0]
         db.delete(test1)
         del(db)
         db = SQLDatabase(test_dbengine)
         self.assertEquals(db.count(TestObject), 3)
+
+    def test_one(self):
+        db = SQLDatabase(test_dbengine)
+        test1 = TestObject(name="test1", size=10, date=datetime.now())
+        test2 = TestObject(name="test2", size=10, date=datetime.now())
+        test3 = TestObject(name="test3", size=30, date=datetime.now())
+        db.add_all([test1, test2, test3])
+        del(db)
+        db = SQLDatabase(test_dbengine)
+        test = db.one_by(TestObject, name="test1")
+        self.assertEquals(test.size, 10)
+        with self.assertRaises(IrmaDatabaseError):
+            test = db.one_by(TestObject, size=10)
+        with self.assertRaises(IrmaDatabaseError):
+            test = db.one_by(TestObject, size=50)
+
+    def test_time_filter(self):
+        db = SQLDatabase(test_dbengine)
+        test1 = TestObject(name="test1", size=10, date=datetime.now() - timedelta(hours=48))
+        test2 = TestObject(name="test2", size=10, date=datetime.now() - timedelta(hours=24))
+        test3 = TestObject(name="test3", size=40, date=datetime.now() - timedelta(hours=12))
+        test4 = TestObject(name="test4", size=10, date=datetime.now())
+        db.add_all([test1, test2, test3, test4])
+        del(db)
+        db = SQLDatabase(test_dbengine)
+        self.assertEquals(len(db.find(TestObject, "date >= '{0}'".format(datetime.now() - timedelta(hours=16)))), 2)
+        self.assertEquals(len(db.find(TestObject, "date >= '{0}'".format(datetime.now() - timedelta(hours=36)))), 3)
+        self.assertEquals(len(db.find(TestObject, "date >= '{0}'".format(datetime.now() - timedelta(hours=72)))), 4)
+
 
 if __name__ == '__main__':
     enable_logging()

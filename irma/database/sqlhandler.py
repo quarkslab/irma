@@ -1,5 +1,6 @@
 import logging, sqlalchemy
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from irma.common.exceptions import IrmaDatabaseError
 
@@ -67,8 +68,27 @@ class SQLDatabase(object):
     def all(self, classname):
         return self._session.query(classname).all()
 
-    def find(self, classname, **kwargs):
+    def one_by(self, classname, **kwargs):
+        try:
+            return self._session.query(classname).filter_by(**kwargs).one()
+        except NoResultFound:
+            raise IrmaDatabaseError("No result found instead of one")
+        except MultipleResultsFound:
+            raise IrmaDatabaseError("Multiple results found instead of one")
+
+    def one(self, classname, filter_expr):
+        try:
+            return self._session.query(classname).filter_by(filter_expr).one()
+        except NoResultFound:
+            raise IrmaDatabaseError("No result found instead of one")
+        except MultipleResultsFound:
+            raise IrmaDatabaseError("Multiple results found instead of one")
+
+    def find_by(self, classname, **kwargs):
         return self._session.query(classname).filter_by(**kwargs).all()
+
+    def find(self, classname, filter_expr):
+        return self._session.query(classname).filter(filter_expr).all()
 
     def count(self, classname):
         return self._session.query(classname).count()
@@ -76,9 +96,16 @@ class SQLDatabase(object):
     def delete(self, obj):
         return self._session.delete(obj)
 
-    def sum(self, field, **kwargs):
-        t = self.find(field, **kwargs)
+    def _sum(self, elts):
         res = 0
-        for x in t:
-            res += x[0]
+        for e in elts:
+            res += e[0]
         return res
+
+    def sum_by(self, field, **kwargs):
+        t = self.find_by(field, **kwargs)
+        return self._sum(t)
+
+    def sum(self, field, filter_expr):
+        t = self.find_by(field, filter_expr)
+        return self._sum(t)
