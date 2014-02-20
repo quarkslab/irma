@@ -1,5 +1,5 @@
 from lib.irma.database.sqlhandler import SQLDatabase
-from lib.irma.database.sqlobjects import Base, Column, Integer, String
+from lib.irma.database.sqlobjects import Base, Column, Integer, String, DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -10,15 +10,15 @@ class Scan(Base):
     status_finished = 50
     status_flushed = 100
     label = {
-             status_launched:"scan launched",
-             status_cancelling:"scan being cancelled",
-             status_cancelled:"scan cancelled",
-             status_finished:"scan finished",
-             status_flushed:"scan flushed",
+             status_launched:"launched",
+             status_cancelling:"cancelling",
+             status_cancelled:"cancelled",
+             status_finished:"finished",
     }
 
     __tablename__ = 'scans'
     id = Column(Integer, primary_key=True)
+    date = Column(DateTime(timezone=True))
     scanid = Column(String)
     status = Column(Integer)
     nbfiles = Column(Integer)
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
     Base.metadata.create_all(sql._db)
-    user = User(name="test1", rmqvhost="mqfrontend", ftpuser="frontend1", quota=100)
+    user = User(name="test1", rmqvhost="mqfrontend", ftpuser="frontend1", quota=10000)
     sql.add(user)
     sql.commit()
 
