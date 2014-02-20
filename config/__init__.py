@@ -39,11 +39,6 @@ template_frontend_config = {
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
                                    ],
-                         'backend_frontend': [
-                                   ('host', TemplatedConfiguration.string, None),
-                                   ('port', TemplatedConfiguration.integer, 6379),
-                                   ('db', TemplatedConfiguration.integer, None),
-                                   ],
                          'ftp_brain': [
                                     ('host', TemplatedConfiguration.string, None),
                                     ('port', TemplatedConfiguration.integer, 21),
@@ -59,21 +54,22 @@ frontend_config = TemplatedConfiguration("frontend.ini", template_frontend_confi
 
 
 
-def _conf_celery(app, broker, backend, queue=None):
+def _conf_celery(app, broker, backend=None, queue=None):
     app.conf.update(
                      BROKER_URL=broker,
-                     CELERY_RESULT_BACKEND=backend,
                      CELERY_ACCEPT_CONTENT=['json'],
                      CELERY_TASK_SERIALIZER='json',
                      CELERY_RESULT_SERIALIZER='json'
                      )
+    if backend is not None:
+        app.conf.update(CELERY_RESULT_BACKEND=backend)
 
-    if queue:
+    if queue is not None:
         app.conf.update(
                         CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode (don't survive to a server restart)
                         CELERY_QUEUES=(
-                                       Queue(queue, routing_key=queue, delivery_mode=1),
+                                       Queue(queue, routing_key=queue),
                                        )
                         )
     return
@@ -86,10 +82,8 @@ def conf_brain_celery(app):
 
 def conf_frontend_celery(app):
     broker = get_frontend_broker_uri()
-    backend = get_frontend_backend_uri()
     queue = frontend_config.broker_frontend.queue
-    _conf_celery(app, broker, backend, queue)
-
+    _conf_celery(app, broker, queue=queue)
 
 
 def get_db_uri():
@@ -107,9 +101,6 @@ def _get_backend_uri(backend_config):
 
 def get_brain_backend_uri():
     return _get_backend_uri(frontend_config.backend_brain)
-
-def get_frontend_backend_uri():
-    return _get_backend_uri(frontend_config.backend_frontend)
 
 # ______________________________________________________________________________ BROKER HELPERS
 
