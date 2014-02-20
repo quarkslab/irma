@@ -1,4 +1,5 @@
 from irma.database.nosqlhandler import NoSQLDatabase
+from bson import ObjectId
 import hashlib
 
 
@@ -7,12 +8,12 @@ class FileObject(object):
     _dbname = None
     _collection = None
 
-    def __init__(self, dbname=None, _id=None):
+    def __init__(self, dbname=None, id=None):
         if dbname:
             self._dbname = dbname
         self._dbfile = None
-        if _id:
-            self._id = _id
+        if id:
+            self._id = ObjectId(id)
             self.load()
 
     def _exists(self, hashvalue):
@@ -79,3 +80,8 @@ class FileObject(object):
     def data(self):
         """Get the file data"""
         return self._dbfile.read()
+
+    @property
+    def id(self):
+        """Get the str form of id"""
+        return str(self._id)

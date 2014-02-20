@@ -4,7 +4,7 @@ from irma.common.exceptions import IrmaDatabaseError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
-import bson
+from bson import ObjectId
 
 # Test config
 test_db_uri = "mongodb://localhost"
@@ -17,12 +17,12 @@ class TestObject(NoSQLDatabaseObject):
     _dbname = test_db_name
     _collection = test_db_collection
 
-    def __init__(self, _id=None):
+    def __init__(self, id=None):
         self.user = "test"
         self.date = datetime.now()
         self.dict = {}
         self.list = []
-        super(TestObject, self).__init__(_id=_id)
+        super(TestObject, self).__init__(id=id)
 
 ##############################################################################
 # Logging options
@@ -94,7 +94,7 @@ class CheckAddObject(DbTestCase):
 
         t1 = TestObject()
         t1.save()
-        self.assertEquals(type(t1._id), bson.ObjectId)
+        self.assertEquals(type(t1._id), ObjectId)
         self.assertEquals(type(t1.id), str)
 
     def test_add_two_testobjects(self):
@@ -120,7 +120,7 @@ class CheckAddObject(DbTestCase):
         collection.remove()
         t1 = TestObject()
         t1.save()
-        t2 = TestObject(_id=t1.id)
+        t2 = TestObject(id=t1.id)
         t2.save()
         self.assertEquals(collection.count(), 1)
         self.assertEquals(type(t2.id), str)
@@ -132,11 +132,26 @@ class CheckAddObject(DbTestCase):
 
     def test_check_invalid_id(self):
         with self.assertRaises(IrmaDatabaseError):
-            TestObject(_id="Jean")
+            TestObject(id="coin")
 
     def test_check_not_existing_id(self):
         with self.assertRaises(IrmaDatabaseError):
-            TestObject(_id="0")
+            TestObject(id="0")
+
+    def test_check_insertion_with_fixed_id(self):
+        t = TestObject()
+        t.user = "coin"
+        t.list.append(1)
+        t.list.append(2)
+        t.list.append(3)
+        fixed_id = ObjectId()
+        t.id = str(fixed_id)
+        t.save()
+        t2 = TestObject(id=str(fixed_id))
+        self.assertEquals(t2.id, str(fixed_id))
+        self.assertEquals(t2.user, "coin")
+        self.assertEquals(t2.list, [1, 2, 3])
+
 
 if __name__ == '__main__':
     enable_logging()

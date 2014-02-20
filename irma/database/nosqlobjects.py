@@ -15,15 +15,16 @@ class NoSQLDatabaseObject(object):
     _dbname = None
     _collection = None
 
-    def __init__(self, _id=None):
+    def __init__(self, id=None,):
+        # create a new object or load an existing one with id
+        # raise IrmaDatabaseError on loading invalid id
         self._id = None
-        if _id:
+        if id:
             try:
-                self._id = ObjectId(_id)
+                self._id = ObjectId(id)
                 self.load(self._id)
             except InvalidId as e:
                 raise IrmaDatabaseError(e)
-
 
     def __del__(self):
         self.save()
@@ -69,4 +70,8 @@ class NoSQLDatabaseObject(object):
             return None
         else:
             return str(self._id)
+
+    @id.setter
+    def id(self, value):
+        self._id = ObjectId(value)
 
