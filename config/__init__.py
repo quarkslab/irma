@@ -48,6 +48,12 @@ template_brain_config = {
                                    ('engine', TemplatedConfiguration.string, None),
                                    ('dbname', TemplatedConfiguration.string, None),
                                    ],
+                         'ftp_brain': [
+                                    ('host', TemplatedConfiguration.string, None),
+                                    ('port', TemplatedConfiguration.integer, 21),
+                                    ('username', TemplatedConfiguration.string, None),
+                                    ('password' , TemplatedConfiguration.string, None),
+                                    ]
                          }
 
 
