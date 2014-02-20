@@ -1,7 +1,8 @@
 import celery
 import config
 from frontend.objects import ScanFile, ScanInfo, ScanResults
-from lib.irma.common.exceptions import IrmaFtpError, IrmaTaskError
+from lib.irma.common.exceptions import IrmaFtpError, IrmaTaskError, \
+    IrmaDatabaseError
 from lib.irma.common.utils import IrmaTaskReturn
 from lib.irma.ftp.handler import FtpTls
 
@@ -50,12 +51,16 @@ def scan_result(scanid, file_hash, probe, result):
             if f.hashvalue == file_hash:
                 break
         if f.hashvalue == file_hash:
-            scan_res = ScanResults()
-            # Fix result id
-            scan_res.id = f.id
+            try:
+                scan_res = ScanResults(id=f.id)
+            except IrmaDatabaseError:
+                scan_res = ScanResults()
+                # Create new record with fix result id
+                scan_res.id = f.id
             if probe not in scan_res.probelist:
                 scan_res.probelist.append(probe)
             print "Update result of file {0} with {1}:{2}".format(filename, probe, result)
-            scan_res.results.update({probe:result})
+            scan_res.results[probe] = result
+            scan_res.save()
     except IrmaTaskError as e:
         print "Ftp Error: {0}".format(e)
