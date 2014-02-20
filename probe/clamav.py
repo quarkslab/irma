@@ -15,8 +15,9 @@ def get_version():
     return
 
 def get_scan_result(filename):
-    p = Popen(["clamdscan", "--no-summary"], stdout=PIPE, stdin=PIPE)
-    res, _ = p.communicate(input=filename)
+    p = Popen(["clamdscan", "--no-summary", "-"], stdout=PIPE, stdin=PIPE)
+    with open(filename, "rb") as f:
+        res, _ = p.communicate(input=f.read())
     retcode = p.returncode
     if retcode == 1:
         # remove useless information "stdin :"
