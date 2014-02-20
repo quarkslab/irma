@@ -39,11 +39,6 @@ template_brain_config = {
                                    ('port', TemplatedConfiguration.integer, 6379),
                                    ('db', TemplatedConfiguration.integer, None),
                                    ],
-                         'backend_frontend': [
-                                   ('host', TemplatedConfiguration.string, None),
-                                   ('port', TemplatedConfiguration.integer, 6379),
-                                   ('db', TemplatedConfiguration.integer, None),
-                                   ],
                          'sql_brain': [
                                    ('engine', TemplatedConfiguration.string, None),
                                    ('dbname', TemplatedConfiguration.string, None),
@@ -61,7 +56,7 @@ brain_config = TemplatedConfiguration("brain.ini", template_brain_config)
 
 # ______________________________________________________________________________ CELERY HELPERS
 
-def _conf_celery(app, broker, backend, queue=None):
+def _conf_celery(app, broker, backend=None, queue=None):
     app.conf.update(
                      BROKER_URL=broker,
                      CELERY_RESULT_BACKEND=backend,
@@ -69,7 +64,9 @@ def _conf_celery(app, broker, backend, queue=None):
                      CELERY_TASK_SERIALIZER='json',
                      CELERY_RESULT_SERIALIZER='json'
                      )
-    if queue:
+    if backend is not None:
+        app.conf.update(CELERY_RESULT_BACKEND=backend)
+    if queue is not None:
         app.conf.update(
                         CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode (don't survive to a server restart)
@@ -83,24 +80,22 @@ def conf_brain_celery(app):
     broker = get_brain_broker_uri()
     backend = get_brain_backend_uri()
     queue = brain_config.broker_brain.queue
-    _conf_celery(app, broker, backend, queue)
+    _conf_celery(app, broker, backend=backend, queue=queue)
 
 def conf_probe_celery(app):
     broker = get_probe_broker_uri()
     backend = get_probe_backend_uri()
-    _conf_celery(app, broker, backend)
+    _conf_celery(app, broker, backend=backend)
 
 def conf_frontend_celery(app):
     broker = get_frontend_broker_uri()
-    backend = get_frontend_backend_uri()
     queue = brain_config.broker_frontend.queue
-    _conf_celery(app, broker, backend, queue)
+    _conf_celery(app, broker, queue=queue)
 
 def conf_results_celery(app):
     broker = get_probe_broker_uri()
-    backend = get_probe_backend_uri()
     queue = brain_config.broker_probe.queue
-    _conf_celery(app, broker, backend, queue)
+    _conf_celery(app, broker, queue=queue)
 # ______________________________________________________________________________ BACKEND HELPERS
 
 def _get_backend_uri(backend_config):
@@ -111,10 +106,6 @@ def get_brain_backend_uri():
 
 def get_probe_backend_uri():
     return _get_backend_uri(brain_config.backend_probe)
-
-def get_frontend_backend_uri():
-    return _get_backend_uri(brain_config.backend_frontend)
-
 # ______________________________________________________________________________ BROKER HELPERS
 
 def _get_broker_uri(broker_config):

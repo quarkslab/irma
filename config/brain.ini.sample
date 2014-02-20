@@ -23,6 +23,13 @@ username = probe
 password = probe
 queue = results
 
+[broker_frontend]
+host = 127.0.0.1
+vhost = mqfrontend
+username = frontend
+password = frontend
+queue = frontend
+
 [backend_brain]
 host = 127.0.0.1
 db = 0
@@ -34,7 +41,6 @@ db = 1
 [sql_brain]
 engine = sqlite:///
 dbname = db/irma_scan
-
 
 [ftp_brain]
 host = 127.0.0.1
