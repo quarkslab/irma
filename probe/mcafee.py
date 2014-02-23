@@ -30,7 +30,6 @@ def get_scan_result(filename):
     out, _ = p.communicate()
     # win fr charset to utf8
     res = out.decode("cp1252")
-    os.unlink(filename)
     retcode = p.returncode
     return resultfromoutput(retcode, res)
 

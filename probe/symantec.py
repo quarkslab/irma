@@ -56,10 +56,6 @@ def get_version():
 def get_scan_result(filename):
     p = Popen(["DoSCan", "/ScanFile", filename], stdout=PIPE)
     p.communicate()
-    try:
-        os.unlink(filename)
-    except:
-        pass
     return resultfromlog(os.path.basename(filename))
 
 def scan(filename):
