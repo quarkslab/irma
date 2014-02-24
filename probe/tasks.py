@@ -12,12 +12,13 @@ mscan = importlib.import_module("probe." + config.probe_config['probe'].avname)
 def probe_scan(frontend, scanid, filename):
     try:
         conf_ftp = config.probe_config['ftp_brain']
+        tmpname = "{0}/{1}".format(tempfile.gettempdir(), filename)
         with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
-            _, tmpname = tempfile.mkstemp()
             ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
-            results = mscan.scan(tmpname)
-            os.unlink(tmpname)
+        results = mscan.scan(tmpname)
+        os.unlink(tmpname)
         return results
     except Exception as e:
-        raise probe_scan.retry(countdown=30, max_retries=5, exc=e)
+        print "Exception has occured:{0}".format(e)
+        raise probe_scan.retry(countdown=30, max_retries=5)
 
