@@ -46,8 +46,8 @@ def scan_add(scanid):
         si = ScanInfo(id=scanid)
         # save file in db
         for f in request.files:
-            filename = os.path.basename(f)
             upfile = request.files.get(f)
+            filename = os.path.basename(upfile.filename)
             data = upfile.file.read()
             fobj = ScanFile()
             fobj.save(data, filename)
