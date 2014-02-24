@@ -24,7 +24,7 @@ class NoSQLDatabaseObject(object):
                 self._id = ObjectId(id)
                 self.load(self._id)
             except InvalidId as e:
-                raise IrmaDatabaseError(e)
+                raise IrmaDatabaseError("{0}".format(e))
 
     def __del__(self):
         self.save()
