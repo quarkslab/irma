@@ -50,17 +50,14 @@ def scan_result(scanid, file_hash, probe, result):
             f = ScanFile(id=file_oid)
             if f.hashvalue == file_hash:
                 break
-        if f.hashvalue == file_hash:
-            try:
-                scan_res = ScanResults(id=f.id)
-            except IrmaDatabaseError:
-                scan_res = ScanResults()
-                # Create new record with fix result id
-                scan_res.id = f.id
-            if probe not in scan_res.probelist:
-                scan_res.probelist.append(probe)
-            print "Update result of file {0} with {1}:{2}".format(filename, probe, result)
-            scan_res.results[probe] = result
-            scan_res.save()
-    except IrmaTaskError as e:
-        print "Ftp Error: {0}".format(e)
+        if f.hashvalue != file_hash:
+            return IrmaTaskReturn.error("filename not found in scan info")
+
+        scan_res = ScanResults.init_id(f.id)
+        if probe not in scan_res.probelist:
+            scan_res.probelist.append(probe)
+        print "Update result of file {0} with {1}:{2}".format(filename, probe, result)
+        scan_res.results[probe] = result
+        scan_res.save()
+    except IrmaDatabaseError as e:
+        return IrmaTaskReturn.error(str(e))
