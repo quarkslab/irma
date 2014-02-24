@@ -152,6 +152,21 @@ class CheckAddObject(DbTestCase):
         self.assertEquals(t2.user, "coin")
         self.assertEquals(t2.list, [1, 2, 3])
 
+    def test_init_id(self):
+        fixed_id = str(ObjectId())
+        with self.assertRaises(IrmaDatabaseError):
+            TestObject(fixed_id)
+        t = TestObject.init_id(fixed_id)
+        t.user = "coin"
+        t.list.append(1)
+        t.list.append(2)
+        t.list.append(3)
+        t.save()
+        self.assertEquals(t.id, str(fixed_id))
+        t = TestObject.init_id(fixed_id)
+        self.assertEquals(t.id, str(fixed_id))
+        self.assertEquals(t.user, "coin")
+        self.assertEquals(t.list, [1, 2, 3])
 
 if __name__ == '__main__':
     enable_logging()

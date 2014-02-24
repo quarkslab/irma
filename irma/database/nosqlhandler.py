@@ -91,6 +91,15 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
+    def exists(self, db_name, collection_name, _id):
+        """ check if entry with _id is in collection"""
+        collection = self._table(db_name, collection_name)
+        try:
+            res = collection.find_one({'_id':_id})
+            return res is not None
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
+
     def save(self, db_name, collection_name, dict_object):
         """ save entry in collection"""
         collection = self._table(db_name, collection_name)
