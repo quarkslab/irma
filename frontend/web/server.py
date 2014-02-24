@@ -1,6 +1,7 @@
 import re
 import os
 import celery
+import bottle
 from bottle import route, request, default_app, run, response
 from lib.irma.common.utils import IrmaFrontendReturn
 from frontend.objects import ScanInfo, ScanFile
@@ -13,6 +14,22 @@ config.conf_frontend_celery(frontend_app)
 
 scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
+
+# ______________________________________________________________ SERVER TEST MODE
+
+@bottle.error(405)
+def method_not_allowed(res):
+    if request.method == 'OPTIONS':
+        new_res = bottle.HTTPResponse()
+        new_res.set_header('Access-Control-Allow-Origin', '*')
+        return new_res
+    res.headers['Allow'] += ', OPTIONS'
+    return request.app.default_error_handler(res)
+
+@bottle.hook('after_request')
+def enableCORSAfterRequestHook():
+    bottle.response.set_header('Access-Control-Allow-Origin', '*')
+
 # ______________________________________________________________ SERVER ROOT
 
 @route("/")
