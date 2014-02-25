@@ -1,6 +1,6 @@
 # Names of nodes to start
 #   most will only start one node:
-CELERYD_NODES="worker1"
+CELERYD_NODES="avname"
 #   but you can also start multiple and configure settings
 #   for each in CELERYD_OPTS (see `celery multi --help` for examples).
 CELERYD_NODES="worker1 worker2 worker3"
@@ -11,7 +11,7 @@ CELERY_BIN="/usr/local/bin/celery"
 
 # App instance to use
 # comment out this line if you don't use an app
-CELERY_APP="proj"
+CELERY_APP="probe.tasks"
 # or fully qualified:
 #CELERY_APP="proj.tasks:app"
 
