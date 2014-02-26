@@ -17,7 +17,9 @@ class TestObject(NoSQLDatabaseObject):
     _dbname = test_db_name
     _collection = test_db_collection
 
-    def __init__(self, id=None):
+    def __init__(self, dbname=None, id=None):
+        if dbname is not None:
+            self._dbname = dbname
         self.user = "test"
         self.date = datetime.now()
         self.dict = {}
@@ -155,7 +157,7 @@ class CheckAddObject(DbTestCase):
     def test_init_id(self):
         fixed_id = str(ObjectId())
         with self.assertRaises(IrmaDatabaseError):
-            TestObject(fixed_id)
+            TestObject(id=fixed_id)
         t = TestObject.init_id(fixed_id)
         t.user = "coin"
         t.list.append(1)
@@ -163,10 +165,10 @@ class CheckAddObject(DbTestCase):
         t.list.append(3)
         t.save()
         self.assertEquals(t.id, str(fixed_id))
-        t = TestObject.init_id(fixed_id)
-        self.assertEquals(t.id, str(fixed_id))
-        self.assertEquals(t.user, "coin")
-        self.assertEquals(t.list, [1, 2, 3])
+        t1 = TestObject.init_id(fixed_id)
+        self.assertEquals(t1.id, str(fixed_id))
+        self.assertEquals(t1.user, "coin")
+        self.assertEquals(t1.list, [1, 2, 3])
 
 if __name__ == '__main__':
     enable_logging()

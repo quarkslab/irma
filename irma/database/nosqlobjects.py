@@ -80,7 +80,7 @@ class NoSQLDatabaseObject(object):
         _id = ObjectId(id)
         db = NoSQLDatabase(cls._dbname, cls._uri)
         if db.exists(cls._dbname, cls._collection, _id):
-            new_object = cls(id)
+            new_object = cls(id=id)
         else:
             new_object = cls()
             new_object.id = id
