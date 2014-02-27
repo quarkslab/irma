@@ -11,7 +11,7 @@ class UUID(object):
         except:
             return False
         return True
-        
+
     @classmethod
     def generate(cls):
         return str(uuid.uuid4())
@@ -26,9 +26,9 @@ class MAC(object):
 
     @classmethod
     def validate(cls, val):
-       if MAC.pattern.match(val.strip()):
+        if MAC.pattern.match(val.strip()):
             return True
-       return False
+        return False
 
     @classmethod
     def generate(cls, oui=None):
@@ -39,8 +39,8 @@ class MAC(object):
         mac.extend(map(lambda x: x % 255, oui))
         mac.extend([ random.randint(0x00, 0x7f),
                      random.randint(0x00, 0xff),
-                     random.randint(0x00, 0xff) ] )
-        return ':'.join(map(lambda x: "%02x" % x, mac))        
+                     random.randint(0x00, 0xff) ])
+        return ':'.join(map(lambda x: "%02x" % x, mac))
 
     @classmethod
     def normalize(cls, val):
