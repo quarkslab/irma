@@ -2,39 +2,42 @@
 
 class IrmaTaskReturn:
     @staticmethod
-    def success(info):
-        return (IrmaReturnCode.success, info)
+    def success(msg):
+        return (IrmaReturnCode.success, msg)
 
     @staticmethod
-    def warning(info):
-        return (IrmaReturnCode.warning, info)
+    def warning(msg):
+        return (IrmaReturnCode.warning, msg)
 
     @staticmethod
-    def error(info):
-        return (IrmaReturnCode.error, info)
+    def error(msg):
+        return (IrmaReturnCode.error, msg)
 
 # ______________________________________________________________ FRONTEND RESPONSE FORMATTER
 
 class IrmaFrontendReturn:
     @staticmethod
-    def response(code, info):
-        return {"result":code, "info":info}
+    def response(code, msg, **kwargs):
+        ret = {'code':code, 'msg':msg}
+        ret.update(kwargs)
+        return ret
 
     @staticmethod
-    def success(info):
-        return IrmaFrontendReturn.response(IrmaReturnCode.success, info)
+    def success(**kwargs):
+        return IrmaFrontendReturn.response(IrmaReturnCode.success, "success", **kwargs)
 
     @staticmethod
-    def warning(info):
-        return IrmaFrontendReturn.response(IrmaReturnCode.warning, info)
+    def warning(msg, **kwargs):
+        return IrmaFrontendReturn.response(IrmaReturnCode.warning, msg, **kwargs)
 
     @staticmethod
-    def error(info):
-        return IrmaFrontendReturn.response(IrmaReturnCode.error, info)
+    def error(msg, **kwargs):
+        return IrmaFrontendReturn.response(IrmaReturnCode.error, msg, **kwargs)
 
 # ______________________________________________________________ RETURN CODE
 
 class IrmaReturnCode:
-    success = "success"
-    warning = "warning"
-    error = "error"
+    success = 0
+    warning = 1
+    error = -1
+    label = {success:"success", warning:"warning", error:"error"}
