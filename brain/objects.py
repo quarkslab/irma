@@ -4,18 +4,6 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
 class Scan(Base):
-    status_launched = 10
-    status_cancelling = 20
-    status_cancelled = 21
-    status_finished = 50
-    status_flushed = 100
-    label = {
-             status_launched:"launched",
-             status_cancelling:"cancelling",
-             status_cancelled:"cancelled",
-             status_finished:"finished",
-    }
-
     __tablename__ = 'scans'
     id = Column(Integer, primary_key=True)
     date = Column(DateTime(timezone=True))

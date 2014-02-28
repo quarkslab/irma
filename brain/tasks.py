@@ -4,8 +4,8 @@ from celery import Celery
 import config
 from datetime import datetime, timedelta
 from brain.objects import User, Scan
-from lib.irma.common.utils import IrmaTaskReturn
-from lib.irma.common.exceptions import IrmaTaskError
+from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
+from lib.irma.common.exceptions import IrmaTaskError, IrmaDatabaseError
 from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.ftp.handler import FtpTls
 
@@ -93,7 +93,6 @@ def probe_list():
 
 @scan_app.task(ignore_result=True)
 def scan(scanid, scan_request):
-
     sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
     available_probelist = get_probelist()
     jobs_list = []
@@ -110,14 +109,13 @@ def scan(scanid, scan_request):
         return IrmaTaskReturn.error("{0}".format(e))
 
     for (filename, probelist) in scan_request:
-        # first check probelist if set, if not take all available probes
-        if probelist:
-            for p in probelist:
-                # check if probe exists
-                if p not in available_probelist:
-                    return IrmaTaskReturn.error("Unknown probe {0}".format(p))
-        else:
-            probelist = available_probelist
+        if probelist is None:
+            return IrmaTaskReturn.error("Empty probe list")
+        # first check probelist
+        for p in probelist:
+            # check if probe exists
+            if p not in available_probelist:
+                return IrmaTaskReturn.error("Unknown probe {0}".format(p))
 
         # Now, create one subtask per file to scan per probe according to quota
         for probe in probelist:
@@ -135,7 +133,7 @@ def scan(scanid, scan_request):
         # keep the groupresult object for task status/cancel
         groupres.save()
 
-        scan = Scan(scanid=scanid, taskid=groupid, nbfiles=len(jobs_list), status=Scan.status_launched, user_id=user.id, date=datetime.now())
+        scan = Scan(scanid=scanid, taskid=groupid, nbfiles=len(jobs_list), status=IrmaScanStatus.launched, user_id=user.id, date=datetime.now())
         sql.add(scan)
     print "%d files receives / %d active probe / %d probe used / %d jobs launched" % (len(scan_request), len(available_probelist), len(probelist), len(jobs_list))
     return
@@ -144,24 +142,29 @@ def scan(scanid, scan_request):
 def scan_progress(scanid):
     try:
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
-        # FIXME get rmq_vhost
-        rmqvhost = "mqfrontend"
+    except Exception as e:
+        return IrmaTaskReturn.error("Brain SQL: {0}".format(e))
+    # FIXME get rmq_vhost
+    rmqvhost = "mqfrontend"
+    try:
         user = sql.one_by(User, rmqvhost=rmqvhost)
+    except Exception as e:
+        return IrmaTaskReturn.error("User: {0}".format(e))
+    try:
         scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
-        if scan.status == Scan.status_launched:
-            if not scan.taskid:
-                return IrmaTaskReturn.error("task_id not set")
-            gr = get_groupresult(scan.taskid)
-            nbcompleted = nbsuccessful = 0
-            for j in gr:
-                if j.ready(): nbcompleted += 1
-                if j.successful(): nbsuccessful += 1
-            return IrmaTaskReturn.success({"total":len(gr), "finished":nbcompleted, "successful":nbsuccessful})
-        else:
-            return IrmaTaskReturn.warning(Scan.label[scan.status])
-    except IrmaTaskError as e:
-        return IrmaTaskReturn.error("{0}".format(e))
-    return IrmaTaskReturn.error("unknown")
+    except Exception as e:
+        return IrmaTaskReturn.warning(IrmaScanStatus.created)
+    if scan.status == IrmaScanStatus.launched:
+        if not scan.taskid:
+            return IrmaTaskReturn.error("task_id not set")
+        gr = get_groupresult(scan.taskid)
+        nbcompleted = nbsuccessful = 0
+        for j in gr:
+            if j.ready(): nbcompleted += 1
+            if j.successful(): nbsuccessful += 1
+        return IrmaTaskReturn.success({"total":len(gr), "finished":nbcompleted, "successful":nbsuccessful})
+    else:
+        return IrmaTaskReturn.warning(scan.status)
 
 @scan_app.task()
 def scan_cancel(scanid):
@@ -169,10 +172,16 @@ def scan_cancel(scanid):
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
         # FIXME get rmq_vhost
         rmqvhost = "mqfrontend"
-        user = sql.one_by(User, rmqvhost=rmqvhost)
-        scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
-        if scan.status == Scan.status_launched:
-            scan.status = Scan.status_cancelling
+        try:
+            user = sql.one_by(User, rmqvhost=rmqvhost)
+        except IrmaDatabaseError as e:
+            return IrmaTaskReturn.error("User: {0}".format(e))
+        try:
+            scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
+        except IrmaDatabaseError:
+            return IrmaTaskReturn.warning(IrmaScanStatus.created)
+        if scan.status == IrmaScanStatus.launched:
+            scan.status = IrmaScanStatus.cancelling
             # commit as soon as possible to avoid cancelling again
             sql.commit()
             gr = get_groupresult(scan.taskid)
@@ -184,13 +193,12 @@ def scan_cancel(scanid):
                 else:
                     j.revoke(terminate=True)
                     nbcancelled += 1
-            scan.status = Scan.status_cancelled
+            scan.status = IrmaScanStatus.cancelled
             return IrmaTaskReturn.success({"total":len(gr), "finished":nbcompleted, "cancelled":nbcancelled})
         else:
-            return IrmaTaskReturn.warning(Scan.label[scan.status])
+            return IrmaTaskReturn.warning(scan.status)
     except IrmaTaskError as e:
         return IrmaTaskReturn.error("{0}".format(e))
-    return IrmaTaskReturn.error("unknown")
 
 @results_app.task(ignore_result=True)
 def scan_result(result, frontend, scanid, filename, probe):
@@ -207,7 +215,7 @@ def scan_result(result, frontend, scanid, filename, probe):
             if j.ready(): nbcompleted += 1
             if j.successful(): nbsuccessful += 1
         if nbtotal == nbcompleted:
-            scan.status = Scan.status_finished
+            scan.status = IrmaScanStatus.processed
             flush_dir(frontend, scanid)
             # delete groupresult
             gr.delete()
