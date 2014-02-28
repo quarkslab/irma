@@ -21,7 +21,7 @@ def get_scan_result(hashvalue):
 
 def scan(filename):
     res = {}
-    with open("filename", "rb") as f:
+    with open(filename, "rb") as f:
         sha256 = hashlib.sha256(f.read()).hexdigest()
     res['result'] = get_scan_result(sha256)
     return res

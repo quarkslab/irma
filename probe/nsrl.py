@@ -5,11 +5,13 @@ import binascii
 NSRL_DB = "/home/irma/nsrldb"
 
 global db
-db = leveldb.LevelDB(NSRL_DB, block_cache_size=1 << 30, max_open_files=3000)
+db = None
 
 def get_info(sha1):
     global db
     try:
+        if db is None:
+            db = leveldb.LevelDB(NSRL_DB, block_cache_size=1 << 30, max_open_files=3000)
         res = eval(db.Get(binascii.unhexlify(sha1)))
     except KeyError:
         res = "Not found"
@@ -17,7 +19,7 @@ def get_info(sha1):
 
 def scan(filename):
     res = {}
-    with open("filename", "rb") as f:
+    with open(filename, "rb") as f:
         sha1 = hashlib.sha1(f.read()).hexdigest()
     res['result'] = get_info(sha1)
     return res

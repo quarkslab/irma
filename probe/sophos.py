@@ -1,4 +1,3 @@
-import os
 import re
 from subprocess import Popen, PIPE
 
@@ -30,7 +29,6 @@ def get_scan_result(filename):
     # win fr charset to utf8
     res = out.decode("cp1252")
     retcode = p.returncode
-    os.unlink(filename)
     return resultfromoutput(retcode, res)
 
 
