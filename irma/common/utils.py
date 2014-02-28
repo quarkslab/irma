@@ -41,3 +41,23 @@ class IrmaReturnCode:
     warning = 1
     error = -1
     label = {success:"success", warning:"warning", error:"error"}
+
+# ______________________________________________________________ SCAN STATUS (Brain/Frontend)
+
+class IrmaScanStatus:
+    created = 0
+    launched = 10
+    cancelling = 20
+    cancelled = 21
+    processed = 30
+    finished = 50
+    flushed = 100
+    label = {
+             created:"created",
+             launched:"launched",
+             cancelling:"cancelling",
+             cancelled:"cancelled",
+             processed:"processed",
+             finished:"finished",
+             flushed:"flushed"
+    }
