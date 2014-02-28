@@ -5,7 +5,7 @@ PIDFILE=$IRMA_DIR/frontend.pid
 
 function launch_frontend {
 	cd $IRMA_DIR
-	python -m frontend.web.server 2> $IRMA_DIR/frontend.log &
+	python -m frontend.web.api 2> $IRMA_DIR/frontend.log &
 	echo -n $! > $PIDFILE
 }
 

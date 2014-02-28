@@ -6,12 +6,12 @@ import time
 TEST_NAME = "eicar.com"
 SCAN_TIMEOUT_SEC = 60
 BEFORE_NEXT_PROGRESS = 5
-DEBUG = False
+DEBUG = True
 
 RESULTS = {
            u'nsrl': {u'result': [u'eicar.com.txt,68,18115,358,']},
-           u'clamav': {u'version': u'ClamAV 0.97.8/18517/Wed Feb 26 10:44:17 2014', u'result': u'Eicar-Test-Signature'},
-           u'virustotal': {u'result': u'46/48 positives'},
+           u'clamav': {u'version': u'ClamAV 0.97.8/18523/Fri Feb 28 10:59:27 2014', u'result': u'Eicar-Test-Signature'},
+           u'virustotal': {u'result': u'48/50 positives'},
            u'kaspersky': {u'version': u'Kaspersky Anti-Virus (R) 14.0.0.4837', u'result': u'EICAR-Test-File'}}
 
 ##############################################################################
@@ -41,7 +41,7 @@ class IrmaCliTest(FunctionnalTestCase):
         return
 
     def test_scan_one_file(self):
-        scanid = _scan_new()
+        scanid = _scan_new(DEBUG)
         self.assertIsNotNone(scanid)
         filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), TEST_NAME)
         _scan_add(scanid, [filename], DEBUG)
@@ -52,10 +52,10 @@ class IrmaCliTest(FunctionnalTestCase):
         start = time.time()
         while True:
             (status , _, total, _) = _scan_progress(scanid, DEBUG)
-            if status == IrmaScanStatus.finished:
+            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
                 break
-            if status == IrmaScanStatus.in_progress:
-                self.assertEquals(total, 1)
+            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
+                self.assertEquals(total, len(probelaunched))
             now = time.time()
             self.assertLessEqual(now, start + SCAN_TIMEOUT_SEC, "Results Timeout")
             time.sleep(BEFORE_NEXT_PROGRESS)
@@ -67,7 +67,7 @@ class IrmaCliTest(FunctionnalTestCase):
         return
 
     def test_scan_one_file_forced(self):
-        scanid = _scan_new()
+        scanid = _scan_new(DEBUG)
         self.assertIsNotNone(scanid)
         filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), TEST_NAME)
         _scan_add(scanid, [filename], DEBUG)
@@ -78,9 +78,9 @@ class IrmaCliTest(FunctionnalTestCase):
         start = time.time()
         while True:
             (status , _, total, _) = _scan_progress(scanid, DEBUG)
-            if status == IrmaScanStatus.finished:
+            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
                 break
-            if status == IrmaScanStatus.in_progress:
+            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
                 self.assertEquals(total, len(probelaunched))
             now = time.time()
             print "{0} sec elapsed".format(now - start)
@@ -96,7 +96,7 @@ class IrmaCliTest(FunctionnalTestCase):
     def test_scan_one_probe(self):
         probelist = [probe for probe in _probe_list(DEBUG) if probe in RESULTS.keys()]
         probeselected = probelist[random.randrange(len(probelist))]
-        scanid = _scan_new()
+        scanid = _scan_new(DEBUG)
         self.assertIsNotNone(scanid)
         filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), TEST_NAME)
         _scan_add(scanid, [filename], DEBUG)
@@ -107,9 +107,9 @@ class IrmaCliTest(FunctionnalTestCase):
         start = time.time()
         while True:
             (status , _, total, _) = _scan_progress(scanid, DEBUG)
-            if status == IrmaScanStatus.finished:
+            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
                 break
-            if status == IrmaScanStatus.in_progress:
+            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
                 self.assertEquals(total, len(probelaunched))
             now = time.time()
             self.assertLessEqual(now, start + SCAN_TIMEOUT_SEC, "Results Timeout")

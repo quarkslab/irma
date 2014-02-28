@@ -1,25 +1,12 @@
 import config
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
+from lib.irma.common.utils import IrmaScanStatus
 from datetime import datetime
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
 cfg_coll = config.frontend_config['collections']
-
-class ScanStatus:
-    init = 10
-    launched = 11
-    finished = 20
-    cancelling = 30
-    cancelled = 31
-
-    label = {
-             init:"scan created",
-             launched:"scan launched",
-             finished:"scan finished",
-             cancelled:"scan cancelled"
-    }
 
 class ScanInfo(NoSQLDatabaseObject):
     _uri = cfg_dburi
@@ -33,17 +20,44 @@ class ScanInfo(NoSQLDatabaseObject):
         self.date = datetime.now()
         self.oids = {}
         self.probelist = None
-        self.status = ScanStatus.init
+        self.status = IrmaScanStatus.created
         super(ScanInfo, self).__init__(id=id)
+
+    def is_launchable(self):
+        return self.status == IrmaScanStatus.created
+
+    def is_launched(self):
+        return self.status == IrmaScanStatus.launched
+
+    def launched(self):
+        self.status = IrmaScanStatus.launched
+
+    def processed(self):
+        self.status = IrmaScanStatus.processed
+
+    def cancelled(self):
+        self.status = IrmaScanStatus.cancelled
+
+    def finished(self):
+        self.status = IrmaScanStatus.finished
+
+    def check_completed(self):
+        probelist = self.probelist
+        for fileinfo in self.oids.values():
+            remaining = [probe for probe in probelist if probe not in fileinfo['probedone']]
+            if len(remaining) != 0:
+                # at least one result is not there
+                return
+        self.finished()
+
 
     def get_results(self):
         res = {}
-        for (oid, name) in self.oids.items():
+        for (oid, info) in self.oids.items():
+            name = info['name']
             r = ScanResults(id=oid)
-            if self.probelist is not None:
-                res[name] = dict((k, v) for (k, v) in r.results.iteritems() if k in self.probelist)
-            else:
-                res[name] = dict((k, v) for (k, v) in r.results.iteritems())
+            if r.results:
+                res[name] = dict((probe, results) for (probe, results) in r.results.iteritems() if probe in self.probelist)
         return res
 
 class ScanResults(NoSQLDatabaseObject):

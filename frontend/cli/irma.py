@@ -2,66 +2,129 @@
 
 import requests
 import json
-import sys
 import argparse
 
-# ADDRESS = "http://brain.irma.qb:8080"
-ADDRESS = "http://192.168.130.163:8080"
+ADDRESS = "http://172.16.36.130:8080"
+# ADDRESS = "http://localhost:8080"
+
+class IrmaReturnCode:
+    success = 0
+    warning = 1
+    error = -1
+    label = {success:"success", warning:"warning", error:"error"}
 
 class IrmaError(Exception):
     """Error on cli script"""
     pass
 
+class IrmaScanStatus:
+    created = 0
+    launched = 10
+    cancelling = 20
+    cancelled = 21
+    processed = 30
+    finished = 50
+    flushed = 100
+    label = {
+             created:"scan created",
+             launched:"scan launched",
+             cancelling:"scan being cancelled",
+             cancelled:"scan cancelled",
+             processed:"scan processed",
+             finished:"scan finished",
+             flushed:"scan flushed"
+    }
 
-def probe_list():
-    try:
-        resp = requests.get(url=ADDRESS + '/probe_list')
-        data = json.loads(resp.content)
-        if data['result'] == "success":
-            print "Available analysis : " + ", ".join(data["info"])
-        else:
-            print "%s: %s" % (data['result'], data["info"])
-    except requests.exceptions.ConnectionError:
-        print "Error connecting to frontend"
-    except Exception, e:
-        print "Error getting analysis list: %s", e
+# ______________________________________________________________________________ Functions returns values or raise (Called by other program)
+
+def _generic_get_call(url, kwname, verbose):
+    resp = requests.get(url)
+    data = json.loads(resp.content)
+    if verbose: print data
+    if data['code'] == IrmaReturnCode.success:
+        return data[kwname]
+    else:
+        raise IrmaError("{0}: {1}".format(IrmaReturnCode.label[data['code']], data['msg']))
     return
 
-def scan_cancel(scanid=None):
-    try:
-        resp = requests.get(url=ADDRESS + '/scan/cancel/' + scanid)
-        print resp.content
-    except requests.exceptions.ConnectionError:
-        print "Error connecting to frontend"
+def _ping(verbose=False):
+    return _generic_get_call(ADDRESS, 'msg', verbose)
+
+def _probe_list(verbose=False):
+    return _generic_get_call(ADDRESS + '/probe/list', 'probe_list', verbose)
+
+def _scan_cancel(scanid, verbose=False):
+    return _generic_get_call(ADDRESS + '/scan/cancel/' + scanid, 'cancel_details', verbose)
+
+def _scan_results(scanid, verbose=False):
+    return _generic_get_call(ADDRESS + '/scan/results/' + scanid, 'scan_results', verbose)
+
+def _scan_new(verbose=False):
+    return _generic_get_call(ADDRESS + '/scan/new', 'scan_id', verbose)
+
+def _scan_progress(scanid, verbose=False):
+    resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
+    if verbose: print resp.content
+    data = json.loads(resp.content)
+    status = None
+    finished = None
+    successful = None
+    total = None
+    if data['code'] == IrmaReturnCode.success:
+        status = IrmaScanStatus.launched
+        results = data['progress_details']
+        finished = results['finished']
+        successful = results['successful']
+        total = results['total']
+    elif data['code'] == IrmaReturnCode.warning:
+        status = data['msg']
+    else:
+        raise IrmaError("{0} getting progress: {1}".format(IrmaReturnCode.label[data['code']], data['msg']))
+    return (status, finished, total, successful)
+
+def _scan_add(scanid, filelist, verbose=False):
+    postfiles = dict(map(lambda t: (t, open(t, 'rb')), filelist))
+    resp = requests.post(ADDRESS + '/scan/add/' + scanid, files=postfiles)
+    data = json.loads(resp.content)
+    if verbose: print data
+    if data['code'] != IrmaReturnCode.success:
+        raise IrmaError("{0}: {1}".format(data['code'], data['msg']))
+    return data['nb_files']
+
+def _scan_launch(scanid, force, probe, verbose=False):
+    params = {'force':force}
+    if probe:
+        params['probe'] = ','.join(probe)
+    resp = requests.get(ADDRESS + '/scan/launch/' + scanid, params=params)
+    data = json.loads(resp.content)
+    if verbose: print data
+    if data['code'] != IrmaReturnCode.success:
+        raise IrmaError("{0} launching scan: {1}".format(IrmaReturnCode.label[data['code']], data['msg']))
+    else:
+        probelist = data['probe_list']
+    return probelist
+
+# ______________________________________________________________________________ Functions print values or raise (Called by UI)
+
+def probe_list(verbose=False):
+    probelist = _probe_list(verbose)
+    print "Available analysis : " + ", ".join(probelist)
     return
 
+def scan_cancel(scanid=None, verbose=False):
+    print _scan_cancel(scanid, verbose)
+    return
 
-def scan_status(scanid=None, partial=None):
-    try:
-        resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
-        data = json.loads(resp.content)
-        if data['result'] == "success":
-            results = data['info']
-            finished = results['finished']
-            successful = results['successful']
-            total = results['total']
-            rate_total = rate_success = 0
-            if total != 0 : rate_total = finished * 100 / total
-            if finished != 0 : rate_success = successful * 100 / finished
-            print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
-            if finished == total or partial:
-                scan_results(scanid=scanid)
-        elif data['result'] == 'warning' and data['info'] == "finished":
-            scan_results(scanid=scanid)
-        elif data['result'] == 'warning' and data['info'] == "cancelled":
-            print data['info']
-            scan_results(scanid=scanid)
-        else:
-            print data['info']
-    except requests.exceptions.ConnectionError:
-        print "Error connecting to frontend"
-    except Exception, e:
-        print "Error getting scan status: %s" % e
+def scan_progress(scanid=None, partial=None, verbose=False):
+    (status , finished, total, successful) = _scan_progress(scanid, verbose)
+    if status == IrmaScanStatus.launched:
+        rate_total = rate_success = 0
+        if total != 0 : rate_total = finished * 100 / total
+        if finished != 0 : rate_success = successful * 100 / finished
+        print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
+    if status == IrmaScanStatus.finished or partial:
+            print "Scan status : {0}".format(IrmaScanStatus.label[status])
+            scan_results(scanid=scanid, verbose=verbose)
     return
 
 def print_results(list_res, justify=12):
@@ -77,64 +140,21 @@ def print_results(list_res, justify=12):
             else:
                 print avres
 
-def scan_results(scanid=None):
-    try:
-        resp = requests.get(url=ADDRESS + '/scan/results/' + scanid)
-        data = json.loads(resp.content)
-        if data['result'] == "success":
-            list_res = data['info']
-        else:
-            sys.exit(0)
-        print_results(list_res)
-    except requests.exceptions.ConnectionError:
-        print "Error connecting to frontend"
-    except Exception, e:
-        print "Error getting scan results: %s" % e
+def scan_results(scanid=None, verbose=False):
+    print_results(_scan_results(scanid, verbose))
     return
 
-def scan(filename=None, force=None, probe=None):
-    try:
-        scanid = scan_new()
-        scan_add(scanid, filename)
-        scan_launch(scanid, force, probe)
-    except requests.exceptions.ConnectionError:
-        print "Error connecting to frontend"
-    except Exception, e:
-        print "Error creating new scan: %s" % e
-
-    return
-
-def scan_new():
-    resp = requests.get(ADDRESS + '/scan/new')
-    data = json.loads(resp.content)
-    if data['result'] == "success":
-        scanid = data['info']['scanid']
-        return scanid
-    else:
-        raise IrmaError("{0}: {1}".format(data['result'], data['info']))
-
-def scan_add(scanid, filename):
-    postfiles = dict(map(lambda t: (t, open(t, 'rb')), filename))
-    resp = requests.post(ADDRESS + '/scan/add/' + scanid, files=postfiles)
-    data = json.loads(resp.content)
-    if data['result'] != "success":
-        raise IrmaError("{0}: {1}".format(data['result'], data['info']))
-    return
-
-
-def scan_launch(scanid, force, probe):
-    params = {'force':force}
-    if probe:
-        params['probe'] = ','.join(probe)
-    resp = requests.get(ADDRESS + '/scan/launch/' + scanid, params=params)
-    data = json.loads(resp.content)
-    if data['result'] == "success":
-        print "scanid {0} launched".format(scanid)
+def scan(filename=None, force=None, probe=None, verbose=False):
+    scanid = _scan_new(verbose)
+    _scan_add(scanid, filename, verbose)
+    _scan_launch(scanid, force, probe, verbose)
+    print "scanid {0} launched".format(scanid)
     return
 
 if __name__ == "__main__":
     # create the top-level parser
     parser = argparse.ArgumentParser(description='command line interface for IRMA')
+    parser.add_argument('-v', dest='verbose', action='store_true', help='verbose output')
     subparsers = parser.add_subparsers(help='sub-command help')
 
     # create the parser for the "list" command
@@ -152,7 +172,7 @@ if __name__ == "__main__":
     res_parser = subparsers.add_parser('results', help='print scan results')
     res_parser.add_argument('--partial', dest='partial', action='store_true', help='print results as soon as they are available')
     res_parser.add_argument('scanid', help='scanid returned by scan command')
-    res_parser.set_defaults(func=scan_status)
+    res_parser.set_defaults(func=scan_progress)
 
     # create the parser for the "cancel" command
     cancel_parser = subparsers.add_parser('cancel', help='cancel scan')
@@ -164,4 +184,11 @@ if __name__ == "__main__":
     # with 'func' removed, args is now a kwargs with only
     # the specific arguments for each subfunction
     # useful for interactive mode.
-    func(**args)
+    try:
+        func(**args)
+    except requests.exceptions.ConnectionError:
+        print "Error connecting to frontend"
+    except IrmaError, e:
+        print "IrmaError: {0}".format(e)
+    except Exception, e:
+        raise IrmaError("Uncaught exception: {0}".format(e))

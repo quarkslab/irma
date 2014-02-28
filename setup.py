@@ -10,5 +10,10 @@ setup(
     license='LICENSE',
     description='Frontend package for IRMA',
     long_description=open('README.rst').read(),
-    install_requires = ['celery>=3.1.5','redis>=2.8.0','pymongo>=2.6.3','bottle>=0.11.6'],
+    entry_points={
+                  "server": [
+                             'server = frontend.web.server'
+                             ]},
+    scripts=["scripts/launch_server.sh"],
+    install_requires=['celery>=3.1.5', 'redis>=2.8.0', 'pymongo>=2.6.3', 'bottle>=0.11.6'],
 )
