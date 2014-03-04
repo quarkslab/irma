@@ -17,6 +17,9 @@ class IrmaError(Exception):
     """Error on cli script"""
     pass
 
+# Warning this is a copy of IrmaScanStatus lib.irma.common.utils
+# in order to get rid of this dependency
+# KEEP SYNCHRONIZED
 class IrmaScanStatus:
     created = 0
     launched = 10
@@ -26,13 +29,13 @@ class IrmaScanStatus:
     finished = 50
     flushed = 100
     label = {
-             created:"scan created",
-             launched:"scan launched",
-             cancelling:"scan being cancelled",
-             cancelled:"scan cancelled",
-             processed:"scan processed",
-             finished:"scan finished",
-             flushed:"scan flushed"
+             created:"created",
+             launched:"launched",
+             cancelling:"being cancelled",
+             cancelled:"cancelled",
+             processed:"processed",
+             finished:"finished",
+             flushed:"flushed"
     }
 
 # ______________________________________________________________________________ Functions returns values or raise (Called by other program)
@@ -71,7 +74,7 @@ def _scan_progress(scanid, verbose=False):
     successful = None
     total = None
     if data['code'] == IrmaReturnCode.success:
-        status = IrmaScanStatus.launched
+        status = IrmaScanStatus.label[IrmaScanStatus.launched]
         results = data['progress_details']
         finished = results['finished']
         successful = results['successful']
@@ -123,8 +126,9 @@ def scan_progress(scanid=None, partial=None, verbose=False):
         if finished != 0 : rate_success = successful * 100 / finished
         print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
     if status == IrmaScanStatus.label[IrmaScanStatus.finished] or partial:
-            print "Scan status : {0}".format(status)
             scan_results(scanid=scanid, verbose=verbose)
+    else:
+        print "Scan status : {0}".format(status)
     return
 
 def print_results(list_res, justify=12):

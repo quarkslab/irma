@@ -38,6 +38,24 @@ class IrmaReturnCode:
     error = -1
     label = {success:"success", warning:"warning", error:"error"}
 
+class IrmaScanStatus:
+    created = 0
+    launched = 10
+    cancelling = 20
+    cancelled = 21
+    processed = 30
+    finished = 50
+    flushed = 100
+    label = {
+             created:"created",
+             launched:"launched",
+             cancelling:"being cancelled",
+             cancelled:"cancelled",
+             processed:"processed",
+             finished:"finished",
+             flushed:"flushed"
+    }
+
 # ______________________________________________________________________________ IRMA SYSTEM MOCKUP
 
 session = {}
@@ -168,12 +186,12 @@ def scan_progress(scanid):
     if scanid not in session:
         raise IrmaFrontendError("Unknown scanid")
     if progress[scanid] == total[scanid]:
-        raise IrmaFrontendWarning("finished")
+        raise IrmaFrontendWarning(IrmaScanStatus.label[IrmaScanStatus.finished])
     else:
         # simulate a progression of one job each progress request
         progress[scanid] += 1
     if progress[scanid] == total[scanid]:
-        raise IrmaFrontendWarning("processed")
+        raise IrmaFrontendWarning(IrmaScanStatus.label[IrmaScanStatus.processed])
     else:
         return {'finished':progress[scanid], 'total':total[scanid], 'successful':progress[scanid]}
 
@@ -190,7 +208,7 @@ def scan_cancel(scanid):
     if scanid not in session:
         raise IrmaFrontendError("Unknown scanid")
     if progress[scanid] == total[scanid]:
-        raise IrmaFrontendWarning("finished")
+        raise IrmaFrontendWarning(IrmaScanStatus.label[IrmaScanStatus.finished])
     nb_cancelled = total[scanid] - progress[scanid]
     progress[scanid] = total[scanid]
     return {'finished':progress[scanid], 'total':total[scanid], 'cancelled':nb_cancelled}
