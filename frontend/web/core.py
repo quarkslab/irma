@@ -116,9 +116,9 @@ def scan_results(scanid):
     """ get all results from files of specified scan 
     
     :param scanid: id returned by scan_new
-    :rtype: dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]
+    :rtype: dict of sha256 value: dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]
     :return: 
-        dict of results for each filename
+        dict of results for each hash value
     :raise: IrmaDatabaseError
     """
     # fetch results in db

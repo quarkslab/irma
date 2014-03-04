@@ -1,5 +1,6 @@
 import random
 from bson import ObjectId
+from hashlib import sha256
 
 # ______________________________________________________________________________ FRONTEND Exceptions
 
@@ -64,7 +65,7 @@ progress = {}
 probes = ["nsrl", "symantec", "virustotal", "sophos", "clamav", "kaspersky", "mcafee"]
 results_filename = { "eicar.com": {u'nsrl': {u'result': [u'eicar.com.txt,68,18115,358,']},
    u'clamav': {u'version': u'ClamAV 0.97.8/18517/Wed Feb 26 10:44:17 2014', u'result': u'Eicar-Test-Signature'},
-   u'virustotal': {u'result': u'46/48 positives'},
+   u'virustotal': {u'result': u'48/50 positives'},
    u'kaspersky': {u'version': u'Kaspersky Anti-Virus (R) 14.0.0.4837', u'result': u'EICAR-Test-File'}
    }}
 results = [ { "nsrl": {"result": "Not found"},
@@ -131,11 +132,16 @@ def scan_add(scanid, files):
     global session, total
     if scanid not in session:
         raise IrmaFrontendError("Unknown scanid")
-    for (name, _) in files.items():
+    for (name, data) in files.items():
+        hashval = sha256(data).hexdigest()
+        print 'Name', name
         if name in results_filename:
-            session[scanid]['files'] = {name :results_filename[name]}
+            session[scanid]['files'] = {}
+            session[scanid]['files'].update({hashval:{'filename':name, 'results' :results_filename[name]}})
         else:
-            session[scanid]['files'] = {name : results[random.randrange(len(results))]}
+            session[scanid]['files'] = {}
+            session[scanid]['files'].update({hashval: {'filename':name, 'results' :results[random.randrange(len(results))]}})
+        print "Result", session[scanid]['files']
         total[scanid] += 1
     return total[scanid]
 
@@ -161,16 +167,18 @@ def scan_results(scanid):
     """ get all results from files of specified scan 
     
     :param scanid: id returned by scan_new
-    :rtype: dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]
+    :rtype: dict of sha256 value: dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]
     :return: 
-        dict of results for each filename
+        dict of results for each hash value
     """
     if scanid not in session:
         raise IrmaFrontendError("Unknown scanid")
     res = {}
     probelist = session[scanid]['probelist']
-    for (filename, results) in session[scanid]['files'].items():
-        res[filename] = dict((k, v) for k, v in results.items() if k in probelist)
+    for (hashval, info) in session[scanid]['files'].items():
+        res[hashval] = {}
+        res[hashval]['filename'] = info['filename']
+        res[hashval]['results'] = dict((k, v) for k, v in info['results'].items() if k in probelist)
     return res
 
 def scan_progress(scanid):
