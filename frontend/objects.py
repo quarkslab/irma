@@ -41,15 +41,14 @@ class ScanInfo(NoSQLDatabaseObject):
     def finished(self):
         self.status = IrmaScanStatus.finished
 
-    def check_completed(self):
+    def is_completed(self):
         probelist = self.probelist
         for fileinfo in self.oids.values():
             remaining = [probe for probe in probelist if probe not in fileinfo['probedone']]
             if len(remaining) != 0:
                 # at least one result is not there
-                return
-        self.finished()
-
+                return False
+        return True
 
     def get_results(self):
         res = {}
@@ -57,7 +56,11 @@ class ScanInfo(NoSQLDatabaseObject):
             name = info['name']
             r = ScanResults(id=oid)
             if r.results:
-                res[name] = dict((probe, results) for (probe, results) in r.results.iteritems() if probe in self.probelist)
+                scanfile = ScanFile(id=oid)
+                sha256 = scanfile.hashvalue
+                res[sha256] = {}
+                res[sha256]['filename'] = name
+                res[sha256]['results'] = dict((probe, results) for (probe, results) in r.results.iteritems() if probe in self.probelist)
         return res
 
 class ScanResults(NoSQLDatabaseObject):

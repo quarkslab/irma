@@ -56,16 +56,16 @@ def _probe_list(verbose=False):
 def _scan_cancel(scanid, verbose=False):
     return _generic_get_call(ADDRESS + '/scan/cancel/' + scanid, 'cancel_details', verbose)
 
-def _scan_results(scanid, verbose=False):
-    return _generic_get_call(ADDRESS + '/scan/results/' + scanid, 'scan_results', verbose)
+def _scan_result(scanid, verbose=False):
+    return _generic_get_call(ADDRESS + '/scan/result/' + scanid, 'scan_results', verbose)
 
 def _scan_new(verbose=False):
     return _generic_get_call(ADDRESS + '/scan/new', 'scan_id', verbose)
 
 def _scan_progress(scanid, verbose=False):
     resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
-    if verbose: print resp.content
     data = json.loads(resp.content)
+    if verbose: print data
     status = None
     finished = None
     successful = None
@@ -117,19 +117,21 @@ def scan_cancel(scanid=None, verbose=False):
 
 def scan_progress(scanid=None, partial=None, verbose=False):
     (status , finished, total, successful) = _scan_progress(scanid, verbose)
-    if status == IrmaScanStatus.launched:
+    if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
         rate_total = rate_success = 0
         if total != 0 : rate_total = finished * 100 / total
         if finished != 0 : rate_success = successful * 100 / finished
         print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
-    if status == IrmaScanStatus.finished or partial:
-            print "Scan status : {0}".format(IrmaScanStatus.label[status])
+    if status == IrmaScanStatus.label[IrmaScanStatus.finished] or partial:
+            print "Scan status : {0}".format(status)
             scan_results(scanid=scanid, verbose=verbose)
     return
 
 def print_results(list_res, justify=12):
-    for (name, res) in list_res.items():
-        print "%s" % name
+    for (hash, info) in list_res.items():
+        name = info['filename']
+        res = info['results']
+        print "{0}\n[SHA256: {1}]".format(name, hash)
         for av in res:
             print "\t%s" % (av.ljust(justify)),
             avres = res[av]['result']
@@ -141,7 +143,7 @@ def print_results(list_res, justify=12):
                 print avres
 
 def scan_results(scanid=None, verbose=False):
-    print_results(_scan_results(scanid, verbose))
+    print_results(_scan_result(scanid, verbose))
     return
 
 def scan(filename=None, force=None, probe=None, verbose=False):

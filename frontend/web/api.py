@@ -120,12 +120,12 @@ def scan_launch(scanid):
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
-@route("/scan/results/<scanid>", method='GET')
+@route("/scan/result/<scanid>", method='GET')
 def scan_results(scanid):
     """ get all results from files of specified scan 
     
     :param scanid: id returned by scan_new
-    :rtype: dict of 'code': int, 'msg': str [, optional 'scan_results': dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]]
+    :rtype: dict of 'code': int, 'msg': str [, optional 'scan_results': dict of [sha256 value: dict of 'filenames':list of filename, 'results': dict of [str probename: dict [results of probe]]]]
     :return: 
         on success 'scan_results' is the dict of results for each filename
         on error 'msg' gives reason message
