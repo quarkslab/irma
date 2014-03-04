@@ -83,5 +83,8 @@ class FileObject(object):
 
     @property
     def id(self):
-        """Get the str form of id"""
-        return str(self._id)
+        """Return str version of ObjectId"""
+        if not self._id:
+            return None
+        else:
+            return str(self._id)

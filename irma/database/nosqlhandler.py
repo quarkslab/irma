@@ -132,7 +132,7 @@ class NoSQLDatabase(Singleton):
         try:
             res = collection.find_one({'hashvalue' :hashvalue}, {'_id': 1})
             if res:
-                return str(res['_id'])
+                return res['_id']
             else:
                 return None
         except Exception as e:
@@ -144,7 +144,7 @@ class NoSQLDatabase(Singleton):
         # create a new record
         try:
             file_oid = fsdbh.put(data, filename=name, hashvalue=hashvalue, altnames=altnames)
-            return str(file_oid)
+            return file_oid
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
@@ -153,7 +153,7 @@ class NoSQLDatabase(Singleton):
         collection = self._table(db_name, collection_name + ".files")
         # check if record exists
         try:
-            collection.update({"_id": ObjectId(_id)}, {"$set": {"altnames": altnames}})
+            collection.update({"_id": _id}, {"$set": {"altnames": altnames}})
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
@@ -161,6 +161,6 @@ class NoSQLDatabase(Singleton):
         """ get data from gridfs by file object-id """
         fsdbh = gridfs.GridFS(self._database(db_name), collection=collection_name)
         try:
-            return fsdbh.get(ObjectId(file_oid))
+            return fsdbh.get(file_oid)
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
