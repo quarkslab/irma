@@ -170,6 +170,18 @@ class CheckAddObject(DbTestCase):
         self.assertEquals(t1.user, "coin")
         self.assertEquals(t1.list, [1, 2, 3])
 
+
+    def test_update(self):
+        t = TestObject()
+        t.user = "coin"
+        t.list.append(1)
+        t.list.append(2)
+        t.list.append(3)
+        t.save()
+        t.update({'user':"bla"})
+        t1 = TestObject(id=t.id)
+        self.assertEquals(t1.user, "bla")
+
 if __name__ == '__main__':
     enable_logging()
     unittest.main()

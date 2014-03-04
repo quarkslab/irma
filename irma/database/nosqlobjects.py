@@ -26,9 +26,6 @@ class NoSQLDatabaseObject(object):
             except InvalidId as e:
                 raise IrmaDatabaseError("{0}".format(e))
 
-    def __del__(self):
-        self.save()
-
     # TODO: Add support for both args and kwargs
     def from_dict(self, dict_object):
         for k, v in dict_object.items():
@@ -41,6 +38,11 @@ class NoSQLDatabaseObject(object):
         """
         # from http://stackoverflow.com/questions/61517/python-dictionary-from-an-objects-fields
         return dict((key, getattr(self, key)) for key in dir(self) if key not in dir(self.__class__) and getattr(self, key) is not None)
+
+    def update(self, update_dict):
+        db = NoSQLDatabase(self._dbname, self._uri)
+        db.update(self._dbname, self._collection, self._id, update_dict)
+        return
 
     def save(self):
         db = NoSQLDatabase(self._dbname, self._uri)

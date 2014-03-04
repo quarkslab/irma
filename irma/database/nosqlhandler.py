@@ -109,11 +109,11 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    def update(self, db_name, collection_name, update_dict):
+    def update(self, db_name, collection_name, _id, update_dict):
         """ Update entries in collection according to the dictionnary specified"""
         collection = self._table(db_name, collection_name)
         try:
-            collection.update(update_dict)
+            collection.update({"_id": _id}, {"$set": update_dict})
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
