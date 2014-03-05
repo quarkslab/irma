@@ -120,3 +120,83 @@ used for the hash table storing the instances:
 
         depends_on = staticmethod(lambda *args, **kwargs: "my key")
 """
+
+class PluginMetaClass(type):
+    """Metaclass for auto-registering plugin pattern
+
+    .. warning::
+
+            This metaclass should not be used directly. To declare a class
+            using the plugin pattern, one should use the :class:`Plugin` 
+            class instead.
+
+    """
+    ##########################################################################
+    # class constructor
+    ##########################################################################
+
+    def __init__(cls, name, bases, attrs):
+        # small hack to skip Plugin base class when initializing
+        if not len(attrs):
+            return
+        # Begin to register all classes that derives from Plugin base class
+        if not hasattr(cls, '_plugins'):
+            # This branch only executes when processing the mount point itself.
+            # So, since this is a new plugin type, not an implementation, this
+            # class shouldn't be registered as a plugin. Instead, it sets up a
+            # list where plugins can be registered later.
+            cls._plugins = []
+        else:
+            # This must be a plugin implementation, which should be registered.
+            # Simply appending it to the list is all that's needed to keep
+            # track of it later.
+            cls._plugins.append(cls)
+
+    ##########################################################################
+    # plugin metadata
+    ##########################################################################
+
+    _plugin_name = None
+    _plugin_version = None
+    _plugin_description = None
+    _plugin_dependencies = None
+
+    ##########################################################################
+    # setters and getters
+    ##########################################################################
+
+    @property
+    def plugin_name(cls):
+        return cls._plugin_name
+
+    @property
+    def plugin_version(cls):
+        return cls._plugin_version
+
+    @property
+    def plugin_description(cls):
+        return cls._plugin_description
+
+    @property
+    def plugin_dependencies(cls):
+        return cls._plugin_dependencies
+
+    @property
+    def plugins(cls):
+        return cls._plugins
+
+    ##########################################################################
+    # utility methods
+    ##########################################################################
+    
+    def get_plugins(cls, *args, **kwargs):
+        """return instances of plugins"""
+        return [plugin(*args, **kwargs) for plugin in cls._plugins]
+
+    def get_plugin(cls, name, *args, **kwargs):
+        """return instance of a named plugin"""
+        plugin = filter(lambda x: x.plugin_name == name, cls._plugins)
+        return plugin[0] if plugin else None
+
+# Metaclass compatible with python 2 and 3. Inherit from this for Plugins
+Plugin = PluginMetaClass('Plugin', (object,), {})
