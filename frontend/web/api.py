@@ -2,10 +2,23 @@ import re, os
 import bottle
 from bottle import route, request, default_app, run
 
+"""
+    IRMA FRONTEND API
+    defines all accessible route once the bottle server is up.
+    To launch the server just type:
+
+    $ python -m frontend.web.api
+
+    it will launch the server on 0.0.0.0 port 8080
+
+    For test purpose set DEBUG to True and launch, the server will use mockup core class
+    irma dependencies are no more required.
+"""
+
 DEBUG = False
 if DEBUG:
-    from frontend.web.mucore import IrmaFrontendWarning, IrmaFrontendError, IrmaFrontendReturn
-    import frontend.web.mucore as core
+    from mucore import IrmaFrontendWarning, IrmaFrontendError, IrmaFrontendReturn
+    import mucore as core
 else:
     from lib.irma.common.utils import IrmaFrontendReturn
     from frontend.web.core import IrmaFrontendWarning, IrmaFrontendError
@@ -15,6 +28,7 @@ else:
 
 @bottle.error(405)
 def method_not_allowed(res):
+    """ allow CORS request for debug purpose """
     if request.method == 'OPTIONS':
         new_res = bottle.HTTPResponse()
         new_res.set_header('Access-Control-Allow-Origin', '*')
@@ -24,13 +38,19 @@ def method_not_allowed(res):
 
 @bottle.hook('after_request')
 def enableCORSAfterRequestHook():
+    """ allow CORS request for debug purpose """
     bottle.response.set_header('Access-Control-Allow-Origin', '*')
 
 # ______________________________________________________________ SERVER ROOT
 
 @route("/")
 def svr_index():
-    """ hello world """
+    """ hello world
+
+    :route: /
+    :rtype: dict of 'code': int, 'msg': str
+    :return: on success 'code' is 0
+    """
     return IrmaFrontendReturn.success()
 
 # ______________________________________________________________ API SCAN
@@ -43,6 +63,7 @@ def validid(scanid):
 def scan_new():
     """ create new scan 
     
+    :route: /scan/new
     :rtype: dict of 'code': int, 'msg': str [, optional 'scan_id':str]
     :return: 
         on success 'scan_id' contains the newly created scan id
@@ -63,6 +84,8 @@ def scan_new():
 def scan_add(scanid):
     """ add posted file(s) to the specified scan 
     
+    :route: /scan/add/<scanid>
+    :postparam: multipart form with filename(s) and file(s) data
     :param scanid: id returned by scan_new
     :note: files are posted as multipart/form-data
     :rtype: dict of 'code': int, 'msg': str [, optional 'nb_files':int]
@@ -93,6 +116,9 @@ def scan_add(scanid):
 def scan_launch(scanid):
     """ launch specified scan 
     
+    :route: /scan/launch/<scanid>
+    :getparam: force=True or False
+    :getparam: probe=probe1,probe2
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'probe_list':list]
     :return: 
@@ -121,9 +147,10 @@ def scan_launch(scanid):
         return IrmaFrontendReturn.error(str(e))
 
 @route("/scan/result/<scanid>", method='GET')
-def scan_results(scanid):
+def scan_result(scanid):
     """ get all results from files of specified scan 
     
+    :route: /scan/result/<scanid>
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'scan_results': dict of [sha256 value: dict of 'filenames':list of filename, 'results': dict of [str probename: dict [results of probe]]]]
     :return: 
@@ -147,6 +174,7 @@ def scan_results(scanid):
 def scan_progress(scanid):
     """ get scan progress for specified scan
     
+    :route: /scan/progress/<scanid>
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'progress_details': total':int, 'finished':int, 'successful':int]
     :return: 
@@ -172,6 +200,7 @@ def scan_progress(scanid):
 def scan_cancel(scanid):
     """ cancel all remaining jobs for specified scan
     
+    :route: /scan/cancel/<scanid>
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'cancel_details': total':int, 'finished':int, 'cancelled':int]
     :return: 
@@ -197,6 +226,7 @@ def scan_cancel(scanid):
 def probe_list():
     """ get active probe list
     
+    :route: /probe/list
     :rtype: dict of 'code': int, 'msg': str [, optional 'probe_list': list of str]
     :return: 
         on success 'probe_list' contains list of probes names
