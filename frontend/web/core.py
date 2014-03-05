@@ -1,5 +1,5 @@
 import celery
-import config
+import config.parser as config
 from frontend.objects import ScanInfo, ScanFile, ScanResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
 
