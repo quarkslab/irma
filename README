@@ -1,0 +1,26 @@
+Features
+--------
+
+Support for the following Linux Antiviruses:
+
+    * Clam Antivirus
+    * Comodo Antivirus
+    * Eset Nod32 Business Edition
+    * F-Prot
+    * McAfee VirusScan Command Line Scanner
+    * Sophos 
+
+TODO
+----
+
+* Remove script folder and replace with our python script
+* Make an plugin-friendly interface for static modules
+* Add configuration file
+* Create dynamically queues for probes
+* Launch celery from a python script
+* Add support for more Linux and Windows antiviruses
+* Uniformize output results (see plugin with adrien)
+* Improve NSRL code
+* Add different heuristics for antiviruses
+* Add speed parameter for antiviruses
+* Write documentation
