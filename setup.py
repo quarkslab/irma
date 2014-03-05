@@ -34,6 +34,6 @@ setup(
     include_package_data=True,
     license='LICENSE',
     description='Probe package for IRMA',
-    long_description=open('README.rst').read(),
+    long_description='',
     install_requires=['celery>=3.1.5', 'redis>=2.8.0'],
 )

@@ -13,14 +13,13 @@ Support for the following Linux Antiviruses:
 TODO
 ----
 
+* Centralize antivirus code for debug purposes
 * Remove script folder and replace with our python script
 * Make an plugin-friendly interface for static modules
 * Add configuration file
-* Create dynamically queues for probes
 * Launch celery from a python script
 * Add support for more Linux and Windows antiviruses
 * Uniformize output results (see plugin with adrien)
-* Improve NSRL code
+* Improve NSRL code (use __getattr__ instead of __get__)
 * Add different heuristics for antiviruses
 * Add speed parameter for antiviruses
-* Write documentation

@@ -1,5 +1,6 @@
 import logging, re, os
-from probe.modules.static.pe import PE
+
+from modules.information.pe import PE
 from lib.common.mimetypes import Magic
 
 import sys
@@ -8,11 +9,20 @@ log = logging.getLogger(__name__)
 
 class StaticAnalyzer(object):
 
+    ##########################################################################
+    # constructor and destructor stuff
+    ##########################################################################
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    ##########################################################################
+    # public methods
+    ##########################################################################
+
     _handlers = {
         re.compile('PE32') : lambda filename, data, kwargs: PE(filename, data, kwargs).analyze()
     }
-
-    version = '0.0.1'
 
     @classmethod
     def analyze(cls, filename=None, data=None, **kwargs):
@@ -42,3 +52,6 @@ class StaticAnalyzer(object):
             if not handler_found:
                 log.warning("{0} not yet handled".format(mimetype))
         return result
+
+    def ready(self):
+        return True

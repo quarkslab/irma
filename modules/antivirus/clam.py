@@ -1,0 +1,123 @@
+import logging, argparse, re
+
+from modules.antivirus.base import Antivirus
+
+log = logging.getLogger(__name__)
+
+class Clam(Antivirus):
+
+    ##########################################################################
+    # constructor and destructor stuff
+    ##########################################################################
+
+    def __init__(self, *args, **kwargs):
+        # class super class constructor
+        super(Clam, self).__init__(*args, **kwargs)
+        # set default antivirus information
+        self._name = "Clam AntiVirus Scanner"
+        # scan tool variables
+        self._scan_args = (
+            "--infected " # only print infected files
+            "--no-summary " # disable summary at the end of scanning
+            "--stdout " # do not write to stderr
+        )
+        self._scan_patterns = [
+            re.compile(r'(?P<file>.*): (?P<name>[^\s]+) FOUND', re.IGNORECASE)
+        ]
+
+    ##########################################################################
+    # antivirus methods (need to be overriden)
+    ##########################################################################
+
+    def get_version(self):
+        """return the version of the antivirus"""
+        result = None
+        if self.scan_path:
+            cmd = self.build_cmd(self.scan_path, '--version')
+            retcode, stdout, stderr = self.run_cmd(cmd)
+            if not retcode:
+                matches = re.search(r'(?P<version>\d+(\.\d+)+)', stdout, re.IGNORECASE)
+                if matches:
+                    result = matches.group('version').strip()
+        return result
+
+    def get_database(self):
+        """return list of files in the database"""
+        # NOTE: we can use clamconf to get database location, but it is not
+        # always installed by default. Instead, hardcode some common paths and
+        # locate files using predefined patterns
+        search_paths = [
+            '/var/lib/clamav', # default location in debian
+        ]
+        database_patterns = [
+            'main.cvd', 
+            'daily.c[lv]d', # *.cld on debian and on *.cvd on clamav website
+            'bytecode.c[lv]d', # *.cld on debian and on *.cvd on clamav website
+            'safebrowsing.c[lv]d', # *.cld on debian and on *.cvd on clamav website
+            '*.hdb', # clamav hash database
+            '*.mdb', # clamav MD5, PE-section based
+            '*.ndb', # clamav extended signature format
+            '*.ldb', # clamav logical signatures
+        ]
+        results = []
+        for pattern in database_patterns:
+            result = self.locate(pattern, search_paths)
+            results.extend(result)
+        return results if results else None
+
+    def get_scan_path(self):
+        """return the full path of the scan tool"""
+        paths = self.locate("clamscan")
+        return paths[0] if paths else None
+
+##############################################################################
+# CLI for debug purposes
+##############################################################################
+
+def antivirus_info(**kwargs):
+    # create antivirus instance
+    antivirus = Clam()
+    # build output string
+    result  = "name    : {0}\n".format(antivirus.name)
+    result += "version : {0}\n".format(antivirus.version)
+    result += "database: \n"
+    for file in antivirus.database:
+        result += "    {0} (sha256 = {1})\n".format(file, sha256sum(file))
+    print(result)
+
+def antivirus_scan(**kwargs):
+    antivirus = Clam()
+    for filename in kwargs['filename']:
+        antivirus.scan(filename)
+    results = map(lambda d: "{0}: {1}".format(d[0], d[1]), antivirus.scan_results.items())
+    print("\n".join(results))
+
+if __name__ == '__main__':
+
+    # define command line arguments
+    parser = argparse.ArgumentParser(description='Clam plugin CLI mode')
+    parser.add_argument('-v', '--verbose', action='count', default=0)
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    # create the info parser
+    info_parser = subparsers.add_parser('info', help='show antivirus information')
+    info_parser.set_defaults(func=antivirus_info)
+
+    # create the scan parser
+    scan_parser = subparsers.add_parser('scan', help='scan given filename list')
+    scan_parser.add_argument('filename', type=str, nargs='+', help='filename to scan')
+    scan_parser.set_defaults(func=antivirus_scan)
+
+    args = parser.parse_args()
+
+    # set verbosity
+    if args.verbose == 1:
+        logging.basicConfig(level=logging.INFO)
+    elif args.verbose == 2:
+        logging.basicConfig(level=logging.DEBUG)
+
+    args = vars(parser.parse_args())
+    func = args.pop('func')
+    # with 'func' removed, args is now a kwargs with only the specific arguments
+    # for each subfunction useful for interactive mode.
+    func(**args)
