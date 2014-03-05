@@ -4,8 +4,8 @@ import requests
 import json
 import argparse
 
-ADDRESS = "http://172.16.36.130:8080"
-# ADDRESS = "http://localhost:8080"
+# ADDRESS = "http://172.16.36.130:8080"
+ADDRESS = "http://localhost:8080"
 
 class IrmaReturnCode:
     success = 0
@@ -125,17 +125,17 @@ def scan_progress(scanid=None, partial=None, verbose=False):
         if total != 0 : rate_total = finished * 100 / total
         if finished != 0 : rate_success = successful * 100 / finished
         print "%d/%d jobs finished (%d%%) / %d successful (%d%%)" % (finished, total, rate_total, successful, rate_success)
-    if status == IrmaScanStatus.label[IrmaScanStatus.finished] or partial:
-            scan_results(scanid=scanid, verbose=verbose)
     else:
         print "Scan status : {0}".format(status)
+    if status == IrmaScanStatus.label[IrmaScanStatus.finished] or partial:
+        scan_results(scanid=scanid, verbose=verbose)
     return
 
 def print_results(list_res, justify=12):
-    for (hash, info) in list_res.items():
+    for (hashval, info) in list_res.items():
         name = info['filename']
         res = info['results']
-        print "{0}\n[SHA256: {1}]".format(name, hash)
+        print "{0}\n[SHA256: {1}]".format(name, hashval)
         for av in res:
             print "\t%s" % (av.ljust(justify)),
             avres = res[av]['result']
