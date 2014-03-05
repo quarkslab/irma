@@ -3,6 +3,7 @@ try:
 except ImportError:
     # ConfigParser module has been renamed to configparser in python 3
     from configparser import ConfigParser
+
 from irma.common.exceptions import IrmaConfigurationError
 from irma.configuration.config import Configuration, ConfigurationSection
 
@@ -39,6 +40,21 @@ class TemplatedConfiguration(Configuration):
         """
         config = ConfigParser()
         config.read(cfg_file)
+
+        # load configuration file
+        for section in config.sections():
+            setattr(self, section, ConfigurationSection())
+            for name in config.options(section):
+                try:
+                    value = config.getboolean(section, name)
+                except ValueError:
+                    try:
+                        value = config.getint(section, name)
+                    except ValueError:
+                        value = config.get(section, name)
+                setattr(getattr(self, section), name, value)
+
+        # override with default values from template
         for section in template.keys():
             # setattr even if section is not present in ini file
             # as it may have default value, check at value fetching
