@@ -1,4 +1,4 @@
-import config
+import config.parser as config
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus
