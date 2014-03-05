@@ -1,8 +1,7 @@
 import celery
 import config
 from frontend.objects import ScanInfo, ScanFile, ScanResults
-from lib.irma.common.utils import IrmaReturnCode
-from frontend.cli.irma import IrmaScanStatus
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
 
 # ______________________________________________________________________________ FRONTEND Exceptions
 
@@ -76,6 +75,9 @@ def scan_add(scanid, files):
     :raise: IrmaDataBaseError
     """
     scan = ScanInfo(id=scanid)
+    if scan.status != IrmaScanStatus.created:
+        # Can not add file to scan launched
+        raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
     for (name, data) in files.items():
         fobj = ScanFile()
         fobj.save(data, name)
@@ -96,6 +98,9 @@ def scan_launch(scanid, force, probelist):
     :raise: IrmaDataBaseError, IrmaFrontendError
     """
     scan = ScanInfo(id=scanid)
+    if scan.status != IrmaScanStatus.created:
+        # Can not launch scan with other status
+        raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
     all_probe_list = _task_probe_list()
     if len(all_probe_list) == 0:
         scan.update_status(IrmaScanStatus.finished)
@@ -135,7 +140,7 @@ def scan_progress(scanid):
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
     scan = ScanInfo(id=scanid)
-    if not scan.status == IrmaScanStatus.launched or scan.status in [IrmaScanStatus.processed, IrmaScanStatus.finished]:
+    if scan.status != IrmaScanStatus.launched:
         # If not launched answer directly
         # Else ask brain for job status
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
