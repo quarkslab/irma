@@ -80,10 +80,10 @@ def get_probelist():
         cache_probelist['time'] = now
     return cache_probelist['list']
 
-def flush_dir(frontend, scanid):
+def flush_dir(ftpuser, scanid):
     conf_ftp = config.brain_config['ftp_brain']
     with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
-        ftps.deletepath("{0}/{1}".format(frontend, scanid), deleteParent=True)
+        ftps.deletepath("{0}/{1}".format(ftpuser, scanid), deleteParent=True)
 
 # ______________________________________________________________________________ Tasks Declaration
 
@@ -96,7 +96,7 @@ def scan(scanid, scan_request):
     sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
     available_probelist = get_probelist()
     jobs_list = []
-    # FIXME get rmq_vhost
+    # FIXME: get rmq_vhost
     rmqvhost = "mqfrontend"
     try:
         user = sql.one_by(User, rmqvhost=rmqvhost)
@@ -123,8 +123,8 @@ def scan(scanid, scan_request):
                 break;
             if quota:
                 quota -= 1
-            callback_signature = route(results_app.signature("brain.tasks.scan_result", ("frontend1", scanid, filename, probe)))
-            jobs_list.append(probe_app.send_task("probe.tasks.probe_scan", args=("frontend1", scanid, filename), queue=probe, link=callback_signature))
+            callback_signature = route(results_app.signature("brain.tasks.scan_result", (user.ftpuser, scanid, filename, probe)))
+            jobs_list.append(probe_app.send_task("probe.tasks.probe_scan", args=(user.ftpuser, scanid, filename), queue=probe, link=callback_signature))
 
     if len(jobs_list) != 0:
         # Build a result set with all job AsyncResult for progress/cancel operations
@@ -144,7 +144,7 @@ def scan_progress(scanid):
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
     except Exception as e:
         return IrmaTaskReturn.error("Brain SQL: {0}".format(e))
-    # FIXME get rmq_vhost
+    # FIXME: get rmq_vhost
     rmqvhost = "mqfrontend"
     try:
         user = sql.one_by(User, rmqvhost=rmqvhost)
@@ -170,7 +170,7 @@ def scan_progress(scanid):
 def scan_cancel(scanid):
     try:
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
-        # FIXME get rmq_vhost
+        # FIXME: get rmq_vhost
         rmqvhost = "mqfrontend"
         try:
             user = sql.one_by(User, rmqvhost=rmqvhost)
@@ -194,6 +194,7 @@ def scan_cancel(scanid):
                     j.revoke(terminate=True)
                     nbcancelled += 1
             scan.status = IrmaScanStatus.cancelled
+            flush_dir(user.ftpuser, scanid)
             return IrmaTaskReturn.success({"total":len(gr), "finished":nbcompleted, "cancelled":nbcancelled})
         else:
             return IrmaTaskReturn.warning(scan.status)
@@ -201,8 +202,10 @@ def scan_cancel(scanid):
         return IrmaTaskReturn.error("{0}".format(e))
 
 @results_app.task(ignore_result=True)
-def scan_result(result, frontend, scanid, filename, probe):
+def scan_result(result, ftpuser, scanid, filename, probe):
     try:
+        frontend_app.send_task("frontend.tasks.scan_result", args=(scanid, filename, probe, result))
+        print "scanid {0} sent result {1}".format(scanid, probe)
         sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
         # FIXME get rmq_vhost
         rmqvhost = "mqfrontend"
@@ -216,11 +219,9 @@ def scan_result(result, frontend, scanid, filename, probe):
             if j.successful(): nbsuccessful += 1
         if nbtotal == nbcompleted:
             scan.status = IrmaScanStatus.processed
-            flush_dir(frontend, scanid)
+            flush_dir(ftpuser, scanid)
             # delete groupresult
             gr.delete()
-        frontend_app.send_task("frontend.tasks.scan_result", args=(scanid, filename, probe, result))
-        print "result from probe {0} for scanid {1} sent back to frontend".format(probe, scanid)
     except IrmaTaskError as e:
         return IrmaTaskReturn.error("{0}".format(e))
 
