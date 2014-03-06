@@ -50,6 +50,8 @@ class VirusTotal(object):
     # overriden methods
     ##########################################################################
 
+    # TODO: remove overriden methods
+
     def scan(self, paths):
         sha256 = sha256sum(paths)
         return self.get_report(sha256)

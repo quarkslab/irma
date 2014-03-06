@@ -162,13 +162,13 @@ class Antivirus(object):
     @property
     def name(self):
         if not self._name:
-            self._name = str(self.get_name())
+            self._name = self.get_name()
         return self._name
 
     @property
     def version(self):
         if not self._version:
-            self._version = str(self.get_version())
+            self._version = self.get_version()
         return self._version
 
     @property
@@ -180,7 +180,7 @@ class Antivirus(object):
     @property
     def scan_path(self):
         if not self._scan_path:
-            self._scan_path = str(self.get_scan_path())
+            self._scan_path = self.get_scan_path()
         return self._scan_path
 
     @property
@@ -224,3 +224,85 @@ class Antivirus(object):
     def get_scan_args(self):
         """return the scan arguments"""
         return None
+
+##############################################################################
+# CLI for debug purposes
+##############################################################################
+
+if __name__ == '__main__':
+
+    ##########################################################################
+    # imports
+    ##########################################################################
+
+    import argparse
+    from modules.antivirus.clam        import Clam
+    from modules.antivirus.comodo_cavl import ComodoCAVL
+    from modules.antivirus.eset_nod32  import EsetNod32
+    from modules.antivirus.fprot       import FProt
+    from modules.antivirus.mcafee_vscl import McAfeeVSCL
+    from modules.antivirus.sophos      import Sophos
+
+    ##########################################################################
+    # helpers
+    ##########################################################################
+
+    antivirus_mapping = {
+        'clam'       : Clam,
+        'comodo_cavl': ComodoCAVL,
+        'eset_nod32' : EsetNod32,
+        'fprot'      : FProt,
+        'mcafee_vscl': McAfeeVSCL,
+        'sophos'     : Sophos,
+    }
+
+    def antivirus_info(**kwargs):
+        antivirus = antivirus_mapping[kwargs['antivirus']]()
+        # build output string
+        result  = "name    : {0}\n".format(antivirus.name)
+        result += "version : {0}\n".format(antivirus.version)
+        result += "database: \n"
+        if antivirus.database:
+            for file in antivirus.database:
+                result += "    {0} (sha256 = {1})\n".format(file, sha256sum(file))
+        print(result)
+
+    def antivirus_scan(**kwargs):
+        antivirus = antivirus_mapping[kwargs['antivirus']]()
+        for filename in kwargs['filename']:
+            antivirus.scan(filename)
+        results = map(lambda d: "{0}: {1}".format(d[0], d[1]), antivirus.scan_results.items())
+        print("\n".join(results))
+
+    ##########################################################################
+    # command line program
+    ##########################################################################
+
+    # define command line arguments
+    parser = argparse.ArgumentParser(description='Antivirus CLI mode')
+    parser.add_argument('antivirus', type=str, choices=antivirus_mapping.keys(), help='filename to scan')
+    parser.add_argument('-v', '--verbose', action='count', default=0)
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    # create the info parser
+    info_parser = subparsers.add_parser('info', help='show antivirus information')
+    info_parser.set_defaults(func=antivirus_info)
+
+    # create the scan parser
+    scan_parser = subparsers.add_parser('scan', help='scan given filename list')
+    scan_parser.add_argument('filename', type=str, nargs='+', help='filename to scan')
+    scan_parser.set_defaults(func=antivirus_scan)
+
+    args = parser.parse_args()
+
+    # set verbosity
+    if args.verbose == 1:
+        logging.basicConfig(level=logging.INFO)
+    elif args.verbose == 2:
+        logging.basicConfig(level=logging.DEBUG)
+
+    args = vars(parser.parse_args())
+    func = args.pop('func')
+    # with 'func' removed, args is now a kwargs with only the specific arguments
+    # for each subfunction useful for interactive mode.
+    func(**args)

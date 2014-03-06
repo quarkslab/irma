@@ -1,39 +1,77 @@
-import logging, hashlib, leveldb, binascii, json, argparse
+import logging, leveldict, binascii, json, encodings
+
+from lib.leveldict.leveldict import LevelDictSerialized
 
 log = logging.getLogger(__name__)
 
+##############################################################################
+# serializers
+##############################################################################
 
-class NSRLDatabase(object):
+class NSRLSerializer(object):
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
-
-    def __init__(self, database, *args, **kwargs):
-        self.database = database
-        self._database = leveldb.LevelDB(database, *args, **kwargs)
-
-    ##########################################################################
-    # constants, for new records, override these variables
-    ##########################################################################
-
-    row_as_key = None
-    entry_fields = []
-
-    ##########################################################################
-    # public methods
-    ##########################################################################
-    
-    def get(self, key):
-        try:
-            value = self._database.Get(self.serialize_key(key))
-            value = self.deserialize_value(value)
-        except KeyError:
-            value = None
-        return value
+    fields = None
 
     @classmethod
-    def create_database(cls, rcdfile, dbfile):
+    def loads(cls, value):
+        value = json.loads(value)
+        if isinstance(value[0], list):
+            result = map(lambda row: dict((field, row[index]) for index, field in enumerate(cls.fields)), value)
+        else:
+            result = dict((field, value[index]) for index, field in enumerate(cls.fields))
+        return result
+
+    @classmethod
+    def dumps(cls, value):
+        try:
+            if isinstance(value, list):
+                result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
+            else:
+                result = json.dumps(map(lambda x: value.get(x), cls.fields))
+        except:
+            # failed to json it, bruteforce encoding
+            import encodings
+            codecs = sorted(set(encodings.aliases.aliases.values()))
+            for codec in codecs:
+                try:
+                    if isinstance(value, list):
+                        result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
+                    else:
+                        result = json.dumps(map(lambda x: value.get(x.decode(codec)), cls.fields))
+                    break
+                except:
+                    pass
+        return result
+
+class NSRLOsSerializer(NSRLSerializer):
+
+    fields = ['OpSystemVersion', 'OpSystemName', 'MfgCode' ]
+
+class NSRLFileSerializer(NSRLSerializer):
+
+    fields = ["MD5", "CRC32", "FileName", "FileSize", "ProductCode", "OpSystemCode", "SpecialCode"]
+
+class NSRLManufacturerSerializer(NSRLSerializer):
+
+    fields = [ "MfgName" ]
+
+class NSRLProductSerializer(NSRLSerializer):
+
+    fields = ["ProductName", "ProductVersion", "OpSystemCode", "MfgCode", "Language", "ApplicationType"]
+
+##############################################################################
+# NSRL records
+##############################################################################
+
+class NSRLLevelDict(LevelDictSerialized):
+
+    key = None
+
+    def __init__(self, db, serializer=json, **kwargs):
+        super(NSRLLevelDict, self).__init__(db, serializer, **kwargs)
+
+    @classmethod
+    def create_database(cls, dbfile, records, **kwargs):
 
         # import specific modules
         import itertools, collections
@@ -47,183 +85,142 @@ class NSRLDatabase(object):
             collections.deque(itertools.izip(iterable, counter), maxlen=0) # (consume at C speed)
             return next(counter)
 
-        commit_threshold = 1000
         log_threshold = 50000
         
-        try:
-            # create database
-            database = leveldb.LevelDB(dbfile)
-            db_handle = leveldb.WriteBatch()
-            # open file 
-            csv_file = open(rcdfile, 'r')
-            csv_entries = DictReader(csv_file)
-            # duplicate iterator and count number of entries
-            csv_entries, _csv_entries = itertools.tee(csv_entries)
-            csv_count = count_items(_csv_entries)
-            # process entries
-            for index, row in enumerate(csv_entries):
-                # get key and value, then format them
-                key = cls.serialize_key(row.pop(cls.row_as_key))
-                value = cls.serialize_value(row)
-                log.debug("key = {0}, value = {1}".format(cls.deserialize_key(key), cls.deserialize_value(value)))
-                # append to queue
-                db_handle.Put(key, str(value))
-                # commit if threshold 
-                if (index % commit_threshold) == 0:
-                    database.Write(db_handle, sync=True)
-                    del db_handle
-                    db_handle = leveldb.WriteBatch()
-                # enventually, log to get status
-                if (index % log_threshold) == 0:
-                    log.info("Current progress: {0}/{1}".format(index, csv_count))
-            # commit remaining data
-            database.Write(db_handle, sync=True)
-        except Exception as e:
-            log.exception("{0}".format(str(e)))
-            leveldb.DestroyDB(dbfile)
+        # create database
+        db = cls(dbfile, **kwargs)
+        # open csv files
+        csv_file = open(records, 'r')
+        csv_entries = DictReader(csv_file)
+        # duplicate iterator and count number of entries at C speed
+        csv_entries, _csv_entries = itertools.tee(csv_entries)
+        csv_count = count_items(_csv_entries)
 
-    @classmethod
-    def serialize_value(cls, value):
-        return json.dumps(map(lambda x: value.get(x.decode("latin1")), cls.entry_fields))
+        for index, row in enumerate(csv_entries):
+            key = row.pop(cls.key)
+            value = db.get(key, None)
+            if not value:
+                db[key] = row
+            else:
+                if isinstance(value, dict):
+                    db[key] = [value, row]
+                else:
+                    db[key].append([row])
+            if (index % log_threshold) == 0:
+                print("Current progress: {0}/{1}".format(index, csv_count))
 
-    @classmethod
-    def deserialize_value(cls, value):
-        value = json.loads(value)
-        return dict((field, value[index]) for index, field in enumerate(cls.entry_fields))
+        return db
 
-    @classmethod
-    def serialize_key(cls, key):
-        return str(key)
+##############################################################################
+# NSRL File Record
+##############################################################################
 
-    @classmethod
-    def deserialize_key(cls, key):
-        return str(key)
+class NSRLFile(NSRLLevelDict):
 
-class NSRLFileRecord(NSRLDatabase):
+    key = "SHA-1"
 
-    ##########################################################################
-    # overriden variables
-    ##########################################################################
+    def __init__(self, db, **kwargs):
+        super(NSRLFile, self).__init__(db, NSRLFileSerializer, **kwargs)
 
-    row_as_key = "SHA-1"
-    entry_fields = ["MD5", "CRC32", "FileName", "FileSize", "ProductCode", "OpSystemCode", "SpecialCode"]
+##############################################################################
+# NSRL OS Record
+##############################################################################
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+class NSRLOs(NSRLLevelDict):
 
-    @classmethod
-    def serialize_key(cls, key):
-        return binascii.unhexlify(key)
+    key = "OpSystemCode"
 
-    @classmethod
-    def deserialize_key(cls, key):
-        return binascii.hexlify(key)
+    def __init__(self, db, **kwargs):
+        super(NSRLOs, self).__init__(db, NSRLOsSerializer, **kwargs)
 
+##############################################################################
+# NSRL OS Record
+##############################################################################
 
-class NSRLOsRecord(NSRLDatabase):
+class NSRLManufacturer(NSRLLevelDict):
 
-    ##########################################################################
-    # overriden variables
-    ##########################################################################
+    key = "MfgCode"
 
-    row_as_key = "OpSystemCode"
-    entry_fields = ["OpSystemName", "OpSystemVersion", "MfgCode"]
+    def __init__(self, db, **kwargs):
+        super(NSRLManufacturer, self).__init__(db, NSRLManufacturerSerializer, **kwargs)
 
+##############################################################################
+# NSRL Product Record
+##############################################################################
 
-class NSRLManufacturerRecord(NSRLDatabase):
+class NSRLProduct(NSRLLevelDict):
 
-    ##########################################################################
-    # overriden variables
-    ##########################################################################
+    key = "ProductCode"
 
-    row_as_key = "MfgCode"
-    entry_fields = [ "MfgName" ]
+    def __init__(self, db, **kwargs):
+        super(NSRLProduct, self).__init__(db, NSRLProductSerializer, **kwargs)
 
-
-class NSRLProductRecord(NSRLDatabase):
-
-    ##########################################################################
-    # overriden variables
-    ##########################################################################
-
-    row_as_key = "ProductCode"
-    entry_fields = ["ProductName", "ProductVersion", "OpSystemCode", "MfgCode", "Language", "ApplicationType"]
-
+##############################################################################
+# NSRL module
+##############################################################################
 
 class NSRL(object):
 
-    def __init__(self, file, product, os, manufacturer):
-        self._db_os = NSRLOsRecord(os)
-        self._db_manufacturer = NSRLManufacturerRecord(manufacturer)
-        self._db_file = NSRLFileRecord(file)
-        self._db_product = NSRLProductRecord(product)
+    def __init__(self, nsrl_file, nsrl_product, nsrl_os, nsrl_manufacturer):
+        self.nsrl_file = NSRLFile(nsrl_file)
+        self.nsrl_product = NSRLProduct(nsrl_product)
+        self.nsrl_os = NSRLOs(nsrl_os)
+        self.nsrl_manufacturer = NSRLManufacturer(nsrl_manufacturer)
 
-    # TODO: make jointure cleverly than the following
-    def getBySHA1(self, sha1):
-        file = self._db_file.get(sha1)
-        if file:
-            values = self._db_product.get(file['ProductCode'])
-            if values:
-                file.update(values)
-            else:
-                log.warning("Product record {0} not found for sha1 {1}".format(file['ProductCode'], sha1))
-            values = self._db_os.get(file['OpSystemCode'])
-            if values:
-                file.update(values)
-            else:
-                log.warning("OS record {0} not found for sha1 {1}".format(file['OpSystemCode'], sha1))
-            values = self._db_manufacturer.get(file['MfgCode'])
-            if values:
-                file.update(values)
-            else:
-                log.warning("Manufacturer record {0} not found for sha1 {1}".format(file['MfgCode'], sha1))
-        return file
+    # FIXME: handle duplicate keys
+    def lookup_by_sha1(self, sha1sum):
+        operations = [
+            ( sha1sum,        self.nsrl_file),
+            ( 'ProductCode',  self.nsrl_product), 
+            ( 'OpSystemCode', self.nsrl_os),
+            ( 'MfgCode',      self.nsrl_manufacturer)
+        ]
+        entries = dict()
+        for (key, database) in operations:
+            entries.update(database[key])
+        return entries
 
 
 ##############################################################################
 # CLI for debug purposes
 ##############################################################################
 
-def nsrl_create_database(**kwargs):
-    cls = None
-
-    if kwargs["type"] == 'file':
-        cls = NSRLFileRecord
-    elif kwargs["type"] == 'os':
-        cls = NSRLOsRecord
-    elif kwargs["type"] == 'manufacturer':
-        cls = NSRLManufacturerRecord
-    elif kwargs["type"] == 'product':
-        cls = NSRLProductRecord
-
-    cls.create_database(kwargs['filename'], kwargs['database'])
-
-
-def nsrl_get(**kwargs):
-
-    cls = None
-
-    if kwargs["type"] == 'file':
-        cls = NSRLFileRecord
-    elif kwargs["type"] == 'os':
-        cls = NSRLOsRecord
-    elif kwargs["type"] == 'manufacturer':
-        cls = NSRLManufacturerRecord
-    elif kwargs["type"] == 'product':
-        cls = NSRLProductRecord
-
-    database = cls(kwargs['database'], block_cache_size=1<<30, max_open_files=3000)
-    value = database.get(kwargs['key'])
-    print("key {0}: value {1}".format(kwargs['key'], value))
-
-
-def nsrl_resolve(**kwargs):
-
-    handle = NSRL(kwargs['file'], kwargs['product'], kwargs['os'], kwargs['manufacturer'])
-    print handle.getBySHA1(kwargs['sha1'])
-
 if __name__ == '__main__':
+
+    ##########################################################################
+    # local import 
+    ##########################################################################
+
+    import argparse
+
+    ##########################################################################
+    # defined functions
+    ##########################################################################
+
+    nsrl_databases = {
+        'file'        : NSRLFile,
+        'os'          : NSRLOs,
+        'manufacturer': NSRLManufacturer,
+        'product'     : NSRLProduct,
+    }
+
+    def nsrl_create_database(**kwargs):
+        database_type = kwargs['type']
+        nsrl_databases[database_type].create_database(kwargs['filename'], kwargs['database'])
+
+    def nsrl_get(**kwargs):
+        database_type = kwargs['type']
+        database = nsrl_databases[database_type](kwargs['database'], block_cache_size=1<<30, max_open_files=3000)
+        value = database.get(kwargs['key'])
+        print("key {0}: value {1}".format(kwargs['key'], value))
+
+    def nsrl_resolve(**kwargs):
+        handle = NSRL(kwargs['file'], kwargs['product'], kwargs['os'], kwargs['manufacturer'])
+        print handle.lookup_by_sha1(kwargs['sha1'])
+
+    ##########################################################################
+    # arguments
+    ##########################################################################
 
     # define command line arguments
     parser = argparse.ArgumentParser(description='NSRL database module CLI mode')
