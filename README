@@ -13,6 +13,8 @@ Support for the following Linux Antiviruses:
 TODO
 ----
 
+* Handle duplicate entries and jointures
+* Move probe.py from config
 * Centralize antivirus code for debug purposes
 * Remove script folder and replace with our python script
 * Make an plugin-friendly interface for static modules
