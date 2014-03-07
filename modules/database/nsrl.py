@@ -1,4 +1,4 @@
-import logging, leveldict, binascii, json, encodings
+import logging, leveldict, binascii, json, encodings, pprint
 
 from lib.leveldict.leveldict import LevelDictSerialized
 
@@ -169,19 +169,38 @@ class NSRL(object):
         self.nsrl_os = NSRLOs(nsrl_os)
         self.nsrl_manufacturer = NSRLManufacturer(nsrl_manufacturer)
 
-    # FIXME: handle duplicate keys
+    def _lookup_file(self, sha1sum):
+        return self.nsrl_file[sha1sum]
+
+    def _lookup_product(self, product_code):
+        return self.nsrl_product[product_code]
+
+    def _lookup_os(self, op_system_code):
+        return self.nsrl_os[op_system_code]
+
+    def _lookup_manufacturer(self, manufacturer_code):
+        return self.nsrl_manufacturer[manufacturer_code]
+
     def lookup_by_sha1(self, sha1sum):
         operations = [
-            ( sha1sum,        self.nsrl_file),
-            ( 'ProductCode',  self.nsrl_product), 
-            ( 'OpSystemCode', self.nsrl_os),
-            ( 'MfgCode',      self.nsrl_manufacturer)
+            ( sha1sum, 'SHA-1',        self.nsrl_file, None),
+            ( None,    'ProductCode',  self.nsrl_product, 'SHA-1'), 
+            ( None,    'OpSystemCode', self.nsrl_os, 'SHA-1'),
+            ( None,    'MfgCode',      self.nsrl_manufacturer, 'ProductCode')
         ]
-        entries = dict()
-        for (key, database) in operations:
-            entries.update(database[key])
+        entries = dict((name, {}) for (_, name, _, _) in operations)
+        for value, key, database, where in operations:
+            if value:
+                entries[key][value] = database[value]
+            else:
+                subkeys = set()
+                for subkey, subitem in entries[where].items():
+                    if not isinstance(subitem, list):
+                        subitem = [subitem]
+                    subkeys.update(map(lambda x: x[key], subitem))
+                for subkey in subkeys:
+                    entries[key][subkey] = database[subkey]
         return entries
-
 
 ##############################################################################
 # CLI for debug purposes
@@ -218,7 +237,7 @@ if __name__ == '__main__':
 
     def nsrl_resolve(**kwargs):
         handle = NSRL(kwargs['file'], kwargs['product'], kwargs['os'], kwargs['manufacturer'])
-        print(handle.lookup_by_sha1(kwargs['sha1']))
+        print(pprint.pformat(handle.lookup_by_sha1(kwargs['sha1'])))
 
     ##########################################################################
     # arguments
