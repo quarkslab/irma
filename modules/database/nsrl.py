@@ -105,7 +105,9 @@ class NSRLLevelDict(LevelDictSerialized):
                 if isinstance(value, dict):
                     db[key] = [value, row]
                 else:
-                    db[key].append([row])
+                    # db[key].append([row]) is not possible as changes are only
+                    # made in memory and __setitem__ is never called
+                    db[key] = value + [row]
             if (index % log_threshold) == 0:
                 print("Current progress: {0}/{1}".format(index, csv_count))
 
@@ -216,7 +218,7 @@ if __name__ == '__main__':
 
     def nsrl_resolve(**kwargs):
         handle = NSRL(kwargs['file'], kwargs['product'], kwargs['os'], kwargs['manufacturer'])
-        print handle.lookup_by_sha1(kwargs['sha1'])
+        print(handle.lookup_by_sha1(kwargs['sha1']))
 
     ##########################################################################
     # arguments
