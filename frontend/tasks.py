@@ -61,7 +61,7 @@ def scan_launch(scanid, force):
                 scan_request.append((hashname, probelist))
                 # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
-        scan.update_status(IrmaScanStatus.launched)
+        scan.status = IrmaScanStatus.launched
         scan.save()
         irma_lock.release(lockid)
         return IrmaTaskReturn.success("scan launched")
