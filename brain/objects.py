@@ -31,7 +31,7 @@ class User(Base):
 
 if __name__ == "__main__":
     # create all dbs
-    import config
+    import config.parser as config
 
     sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
     Base.metadata.create_all(sql._db)

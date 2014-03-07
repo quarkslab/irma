@@ -1,7 +1,7 @@
 import uuid
 import time
 from celery import Celery
-import config
+import config.parser as config
 from datetime import datetime, timedelta
 from brain.objects import User, Scan
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
