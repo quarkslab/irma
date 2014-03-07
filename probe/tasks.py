@@ -1,9 +1,10 @@
-import kombu, ssl
+import kombu, ssl, tempfile, os
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
 
 from config.probe import probe_config as config
+from lib.irma.ftp.handler import FtpTls
 
 ##############################################################################
 # statically import plugins
@@ -88,17 +89,15 @@ def probe_scan(frontend, scanid, filename):
         # retrieve queue name and the associated plugin
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
-        #conf_ftp = config.ftp_brain
-        #(fd, tmpname) = tempfile.mkstemp()
-        #os.close(fd)
-        #with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
-        #    ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
-        tmpname = filename # FIXME
+        conf_ftp = config.ftp_brain
+        (fd, tmpname) = tempfile.mkstemp()
+        os.close(fd)
+        with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
+            ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
         results = probe.run(tmpname)
-        #os.remove(tmpname)
+        os.remove(tmpname)
         return results
     except Exception as e:
-        print e # FIXME
         log.exception("Exception has occured: {0}".format(e))
         raise probe_scan.retry(countdown=30, max_retries=5)
 
