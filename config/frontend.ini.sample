@@ -20,7 +20,7 @@ queue = brain
 host = 127.0.0.1
 vhost = mqfrontend
 username = frontend
-password = frontent
+password = frontend
 queue = frontend
 
 [backend_brain]
