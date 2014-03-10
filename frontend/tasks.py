@@ -70,6 +70,23 @@ def scan_launch(scanid, force):
         print "Exception has occured:{0}".format(e)
         raise scan_launch.retry(countdown=15, max_retries=10)
 
+def get_formatted_res(raw_result):
+    res = {}
+    res['raw'] = dict((k.replace('.', '_'), v) for (k, v) in res.items())
+    if 'data' in raw_result:
+        data = raw_result['data']
+        if 'scan_results' in data:
+            res['result'] = data['scan_results'].values()[0]
+        else:
+            res['result'] = data
+        if 'name' in data and 'version' in data:
+            res['version'] = "{name} {version}".format(name=data['name'], version=data['version'])
+        elif 'name' in data:
+            res['version'] = data['name']
+    else:
+        res['result'] = "Error"
+    return res
+
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
     try:
@@ -92,7 +109,8 @@ def scan_result(scanid, file_hash, probe, result):
         else:
             print "Warning: Scanid {0} Probe {1} already tagged as 'done'".format(scanid, probe)
         print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan.oids[file_oid]['probedone'])
-        scan_res.results[probe] = result
+        # FIXME import results taken Plugin type into account
+        scan_res.results[probe] = get_formatted_res(result)
         scan_res.save()
         if scan.is_completed():
             scan.update_status(IrmaScanStatus.finished)
