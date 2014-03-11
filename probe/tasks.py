@@ -24,6 +24,9 @@ from probes.web.virustotal import VirusTotalProbe
 from probes.information.information import InformationProbe
 from probes.information.analyzer import StaticAnalyzerProbe
 
+from probes.database.database import DatabaseProbe
+from probes.database.nsrl import NSRL
+
 ##############################################################################
 # celery application configuration
 ##############################################################################
@@ -67,7 +70,7 @@ app.conf.update(
 
 # determine dynamically queues to connect to
 queues = []
-probes = sum([ AntivirusProbe.plugins, WebProbe.plugins, InformationProbe.plugins ], [])
+probes = sum([ AntivirusProbe.plugins, WebProbe.plugins, DatabaseProbe.plugins, InformationProbe.plugins ], [])
 probes = map(lambda pb: pb(conf = config.get(pb.plugin_name, None)), probes)
 probes = filter(lambda pb: pb.ready(), probes)
 probes = dict((type(pb).plugin_name, pb) for pb in probes)
@@ -90,12 +93,13 @@ def probe_scan(frontend, scanid, filename):
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
         conf_ftp = config.ftp_brain
-        (fd, tmpname) = tempfile.mkstemp()
-        os.close(fd)
-        with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
-            ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
-        results = probe.run(tmpname)
-        os.remove(tmpname)
+        results = probe.run(filename) # FIXME
+##         (fd, tmpname) = tempfile.mkstemp()
+##         os.close(fd)
+##         with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
+##             ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
+##         results = probe.run(tmpname)
+##         os.remove(tmpname)
         return results
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))
@@ -107,9 +111,8 @@ def probe_scan(frontend, scanid, filename):
 
 if __name__ == '__main__':
     app.worker_main([
-        '--app=probe.tasks:app',    # app instance to use
+        '-A probe.tasks',           # app instance to use
         '-l', 'info',               # logging level
-        '-c', '8',                  # Number of child processes processing the queue.
         '--without-gossip',         # do not subscribe to other workers events.
         '--without-mingle',         # do not synchronize with other workers at startup 
         '--without-heartbeat',      # do not send event heartbeats

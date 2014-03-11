@@ -1,5 +1,6 @@
-import logging, leveldict, binascii, json, encodings, pprint
+import logging, binascii, json, encodings, pprint
 
+from lib.common.oopatterns import Singleton
 from lib.leveldict.leveldict import LevelDictSerialized
 
 log = logging.getLogger(__name__)
@@ -16,31 +17,47 @@ class NSRLSerializer(object):
     def loads(cls, value):
         value = json.loads(value)
         if isinstance(value[0], list):
-            result = map(lambda row: dict((field, row[index]) for index, field in enumerate(cls.fields)), value)
+            result = map(lambda col: dict((field, col[index]) for index, field in enumerate(cls.fields)), value)
         else:
             result = dict((field, value[index]) for index, field in enumerate(cls.fields))
         return result
 
     @classmethod
     def dumps(cls, value):
+
+        def detect_charset(string):
+            import chardet
+            return chardet.detect(string)['encoding']
+
         try:
             if isinstance(value, list):
                 result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
             else:
-                result = json.dumps(map(lambda x: value.get(x), cls.fields))
-        except:
-            # failed to json it, bruteforce encoding
-            import encodings
-            codecs = sorted(set(encodings.aliases.aliases.values()))
-            for codec in codecs:
-                try:
-                    if isinstance(value, list):
-                        result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
-                    else:
-                        result = json.dumps(map(lambda x: value.get(x.decode(codec)), cls.fields))
-                    break
-                except:
-                    pass
+                result = json.dumps(map(lambda col: value.get(col), cls.fields))
+        except Exception as e:
+            if isinstance(value, list):
+                for index, row in enumerate(value):
+                    for colkey, colval in row.items():
+                        if not isinstance(colval, unicode):
+                            charset = detect_charset(colval)
+                            charset = 'unicode-escape' if not charset else charset
+                            try:
+                                row[colkey] = colval.decode(charset)
+                            except:
+                                row[colkey] = colval.decode('unicode-escape')
+                result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
+            else:
+                for colkey, colval in value.items():
+                    if not isinstance(colval, unicode):
+                        # try to use chardet to find encoding
+                        charset = detect_charset(colval)
+                        charset = 'unicode-escape' if not charset else charset
+                        try:
+                            value[colkey] = value[colkey].decode(charset)
+                        except:
+                            # treat false positive from chardet
+                            value[colkey] = value[colkey].decode('unicode-escape')
+                result = json.dumps(map(lambda col: value.get(col), cls.fields))
         return result
 
 class NSRLOsSerializer(NSRLSerializer):
@@ -50,6 +67,45 @@ class NSRLOsSerializer(NSRLSerializer):
 class NSRLFileSerializer(NSRLSerializer):
 
     fields = ["MD5", "CRC32", "FileName", "FileSize", "ProductCode", "OpSystemCode", "SpecialCode"]
+
+    @classmethod
+    def dumps(cls, value):
+        
+        def detect_charset(string):
+            import chardet
+            return chardet.detect(string)['encoding']
+
+        try:
+            if isinstance(value, list):
+                result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
+            else:
+                result = json.dumps(map(lambda col: value.get(col), cls.fields))
+        except Exception as e:
+            # failed to json it, bruteforce encoding
+            if isinstance(value, list):
+                for index, row in enumerate(value):
+                    if not isinstance(row['FileName'], unicode):
+                        charset = detect_charset(row['FileName']) 
+                        charset = 'unicode-escape' if not charset else charset
+                        try: 
+                            row['FileName'] = row['FileName'].decode(charset)
+                        except:
+                            # treat false positive from chardet
+                            row['FileName'] = row['FileName'].decode('unicode-escape')
+                result = json.dumps(map(lambda col: map(lambda key: col.get(key), cls.fields), value))
+            else:
+                if not isinstance(value['FileName'], unicode):
+                    # try to use chardet to find encoding
+                    charset = detect_charset(value['FileName'])
+                    charset = 'unicode-escape' if not charset else charset
+                    try:
+                        value['FileName'] = value['FileName'].decode(charset)
+                    except:
+                        # treat false positive from chardet
+                         value['FileName'] = value['FileName'].decode('unicode-escape')
+                result = json.dumps(map(lambda col: value.get(col), cls.fields))
+        return result
+
 
 class NSRLManufacturerSerializer(NSRLSerializer):
 
@@ -72,18 +128,8 @@ class NSRLLevelDict(LevelDictSerialized):
 
     @classmethod
     def create_database(cls, dbfile, records, **kwargs):
-
         # import specific modules
-        import itertools, collections
         from csv import DictReader
-
-        # import internal helpers
-        def count_items(iterable):
-            """Consume an iterable not reading it into memory;"""
-            # clone iterator, and count using the clone
-            counter = itertools.count()
-            collections.deque(itertools.izip(iterable, counter), maxlen=0) # (consume at C speed)
-            return next(counter)
 
         log_threshold = 50000
         
@@ -92,9 +138,6 @@ class NSRLLevelDict(LevelDictSerialized):
         # open csv files
         csv_file = open(records, 'r')
         csv_entries = DictReader(csv_file)
-        # duplicate iterator and count number of entries at C speed
-        csv_entries, _csv_entries = itertools.tee(csv_entries)
-        csv_count = count_items(_csv_entries)
 
         for index, row in enumerate(csv_entries):
             key = row.pop(cls.key)
@@ -109,7 +152,7 @@ class NSRLLevelDict(LevelDictSerialized):
                     # made in memory and __setitem__ is never called
                     db[key] = value + [row]
             if (index % log_threshold) == 0:
-                print("Current progress: {0}/{1}".format(index, csv_count))
+                print("Current progress: {0}".format(index))
 
         return db
 
@@ -163,11 +206,19 @@ class NSRLProduct(NSRLLevelDict):
 
 class NSRL(object):
 
-    def __init__(self, nsrl_file, nsrl_product, nsrl_os, nsrl_manufacturer):
-        self.nsrl_file = NSRLFile(nsrl_file)
-        self.nsrl_product = NSRLProduct(nsrl_product)
-        self.nsrl_os = NSRLOs(nsrl_os)
-        self.nsrl_manufacturer = NSRLManufacturer(nsrl_manufacturer)
+    def __init__(self, *args, **kwargs):
+        # TODO: need to specify paths in constructor, temporary pass via kwargs
+        self.nsrl_file = None
+        self.nsrl_product = None
+        self.nsrl_os = None
+        self.nsrl_manufacturer = None
+        # temporary hack to prevent error when nsrl db is not provided
+        if reduce(lambda x, y: x and y, (kwargs[key] 
+            for key in ['nsrl_file_db', 'nsrl_prod_db', 'nsrl_os_db', 'nsrl_mfg_db'])):
+            self.nsrl_file = NSRLFile(kwargs['nsrl_file_db'])
+            self.nsrl_product = NSRLProduct(kwargs['nsrl_prod_db'])
+            self.nsrl_os = NSRLOs(kwargs['nsrl_os_db'])
+            self.nsrl_manufacturer = NSRLManufacturer(kwargs['nsrl_mfg_db'])
 
     def _lookup_file(self, sha1sum):
         return self.nsrl_file[sha1sum]
@@ -189,18 +240,27 @@ class NSRL(object):
             ( None,    'MfgCode',      self.nsrl_manufacturer, 'ProductCode')
         ]
         entries = dict((name, {}) for (_, name, _, _) in operations)
-        for value, key, database, where in operations:
-            if value:
-                entries[key][value] = database[value]
-            else:
-                subkeys = set()
-                for subkey, subitem in entries[where].items():
-                    if not isinstance(subitem, list):
-                        subitem = [subitem]
-                    subkeys.update(map(lambda x: x[key], subitem))
-                for subkey in subkeys:
-                    entries[key][subkey] = database[subkey]
+        try:
+            for value, key, database, where in operations:
+                if value:
+                    entries[key][value] = database[value]
+                else:
+                    subkeys = set()
+                    for subkey, subitem in entries[where].items():
+                        if not isinstance(subitem, list):
+                            subitem = [subitem]
+                        subkeys.update(map(lambda x: x[key], subitem))
+                    for subkey in subkeys:
+                        entries[key][subkey] = database[subkey]
+        except:
+            pass
         return entries
+
+    # TODO: need to be moved into probe
+    def ready(self):
+        return reduce(lambda x, y: (x is not None) and (y is not None),
+            [self.nsrl_file, self.nsrl_product, self.nsrl_os, self.nsrl_manufacturer])
+ 
 
 ##############################################################################
 # CLI for debug purposes
@@ -227,7 +287,7 @@ if __name__ == '__main__':
 
     def nsrl_create_database(**kwargs):
         database_type = kwargs['type']
-        nsrl_databases[database_type].create_database(kwargs['filename'], kwargs['database'])
+        nsrl_databases[database_type].create_database(kwargs['database'], kwargs['filename'])
 
     def nsrl_get(**kwargs):
         database_type = kwargs['type']
@@ -236,7 +296,12 @@ if __name__ == '__main__':
         print("key {0}: value {1}".format(kwargs['key'], value))
 
     def nsrl_resolve(**kwargs):
-        handle = NSRL(kwargs['file'], kwargs['product'], kwargs['os'], kwargs['manufacturer'])
+        # TODO: handle in a better way NRSL object
+        kwargs['nsrl_file_db'] = kwargs['file']
+        kwargs['nsrl_prod_db'] = kwargs['product']
+        kwargs['nsrl_os_db'] = kwargs['os']
+        kwargs['nsrl_mfg_db'] = kwargs['manufacturer']
+        handle = NSRL(**kwargs)
         print(pprint.pformat(handle.lookup_by_sha1(kwargs['sha1'])))
 
     ##########################################################################

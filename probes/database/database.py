@@ -1,12 +1,13 @@
 import logging
 
+from lib.common.hash import sha1sum
 from lib.common.oopatterns import Plugin
 from lib.plugin_result import PluginResult
 from probes.processing import Processing
 
 log = logging.getLogger(__name__)
 
-class InformationProbe(Plugin, Processing):
+class DatabaseProbe(Plugin, Processing):
     
     ##########################################################################
     # plugin metadata
@@ -25,12 +26,12 @@ class InformationProbe(Plugin, Processing):
     def run(self, paths):
         # allocate plugin results place-holders
         plugin_results = PluginResult(type(self).plugin_name)
-        # launch file analysis
+        # launch an antivirus scan, automatically append scan results to
+        # antivirus.results.
         plugin_results.start_time = None
-        results = self.analyze(filename=paths)
+        results = self.lookup_by_sha1(sha1sum(paths).upper())
         plugin_results.end_time = None
-        # update results
-        plugin_results.result_code = 0 if results else 1
+        # allocate memory for data, and fill with data
         plugin_results.data = {paths: results}
         # append dependency data
         if type(self).plugin_dependencies:
