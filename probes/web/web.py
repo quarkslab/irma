@@ -25,13 +25,13 @@ class WebProbe(Plugin, Processing):
     def run(self, paths):
         # allocate plugin results place-holders
         plugin_results = PluginResult(type(self).plugin_name)
-        # launch an antivirus scan, automatically append scan results to
-        # antivirus.results.
+        # query page
         plugin_results.start_time = None
-        plugin_results.result_code = self.scan(paths)
+        results = self.scan(paths)
         plugin_results.end_time = None
-        # allocate memory for data, and fill with data
-        plugin_results.data = self.scan(paths)
+        # update results
+        plugin_results.result_code = results['result_code']
+        plugin_results.data = {paths: results}
         # append dependency data
         if type(self).plugin_dependencies:
             for dependency in type(self).plugin_dependencies:
