@@ -1,6 +1,5 @@
-import logging, argparse, re, os, sys
+import logging, argparse, re, os
 
-from lib.common.hash import sha256sum
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ class Sophos(Antivirus):
         # class super class constructor
         super(Sophos, self).__init__(*args, **kwargs)
         # set default antivirus information
-        self._name = "Sophos Anti-Virus for Linux"
+        self._name = "Sophos Anti-Virus"
         # scan tool variables
         self._scan_args = (
             "-archive " # scan inside archives
@@ -27,7 +26,6 @@ class Sophos(Antivirus):
         self._scan_patterns = [
             re.compile(r">>> Virus '(?P<name>.*)' found in file (?P<file>.*)", re.IGNORECASE)
         ]
-        self._is_windows = sys.platform.startswith('win')
 
     ##########################################################################
     # antivirus methods (need to be overriden)
@@ -51,10 +49,7 @@ class Sophos(Antivirus):
         # always installed by default. Instead, hardcode some common paths and
         # locate files using predefined patterns
         if self._is_windows:
-            search_paths = [
-                os.path.join(os.environ.get('PROGRAMFILES', ''), 'Sophos/*'), # default location on windows
-                os.path.join(os.environ.get('PROGRAMFILES(X86)', ''), 'Sophos/*'), # default location on windows
-            ]
+            search_paths = map(lambda x: "{path}/Sophos".format(path=x), [os.environ.get('PROGRAMFILES', ''), os.environ.get('PROGRAMFILES(X86)', '')])
         else:
             search_paths = [
                 '/opt/sophos-av/lib/sav', # default location in debian
@@ -84,6 +79,6 @@ class Sophos(Antivirus):
 
     def scan(self, paths, heuristic=None):
         # quirk to force lang in linux
-        if not sys.platform.startswith('win'):
+        if not self._is_windows:
             os.environ['LANG'] = "C"
         super(Sophos, self).scan(paths, heuristic)
