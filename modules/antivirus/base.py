@@ -1,4 +1,4 @@
-import logging, re, os, glob
+import logging, re, os, sys, glob
 
 from lib.common.hash import sha256sum
 from subprocess import Popen, PIPE
@@ -48,6 +48,7 @@ class Antivirus(object):
         self._scan_patterns = []
         # initialize result as an empty dictionary
         self._scan_results = dict()
+        self._is_windows = sys.platform.startswith('win')
 
     ##########################################################################
     # antivirus methods
@@ -240,6 +241,7 @@ if __name__ == '__main__':
     from modules.antivirus.fprot       import FProt
     from modules.antivirus.mcafee_vscl import McAfeeVSCL
     from modules.antivirus.sophos      import Sophos
+    from modules.antivirus.kaspersky   import Kaspersky
 
     ##########################################################################
     # helpers
@@ -252,6 +254,7 @@ if __name__ == '__main__':
         'fprot'      : FProt,
         'mcafee_vscl': McAfeeVSCL,
         'sophos'     : Sophos,
+        'kaspersky'  : Kaspersky,
     }
 
     def antivirus_info(**kwargs):

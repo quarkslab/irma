@@ -1,6 +1,7 @@
-import logging, binascii, json, encodings, pprint
+import logging, binascii, json, encodings, os, pprint
 
-from lib.common.oopatterns import Singleton
+from abc import ABCMeta
+from lib.common.oopatterns import ParametricSingletonMetaClass
 from lib.leveldict.leveldict import LevelDictSerialized
 
 log = logging.getLogger(__name__)
@@ -123,6 +124,12 @@ class NSRLLevelDict(LevelDictSerialized):
 
     key = None
 
+    @staticmethod
+    def depends_on(cls, *args, **kwargs):
+        # singleton depends on the uri parameter
+        (db,) = args[0]
+        return os.path.abspath(db)
+
     def __init__(self, db, serializer=json, **kwargs):
         super(NSRLLevelDict, self).__init__(db, serializer, **kwargs)
 
@@ -157,10 +164,17 @@ class NSRLLevelDict(LevelDictSerialized):
         return db
 
 ##############################################################################
+# Hack to avoid metaclass conflicts
+##############################################################################
+
+class LevelDBSingletonMetaClass(ABCMeta, ParametricSingletonMetaClass): pass
+LevelDBSingleton = LevelDBSingletonMetaClass('NSRLRecord', (object,), {})
+
+##############################################################################
 # NSRL File Record
 ##############################################################################
 
-class NSRLFile(NSRLLevelDict):
+class NSRLFile(LevelDBSingleton, NSRLLevelDict):
 
     key = "SHA-1"
 
@@ -171,7 +185,7 @@ class NSRLFile(NSRLLevelDict):
 # NSRL OS Record
 ##############################################################################
 
-class NSRLOs(NSRLLevelDict):
+class NSRLOs(LevelDBSingleton, NSRLLevelDict):
 
     key = "OpSystemCode"
 
@@ -182,7 +196,7 @@ class NSRLOs(NSRLLevelDict):
 # NSRL OS Record
 ##############################################################################
 
-class NSRLManufacturer(NSRLLevelDict):
+class NSRLManufacturer(LevelDBSingleton, NSRLLevelDict):
 
     key = "MfgCode"
 
@@ -193,7 +207,7 @@ class NSRLManufacturer(NSRLLevelDict):
 # NSRL Product Record
 ##############################################################################
 
-class NSRLProduct(NSRLLevelDict):
+class NSRLProduct(LevelDBSingleton, NSRLLevelDict):
 
     key = "ProductCode"
 
