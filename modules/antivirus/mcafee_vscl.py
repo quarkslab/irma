@@ -1,6 +1,5 @@
-import logging, argparse, re
+import logging, argparse, re, os, sys
 
-from lib.common.hash import sha256sum
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
@@ -17,17 +16,26 @@ class McAfeeVSCL(Antivirus):
         # set default antivirus information
         self._name = "McAfee VirusScan Command Line scanner"
         # scan tool variables
-        self._scan_args = (
-            "--ASCII " # display filenames as ASCII text
-            "--ANALYZE " # turn on heuristic analysis for programs and macros
-            "--MANALYZE " # turn on macro heuristics
-            "--MACRO-HEURISTICS " # turn on macro heuristics
-            "--RECURSIVE " # examine any subdirectories in addition to the specified target directory.
-            "--UNZIP " # scan inside archive files
-        )
+        if self._is_windows:
+            self._scan_args = (
+                "/ANALYZE " # turn on heuristic analysis for program and macro
+                "/MANALYZE " # turn on macro heuristics
+                "/RECURSIVE " # examine any subdirectories in addition to the specified target directory.
+                "/UNZIP " # scan inside archives
+                "/NOMEM " # do not scan memory for viruses
+            )
+        else:
+            self._scan_args = (
+                "--ASCII " # display filenames as ASCII text
+                "--ANALYZE " # turn on heuristic analysis for programs and macros
+                "--MANALYZE " # turn on macro heuristics
+                "--MACRO-HEURISTICS " # turn on macro heuristics
+                "--RECURSIVE " # examine any subdirectories in addition to the specified target directory.
+                "--UNZIP " # scan inside archive files
+            )
         self._scan_patterns = [
-            re.compile(r'(?P<file>.*) \.\.\. Found the (?P<name>.*) [a-z]+ \!\!', re.IGNORECASE),
-            re.compile(r'(?P<file>.*) \.\.\. Found [a-z]+ or variant (?P<name>.*) \!\!', re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]*) \.\.\. Found the (?P<name>.*) [a-z]+ \!\!', re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]*) \.\.\. Found [a-z]+ or variant (?P<name>.*) \!\!', re.IGNORECASE),
         ]
 
     ##########################################################################
@@ -48,9 +56,14 @@ class McAfeeVSCL(Antivirus):
 
     def get_database(self):
         """return list of files in the database"""
-        search_paths = [
-            '/usr/local/uvscan', # default location in debian
-        ]
+        if self._is_windows:
+            search_paths = [ 
+                os.path.normpath('C:\VSCL') # default install path in windows probes in irma
+            ]
+        else:
+            search_paths = [
+                '/usr/local/uvscan', # default location in debian
+            ]
         database_patterns = [
             'avvscan.dat', # data file for virus scanning
             'avvnames.dat', # data file for virus names
@@ -64,5 +77,11 @@ class McAfeeVSCL(Antivirus):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("uvscan")
+        if self._is_windows:
+            scan_bin = "scan.exe"
+            scan_paths = os.path.normpath("C:\VSCL")
+        else:
+            scan_bin = "uvscan"
+            scan_paths = None
+        paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None
