@@ -1,5 +1,6 @@
 import logging, re, os, glob
 
+from lib.common.hash import sha256sum
 from subprocess import Popen, PIPE
 
 
@@ -75,6 +76,10 @@ class Antivirus(object):
         if not self.scan_patterns:
             raise ValueError("scan_patterns not defined")
         # build the command to be executed and run it
+        if isinstance(paths, list):
+            paths = map(os.path.abspath, paths)
+        else:
+            paths = os.path.abspath(paths)
         cmd = self.scan_cmd(paths, heuristic)
         results = self.run_cmd(cmd)
         log.debug("Executed command line: {0}, results {1}".format(cmd, results))
@@ -83,13 +88,6 @@ class Antivirus(object):
     ##########################################################################
     # internal helpers
     ##########################################################################
-
-    @staticmethod
-    def sha256(filename):
-        hash = None
-        with open(filename, 'rb') as fd:
-            hash = hashlib.sha256(fd.read()).hexdigest()
-        return hash
 
     @staticmethod
     def build_cmd(cmd, *args):
