@@ -1,6 +1,5 @@
 import logging, argparse, re
 
-from lib.common.hash import sha256sum
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
