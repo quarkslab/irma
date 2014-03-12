@@ -17,6 +17,7 @@ from probes.antivirus.eset_nod32 import EsetNod32
 from probes.antivirus.fprot import FProt
 from probes.antivirus.mcafee_vscl import McAfeeVSCL
 from probes.antivirus.sophos import Sophos
+from probes.antivirus.kaspersky import Kaspersky
 
 from probes.web.web import WebProbe
 from probes.web.virustotal import VirusTotalProbe
@@ -111,7 +112,7 @@ def probe_scan(frontend, scanid, filename):
 
 if __name__ == '__main__':
     app.worker_main([
-        '-A probe.tasks',           # app instance to use
+        '--app=probe.tasks:app',    # app instance to use
         '-l', 'info',               # logging level
         '--without-gossip',         # do not subscribe to other workers events.
         '--without-mingle',         # do not synchronize with other workers at startup 
