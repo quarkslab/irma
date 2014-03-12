@@ -120,7 +120,11 @@ class NSRLProductSerializer(NSRLSerializer):
 # NSRL records
 ##############################################################################
 
-class NSRLLevelDict(LevelDictSerialized):
+# Hack to avoid metaclass conflicts
+class LevelDBSingletonMetaClass(ABCMeta, ParametricSingletonMetaClass): pass
+LevelDBSingleton = LevelDBSingletonMetaClass('LevelDBSingleton', (object,), {})
+
+class NSRLLevelDict(LevelDictSerialized, LevelDBSingleton):
 
     key = None
 
@@ -164,17 +168,10 @@ class NSRLLevelDict(LevelDictSerialized):
         return db
 
 ##############################################################################
-# Hack to avoid metaclass conflicts
-##############################################################################
-
-class LevelDBSingletonMetaClass(ABCMeta, ParametricSingletonMetaClass): pass
-LevelDBSingleton = LevelDBSingletonMetaClass('NSRLRecord', (object,), {})
-
-##############################################################################
 # NSRL File Record
 ##############################################################################
 
-class NSRLFile(LevelDBSingleton, NSRLLevelDict):
+class NSRLFile(NSRLLevelDict):
 
     key = "SHA-1"
 
@@ -185,7 +182,7 @@ class NSRLFile(LevelDBSingleton, NSRLLevelDict):
 # NSRL OS Record
 ##############################################################################
 
-class NSRLOs(LevelDBSingleton, NSRLLevelDict):
+class NSRLOs(NSRLLevelDict):
 
     key = "OpSystemCode"
 
@@ -196,7 +193,7 @@ class NSRLOs(LevelDBSingleton, NSRLLevelDict):
 # NSRL OS Record
 ##############################################################################
 
-class NSRLManufacturer(LevelDBSingleton, NSRLLevelDict):
+class NSRLManufacturer(NSRLLevelDict):
 
     key = "MfgCode"
 
@@ -207,7 +204,7 @@ class NSRLManufacturer(LevelDBSingleton, NSRLLevelDict):
 # NSRL Product Record
 ##############################################################################
 
-class NSRLProduct(LevelDBSingleton, NSRLLevelDict):
+class NSRLProduct(NSRLLevelDict):
 
     key = "ProductCode"
 
