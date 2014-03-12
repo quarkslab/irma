@@ -4,8 +4,7 @@ import requests
 import json
 import argparse
 
-# ADDRESS = "http://172.16.36.130:8080"
-ADDRESS = "http://localhost:8080"
+ADDRESS = "http://frontend.irma.qb:8080"
 
 class IrmaReturnCode:
     success = 0
