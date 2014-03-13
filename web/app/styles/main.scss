@@ -1,0 +1,186 @@
+$icon-font-path: "/bower_components/sass-bootstrap/fonts/";
+
+@import 'sass-bootstrap/lib/bootstrap';
+
+body {
+}
+
+.browsehappy {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
+
+p {
+  color: #999999;
+  text-align: center;
+  font-size: 18px;
+  padding: 10px 20px 20px;
+}
+
+.head {
+  position: relative;
+  margin-bottom: 50px;
+
+  h1 {
+    float: left;
+    font-weight: 900;
+    font-size: 160px;
+    line-height: 155px;
+    padding-left: 70px;
+    font-family: 'Raleway', sans-serif;
+  }
+  h2 {
+    font-weight: 200;
+    font-size: 60px;
+    line-height: 55px;
+    color: #999999;
+    padding-left: 500px;
+    padding-top: 50px;
+    position: relative;
+    z-index: 10;
+    font-family: 'Raleway', sans-serif;
+  }
+
+  &:before{
+    content: '&';
+    font-size: 250px;
+    font-weight: 700;
+    color: #dddddd;
+    position: absolute;
+    right: 80px;
+    top: -90px;
+    z-index: 0;
+  } 
+}
+
+.status {
+  clear: both;
+  text-align: center;
+  border-bottom: 1px solid #dddddd;
+  border-top: 1px solid #dddddd;
+  margin: 10px 50px;
+  font-family: 'Raleway', sans-serif;
+
+  li {
+    font-size: 40px;
+    font-weight: 500;
+    color: #dddddd;
+    padding: 5px 20px;
+
+    &.active {
+      color: #333333;
+      font-weight: 700;
+    }
+  }
+}
+
+.selection {
+
+  .drop-zone {
+    border: 2px dashed #999999;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 0px 50px;
+
+    &.hover {
+      border-color: #333;
+    }
+  }
+
+  .browse {
+    text-align: center;
+    margin: 10px;
+  }
+
+  .placeholder {
+    padding: 40px;
+  }
+
+  .files {
+    padding-right: 65px;
+    table {
+      tbody > tr:first-child > td {
+        border: none;
+      }
+      tbody > tr > td:last-child {
+        text-align: right;
+      }
+      .glyphicon-remove {
+        color: #d9534f;
+      }
+    }
+  }
+}
+
+.upload {
+  .progress {
+    width: 700px;
+    margin: 20px auto;
+    .progress-bar {
+      background-color: #999;
+    }
+  }
+}
+
+.scan {
+  .progress {
+    width: 700px;
+    margin: 20px auto;
+    .progress-bar {
+      background-color: #333;
+    }
+  }
+}
+
+.file-display {
+
+  margin-bottom: 35px;
+
+  h3 {
+    margin: 0px;
+    text-transform: capitalize;
+    padding-left: 250px;
+    text-transform: capitalize;
+    padding-left: 250px;
+  }
+  .results {
+    padding-top: 5px;
+    margin-top: 5px;
+  }
+  .probe {
+    text-align: right;
+    font-weight: bold;
+    text-transform: capitalize;
+  }
+  .version {
+    color: #aaa;
+    font-size: 0.8em;
+  }
+}
+
+/*.file-display {
+  h3 {
+    font-family: 'Raleway', sans-serif;
+    font-size: 30px;
+    margin-left: 200px;
+  }
+}
+
+.tool-display {
+  border-bottom: 1px solid #d0d0d0;
+  margin-bottom: 20px;
+
+  h4 {
+    font-family: 'Raleway', sans-serif;
+    font-size: 20px;
+  }
+  p {
+    text-align: left;
+    color: #000;
+    font-size: 16px;
+    padding: 5px;
+  }
+}*/

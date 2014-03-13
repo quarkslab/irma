@@ -1,0 +1,106 @@
+<div class="container">
+
+  <div class="head">
+    <h1>IRMA</h1>
+    <h2>Incident Response<br />Malware Analysis</h2>
+  </div>
+
+  <ul class="list-inline status">
+    <li class="{{(context=='selection')?'active':''}}">Selection</li>
+    <li class="{{(context=='upload')?'active':''}}">Upload</li>
+    <li class="{{(context=='scan')?'active':''}}">Scan</li>
+    <li class="{{(context=='results')?'active':''}}">Results</li>
+  </ul>
+
+  <!--
+    SELECTION: The user is prompted to select the appropriate file
+  -->
+  <form class="selection" ng-if="context == 'selection'" ng-submit="uploadFiles()">
+    <p>&lt; Insert IRMA's description here &gt;</p>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div ng-show="uploader.isHTML5">
+          <div class="drop-zone" ng-file-over="hover" ng-file-drop>
+            Drop your files in here
+          </div>
+        </div>
+        <div class="browse">
+          <input id="file-container" class="hidden" type="file" name="file" ng-file-select multiple>
+          Or choose them with this: &nbsp; <button class="btn btn-default" type="button" file-trigger>Choose file</button>
+        </div>
+      </div>
+      <div class="col-md-6 files">
+        <table class="table table-condensed table-hover" ng-show="uploader.getNotUploadedItems().length">
+          <tbody>
+            <tr ng-repeat="item in uploader.queue">
+              <td>{{ item.file.name }}</td>
+              <td ng-show="uploader.isHTML5" nowrap>{{ item.file.size/1024/1024|number:2 }} MB</td>
+              <td nowrap>
+                <span class="glyphicon glyphicon-remove" ng-click="item.remove()"></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="placeholder" ng-show="!uploader.getNotUploadedItems().length">
+          Please select the files to scan for malwares
+        </div>
+      </div>
+    </div>
+
+    
+    <p>
+      <input type="submit" class="action btn btn-lg btn-primary" value="Scan for malwares" ng-disabled="!uploader.getNotUploadedItems().length">
+    </p>
+  </form>
+
+  <!--
+    UPLOAD: The file is being uploaded to the server
+  -->
+  <div class="upload" ng-if="context == 'upload'">
+    <p>The files are being uploaded...</p>
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuenow="{{uploader.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{uploader.progress}}%;">
+        <span class="sr-only">{{uploader.progress}}% Complete</span>
+      </div>
+    </div>
+    <p>
+      <button class="action btn btn-lg btn-warning" ng-click="cancelUpload()">Cancel</button>
+    </p>
+  </div>
+
+  <!--
+    SCAN: The file is being scanned on the server
+  -->
+  <div class="scan" ng-if="context == 'scan' || context == 'results'">
+    <div ng-if="context == 'scan'">
+      <p>The files are being scanned...</p>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{progress}}%;">
+          <span class="sr-only">{{progress}}% Complete</span>
+        </div>
+      </div>
+      <p>
+        <button class="action btn btn-lg btn-warning" ng-click="abort()">Cancel</button>
+      </p>
+    </div>
+    <p ng-if="context == 'results'">The service responded with these results</p>
+
+    <div>
+      <div ng-repeat="(id, file) in results" class="file-display">
+        <h3>{{file.filename}}</h3>
+        <div class="results">
+          <div class="row" ng-repeat="(toolName, toolResults) in file.results" ng-click="toolResults.displayVersion = !toolResults.displayVersion">
+            <div class="col-md-5 probe">{{toolName}} : </div>
+            <div class="col-md-7 result"><span boolean-display="toolResults.result == 'clean'"></span> The file came out as: {{toolResults.result}}</div>
+            <div class="col-md-7 col-md-offset-5 version" ng-if="toolResults.displayVersion">{{toolResults.version || 'No version information available'}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p ng-if="context == 'results'">
+      <button class="action btn btn-lg btn-primary" ng-click="abort()">New Scan</button>
+    </p>
+  </div>
+</div>
