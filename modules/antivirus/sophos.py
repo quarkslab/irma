@@ -81,4 +81,4 @@ class Sophos(Antivirus):
         # quirk to force lang in linux
         if not self._is_windows:
             os.environ['LANG'] = "C"
-        super(Sophos, self).scan(paths, heuristic)
+        return super(Sophos, self).scan(paths, heuristic)
