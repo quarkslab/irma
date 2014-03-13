@@ -242,6 +242,7 @@ if __name__ == '__main__':
     from modules.antivirus.mcafee_vscl import McAfeeVSCL
     from modules.antivirus.sophos      import Sophos
     from modules.antivirus.kaspersky   import Kaspersky
+    from modules.antivirus.symantec    import Symantec
 
     ##########################################################################
     # helpers
@@ -255,6 +256,7 @@ if __name__ == '__main__':
         'mcafee_vscl': McAfeeVSCL,
         'sophos'     : Sophos,
         'kaspersky'  : Kaspersky,
+        'symantec'   : Symantec,
     }
 
     def antivirus_info(**kwargs):

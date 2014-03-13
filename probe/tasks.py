@@ -18,6 +18,7 @@ from probes.antivirus.fprot import FProt
 from probes.antivirus.mcafee_vscl import McAfeeVSCL
 from probes.antivirus.sophos import Sophos
 from probes.antivirus.kaspersky import Kaspersky
+from probes.antivirus.symantec import Symantec
 
 from probes.web.web import WebProbe
 from probes.web.virustotal import VirusTotalProbe
