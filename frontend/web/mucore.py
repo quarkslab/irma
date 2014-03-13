@@ -117,6 +117,7 @@ def scan_new():
     global session, total, progress
     scanid = str(ObjectId())
     session[scanid] = {}
+    session[scanid]['files'] = {}
     total[scanid] = 0
     progress[scanid] = 0
     return scanid
@@ -136,10 +137,8 @@ def scan_add(scanid, files):
         hashval = sha256(data).hexdigest()
         print 'Name', name
         if name in results_filename:
-            session[scanid]['files'] = {}
             session[scanid]['files'].update({hashval:{'filename':name, 'results' :results_filename[name]}})
         else:
-            session[scanid]['files'] = {}
             session[scanid]['files'].update({hashval: {'filename':name, 'results' :results[random.randrange(len(results))]}})
         print "Result", session[scanid]['files']
         total[scanid] += 1
