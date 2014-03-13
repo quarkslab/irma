@@ -6,7 +6,7 @@ from probes.antivirus.antivirus import AntivirusProbe
 
 log = logging.getLogger(__name__)
 
-class EsetNod32Probe(EsetNod32, AntivirusProbe):
+class EsetNod32Probe(AntivirusProbe):
     
     ##########################################################################
     # plugin metadata
@@ -20,6 +20,7 @@ class EsetNod32Probe(EsetNod32, AntivirusProbe):
     # constructor and destructor stuff
     ##########################################################################
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, conf=None, **kwargs):
         # call super classes constructors
-        super(EsetNod32Probe, self).__init__(*args, **kwargs)
+        super(EsetNod32Probe, self).__init__(conf, **kwargs)
+        self._module = EsetNod32()

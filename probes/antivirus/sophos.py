@@ -6,7 +6,7 @@ from probes.antivirus.antivirus import AntivirusProbe
 
 log = logging.getLogger(__name__)
 
-class SophosProbe(AntivirusProbe, Sophos):
+class SophosProbe(AntivirusProbe):
     
     ##########################################################################
     # plugin metadata
@@ -20,6 +20,7 @@ class SophosProbe(AntivirusProbe, Sophos):
     # constructor and destructor stuff
     ##########################################################################
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, conf=None, **kwargs):
         # call super classes constructors
-        super(SophosProbe, self).__init__(*args, **kwargs)
+        super(SophosProbe, self).__init__(conf, **kwargs)
+        self._module = Sophos()

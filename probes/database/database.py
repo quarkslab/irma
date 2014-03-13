@@ -29,7 +29,7 @@ class DatabaseProbe(Plugin, Processing):
         # launch an antivirus scan, automatically append scan results to
         # antivirus.results.
         plugin_results.start_time = None
-        results = self.lookup_by_sha1(sha1sum(paths).upper())
+        results = self._module.lookup_by_sha1(sha1sum(paths).upper())
         plugin_results.end_time = None
         # allocate memory for data, and fill with data
         plugin_results.data = {paths: results}

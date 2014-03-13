@@ -95,13 +95,12 @@ def probe_scan(frontend, scanid, filename):
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
         conf_ftp = config.ftp_brain
-        results = probe.run(filename) # FIXME
-##         (fd, tmpname) = tempfile.mkstemp()
-##         os.close(fd)
-##         with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
-##             ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
-##         results = probe.run(tmpname)
-##         os.remove(tmpname)
+        (fd, tmpname) = tempfile.mkstemp()
+        os.close(fd)
+        with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
+            ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
+        results = probe.run(tmpname)
+        os.remove(tmpname)
         return results
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))

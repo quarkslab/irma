@@ -54,13 +54,6 @@ class Antivirus(object):
     # antivirus methods
     ##########################################################################
 
-    def ready(self):
-        result = False
-        if self.scan_path and os.path.exists(self.scan_path):
-            if os.path.isfile(self.scan_path):
-                result = True
-        return result
-
     # TODO: enable multiple paths
     # TODO: enable heuristics levels
     def scan_cmd(self, paths, heuristic=None):
@@ -70,9 +63,6 @@ class Antivirus(object):
 
     # TODO: implement heuristic levels
     def scan(self, paths, heuristic=None):
-        # check if ready
-        if not self.ready():
-            raise RuntimeError("{0} not ready".format(type(self).__name__))
         # check if patterns are set
         if not self.scan_patterns:
             raise ValueError("scan_patterns not defined")

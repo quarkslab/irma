@@ -23,7 +23,8 @@ class Symantec(Antivirus):
         self._scan_patterns = [
             re.compile(r"([^,]*,){6}(?P<name>[^,]*),(?P<file>[^,]*).*", re.IGNORECASE)
         ]
-        self._pdata_path = glob.glob(os.path.normcase('\\'.join([os.environ['PROGRAMDATA'], r"Symantec\Symantec Endpoint Protection\*"])))[0]
+        self._pdata_path = glob.glob(os.path.normcase('\\'.join([os.environ.get('PROGRAMDATA', ''), r"Symantec\Symantec Endpoint Protection\*"])))
+        self._pdata_path = self._pdata_path.pop() if self._pdata_path else None
 
     ##########################################################################
     # antivirus methods (need to be overriden)
