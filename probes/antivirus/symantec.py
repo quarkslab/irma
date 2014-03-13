@@ -1,6 +1,6 @@
 import logging
 
-from modules.antivirus.kaspersky import Symantec
+from modules.antivirus.symantec import Symantec
 from probes.antivirus.antivirus import AntivirusProbe
 
 
