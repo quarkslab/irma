@@ -79,6 +79,7 @@ angular.module('irma')
 
         $http.get($scope.rootApi+'/scan/launch/'+$scope.scanId, params).then(function(response){
 
+          $scope.results = {};
           if(response.data.code === 0){
             $scope.scanDisplay();
           } else {
