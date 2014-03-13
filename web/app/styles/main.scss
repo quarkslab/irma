@@ -113,6 +113,52 @@ p {
       }
     }
   }
+
+  .toggle-advanced {
+    text-align: center;
+    text-decoration: underline;
+    color: #999999;
+    margin-bottom: -5px;
+    cursor: pointer;
+  }
+
+  .select-probes {
+    margin: 10px;
+
+    p {
+      color: #333;
+      font-size: 15px;
+      padding: 0px;
+      margin: 0px;
+
+      span {
+        text-decoration: underline;
+        color: #999999;
+        cursor: pointer;
+      }
+    }
+    ul {
+      text-align: center;
+    }
+    li {
+      border: 1px solid #eee;
+      background-color: #fafafa;
+      padding: 3px 7px;
+      margin: 5px;
+      border-radius: 5px;
+      text-transform: capitalize;
+      color: #999;
+      cursor: pointer;
+
+      .glyphicon {
+        position: relative;
+        top: 2px;
+      }
+    }
+    .active {
+      color: #333;
+    }
+  }
 }
 
 .upload {
@@ -139,12 +185,14 @@ p {
 
   margin-bottom: 35px;
 
+
   h3 {
     margin: 0px;
     text-transform: capitalize;
     padding-left: 250px;
     text-transform: capitalize;
     padding-left: 250px;
+    font-family: 'Raleway', sans-serif;
   }
   .results {
     padding-top: 5px;
@@ -154,6 +202,7 @@ p {
     text-align: right;
     font-weight: bold;
     text-transform: capitalize;
+    font-family: 'Raleway', sans-serif;
   }
   .version {
     color: #aaa;

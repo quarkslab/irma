@@ -15,7 +15,7 @@ angular.module('irma')
 .directive('booleanDisplay', [function() {
   return {
     restrict: 'A',
-    scope: {state: '=booleanDisplay'},
-    template: '<span class="glyphicon glyphicon-{{(state)? \'ok\': \'remove\'}}" style="color: {{(state)? \'#5cb85c\': \'#d9534f\'}}"></span>'
+    scope: {state: '=booleanDisplay', color: '@color'},
+    template: '<span class="glyphicon glyphicon-{{(state)? \'ok\': \'remove\'}}" style="color: {{(color)? color: (state)? \'#5cb85c\': \'#d9534f\'}}"></span>'
   };
 }]);

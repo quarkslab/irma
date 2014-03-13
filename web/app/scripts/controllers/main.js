@@ -7,10 +7,26 @@ angular.module('irma')
   $scope.scanId = null;
   $scope.rootApi = apiRoot;
   $scope.currentProcess = null;
+  $scope.probes = [];
+  $scope.advancedSettings = false;
 
   var uploader = $scope.uploader = $fileUploader.create(),
     speed = 1000;
 
+  $scope.loadProbes = function(){
+    $http.get($scope.rootApi+'/probe/list').then(function(response){
+      if(response.data.code === 0){
+        for(var i=0; i<response.data.probe_list.length; i++){
+          $scope.probes.push({name: response.data.probe_list[i], active: true});
+        }
+      } else {
+        console.error('Error occured retrieving probe list');
+      }
+    });
+  };
+  $scope.toggleAdvanced = function(force){
+    $scope.advancedSettings = (force !== null)? force: !$scope.advancedSettings;
+  };
 
   $scope.uploadFiles = function(){
     if(!uploader.getNotUploadedItems().length)
@@ -51,10 +67,19 @@ angular.module('irma')
     if(allGood)
       // Asks for the scan to begin
       $scope.currentProcess = $timeout(function(){
-        $http.get($scope.rootApi+'/scan/launch/'+$scope.scanId).then(function(response){
+
+        var probes = [], hasInactive = false;
+        for(var i=0; i<$scope.probes.length; i++){
+          if($scope.probes[i].active)
+            probes.push($scope.probes[i].name)
+          else
+            hasInactive = true;
+        }
+        var params = (hasInactive)? {params: {probe: probes.join(',')}}: null;
+
+        $http.get($scope.rootApi+'/scan/launch/'+$scope.scanId, params).then(function(response){
 
           if(response.data.code === 0){
-            $scope.probes = response.data.probe_list;
             $scope.scanDisplay();
           } else {
             console.error('Error occured during scan launch');
@@ -117,5 +142,8 @@ angular.module('irma')
   $scope.resultsDisplay = function(){
     $scope.fetchResults().then(function(){ $scope.context = 'results';});
   };
+
+  // Initialization
+  $scope.loadProbes();
 
 });
