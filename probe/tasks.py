@@ -12,13 +12,13 @@ from lib.irma.ftp.handler import FtpTls
 
 from probes.antivirus.antivirus import AntivirusProbe
 from probes.antivirus.clam import ClamProbe
-from probes.antivirus.comodo_cavl import ComodoCAVL
-from probes.antivirus.eset_nod32 import EsetNod32
-from probes.antivirus.fprot import FProt
-from probes.antivirus.mcafee_vscl import McAfeeVSCL
-from probes.antivirus.sophos import Sophos
-from probes.antivirus.kaspersky import Kaspersky
-from probes.antivirus.symantec import Symantec
+from probes.antivirus.comodo_cavl import ComodoCAVLProbe
+from probes.antivirus.eset_nod32 import EsetNod32Probe
+from probes.antivirus.fprot import FProtProbe
+from probes.antivirus.mcafee_vscl import McAfeeVSCLProbe
+from probes.antivirus.sophos import SophosProbe
+from probes.antivirus.kaspersky import KasperskyProbe
+from probes.antivirus.symantec import SymantecProbe
 
 from probes.web.web import WebProbe
 from probes.web.virustotal import VirusTotalProbe
@@ -27,7 +27,7 @@ from probes.information.information import InformationProbe
 from probes.information.analyzer import StaticAnalyzerProbe
 
 from probes.database.database import DatabaseProbe
-from probes.database.nsrl import NSRL
+from probes.database.nsrl import NSRLProbe
 
 ##############################################################################
 # celery application configuration
