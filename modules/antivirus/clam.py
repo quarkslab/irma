@@ -61,11 +61,11 @@ class Clam(Antivirus):
         ]
         results = []
         for pattern in database_patterns:
-            result = self.locate(pattern, search_paths)
+            result = self.locate(pattern, search_paths, syspath=False)
             results.extend(result)
         return results if results else None
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("clamscan")
+        paths = self.locate("clamdscan")
         return paths[0] if paths else None

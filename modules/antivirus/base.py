@@ -103,9 +103,9 @@ class Antivirus(object):
         return (retcode, stdout, stderr)
 
     @staticmethod
-    def locate(file, paths=None):
+    def locate(file, paths=None, syspath=True):
         # always add system path to search paths
-        search_paths = os.environ.get('PATH', None)
+        search_paths = os.environ.get('PATH', None) if syspath else None
         search_paths = search_paths.split(os.pathsep) if search_paths else []
         # append additionnal paths
         if paths:
