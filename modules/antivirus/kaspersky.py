@@ -1,10 +1,10 @@
-import logging, argparse, re
+import logging, argparse, re, os
 
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
 
-class EsetNod32(Antivirus):
+class Kaspersky(Antivirus):
 
     ##########################################################################
     # constructor and destructor stuff
@@ -12,18 +12,17 @@ class EsetNod32(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(EsetNod32, self).__init__(*args, **kwargs)
+        super(Kaspersky, self).__init__(*args, **kwargs)
         # set default antivirus information
-        self._name = "ESET NOD32 Antivirus Business Edition for Linux Desktop"
-        # Modify retun codes (see --help for details)
-        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [1, 50]
+        self._name = "Kaspersky Anti-Virus"
         # scan tool variables
         self._scan_args = (
-            "--clean-mode=NONE " # do not remove infected files
-            "--no-log-all" # do not log clean files
+            "scan " # scan command
+            "/i0 " # report only
         )
+        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [2,3]
         self._scan_patterns = [
-            re.compile(r'name="(?P<file>.*)", threat="(?P<name>.*), action=.*', re.IGNORECASE|re.MULTILINE)
+            re.compile(r"(?P<file>[^\s]+)\s+(detected|suspicion)+\s(?P<name>.*)", re.IGNORECASE)
         ]
 
     ##########################################################################
@@ -34,7 +33,7 @@ class EsetNod32(Antivirus):
         """return the version of the antivirus"""
         result = None
         if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
+            cmd = self.build_cmd(self.scan_path, 'help')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
                 matches = re.search(r'(?P<version>\d+(\.\d+)+)', stdout, re.IGNORECASE)
@@ -44,11 +43,19 @@ class EsetNod32(Antivirus):
 
     def get_database(self):
         """return list of files in the database"""
-        search_paths = [
-            '/var/opt/eset/esets/lib/', 
-        ]
+        # TODO: We list all files in Bases/*, heuristic to lookup database must be improved
+        search_paths = map(lambda x: "{path}/Kaspersky Lab/*/Bases".format(path=x), [os.environ.get('PROGRAMDATA', '')])
         database_patterns = [
-            '*.dat', # determined using strace on linux
+            '*.avz',
+            '*.dat',
+            '*.dll',
+            '*.esm',
+            '*.kdc',
+            '*.keb',
+            '*.mft',
+            '*.xms',
+            '*.xml',
+            '*.ini',
         ]
         results = []
         for pattern in database_patterns:
@@ -58,5 +65,7 @@ class EsetNod32(Antivirus):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("esets_scan", "/opt/eset/esets/sbin/")
+        scan_bin = "avp.com"
+        scan_paths = map(lambda x: "{path}/Kaspersky Lab/*".format(path=x), [os.environ.get('PROGRAMFILES', ''), os.environ.get('PROGRAMFILES(X86)', '')])
+        paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None

@@ -38,6 +38,19 @@ class AntivirusProbe(Plugin, Processing):
     # processing interface
     ##########################################################################
 
+    def __init__(self, conf=None, **kwargs):
+        # store configuration
+        self._conf = conf
+        self._module = None
+
+    def ready(self):
+        result = False
+        if super(AntivirusProbe, self).ready():
+            if self._module.scan_path and os.path.exists(self._module.scan_path):
+                if os.path.isfile(self._module.scan_path):
+                    result = True
+        return result
+
     # TODO: create an object to hold antivirus data instead of a dict
     def run(self, paths, heuristic=None):
         # allocate plugin results place-holders
@@ -45,18 +58,18 @@ class AntivirusProbe(Plugin, Processing):
         # launch an antivirus scan, automatically append scan results to
         # antivirus.results.
         plugin_results.start_time = None
-        plugin_results.result_code = self.scan(paths, heuristic)
+        plugin_results.result_code = self._module.scan(paths, heuristic)
         plugin_results.end_time = None
         # allocate memory for data, and fill with data
         plugin_results.data = dict()
-        plugin_results.data['name'] = self.name
-        plugin_results.data['version'] = self.version
+        plugin_results.data['name'] = self._module.name
+        plugin_results.data['version'] = self._module.version
         plugin_results.data['database'] = dict()
         # calculate database metadata
-        if self.database:
-            for filename in self.database:
+        if self._module.database:
+            for filename in self._module.database:
                 plugin_results.data['database'][filename] = self.file_metadata(filename)
-        plugin_results.data['scan_results'] = self.scan_results
+        plugin_results.data['scan_results'] = self._module.scan_results
         # append dependency data
         if type(self).plugin_dependencies:
             for dependency in type(self).plugin_dependencies:

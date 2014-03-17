@@ -6,7 +6,7 @@ from probes.web.web import WebProbe
 
 log = logging.getLogger(__name__)
 
-class VirusTotalProbe(WebProbe, VirusTotal):
+class VirusTotalProbe(WebProbe):
     
     ##########################################################################
     # plugin metadata
@@ -21,7 +21,10 @@ class VirusTotalProbe(WebProbe, VirusTotal):
     ##########################################################################
 
     def __init__(self, conf=None, *args, **kwargs):
-        # TODO: move api key in a configuration file
-        kwargs['api_key'] = conf.get('api_key', None) if conf else None
         # call super classes constructors
         super(VirusTotalProbe, self).__init__(*args, **kwargs)
+        api_key = conf.get('api_key', None) if conf else None
+        try:
+            self._module = VirusTotal(api_key)
+        except Exception as e:
+            log.exception(e)

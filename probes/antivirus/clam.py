@@ -6,7 +6,7 @@ from probes.antivirus.antivirus import AntivirusProbe
 
 log = logging.getLogger(__name__)
 
-class ClamProbe(Clam, AntivirusProbe):
+class ClamProbe(AntivirusProbe):
     
     ##########################################################################
     # plugin metadata
@@ -20,6 +20,7 @@ class ClamProbe(Clam, AntivirusProbe):
     # constructor and destructor stuff
     ##########################################################################
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, conf=None, **kwargs):
         # call super classes constructors
-        super(ClamProbe, self).__init__(*args, **kwargs)
+        super(ClamProbe, self).__init__(conf, **kwargs)
+        self._module = Clam()

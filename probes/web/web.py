@@ -1,5 +1,6 @@
 import logging
 
+from lib.common.hash import sha256sum
 from lib.common.oopatterns import Plugin
 from lib.plugin_result import PluginResult
 from probes.processing import Processing
@@ -27,10 +28,11 @@ class WebProbe(Plugin, Processing):
         plugin_results = PluginResult(type(self).plugin_name)
         # query page
         plugin_results.start_time = None
-        results = self.scan(paths)
+        sha256 = sha256sum(paths)
+        results = self._module.get_report(sha256)
         plugin_results.end_time = None
         # update results
-        plugin_results.result_code = results['result_code']
+        plugin_results.result_code = 0 if results else 1
         plugin_results.data = {paths: results}
         # append dependency data
         if type(self).plugin_dependencies:

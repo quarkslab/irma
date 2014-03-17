@@ -27,7 +27,7 @@ class InformationProbe(Plugin, Processing):
         plugin_results = PluginResult(type(self).plugin_name)
         # launch file analysis
         plugin_results.start_time = None
-        results = self.analyze(filename=paths)
+        results = self._module.analyze(filename=paths)
         plugin_results.end_time = None
         # update results
         plugin_results.result_code = 0 if results else 1

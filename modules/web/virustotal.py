@@ -31,9 +31,12 @@ class VirusTotal(object):
     # constructor and destructor stuff
     ##########################################################################
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, api_key, **kwargs):
+        # late import to avoid dependencies
+        global requests
+        import requests
         # initialize internals
-        self.api_key = kwargs.get('api_key', None)
+        self.api_key = api_key
         self.api_url = 'https://www.virustotal.com/vtapi/v2/'
 
     ##########################################################################
@@ -45,24 +48,3 @@ class VirusTotal(object):
         url = '{base}{path}'.format(base = self.api_url, path = 'file/report')
         jdata, response = VirusTotal.get_response(url, params = params)
         return jdata
-
-    ##########################################################################
-    # overriden methods
-    ##########################################################################
-
-    # TODO: remove overriden methods
-
-    def scan(self, paths):
-        sha256 = sha256sum(paths)
-        return self.get_report(sha256)
-
-    def ready(self):
-        result = False
-        try:
-            import requests
-            global requests
-            if self.api_key:
-                result = True
-        except ImportError as e:
-            pass
-        return result

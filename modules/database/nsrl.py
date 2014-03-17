@@ -1,6 +1,7 @@
-import logging, binascii, json, encodings, pprint
+import logging, binascii, json, encodings, os, pprint
 
-from lib.common.oopatterns import Singleton
+from abc import ABCMeta
+from lib.common.oopatterns import ParametricSingletonMetaClass
 from lib.leveldict.leveldict import LevelDictSerialized
 
 log = logging.getLogger(__name__)
@@ -119,9 +120,19 @@ class NSRLProductSerializer(NSRLSerializer):
 # NSRL records
 ##############################################################################
 
-class NSRLLevelDict(LevelDictSerialized):
+# Hack to avoid metaclass conflicts
+class LevelDBSingletonMetaClass(ABCMeta, ParametricSingletonMetaClass): pass
+LevelDBSingleton = LevelDBSingletonMetaClass('LevelDBSingleton', (object,), {})
+
+class NSRLLevelDict(LevelDictSerialized, LevelDBSingleton):
 
     key = None
+
+    @staticmethod
+    def depends_on(cls, *args, **kwargs):
+        # singleton depends on the uri parameter
+        (db,) = args[0]
+        return os.path.abspath(db)
 
     def __init__(self, db, serializer=json, **kwargs):
         super(NSRLLevelDict, self).__init__(db, serializer, **kwargs)
@@ -206,19 +217,12 @@ class NSRLProduct(NSRLLevelDict):
 
 class NSRL(object):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, nsrl_file, nsrl_product, nsrl_os, nsrl_manufacturer, **kwargs):
         # TODO: need to specify paths in constructor, temporary pass via kwargs
-        self.nsrl_file = None
-        self.nsrl_product = None
-        self.nsrl_os = None
-        self.nsrl_manufacturer = None
-        # temporary hack to prevent error when nsrl db is not provided
-        if reduce(lambda x, y: x and y, (kwargs[key] 
-            for key in ['nsrl_file_db', 'nsrl_prod_db', 'nsrl_os_db', 'nsrl_mfg_db'])):
-            self.nsrl_file = NSRLFile(kwargs['nsrl_file_db'])
-            self.nsrl_product = NSRLProduct(kwargs['nsrl_prod_db'])
-            self.nsrl_os = NSRLOs(kwargs['nsrl_os_db'])
-            self.nsrl_manufacturer = NSRLManufacturer(kwargs['nsrl_mfg_db'])
+        self.nsrl_file = NSRLFile(nsrl_file)
+        self.nsrl_product = NSRLProduct(nsrl_product)
+        self.nsrl_os = NSRLOs(nsrl_os)
+        self.nsrl_manufacturer = NSRLManufacturer(nsrl_manufacturer)
 
     def _lookup_file(self, sha1sum):
         return self.nsrl_file[sha1sum]
@@ -255,12 +259,6 @@ class NSRL(object):
         except:
             pass
         return entries
-
-    # TODO: need to be moved into probe
-    def ready(self):
-        return reduce(lambda x, y: (x is not None) and (y is not None),
-            [self.nsrl_file, self.nsrl_product, self.nsrl_os, self.nsrl_manufacturer])
- 
 
 ##############################################################################
 # CLI for debug purposes

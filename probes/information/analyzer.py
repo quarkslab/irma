@@ -6,7 +6,7 @@ from probes.information.information import InformationProbe
 
 log = logging.getLogger(__name__)
 
-class StaticAnalyzerProbe(StaticAnalyzer, InformationProbe):
+class StaticAnalyzerProbe(InformationProbe):
     
     ##########################################################################
     # plugin metadata
@@ -20,6 +20,10 @@ class StaticAnalyzerProbe(StaticAnalyzer, InformationProbe):
     # constructor and destructor stuff
     ##########################################################################
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, conf=None, **kwargs):
         # call super classes constructors
-        super(StaticAnalyzerProbe, self).__init__(*args, **kwargs)
+        super(StaticAnalyzerProbe, self).__init__(conf, **kwargs)
+        try:
+            self._module = StaticAnalyzer()
+        except Exception as e:
+            log.exception(e)

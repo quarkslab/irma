@@ -1,20 +1,20 @@
 import logging
 
-from modules.antivirus.mcafee_vscl import McAfeeVSCL
+from modules.antivirus.symantec import Symantec
 from probes.antivirus.antivirus import AntivirusProbe
 
 
 log = logging.getLogger(__name__)
 
-class McAfeeVSCLProbe(AntivirusProbe):
+class SymantecProbe(AntivirusProbe):
     
     ##########################################################################
     # plugin metadata
     ##########################################################################
 
-    _plugin_name = "McAfeeVSCL"
+    _plugin_name = "Symantec"
     _plugin_version = "0.0.0"
-    _plugin_description = "Antivirus plugin for McAfee VirusScan Command Line (VSCL) scanner"
+    _plugin_description = "Antivirus plugin for Symantec Antivirus"
 
     ##########################################################################
     # constructor and destructor stuff
@@ -22,5 +22,5 @@ class McAfeeVSCLProbe(AntivirusProbe):
 
     def __init__(self, conf=None, **kwargs):
         # call super classes constructors
-        super(McAfeeVSCLProbe, self).__init__(conf, **kwargs)
-        self._module = McAfeeVSCL()
+        super(SymantecProbe, self).__init__(conf, **kwargs)
+        self._module = Symantec()

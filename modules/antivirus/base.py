@@ -1,5 +1,6 @@
-import logging, re, os, glob
+import logging, re, os, sys, glob
 
+from lib.common.hash import sha256sum
 from subprocess import Popen, PIPE
 
 
@@ -47,17 +48,11 @@ class Antivirus(object):
         self._scan_patterns = []
         # initialize result as an empty dictionary
         self._scan_results = dict()
+        self._is_windows = sys.platform.startswith('win')
 
     ##########################################################################
     # antivirus methods
     ##########################################################################
-
-    def ready(self):
-        result = False
-        if self.scan_path and os.path.exists(self.scan_path):
-            if os.path.isfile(self.scan_path):
-                result = True
-        return result
 
     # TODO: enable multiple paths
     # TODO: enable heuristics levels
@@ -68,13 +63,14 @@ class Antivirus(object):
 
     # TODO: implement heuristic levels
     def scan(self, paths, heuristic=None):
-        # check if ready
-        if not self.ready():
-            raise RuntimeError("{0} not ready".format(type(self).__name__))
         # check if patterns are set
         if not self.scan_patterns:
             raise ValueError("scan_patterns not defined")
         # build the command to be executed and run it
+        if isinstance(paths, list):
+            paths = map(os.path.abspath, paths)
+        else:
+            paths = os.path.abspath(paths)
         cmd = self.scan_cmd(paths, heuristic)
         results = self.run_cmd(cmd)
         log.debug("Executed command line: {0}, results {1}".format(cmd, results))
@@ -83,13 +79,6 @@ class Antivirus(object):
     ##########################################################################
     # internal helpers
     ##########################################################################
-
-    @staticmethod
-    def sha256(filename):
-        hash = None
-        with open(filename, 'rb') as fd:
-            hash = hashlib.sha256(fd.read()).hexdigest()
-        return hash
 
     @staticmethod
     def build_cmd(cmd, *args):
@@ -242,6 +231,8 @@ if __name__ == '__main__':
     from modules.antivirus.fprot       import FProt
     from modules.antivirus.mcafee_vscl import McAfeeVSCL
     from modules.antivirus.sophos      import Sophos
+    from modules.antivirus.kaspersky   import Kaspersky
+    from modules.antivirus.symantec    import Symantec
 
     ##########################################################################
     # helpers
@@ -254,6 +245,8 @@ if __name__ == '__main__':
         'fprot'      : FProt,
         'mcafee_vscl': McAfeeVSCL,
         'sophos'     : Sophos,
+        'kaspersky'  : Kaspersky,
+        'symantec'   : Symantec,
     }
 
     def antivirus_info(**kwargs):
