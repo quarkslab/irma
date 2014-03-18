@@ -88,7 +88,7 @@ app.conf.update(
 # declare celery tasks
 ##############################################################################
 
-@app.task()
+@app.task(acks_late=True)
 def probe_scan(frontend, scanid, filename):
     try:
         # retrieve queue name and the associated plugin
