@@ -41,24 +41,24 @@ if (kombu.VERSION.major) < 3:
 
 # build connection strings
 broker = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
-    user = config.broker_probe.username, password = config.broker_probe.password, 
-    host = config.broker_probe.host, port = config.broker_probe.port, 
-    vhost = config.broker_probe.vhost
+    user=config.broker_probe.username, password=config.broker_probe.password,
+    host=config.broker_probe.host, port=config.broker_probe.port,
+    vhost=config.broker_probe.vhost
 )
 
 backend = "redis://{host}:{port}/{database}".format(
-    host = config.backend_probe.host, port = config.backend_probe.port,
-    database = config.backend_probe.db)
+    host=config.backend_probe.host, port=config.backend_probe.port,
+    database=config.backend_probe.db)
 
-# declare a new application 
+# declare a new application
 app = Celery("probe.tasks")
 app.conf.update(
-    BROKER_URL = broker,
-    CELERY_RESULT_BACKEND = backend,
+    BROKER_URL=broker,
+    CELERY_RESULT_BACKEND=backend,
 #    CELERY_IGNORE_RESULT=True,
-    CELERY_ACCEPT_CONTENT = ['json'],
-    CELERY_RESULT_SERIALIZER = 'json',
-    CELERY_TASK_SERIALIZER = 'json',
+    CELERY_ACCEPT_CONTENT=['json'],
+    CELERY_RESULT_SERIALIZER='json',
+    CELERY_TASK_SERIALIZER='json',
 #    BROKER_USE_SSL = {
 #        'ca_certs': config.broker_probe['ssl_ca'],
 #        'keyfile': config.broker_probe['ssl_key'],
@@ -73,15 +73,15 @@ app.conf.update(
 # determine dynamically queues to connect to
 queues = []
 probes = sum([ AntivirusProbe.plugins, WebProbe.plugins, DatabaseProbe.plugins, InformationProbe.plugins ], [])
-probes = map(lambda pb: pb(conf = config.get(pb.plugin_name, None)), probes)
+probes = map(lambda pb: pb(conf=config.get(pb.plugin_name, None)), probes)
 probes = filter(lambda pb: pb.ready(), probes)
 probes = dict((type(pb).plugin_name, pb) for pb in probes)
 for probe in probes.keys():
-    queues.append(kombu.Queue(probe, routing_key = probe))
+    queues.append(kombu.Queue(probe, routing_key=probe))
 
 # update configuration
 app.conf.update(
-    CELERY_QUEUES = tuple(queues),
+    CELERY_QUEUES=tuple(queues),
 )
 
 ##############################################################################
@@ -100,7 +100,9 @@ def probe_scan(frontend, scanid, filename):
         with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
             ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
         results = probe.run(tmpname)
-        os.remove(tmpname)
+        # Some AV always delete suspicious file
+        if os.path.exists(tmpname):
+            os.remove(tmpname)
         return results
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))
@@ -115,6 +117,6 @@ if __name__ == '__main__':
         '--app=probe.tasks:app',    # app instance to use
         '-l', 'info',               # logging level
         '--without-gossip',         # do not subscribe to other workers events.
-        '--without-mingle',         # do not synchronize with other workers at startup 
+        '--without-mingle',         # do not synchronize with other workers at startup
         '--without-heartbeat',      # do not send event heartbeats
     ])
