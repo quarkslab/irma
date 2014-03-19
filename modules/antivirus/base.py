@@ -14,15 +14,15 @@ class Antivirus(object):
     ##########################################################################
 
     class ScanResult:
-        CLEAN    = 0
+        CLEAN = 0
         INFECTED = 1
-        ERROR    = 2
+        ERROR = 2
 
     class ScanHeuristic:
-        NONE     = 0
-        LOW      = 1
-        MEDIUM   = 2
-        HIGH     = 3
+        NONE = 0
+        LOW = 1
+        MEDIUM = 2
+        HIGH = 3
 
     ##########################################################################
     # constructor and destructor stuff
@@ -63,6 +63,8 @@ class Antivirus(object):
 
     # TODO: implement heuristic levels
     def scan(self, paths, heuristic=None):
+        # reset result to an empty dictionary
+        self._scan_results = dict()
         # check if patterns are set
         if not self.scan_patterns:
             raise ValueError("scan_patterns not defined")
@@ -252,7 +254,7 @@ if __name__ == '__main__':
     def antivirus_info(**kwargs):
         antivirus = antivirus_mapping[kwargs['antivirus']]()
         # build output string
-        result  = "name    : {0}\n".format(antivirus.name)
+        result = "name    : {0}\n".format(antivirus.name)
         result += "version : {0}\n".format(antivirus.version)
         result += "database: \n"
         if antivirus.database:
