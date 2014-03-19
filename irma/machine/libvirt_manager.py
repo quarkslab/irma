@@ -142,7 +142,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
             # if we do not want to use backing files, simply clone
             if not use_backing_file:
                 print "simply clone things"
-                #self._domain.clone(origin, clone)
+                # self._domain.clone(origin, clone)
             # we want backing files, check for disks
             else:
                 print "try to create backing storage"
@@ -197,10 +197,21 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         """
         state, desc = self._domain.state(label)
         if state != DomainManager.SHUTOFF:
-            raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(origin, desc))
-
+            raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(label, desc))
         try:
             # TODO: add the possibility to keep some disk
             self._domain.delete(label)
+        except DomainManagerError as e:
+            raise IrmaMachineManagerError(e)
+
+    def import_config(self, ordered_dict):
+        try:
+            self._domain.create(ordered_dict)
+        except DomainManagerError as e:
+            raise IrmaMachineManagerError(e)
+
+    def export_config(self, label):
+        try:
+            return self._domain.info(label)
         except DomainManagerError as e:
             raise IrmaMachineManagerError(e)
