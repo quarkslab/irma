@@ -17,9 +17,10 @@ class Clam(Antivirus):
         self._name = "Clam AntiVirus Scanner"
         # scan tool variables
         self._scan_args = (
-            "--infected " # only print infected files
+            "--infected "   # only print infected files
+            "--fdpass "     # avoid file access problem as clamdameon is runned by clamav user
             "--no-summary " # disable summary at the end of scanning
-            "--stdout " # do not write to stderr
+            "--stdout "     # do not write to stderr
         )
         self._scan_patterns = [
             re.compile(r'(?P<file>.*): (?P<name>[^\s]+) FOUND', re.IGNORECASE)
@@ -50,7 +51,7 @@ class Clam(Antivirus):
             '/var/lib/clamav', # default location in debian
         ]
         database_patterns = [
-            'main.cvd', 
+            'main.cvd',
             'daily.c[lv]d', # *.cld on debian and on *.cvd on clamav website
             'bytecode.c[lv]d', # *.cld on debian and on *.cvd on clamav website
             'safebrowsing.c[lv]d', # *.cld on debian and on *.cvd on clamav website
@@ -67,5 +68,5 @@ class Clam(Antivirus):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("clamscan")
+        paths = self.locate("clamdscan")
         return paths[0] if paths else None
