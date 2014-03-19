@@ -649,7 +649,7 @@ class DomainManager(ParametricSingleton):
         elif isinstance(domains, dict):
             if domains.has_key('domain'):
                 domain = domains.get('domain', None)
-                start = domains.get('start', limit)
+                start = domains.get('start', start)
                 size = domains.get('size', size)
                 flags = domains.get('flags', flags)
                 result = self.memdump(domain, start, size, flags)
@@ -752,13 +752,14 @@ class DomainManager(ParametricSingleton):
             # Destroy volumes
             orig_xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
             orig_dict = xmltodict.parse(orig_xml)
-            for disk in orig_dict["domain"]["devices"]["disk"]:
-                if not disk["@device"] == 'disk':
+            for type, device in orig_dict['domain']['devices'].items():
+                if not type == 'disk':
                     continue
-                orig_vol = self._drv.storageVolLookupByPath(disk['source']['@file'])
-                orig_vol.delete(flags)
-
-            # Undefine
+                disks = device if isinstance(device, list) else [device]
+                for disk in disks:
+                    orig_vol = self._drv.storageVolLookupByPath(disk['source']['@file'])
+                    orig_vol.delete(flags)
+                    # Undefine
             machine.undefine()
         except libvirt.libvirtError as e:
             raise DomainManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
