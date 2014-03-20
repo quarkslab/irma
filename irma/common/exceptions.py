@@ -30,3 +30,15 @@ class IrmaFtpError(Exception):
 class IrmaTaskError(Exception):
     """Error while processing celery tasks."""
     pass
+
+class IrmaLockError(Exception):
+    """Error for the locks on db content (already taken)"""
+    pass
+
+class IrmaLockModeError(Exception):
+    """Error for the mode of the locks (doesn't exist)"""
+    pass
+
+class IrmaValueError(Exception):
+    """Error for the parameters passed to the functions"""
+    pass

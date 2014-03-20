@@ -61,3 +61,14 @@ class IrmaScanStatus:
              finished:"finished",
              flushed:"flushed"
     }
+
+# ______________________________________________________________ LOCK VALUES FOR THE TASKS (Frontend)
+
+class IrmaTasksLock(object):
+    free = 0
+    locked = 5
+    label = {
+        free: "free",
+        locked: "locked"
+    }
+    lock_timeout = 60   # in seconds (delta between timestamps)

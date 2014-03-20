@@ -67,7 +67,7 @@ class NoSQLDatabase(Singleton):
 
     def _table(self, db_name, coll_name):
         database = self._database(db_name)
-        # TODO: Fix collision if two tables from diffrent databases has same name
+        # TODO: Fix collision if two tables from different databases has same name
         if coll_name not in self._coll_cache:
             try:
                 self._coll_cache[coll_name] = database[coll_name]

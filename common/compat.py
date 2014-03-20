@@ -1,4 +1,5 @@
 import sys
+import time
 
 if sys.version_info >= (3,):
     str = str                  #pragma: no cover
@@ -11,3 +12,9 @@ else:
     bytes = str                #pragma: no cover
     basestring = basestring    #pragma: no cover
 
+def timestamp():
+    """ On some systems, time.time() returns a float instead of an int. This function always returns an int
+    :rtype: int
+    :return: the current timestamp
+    """
+    return int(str(time.time()).split('.')[0])
