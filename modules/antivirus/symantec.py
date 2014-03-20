@@ -23,7 +23,7 @@ class Symantec(Antivirus):
         self._scan_patterns = [
             re.compile(r"([^,]*,){6}(?P<name>[^,]*),(?P<file>[^,]*).*", re.IGNORECASE)
         ]
-        self._pdata_path = glob.glob(os.path.normcase('\\'.join([os.environ.get('PROGRAMDATA', ''), r"Symantec\Symantec Endpoint Protection\*"])))
+        self._pdata_path = glob.glob(os.path.normcase('\\'.join([os.environ.get('PROGRAMDATA', ''), r"Symantec\Symantec Endpoint Protection\*.*"])))
         self._pdata_path = self._pdata_path.pop() if self._pdata_path else None
 
     ##########################################################################
@@ -34,24 +34,14 @@ class Symantec(Antivirus):
         """return the version of the antivirus"""
         result = None
         if self._pdata_path:
-            for path in self._pdata_path:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)', path, re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
+            matches = re.search(r'(?P<version>\d+(\.\d+)+)', self._pdata_path, re.IGNORECASE)
+            if matches:
+                result = matches.group('version').strip()
         return result
 
     def get_database(self):
         """return list of files in the database"""
-        # TODO: We list all files in Bases/*, heuristic to lookup database must be improved
-        search_paths = map(lambda x: "{path}/Kaspersky Lab/*/Bases".format(path=x), [os.environ.get('PROGRAMDATA', '')])
-        database_patterns = [
-            '*.ini',
-        ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths)
-            results.extend(result)
-        return results if results else None
+        return None
 
     def get_scan_path(self):
         """return the full path of the scan tool"""

@@ -1,6 +1,5 @@
 import logging
 
-from modules.database.nsrl import NSRL
 from probes.database.database import DatabaseProbe
 
 
@@ -31,6 +30,9 @@ class NSRLProbe(DatabaseProbe):
         # NSRL modules does late import, may fail here
         self._module = None
         try:
+            # late imports
+            global NSRL
+            from modules.database.nsrl import NSRL
             self._module = NSRL(nsrl_file_db, nsrl_prod_db, nsrl_os_db, nsrl_mfg_db)
         except Exception as e:
             print e

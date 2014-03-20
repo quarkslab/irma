@@ -47,7 +47,7 @@ class FProt(Antivirus):
         result = None
         if self.scan_path:
             dirname = os.path.dirname(self.scan_path)
-            database_path = self.locate('antivir.def', dirname)
+            database_path = self.locate('antivir.def', dirname, syspath=False)
             result = database_path
         return result
 

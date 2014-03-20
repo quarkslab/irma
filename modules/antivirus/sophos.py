@@ -49,7 +49,7 @@ class Sophos(Antivirus):
         # always installed by default. Instead, hardcode some common paths and
         # locate files using predefined patterns
         if self._is_windows:
-            search_paths = map(lambda x: "{path}/Sophos".format(path=x), [os.environ.get('PROGRAMFILES', ''), os.environ.get('PROGRAMFILES(X86)', '')])
+            search_paths = map(lambda x: "{path}/Sophos/*".format(path=x), [os.environ.get('PROGRAMFILES', ''), os.environ.get('PROGRAMFILES(X86)', '')])
         else:
             search_paths = [
                 '/opt/sophos-av/lib/sav', # default location in debian
@@ -62,7 +62,7 @@ class Sophos(Antivirus):
         ]
         results = []
         for pattern in database_patterns:
-            result = self.locate(pattern, search_paths)
+            result = self.locate(pattern, search_paths, syspath=False)
             results.extend(result)
         return results if results else None
 

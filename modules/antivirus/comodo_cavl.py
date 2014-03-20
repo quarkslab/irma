@@ -44,7 +44,7 @@ class ComodoCAVL(Antivirus):
         result = None
         if self.scan_path:
             dirname = os.path.dirname(self.scan_path)
-            database_path = self.locate('scanners/*.cav', dirname)
+            database_path = self.locate('scanners/*.cav', dirname, syspath=False)
             result = database_path
         return result
 

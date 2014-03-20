@@ -35,5 +35,5 @@ setup(
     license='LICENSE',
     description='Probe package for IRMA',
     long_description='',
-    install_requires=['celery>=3.1.5', 'redis>=2.8.0', 'leveldb', 'requests', 'python-magic'],
+    install_requires=['celery>=3.1.5', 'redis>=2.8.0'],
 )

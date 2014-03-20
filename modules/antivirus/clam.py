@@ -62,7 +62,7 @@ class Clam(Antivirus):
         ]
         results = []
         for pattern in database_patterns:
-            result = self.locate(pattern, search_paths)
+            result = self.locate(pattern, search_paths, syspath=False)
             results.extend(result)
         return results if results else None
 
