@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-from irma.common.exceptions import IrmaDatabaseError, IrmaLockError
+from irma.common.exceptions import IrmaDatabaseError, IrmaTasksLockError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
@@ -217,7 +217,7 @@ class CheckLockObject(DbTestCase):
         self.assertEquals(t._lock, IrmaTasksLock.free)
         t.take()
         self.assertEquals(t._lock, IrmaTasksLock.locked)
-        with self.assertRaises(IrmaLockError):
+        with self.assertRaises(IrmaTasksLockError):
             t.take()
         t.release()
         self.assertEquals(t._lock, IrmaTasksLock.free)

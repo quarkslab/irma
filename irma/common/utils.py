@@ -62,13 +62,25 @@ class IrmaScanStatus:
              flushed:"flushed"
     }
 
-# ______________________________________________________________ LOCK VALUES FOR THE TASKS (Frontend)
+# ______________________________________________________________ LOCK VALUES FOR THE TASKS
+#                                                                   (FOR INTERNAL USE ONLY) (Frontend)
 
 class IrmaTasksLock(object):
     free = 0
     locked = 5
     label = {
-        free: "free",
-        locked: "locked"
+        free: 'free',
+        locked: 'locked'
     }
     lock_timeout = 60   # in seconds (delta between timestamps)
+
+# ______________________________________________________________ LOCK VALUES FOR THE TASKS
+#                                                                   (FOR THE CALL TO THE CONSTRUCTORS) (Frontend)
+
+class IrmaTasksLockMode(object):
+    read = 'r'
+    write = 'w'
+    label = {
+        read: 'read',
+        write: 'write'
+    }
