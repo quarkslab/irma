@@ -1,4 +1,4 @@
-import os
+import os, sys
 from setuptools import setup, find_packages, findall
 
 IRMA_PROBE_PKG_TARGET = os.environ.get('IRMA_PROBE_PKG_TARGET', "Windows")
@@ -35,5 +35,6 @@ setup(
     license='LICENSE',
     description='Probe package for IRMA',
     long_description='',
+    scripts=scripts,
     install_requires=['celery>=3.1.5', 'redis>=2.8.0'],
 )

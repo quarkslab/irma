@@ -1,5 +1,5 @@
 SET WORKDIR=c:\irma
-SET PIP_PKG=irma-probe
+SET PIP_PKG=irma-probe-win
 SET LOCAL_PYPI_URL=http://brain.irma.qb:8000/pypi
 
 SET PIPLOGFILE=%WORKDIR%\pip_upgrade.log
