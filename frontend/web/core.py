@@ -62,7 +62,6 @@ def scan_new():
     :raise: IrmaDataBaseError
     """
     scan = ScanInfo()
-    scan.save()
     return scan.id
 
 def scan_add(scanid, files):
@@ -74,7 +73,7 @@ def scan_add(scanid, files):
     :return: int - total number of files for the scan
     :raise: IrmaDataBaseError
     """
-    scan = ScanInfo(id=scanid)
+    scan = ScanInfo(id=scanid, mode='w')
     if scan.status != IrmaScanStatus.created:
         # Can not add file to scan launched
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
@@ -84,7 +83,8 @@ def scan_add(scanid, files):
         # fetch probe results already present
         probedone = ScanResults.init_id(fobj.id).probelist
         scan.oids[fobj.id] = {'name':name, 'probedone':probedone}
-    scan.save()
+    scan.update()
+    scan.release()
     return len(scan.oids)
 
 def scan_launch(scanid, force, probelist):
@@ -103,15 +103,19 @@ def scan_launch(scanid, force, probelist):
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
     all_probe_list = _task_probe_list()
     if len(all_probe_list) == 0:
+        scan.take()
         scan.update_status(IrmaScanStatus.finished)
+        scan.release()
         raise IrmaFrontendError("No probe available")
 
+    scan.take()
     if probelist is not None:
         scan.probelist = probelist
     else:
         # all available probe
         scan.probelist = all_probe_list
-    scan.save()
+    scan.update()
+    scan.release()
 
     # launch scan via frontend task
     frontend_app.send_task("frontend.tasks.scan_launch", args=(scan.id, force))
@@ -151,7 +155,9 @@ def scan_progress(scanid):
         # if scan is processed for the brain, it means all probes jobs are completes
         # we are just waiting for results
         if res == IrmaScanStatus.processed:
+            scan.take()
             scan.update_status(IrmaScanStatus.processed)
+            scan.release()
         raise IrmaFrontendWarning(IrmaScanStatus.label[res])
     else:
         raise IrmaFrontendError(res)
@@ -169,15 +175,19 @@ def scan_cancel(scanid):
     if scan.status != IrmaScanStatus.launched:
         # If not launched answer directly
         # Else ask brain for job status
+
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
     (status, res) = _task_scan_cancel(scanid)
+    scan.take()
     if status == IrmaReturnCode.success:
         scan.update_status(IrmaScanStatus.cancelled)
+        scan.release()
         return res
     elif status == IrmaReturnCode.warning:
         # if scan is finished for the brain, it means we are just waiting for results
         if res == IrmaScanStatus.processed:
             scan.update_status(IrmaScanStatus.processed)
+            scan.release()
         raise IrmaFrontendWarning(IrmaScanStatus.label[res])
     else:
         raise IrmaFrontendError(res)
