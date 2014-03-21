@@ -3,4 +3,7 @@
 /web/.*
 *.pyc
 
+# PyCharm
+.idea/*
+
 
