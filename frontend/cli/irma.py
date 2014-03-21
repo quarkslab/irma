@@ -137,7 +137,7 @@ def print_results(list_res, justify=12):
         print "{0}\n[SHA256: {1}]".format(name, hashval)
         for av in res:
             print "\t%s" % (av.ljust(justify)),
-            avres = res[av]['result']
+            avres = res[av].get('result', "No result")
             if type(avres) == str:
                 print avres.strip()
             elif type(avres) == list:
