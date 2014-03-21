@@ -15,6 +15,7 @@ config.conf_brain_celery(scan_app)
 @frontend_app.task(acks_late=True)
 def scan_launch(scanid, force):
     try:
+        scan = None
         ftp_config = config.frontend_config['ftp_brain']
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
         if not scan.status == IrmaScanStatus.created:
@@ -65,12 +66,14 @@ def scan_launch(scanid, force):
         scan.release()
         return IrmaTaskReturn.success("scan launched")
     except Exception as e:
+        if scan is not None: scan.release()
         print "Exception has occured:{0}".format(e)
         raise scan_launch.retry(countdown=15, max_retries=10)
 
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
     try:
+        scan = scan_res = None
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
         for file_oid in scan.oids.keys():
             f = ScanFile(id=file_oid)
@@ -97,6 +100,8 @@ def scan_result(scanid, file_hash, probe, result):
             scan.update_status(IrmaScanStatus.finished)
         scan.release()
     except Exception as e:
+        if scan is not None: scan.release()
+        if scan_res is not None: scan_res.release()
         print "Exception has occured:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
 
