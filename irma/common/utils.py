@@ -62,10 +62,10 @@ class IrmaScanStatus:
              flushed:"flushed"
     }
 
-# ______________________________________________________________ LOCK VALUES FOR THE TASKS
-#                                                                   (FOR INTERNAL USE ONLY) (Frontend)
+# ______________________________________________________________ LOCK VALUES FOR NoSQLDatabaseObjects
+#                                                                   (FOR INTERNAL USE ONLY)
 
-class IrmaTasksLock(object):
+class IrmaLock(object):
     free = 0
     locked = 5
     label = {
@@ -74,10 +74,10 @@ class IrmaTasksLock(object):
     }
     lock_timeout = 60   # in seconds (delta between timestamps)
 
-# ______________________________________________________________ LOCK VALUES FOR THE TASKS
-#                                                                   (FOR THE CALL TO THE CONSTRUCTORS) (Frontend)
+# ______________________________________________________________ LOCK VALUES FOR NoSQLDatabaseObjects
+#                                                                   (FOR THE CALL TO THE CONSTRUCTORS)
 
-class IrmaTasksLockMode(object):
+class IrmaLockMode(object):
     read = 'r'
     write = 'w'
     label = {

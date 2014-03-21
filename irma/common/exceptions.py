@@ -31,11 +31,12 @@ class IrmaTaskError(Exception):
     """Error while processing celery tasks."""
     pass
 
-class IrmaTasksLockError(Exception):
+
+class IrmaLockError(Exception):
     """Error for the locks on db content (already taken)"""
     pass
 
-class IrmaTasksLockModeError(Exception):
+class IrmaLockModeError(Exception):
     """Error for the mode of the locks (doesn't exist)"""
     pass
 

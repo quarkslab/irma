@@ -1,12 +1,12 @@
 import logging
 import unittest
 
-from irma.common.exceptions import IrmaDatabaseError, IrmaTasksLockError
+from irma.common.exceptions import IrmaDatabaseError, IrmaLockError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
 from bson import ObjectId
-from irma.common.utils import IrmaTasksLock
+from irma.common.utils import IrmaLock, IrmaLockMode
 
 # Test config
 test_db_uri = "mongodb://localhost"
@@ -20,7 +20,7 @@ class TestObject(NoSQLDatabaseObject):
     _dbname = test_db_name
     _collection = test_db_collection
 
-    def __init__(self, dbname=None, id=None, mode='f', save=True):
+    def __init__(self, dbname=None, id=None, mode=IrmaLockMode.read, save=True):
         if dbname is not None:
             self._dbname = dbname
         self.user = "test"
@@ -127,7 +127,7 @@ class CheckAddObject(DbTestCase):
         collection = database[test_db_collection]
         collection.remove()
         t1 = TestObject()
-        t2 = TestObject(id=t1.id, mode='n')
+        t2 = TestObject(id=t1.id)
         self.assertEquals(collection.count(), 1)
         self.assertEquals(type(t2.id), str)
         self.assertEquals(type(t2.list), list)
@@ -153,7 +153,7 @@ class CheckAddObject(DbTestCase):
         fixed_id = ObjectId()
         t.id = str(fixed_id)
         t.update()
-        t2 = TestObject(id=str(fixed_id), mode='n')
+        t2 = TestObject(id=str(fixed_id))
         self.assertEquals(t2.id, str(fixed_id))
         self.assertEquals(t2.user, "coin")
         self.assertEquals(t2.list, [1, 2, 3])
@@ -161,7 +161,7 @@ class CheckAddObject(DbTestCase):
     def test_init_id(self):
         fixed_id = str(ObjectId())
         with self.assertRaises(IrmaDatabaseError):
-            TestObject(id=fixed_id, mode='n')
+            TestObject(id=fixed_id)
         t = TestObject.init_id(fixed_id)
         t.user = "coin"
         t.list.append(1)
@@ -183,7 +183,7 @@ class CheckAddObject(DbTestCase):
         t.update()
         self.assertEquals(t.list, [1, 2, 3])
         t.update({'user':"bla"})
-        t1 = TestObject(id=t.id, mode='n')
+        t1 = TestObject(id=t.id)
         self.assertEquals(t1.user, "bla")
 
 class CheckLockObject(DbTestCase):
@@ -203,7 +203,7 @@ class CheckLockObject(DbTestCase):
 
     def test_has_state_changed(self):
         t = TestObject()
-        t2 = TestObject(id=t.id, mode='n')
+        t2 = TestObject(id=t.id)
         t.date = t2.date    # the instantiation of t2 has changed the value of date in the db
         self.assertFalse(t.has_state_changed())
         t2.list.append(1)
@@ -214,13 +214,13 @@ class CheckLockObject(DbTestCase):
 
     def test_take_release(self):
         t = TestObject()
-        self.assertEquals(t._lock, IrmaTasksLock.free)
+        self.assertEquals(t._lock, IrmaLock.free)
         t.take()
-        self.assertEquals(t._lock, IrmaTasksLock.locked)
-        with self.assertRaises(IrmaTasksLockError):
+        self.assertEquals(t._lock, IrmaLock.locked)
+        with self.assertRaises(IrmaLockError):
             t.take()
         t.release()
-        self.assertEquals(t._lock, IrmaTasksLock.free)
+        self.assertEquals(t._lock, IrmaLock.free)
 
 if __name__ == '__main__':
     enable_logging()
