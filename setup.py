@@ -36,5 +36,4 @@ setup(
     description='Probe package for IRMA',
     long_description='',
     scripts=scripts,
-    install_requires=['celery>=3.1.5', 'redis>=2.8.0'],
 )
