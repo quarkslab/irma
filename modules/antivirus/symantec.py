@@ -1,6 +1,6 @@
 import logging, argparse, re, os, time, glob
 
-from datetime import date
+from datetime import date, timedelta
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class Symantec(Antivirus):
             "/ScanFile " # scan command
         )
         self._scan_patterns = [
-            re.compile(r"([^,]*,){6}(?P<name>[^,]*),(?P<file>[^,]*).*", re.IGNORECASE)
+            re.compile(r"([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]*).*", re.IGNORECASE)
         ]
         self._pdata_path = glob.glob(os.path.normcase('\\'.join([os.environ.get('PROGRAMDATA', ''), r"Symantec\Symantec Endpoint Protection\*.*"])))
         self._pdata_path = self._pdata_path.pop() if self._pdata_path else None
@@ -69,15 +69,20 @@ class Symantec(Antivirus):
         retcode, stdout, stderr = results[0], None, results[2]
         if self._log_path:
             # wait for log to be updated
-            mtime = os.path.getmtime(self._log_path) if self._log_path else time.time()
-            if not self._last_log_time < mtime:
-                time.sleep(.5)
+            mtime = os.path.getmtime(self._log_path)
+            delay = 10
+            while self._last_log_time != mtime and (mtime - self._last_log_time) > 0.5 and delay != 0 :
+                time.sleep(1)
+                mtime = os.path.getmtime(self._log_path)
+                delay -= 1
+            lines = []
             # look for the line corresponding to this filename
             with open(self._log_path, 'r') as fd:
                 for line in reversed(fd.readlines()):
                     if paths in line:
-                        stdout = line
-	    # force scan_result to consider it infected
-	    retcode = 1 if stdout else 0
+                        lines.append(line)
+            stdout = "".join(lines)
+            # force scan_result to consider it infected
+            retcode = 1 if stdout else 0
             results = (retcode, stdout, stderr)
         return super(Symantec, self).check_scan_results(paths, results)
