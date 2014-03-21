@@ -222,11 +222,11 @@ class NoSQLDatabaseObject(object):
         self._id = ObjectId(value)
 
     @classmethod
-    def init_id(cls, id):
+    def init_id(cls, id, **kwargs):
         _id = ObjectId(id)
         db = NoSQLDatabase(cls._dbname, cls._uri)
         if db.exists(cls._dbname, cls._collection, _id):
-            new_object = cls(id=id)
+            new_object = cls(id=id, **kwargs)
         else:
             new_object = cls()
             new_object.id = id

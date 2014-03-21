@@ -65,7 +65,7 @@ class IrmaScanStatus:
 # ______________________________________________________________ LOCK VALUES FOR NoSQLDatabaseObjects
 #                                                                   (FOR INTERNAL USE ONLY)
 
-class IrmaLock(object):
+class IrmaLock:
     free = 0
     locked = 5
     label = {
@@ -77,7 +77,7 @@ class IrmaLock(object):
 # ______________________________________________________________ LOCK VALUES FOR NoSQLDatabaseObjects
 #                                                                   (FOR THE CALL TO THE CONSTRUCTORS)
 
-class IrmaLockMode(object):
+class IrmaLockMode:
     read = 'r'
     write = 'w'
     label = {
