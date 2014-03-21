@@ -1,7 +1,10 @@
 /web/node_modules
+/web/bower_components
 /web/app/bower_components
 /web/.*
 *.pyc
+doc/
+irma_frontend.egg-info/
 
 # PyCharm
 .idea/*
