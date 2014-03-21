@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 
@@ -19,9 +21,6 @@ config.conf_probe_celery(probe_app)
 frontend_app = Celery('frontend')
 config.conf_frontend_celery(frontend_app)
 
-results_app = Celery('results')
-config.conf_results_celery(results_app)
-
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -36,7 +35,7 @@ status_str = [bcolors.OKGREEN + "[+]" + bcolors.ENDC, bcolors.FAIL + "[-]" + bco
 
 def print_hdr(msg):
     print
-    print bcolors.HEADER + "-> %s <-" % msg + bcolors.ENDC
+    print bcolors.HEADER + "## {0} ##".format(msg) + bcolors.ENDC
     print
 
 def print_msg(code_msg_list):
@@ -48,7 +47,6 @@ def ping_celery_app(celery):
     try:
         res = []
         ping_status = celery.control.ping(timeout=0.5)
-
         if len(ping_status) == 0:
             res.append((status_ko, 'celery app {0} is down'.format(celery.main)))
         for r in ping_status:
@@ -57,6 +55,10 @@ def ping_celery_app(celery):
                     res.append((status_ok, 'celery app {0} is up and running'.format(host)))
                 else:
                     res.append((status_ko, 'celery app {0} is down'.format(host)))
+        queues = celery.control.inspect().active_queues()
+        for (host, infolist) in queues.items():
+            probenames = "-".join([info['name'] for info in infolist])
+            res.append((status_ok, '\t| {0} probe {1}'.format(host, probenames)))
     except:
         res.append((status_ko, 'no celery running perhaps broker is down on %s' % celery.conf['BROKER_URL']))
     return res
