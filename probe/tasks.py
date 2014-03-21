@@ -119,5 +119,5 @@ if __name__ == '__main__':
         '--without-gossip',         # do not subscribe to other workers events.
         '--without-mingle',         # do not synchronize with other workers at startup
         '--without-heartbeat',      # do not send event heartbeats
-        '-n probe-{0}'.format(uuid.uuid4())   # unique id
+        '-nprobe-{0}'.format(uuid.uuid4())   # unique id
     ])
