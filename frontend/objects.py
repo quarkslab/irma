@@ -1,7 +1,7 @@
 import config.parser as config
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
-from lib.irma.common.utils import IrmaScanStatus
+from lib.irma.common.utils import IrmaScanStatus, IrmaLockMode
 from datetime import datetime
 
 cfg_dburi = config.get_db_uri()
@@ -13,7 +13,7 @@ class ScanInfo(NoSQLDatabaseObject):
     _dbname = cfg_dbname
     _collection = cfg_coll.scan_info
 
-    def __init__(self, dbname=None, id=None):
+    def __init__(self, dbname=None, **kwargs):
         if dbname:
             self._dbname = dbname
         self.user = None
@@ -21,7 +21,7 @@ class ScanInfo(NoSQLDatabaseObject):
         self.oids = {}
         self.probelist = None
         self.status = IrmaScanStatus.created
-        super(ScanInfo, self).__init__(id=id)
+        super(ScanInfo, self).__init__(**kwargs)
 
     def update_status(self, status):
         self.status = status
@@ -40,7 +40,7 @@ class ScanInfo(NoSQLDatabaseObject):
         res = {}
         for (oid, info) in self.oids.items():
             name = info['name']
-            r = ScanResults(id=oid)
+            r = ScanResults(id=oid, mode=IrmaLockMode.read)
             if r.results:
                 scanfile = ScanFile(id=oid)
                 sha256 = scanfile.hashvalue
@@ -62,12 +62,12 @@ class ScanResults(NoSQLDatabaseObject):
     _dbname = cfg_dbname
     _collection = cfg_coll.scan_results
 
-    def __init__(self, dbname=None, id=None):
+    def __init__(self, dbname=None, **kwargs):
         if dbname:
             self._dbname = dbname
         self.probelist = []
         self.results = {}
-        super(ScanResults, self).__init__(id=id)
+        super(ScanResults, self).__init__(**kwargs)
 
     @classmethod
     def has_lock_timed_out(cls, id):
@@ -77,8 +77,11 @@ class ScanResults(NoSQLDatabaseObject):
     def is_lock_free(cls, id):
         return super(ScanResults, cls).is_lock_free(id)
 
+    @classmethod
+    def init_id(cls, id, **kwargs):
+        return super(ScanResults, cls).init_id(id, **kwargs)
+
 class ScanFile(FileObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
     _collection = cfg_coll.scan_files
-
