@@ -99,5 +99,4 @@ def scan_result(scanid, file_hash, probe, result):
         print "Exception has occured:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
 
-@frontend_app.task()
-def db_clean():
+
