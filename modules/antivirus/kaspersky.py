@@ -22,7 +22,7 @@ class Kaspersky(Antivirus):
         )
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [2, 3]
         self._scan_patterns = [
-            re.compile(r"(?P<file>[^\s]+)\s+(detected|suspicion)+\s(?P<name>.*)")
+            re.compile(r"(?P<file>[^\s]+)\s+(detected|suspicion)+\s(?P<name>[^\r]*)")
         ]
 
     ##########################################################################
