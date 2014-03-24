@@ -122,7 +122,7 @@ def scan_result(scanid, file_hash, probe, result):
 def clean_db():
     try:
         result = ScanInfo.find(
-            {'date': {'$lt': timestamp() - config.frontend_config['cron_frontend']['clean_db']['scan_info_max_age']}},
+            {'date': {'$lt': timestamp() - config.frontend_config['clean_db']['scan_info_max_age']}},
             ['_id']
         )
         for sI in result:

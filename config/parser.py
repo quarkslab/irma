@@ -45,14 +45,12 @@ template_frontend_config = {
                                     ('username', TemplatedConfiguration.string, None),
                                     ('password', TemplatedConfiguration.string, None),
                                     ],
-                         'cron_frontend': {
-                                    'clean_db': [
-                                                ('scan_info_max_age', TemplatedConfiguration.integer, 3600),  # in seconds
-                                                ('cron_hour', TemplatedConfiguration.string, '*'),
-                                                ('cron_minute', TemplatedConfiguration.string, '0'),
-                                                ('cron_day_of_week', TemplatedConfiguration.string, '*'),
-                                                ],
-                                    },
+                        'clean_db': [
+                                    ('scan_info_max_age', TemplatedConfiguration.integer, 3600),  # in seconds
+                                    ('cron_hour', TemplatedConfiguration.string, '*'),
+                                    ('cron_minute', TemplatedConfiguration.string, '0'),
+                                    ('cron_day_of_week', TemplatedConfiguration.string, '*'),
+                                    ],
                          }
 
 cfg_file = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), "frontend.ini")
@@ -86,9 +84,9 @@ def _conf_celery(app, broker, backend=None, queue=None):
             'clean_db': {
                 'task': 'frontend_app.clean_db',
                 'schedule': crontab(
-                    hour=frontend_config['cron_frontend']['clean_db']['cron_hour'],
-                    minute=frontend_config['cron_frontend']['clean_db']['cron_minute'],
-                    day_of_week=frontend_config['cron_frontend']['clean_db']['cron_day_of_week']
+                    hour=frontend_config['clean_db']['cron_hour'],
+                    minute=frontend_config['clean_db']['cron_minute'],
+                    day_of_week=frontend_config['clean_db']['cron_day_of_week']
                 ),
                 'args': (),
             },
