@@ -85,7 +85,7 @@ def scan_add(scanid, files):
         probedone = ScanResults.init_id(fobj.id).probelist
         oids[fobj.id] = {'name':name, 'probedone':probedone}
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-    scan.oids = oids
+    scan.oids.update(oids)
     scan.update()
     scan.release()
     return len(scan.oids)

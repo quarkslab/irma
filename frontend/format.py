@@ -5,7 +5,14 @@ def format_av(output, result):
     if 'data' in result:
         data = result['data']
         if 'scan_results' in data:
-            output['result'] = data['scan_results'].values()[0]
+            res_list = data['scan_results'].values()
+            print "DEBUG: ", res_list
+            if len(res_list) > 1:
+                # if multiple output, filter None results
+                res = [item for item in res_list if item is not None]
+                output['result'] = " - ".join(res)
+            else:
+                output['result'] = res_list[0]
         else:
             output['result'] = "not parsed"
         if 'name' in result and 'version' in data:
@@ -19,6 +26,8 @@ def format_av(output, result):
 def format_vt(output, result):
     if 'data' in result:
         data = result['data'].values()[0]
+        if type(data) is int:
+            output['result'] = "error {0}".format(data)
         if 'scans' in data:
             scan = data['scans']
             av_res = []
