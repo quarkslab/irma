@@ -18,8 +18,9 @@ class NoSQLDatabaseObject(object):
     _dbname = None
     _collection = None
 
-    # List of transient members of the class (see to_dict)
+    # List of transient attributes of the class (see to_dict)
     _transient_attributes = [
+        '_transient_attributes',
         '_temp_id',
         '_is_instance_transient'
     ]
@@ -83,7 +84,7 @@ class NoSQLDatabaseObject(object):
         :rtype: dict
         """
         # from http://stackoverflow.com/questions/61517/python-dictionary-from-an-objects-fields
-        return dict((key, getattr(self, key)) for key in dir(self) if key not in dir(self.__class__) and getattr(self, key) is not None and key not in self._transient_attributes and key != self._transient_attributes)
+        return dict((key, getattr(self, key)) for key in dir(self) if key not in dir(self.__class__) and getattr(self, key) is not None and key not in self._transient_attributes)
 
     def update(self, update_dict={}):
         """Update the current instance in the db, be sure to have the lock on the object before updating (ne verifications are being made)
@@ -204,10 +205,24 @@ class NoSQLDatabaseObject(object):
         :param id: the id of the object to return
         :rtype: NoSQLDatabaseObject
         :return: The transient object
+        :raise: NotImplementedError if called from the mother class
         """
         if cls is NoSQLDatabaseObject:
             raise NotImplementedError('get_temp_instance must be overloaded in the subclasses')
         return cls(id=id, save=False)
+
+    @classmethod
+    def find(cls, *args, **kwargs):
+        """Return a list of all element from the collection that fit the query
+        :param **kwargs: the parameters of the query
+        :rtype: cursor
+        :return: The objects that fit the query
+        :raise: NotImplementedError if called from the mother class
+        """
+        if cls is NoSQLDatabaseObject:
+            raise NotImplementedError('find must be overloaded in the subclasses')
+        db = NoSQLDatabase(cls._dbname, cls._uri)
+        return db.find(cls._dbname, cls._collection, *args, **kwargs)
 
     @property
     def id(self):

@@ -67,7 +67,7 @@ class NoSQLDatabase(Singleton):
 
     def _table(self, db_name, coll_name):
         database = self._database(db_name)
-        # TODO: Fix collision if two tables from different databases has same name
+        # TODO: Fix collision if two tables from different databases have the same name
         if coll_name not in self._coll_cache:
             try:
                 self._coll_cache[coll_name] = database[coll_name]
@@ -122,6 +122,23 @@ class NoSQLDatabase(Singleton):
         collection = self._table(db_name, collection_name)
         try:
             collection.remove({'_id':_id})
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
+
+    def find(self, db_name, collection_name, *args, **kwargs):
+        """ Returns elements from the collection according to the given query
+
+        :param db_name: The database
+        :param collection_name: The name of the collection
+        :param *args **kwargs: see http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.find
+                and http://docs.mongodb.org/manual/tutorial/query-documents/
+        :rtype: cursor, see http://api.mongodb.org/python/current/api/pymongo/cursor.html#pymongo.cursor.Cursor
+                and http://docs.mongodb.org/manual/core/cursors/
+        :return: the result of the query
+        """
+        collection = self._table(db_name, collection_name)
+        try:
+            return collection.find(*args, **kwargs)
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
