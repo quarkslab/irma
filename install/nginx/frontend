@@ -1,0 +1,19 @@
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server ipv6only=on;
+
+	root /home/irma/irma/frontend/web;
+	index index.html;
+
+	server_name localhost;
+
+	location /_api {
+		rewrite ^/_api/(.+) /$1 break;
+		include uwsgi_params;
+		uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
+	}
+
+	location ~ /\.ht {
+		deny all;
+	}
+}
