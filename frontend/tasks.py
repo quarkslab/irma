@@ -121,10 +121,7 @@ def scan_result(scanid, file_hash, probe, result):
 @frontend_app.task()
 def clean_db():
     try:
-        result = ScanInfo.find(
-            {'date': {'$lt': timestamp() - config.frontend_config['cron_frontend']['clean_db']['scan_info_max_age']}},
-            ['_id']
-        )
+        result = ScanInfo.find_old_instances()
         for sI in result:
             temp_scan_info = ScanInfo.get_temp_instance(sI['_id'])
             temp_scan_info.remove()

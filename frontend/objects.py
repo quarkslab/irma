@@ -58,8 +58,11 @@ class ScanInfo(NoSQLDatabaseObject):
         return super(ScanInfo, cls).is_lock_free(id)
 
     @classmethod
-    def find(cls, **kwargs):
-        return super(ScanInfo, cls).find(**kwargs)
+    def find_old_instances(cls):
+        return super(ScanInfo, cls).find(
+            {'date': {'$lt': timestamp() - config.frontend_config['cron_frontend']['clean_db']['scan_info_max_age']}},
+            ['_id']
+        )
 
 
 class ScanResults(NoSQLDatabaseObject):
