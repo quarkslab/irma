@@ -1,3 +1,4 @@
+from common.compat import timestamp
 from irma.database.nosqlhandler import NoSQLDatabase
 from bson import ObjectId
 import hashlib
@@ -12,6 +13,7 @@ class FileObject(object):
         if dbname:
             self._dbname = dbname
         self._dbfile = None
+        self._creation_date = timestamp()
         if id:
             self._id = ObjectId(id)
             self.load()
@@ -44,6 +46,11 @@ class FileObject(object):
         db.update_file_altnames(self._dbname, self._collection, self._id, altnames)
         self.load()
 
+    def update_data(self, data):
+        db = NoSQLDatabase(self._dbname, self._uri)
+        db.update_file_data(self._dbname, self._collection, self._id, data)
+        self.load()
+
     @property
     def name(self):
         """Get the first seen filename"""
@@ -56,8 +63,13 @@ class FileObject(object):
 
     @property
     def upload_date(self):
-        """Get fiel length"""
+        """Get file upload date"""
         return self._dbfile.upload_date
+
+    @property
+    def upload_date_timestamp(self):
+        """Get the upload date has a timestamp"""
+        return self._creation_date
 
     @property
     def hashvalue(self):

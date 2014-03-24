@@ -1,3 +1,4 @@
+from email.utils import collapse_rfc2231_value
 import logging
 import gridfs
 
@@ -171,6 +172,14 @@ class NoSQLDatabase(Singleton):
         # check if record exists
         try:
             collection.update({"_id": _id}, {"$set": {"altnames": altnames}})
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
+
+    def update_file_data(self, db_name, collection_name, _id, new_data):
+        """Update the data"""
+        collection = self._table(db_name, collection_name + ".files")
+        try:
+            collection.update({"_id": _id}, {"$set": {"data": new_data}})
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 

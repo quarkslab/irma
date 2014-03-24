@@ -37,10 +37,6 @@ class TestObject(NoSQLDatabaseObject):
     def is_lock_free(cls, id):
         return super(TestObject, cls).is_lock_free(id)
 
-    @classmethod
-    def find(cls, *args, **kwargs):
-        return super(TestObject, cls).find(**kwargs)
-
 
 ##############################################################################
 # Logging options
