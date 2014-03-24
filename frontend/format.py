@@ -5,7 +5,14 @@ def format_av(output, result):
     if 'data' in result:
         data = result['data']
         if 'scan_results' in data:
-            output['result'] = " - ".join(data['scan_results'].values())
+            res_list = data['scan_results'].values()
+            print "DEBUG: ", res_list
+            if len(res_list) > 1:
+                # if multiple output, filter None results
+                res = [item for item in res_list if item is not None]
+                output['result'] = " - ".join(res)
+            else:
+                output['result'] = res_list[0]
         else:
             output['result'] = "not parsed"
         if 'name' in result and 'version' in data:

@@ -142,6 +142,8 @@ def print_results(list_res, justify=12):
                 print avres.strip()
             elif type(avres) == list:
                 print ("\n\t " + " "*justify).join(avres)
+            elif avres is None:
+                print 'clean'
             else:
                 print avres
 
