@@ -17,13 +17,12 @@ def scan_launch(scanid, force):
     try:
         scan = None
         ftp_config = config.frontend_config['ftp_brain']
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
         if not scan.status == IrmaScanStatus.created:
             return IrmaTaskReturn.error("Invalid scan status")
 
         # If nothing return
         if len(scan.oids) == 0:
-            scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             return IrmaTaskReturn.success("No files to scan")
@@ -43,10 +42,11 @@ def scan_launch(scanid, force):
 
         # If nothing left, return
         if len(filtered_file_oids) == 0:
-            scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             return IrmaTaskReturn.success("Nothing to do")
+        scan.update()
+        scan.release()
 
         with FtpTls(ftp_config.host, ftp_config.port, ftp_config.username, ftp_config.password) as ftps:
             scan_request = []
@@ -56,7 +56,6 @@ def scan_launch(scanid, force):
                 # our ftp handler store file under with its sha256 name
                 hashname = ftps.upload_data(scanid, f.data)
                 if hashname != f.hashvalue:
-                    scan.release()
                     return IrmaTaskReturn.error("Ftp Error: integrity failure while uploading file {0} for scanid {1}".format(scanid, filename))
                 scan_request.append((hashname, probelist))
                 # launch new celery task
