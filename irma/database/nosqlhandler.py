@@ -1,9 +1,7 @@
-from email.utils import collapse_rfc2231_value
 import logging
 import gridfs
 
 from pymongo import Connection
-from bson import ObjectId
 
 from common.oopatterns import Singleton
 from irma.common.exceptions import IrmaDatabaseError
@@ -36,7 +34,6 @@ class NoSQLDatabase(Singleton):
 
     def __enter__(self):
         return self
-
 
     ##########################################################################
     # Private methods
@@ -87,7 +84,7 @@ class NoSQLDatabase(Singleton):
         """ load entry _id in collection"""
         collection = self._table(db_name, collection_name)
         try:
-            res = collection.find_one({'_id':_id})
+            res = collection.find_one({'_id': _id})
             return res
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
@@ -148,7 +145,7 @@ class NoSQLDatabase(Singleton):
         collection = self._table(db_name, collection_name + ".files")
         # check if record exists
         try:
-            res = collection.find_one({'hashvalue' :hashvalue}, {'_id': 1})
+            res = collection.find_one({'hashvalue': hashvalue}, {'_id': 1})
             if res:
                 return res['_id']
             else:
@@ -163,23 +160,6 @@ class NoSQLDatabase(Singleton):
         try:
             file_oid = fsdbh.put(data, filename=name, hashvalue=hashvalue, altnames=altnames)
             return file_oid
-        except Exception as e:
-            raise IrmaDatabaseError("{0}".format(e))
-
-    def update_file_altnames(self, db_name, collection_name, _id, altnames):
-        """ update file (currently removing and re-inserting)"""
-        collection = self._table(db_name, collection_name + ".files")
-        # check if record exists
-        try:
-            collection.update({"_id": _id}, {"$set": {"altnames": altnames}})
-        except Exception as e:
-            raise IrmaDatabaseError("{0}".format(e))
-
-    def update_file_data(self, db_name, collection_name, _id, new_data):
-        """Update the data"""
-        collection = self._table(db_name, collection_name + ".files")
-        try:
-            collection.update({"_id": _id}, {"$set": {"data": new_data}})
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
