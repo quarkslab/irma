@@ -60,7 +60,7 @@ class ScanInfo(NoSQLDatabaseObject):
     @classmethod
     def find_old_instances(cls):
         return super(ScanInfo, cls).find(
-            {'date': {'$lt': timestamp() - config.frontend_config['cron_frontend']['clean_db']['scan_info_max_age']}},
+            {'date': {'$lt': timestamp() - config.frontend_config['cron_frontend']['clean_db_scan_info_max_age']}},
             ['_id']
         )
 

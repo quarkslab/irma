@@ -124,6 +124,10 @@ def clean_db():
         result = ScanInfo.find_old_instances()
         for sI in result:
             temp_scan_info = ScanInfo.get_temp_instance(sI['_id'])
+
+            temp_scan_file = ScanFile(id=sI['_id'])
+            temp_scan_file.update_data('')
+
             temp_scan_info.remove()
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
