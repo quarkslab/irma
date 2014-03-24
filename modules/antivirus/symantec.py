@@ -21,7 +21,7 @@ class Symantec(Antivirus):
             "/ScanFile " # scan command
         )
         self._scan_patterns = [
-            re.compile(r"([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]*).*", re.IGNORECASE)
+            re.compile(r"([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]+).*", re.IGNORECASE)
         ]
         self._pdata_path = glob.glob(os.path.normcase('\\'.join([os.environ.get('PROGRAMDATA', ''), r"Symantec\Symantec Endpoint Protection\*.*"])))
         self._pdata_path = self._pdata_path.pop() if self._pdata_path else None
@@ -70,16 +70,17 @@ class Symantec(Antivirus):
         if self._log_path:
             # wait for log to be updated
             mtime = os.path.getmtime(self._log_path)
-            delay = 10
-            while self._last_log_time != mtime and (mtime - self._last_log_time) > 0.5 and delay != 0 :
-                time.sleep(1)
+            delay = 20
+            while (mtime - self._last_log_time) <= 1 and delay != 0 :
+                time.sleep(0.5)
                 mtime = os.path.getmtime(self._log_path)
                 delay -= 1
             lines = []
             # look for the line corresponding to this filename
             with open(self._log_path, 'r') as fd:
                 for line in reversed(fd.readlines()):
-                    if paths in line:
+                    pattern = ',{0},'.format(paths.lower())
+                    if pattern in line.lower():
                         lines.append(line)
             stdout = "".join(lines)
             # force scan_result to consider it infected
