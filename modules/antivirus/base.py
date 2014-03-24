@@ -143,7 +143,7 @@ class Antivirus(object):
                 for pattern in self.scan_patterns:
                     matches = pattern.finditer(stdout)
                     for match in matches:
-                        self.scan_results[match.group('file')] = match.group('name')
+                        self.scan_results[match.group('file').lower()] = match.group('name')
         return retcode
 
     ##########################################################################
