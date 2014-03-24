@@ -89,7 +89,11 @@ class ScanResults(NoSQLDatabaseObject):
     def init_id(cls, id, **kwargs):
         return super(ScanResults, cls).init_id(id, **kwargs)
 
+
 class ScanFile(FileObject):
+    _uri_file = cfg_dburi
     _uri = cfg_dburi
-    _dbname = cfg_dbname
-    _collection = cfg_coll.scan_files
+    _dbname_file = cfg_dbname
+    _dbname = cfg_dbname                            # to store the metadata of the file
+    _collection_file = cfg_coll.scan_files
+    _collection = cfg_coll.scan_files_metadata      # to store the metadata of the file
