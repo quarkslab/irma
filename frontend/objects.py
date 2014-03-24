@@ -1,8 +1,8 @@
 import config.parser as config
+from lib.common.compat import timestamp
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus, IrmaLockMode
-from datetime import datetime
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
@@ -17,7 +17,7 @@ class ScanInfo(NoSQLDatabaseObject):
         if dbname:
             self._dbname = dbname
         self.user = None
-        self.date = datetime.now()
+        self.date = timestamp()
         self.oids = {}
         self.probelist = None
         self.status = IrmaScanStatus.created
@@ -56,6 +56,11 @@ class ScanInfo(NoSQLDatabaseObject):
     @classmethod
     def is_lock_free(cls, id):
         return super(ScanInfo, cls).is_lock_free(id)
+
+    @classmethod
+    def find(cls, **kwargs):
+        return super(ScanInfo, cls).find(**kwargs)
+
 
 class ScanResults(NoSQLDatabaseObject):
     _uri = cfg_dburi

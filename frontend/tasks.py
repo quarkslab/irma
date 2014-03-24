@@ -1,6 +1,8 @@
 import celery
 import config.parser as config
 from frontend.objects import ScanFile, ScanInfo, ScanResults
+from lib.common.compat import timestamp
+from lib.irma.common.exceptions import IrmaLockError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
 from lib.irma.ftp.handler import FtpTls
 from format import format_result
@@ -11,6 +13,7 @@ config.conf_frontend_celery(frontend_app)
 
 scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
+
 
 @frontend_app.task(acks_late=True)
 def scan_launch(scanid, force):
@@ -65,10 +68,14 @@ def scan_launch(scanid, force):
         scan.update_status(IrmaScanStatus.launched)
         scan.release()
         return IrmaTaskReturn.success("scan launched")
+    except IrmaLockError as e:
+        print "IrmaLockError has occurred:{0}".format(e)
+        raise scan_launch.retry(countdown=15, max_retries=10)
     except Exception as e:
         if scan is not None: scan.release()
-        print "Exception has occured:{0}".format(e)
+        print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=15, max_retries=10)
+
 
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
@@ -99,10 +106,27 @@ def scan_result(scanid, file_hash, probe, result):
         if scan.is_completed():
             scan.update_status(IrmaScanStatus.finished)
         scan.release()
+    except IrmaLockError as e:
+        print "IrmaLockError has occurred:{0}".format(e)
+        raise scan_result.retry(countdown=15, max_retries=10)
     except Exception as e:
         if scan is not None: scan.release()
         if scan_res is not None: scan_res.release()
-        print "Exception has occured:{0}".format(e)
+        print "Exception has occurred:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
 
+
+@frontend_app.task()
+def clean_db():
+    try:
+        result = ScanInfo.find(
+            {'date': {'$lt': timestamp() - config.frontend_config['cron_frontend']['clean_db']['scan_info_max_age']}},
+            ['_id']
+        )
+        for sI in result:
+            temp_scan_info = ScanInfo.get_temp_instance(sI['_id'])
+            temp_scan_info.remove()
+    except Exception as e:
+        print "Exception has occurred:{0}".format(e)
+        raise clean_db.retry(countdown=15, max_retries=10)
 
