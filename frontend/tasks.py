@@ -121,12 +121,12 @@ def scan_result(scanid, file_hash, probe, result):
 @frontend_app.task()
 def clean_db():
     try:
-        result = ScanInfo.find(
-            {'date': {'$lt': timestamp() - config.frontend_config['clean_db']['scan_info_max_age']}},
-            ['_id']
-        )
+        result = ScanInfo.find_old_instances()
         for sI in result:
             temp_scan_info = ScanInfo.get_temp_instance(sI['_id'])
+            temp_scan_file = ScanFile(id=sI['_id'])
+            temp_scan_file.update_data('')
+
             temp_scan_info.remove()
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
