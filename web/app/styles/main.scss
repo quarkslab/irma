@@ -122,41 +122,69 @@ p {
     cursor: pointer;
   }
 
-  .select-probes {
-    margin: 10px;
+  .advanced-settings {
 
-    p {
-      color: #333;
-      font-size: 15px;
-      padding: 0px;
-      margin: 0px;
+    width: 600px;
+    background-color: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 15px;
+    margin: 20px auto 10px;
 
+    h3 {
+      font-size: 16px;
+      text-align: center;
       span {
         text-decoration: underline;
         color: #999999;
         cursor: pointer;
       }
     }
-    ul {
-      text-align: center;
-    }
-    li {
-      border: 1px solid #eee;
-      background-color: #fafafa;
-      padding: 3px 7px;
-      margin: 5px;
-      border-radius: 5px;
-      text-transform: capitalize;
-      color: #999;
-      cursor: pointer;
 
-      .glyphicon {
+    .force-scan {
+      width: 100px;
+      margin: auto;
+
+      label {
+        font-weight: normal;
+      }
+      input {
         position: relative;
         top: 2px;
       }
     }
-    .active {
-      color: #333;
+
+    .select-probes {
+      margin: 0px 10px 10px;
+
+      p {
+        color: #333;
+        font-size: 15px;
+        padding: 0px;
+        margin: 0px;
+
+        
+      }
+      ul {
+        text-align: center;
+      }
+      li {
+        border: 1px solid #eee;
+        background-color: #fafafa;
+        padding: 3px 7px;
+        margin: 5px;
+        border-radius: 5px;
+        text-transform: capitalize;
+        color: #999;
+        cursor: pointer;
+
+        .glyphicon {
+          position: relative;
+          top: 2px;
+        }
+      }
+      .active {
+        color: #333;
+      }
     }
   }
 }

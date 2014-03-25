@@ -1,6 +1,5 @@
 /web/node_modules
 /web/app/bower_components
+/web/bower_components
 /web/.*
 *.pyc
-
-

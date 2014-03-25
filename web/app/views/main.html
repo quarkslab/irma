@@ -48,14 +48,22 @@
       </div>
     </div>
 
+    <pre>{{settings | json}}</pre>
+
     <div class="toggle-advanced" ng-click="toggleAdvanced(true)" ng-if="!advancedSettings">Advanced settings</div>
-    <div class="select-probes" ng-if="advancedSettings">
-      <p>The selected probes will be used to analyse the files: <span ng-click="toggleAdvanced(false)">(Hide)</span></p>
-      <ul class="list-inline">
-        <li ng-repeat="probe in probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
-          <span boolean-display="probe.active" color="{{(probe.active)? '#333': '#999'}}"></span> {{probe.name}}
-        </li>
-      </ul>
+    <div class="advanced-settings" ng-if="advancedSettings">
+      <h3>Advanced settings: <span ng-click="toggleAdvanced(false)">(Hide)</span></h3>
+      <div class="force-scan">
+        <input type="checkbox" ng-model="settings.force" id="force-scan"> <label for="force-scan">Force scan</label>
+      </div>
+      <div class="select-probes" >
+        <p>The selected probes will be used to analyse the files:</p>
+        <ul class="list-inline">
+          <li ng-repeat="probe in settings.probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
+            <span boolean-display="probe.active" color="{{(probe.active)? '#333': '#999'}}"></span> {{probe.name}}
+          </li>
+        </ul>
+      </div>
     </div>
 
     
@@ -102,7 +110,12 @@
         <div class="results">
           <div class="row" ng-repeat="(toolName, toolResults) in file.results" ng-click="toolResults.displayVersion = !toolResults.displayVersion">
             <div class="col-md-5 probe">{{toolName}} : </div>
-            <div class="col-md-7 result"><span boolean-display="toolResults.result == 'clean'"></span> The file came out as: {{toolResults.result}}</div>
+            <div class="col-md-7 result" ng-if="!toolResults.result">
+              <span boolean-display="true"></span> The file came out as clean
+            </div>
+            <div class="col-md-7 result" ng-if="toolResults.result">
+              <span boolean-display="false"></span> The file came out as: {{toolResults.result}}
+            </div>
             <div class="col-md-7 col-md-offset-5 version" ng-if="toolResults.displayVersion">{{toolResults.version || 'No version information available'}}</div>
           </div>
         </div>

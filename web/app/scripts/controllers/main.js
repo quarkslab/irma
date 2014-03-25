@@ -7,7 +7,10 @@ angular.module('irma')
   $scope.scanId = null;
   $scope.rootApi = apiRoot;
   $scope.currentProcess = null;
-  $scope.probes = [];
+  $scope.settings = {
+    probes: [],
+    force: false
+  };
   $scope.advancedSettings = false;
 
   var uploader = $scope.uploader = $fileUploader.create(),
@@ -17,7 +20,7 @@ angular.module('irma')
     $http.get($scope.rootApi+'/probe/list').then(function(response){
       if(response.data.code === 0){
         for(var i=0; i<response.data.probe_list.length; i++){
-          $scope.probes.push({name: response.data.probe_list[i], active: true});
+          $scope.settings.probes.push({name: response.data.probe_list[i], active: true});
         }
       } else {
         console.error('Error occured retrieving probe list');
@@ -69,13 +72,19 @@ angular.module('irma')
       $scope.currentProcess = $timeout(function(){
 
         var probes = [], hasInactive = false;
-        for(var i=0; i<$scope.probes.length; i++){
-          if($scope.probes[i].active)
-            probes.push($scope.probes[i].name)
+        for(var i=0; i<$scope.settings.probes.length; i++){
+          if($scope.settings.probes[i].active)
+            probes.push($scope.settings.probes[i].name)
           else
             hasInactive = true;
         }
-        var params = (hasInactive)? {params: {probe: probes.join(',')}}: null;
+        var params = {params: {}};
+        if(hasInactive)
+          params.params.probe = probes.join(',');
+        if($scope.settings.force)
+          params.params.force = true;
+
+        console.log(params);
 
         $http.get($scope.rootApi+'/scan/launch/'+$scope.scanId, params).then(function(response){
 
