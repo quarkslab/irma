@@ -150,12 +150,6 @@ with correct
 FAQ
 ===
 
-.. image:: images/question.jpg
-   :alt: any question
-   :align: center
-
---------------------
-
 **Install a python package with pip**
 
 .. code-block:: bash
@@ -193,10 +187,6 @@ FAQ
 Support
 =======
 
-.. image:: images/sos.jpg
-   :alt: need help
-   :align: center
-   
 Feeling lost ? need support ? irc: #irma-qb@chat.freenode.net 
 
 ----------------------
