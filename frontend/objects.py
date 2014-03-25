@@ -1,3 +1,4 @@
+import hashlib
 import config.parser as config
 from lib.common.compat import timestamp
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
@@ -90,10 +91,51 @@ class ScanResults(NoSQLDatabaseObject):
         return super(ScanResults, cls).init_id(id, **kwargs)
 
 
-class ScanFile(FileObject):
-    _uri_file = cfg_dburi
+class ScanFile(NoSQLDatabaseObject):
     _uri = cfg_dburi
-    _dbname_file = cfg_dbname
-    _dbname = cfg_dbname                            # to store the metadata of the file
-    _collection_file = cfg_coll.scan_files
-    _collection = cfg_coll.scan_files_metadata      # to store the metadata of the file
+    _dbname = cfg_dbname
+    _collection = cfg_coll.scan_files
+
+    def __init__(self, dbname=None, **kwargs):
+        if dbname:
+            self._dbname = dbname
+        self.sha256 = None
+        self.sha1 = None
+        self.md5 = None
+        self.date_upload = None
+        self.date_last_scan = None
+        self.size = None
+        self.filename = None
+        self.alt_filenames = []
+        self.file_oid = None
+
+        super(ScanFile, self).__init__(**kwargs)
+
+    def save(self, data, name):
+        self.sha256 = hashlib.sha256(data).hexdigest()
+        self.sha1 = hashlib.sha1(data).hexdigest()
+        self.md5 = hashlib.md5(data).hexdigest()
+
+        file_data = ScanFileData()
+        if file_data.save(data, name):
+            self.date_upload = timestamp()
+            self.date_last_scan = self.date_upload
+            self.filename = name
+        else:
+            self.date_last_scan = timestamp()
+            self.alt_filenames.append(name)
+        self.size = file_data.length
+        self.file_oid = file_data.id
+
+        self.update()
+
+    @property
+    def data(self):
+        return ScanFileData(id=self.id).data
+
+
+class ScanFileData(FileObject):
+    _uri = cfg_dburi
+    _dbname = cfg_dbname
+    _collection_file = cfg_coll.scan_filedata
+
