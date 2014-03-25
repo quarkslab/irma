@@ -138,3 +138,4 @@ class ScanFileData(FileObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
     _collection_file = cfg_coll.scan_filedata
+
