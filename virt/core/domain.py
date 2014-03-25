@@ -759,7 +759,13 @@ class DomainManager(ParametricSingleton):
                 for disk in disks:
                     orig_vol = self._drv.storageVolLookupByPath(disk['source']['@file'])
                     orig_vol.delete(flags)
-                    # Undefine
+
+            # remove from cache (remove from id when shutting down)
+            if machine.name() in self._cache['name']:
+                del self._cache['name'][machine.name()] 
+            if machine.UUIDString() in self._cache['uuid']:
+                del self._cache['uuid'][machine.UUIDString()]
+            # undefine
             machine.undefine()
         except libvirt.libvirtError as e:
             raise DomainManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
