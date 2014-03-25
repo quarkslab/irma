@@ -57,8 +57,8 @@ def ping_celery_app(celery):
                     res.append((status_ko, 'celery app {0} is down'.format(host)))
         queues = celery.control.inspect().active_queues()
         for (host, infolist) in queues.items():
-            probenames = "-".join([info['name'] for info in infolist])
-            res.append((status_ok, '\t| {0} probe {1}'.format(host, probenames)))
+            queuenames = "-".join([info['name'] for info in infolist])
+            res.append((status_ok, '\t| {0} queue {1}'.format(host, queuenames)))
     except:
         res.append((status_ko, 'no celery running perhaps broker is down on %s' % celery.conf['BROKER_URL']))
     return res
