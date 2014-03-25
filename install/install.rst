@@ -176,6 +176,15 @@ FAQ
 
 --------------------
 
+**Start a service at boot**
+
+.. code-block:: bash
+
+    $ sudo /usr/sbin/update-rc.d <service-name> defaults
+
+--------------------
+
+
 =======
 Support
 =======
