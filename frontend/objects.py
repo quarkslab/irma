@@ -96,38 +96,56 @@ class ScanFile(NoSQLDatabaseObject):
     _dbname = cfg_dbname
     _collection = cfg_coll.scan_files
 
-    def __init__(self, dbname=None, **kwargs):
+    def __init__(self, dbname=None, sha256=None, id=None, **kwargs):
+        """Constructor
+        :param sha256: The sha256 of the object to load (priority over the id)
+        :param id: The id of the object to load
+        """
+
         if dbname:
             self._dbname = dbname
-        self.sha256 = None
-        self.sha1 = None
-        self.md5 = None
-        self.date_upload = None
-        self.date_last_scan = None
-        self.size = None
-        self.filename = None
-        self.alt_filenames = []
-        self.file_oid = None
 
-        super(ScanFile, self).__init__(**kwargs)
+        if sha256:
+            super(ScanFile, self).__init__(**kwargs)
+            self.load(self.get_id_by_sha256(sha256))
+        elif id:
+            super(ScanFile, self).__init__(id=id, **kwargs)
+        else:
+            self.sha256 = None
+            self.sha1 = None
+            self.md5 = None
+            self.date_upload = None
+            self.date_last_scan = None
+            self.size = None
+            self.filename = None
+            self.alt_filenames = []
+            self.file_oid = None
 
     def save(self, data, name):
         self.sha256 = hashlib.sha256(data).hexdigest()
         self.sha1 = hashlib.sha1(data).hexdigest()
         self.md5 = hashlib.md5(data).hexdigest()
 
-        file_data = ScanFileData()
-        if file_data.save(data, name):
+        id = self.get_id_by_sha256(self.sha256)
+        if not id:
+            file_data = ScanFileData()
+            file_data.save(data, name)
             self.date_upload = timestamp()
             self.date_last_scan = self.date_upload
+            self.size = file_data.length
             self.filename = name
+            self.file_oid = file_data.id
         else:
+            self.load(id)
             self.date_last_scan = timestamp()
-            self.alt_filenames.append(name)
-        self.size = file_data.length
-        self.file_oid = file_data.id
-
+            if name not in self.alt_filenames:
+                self.alt_filenames.append(name)
         self.update()
+
+    @classmethod
+    def get_id_by_sha256(cls, sha256):
+        res = super(ScanFile, cls).find({'sha256': sha256}, ['_id'])
+        return res[0]['_id'] if res.count() == 1 else None
 
     @property
     def data(self):
