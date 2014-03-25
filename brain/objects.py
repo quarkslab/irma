@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     sql = SQLDatabase(config.brain_config['sql_brain'].engine + config.brain_config['sql_brain'].dbname)
     Base.metadata.create_all(sql._db)
-    user = User(name="test1", rmqvhost="mqfrontend", ftpuser="frontend1", quota=10000)
+    user = User(name="test1", rmqvhost="mqfrontend", ftpuser="frontend1", quota=0)
     sql.add(user)
     sql.commit()
 
