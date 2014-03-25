@@ -103,7 +103,7 @@ irma-admin configuration file:
 |                |clean_db_cron| ``integer``|     0     |
 |                |_minute      |            |           |
 |                +-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|     *     |
+|                |clean_db_scan| ``integer``|     \*    |
 |                |_day_of_week |            |           |
 +----------------+-------------+------------+-----------+
 
