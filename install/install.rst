@@ -27,16 +27,6 @@ with pip install:
 * celery
 * redis
 
-===============
-Debian packages
-===============
-
-* python27
-* pip
-* rabbitmq-server
-* redis-server
-* pure-ftpd 
-
 -------------
 Configuration
 -------------
