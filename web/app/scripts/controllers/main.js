@@ -104,6 +104,7 @@ angular.module('irma')
   $scope.scanDisplay = function(){
   
     $scope.abort = function(){
+      $http.get($scope.rootApi+'/scan/cancel/'+$scope.scanId);
       $timeout.cancel($scope.currentProcess);
       $scope.progress = 0;
       uploader.clearQueue();
