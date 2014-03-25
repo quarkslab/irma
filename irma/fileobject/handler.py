@@ -3,11 +3,8 @@ from bson import ObjectId
 
 
 class FileObject(object):
-    _uri_file = None
     _uri = None
-    _dbname_file = None
     _dbname = None
-    _collection_file = None
     _collection = None
 
     def __init__(self, dbname=None, id=None):
@@ -19,17 +16,12 @@ class FileObject(object):
             self.load()
 
     def _exists(self, hashvalue):
-        db = NoSQLDatabase(self._dbname_file, self._uri_file)
-        return db.exists_file(self._dbname_file, self._collection_file, hashvalue)
+        db = NoSQLDatabase(self._dbname, self._uri)
+        return db.exists_file(self._dbname, self._collection, hashvalue)
 
-    def load(self, _id):
-        self._id = _id
-        super(FileObject, self).load(self._id)
-        self._load_file()
-
-    def _load_file(self):
-        db = NoSQLDatabase(self._dbname_file, self._uri_file)
-        self._dbfile = db.get_file(self._dbname, self._collection_file, self._dbfile_id)
+    def load(self):
+        db = NoSQLDatabase(self._dbname, self._uri)
+        self._dbfile = db.get_file(self._dbname, self._collection, self._id)
 
     def save(self, data, name):
         db = NoSQLDatabase(self._dbname, self._uri)
