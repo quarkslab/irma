@@ -2,13 +2,6 @@
  IRMA Frontend - Installation guide
 ***********************************
 
-.. image:: images/setup.jpg
-   :alt: overview
-   :align: center
-
---------------------
-
-
 **Table of Contents**
 
 
