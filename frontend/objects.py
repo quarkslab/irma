@@ -1,5 +1,6 @@
 import hashlib
 import config.parser as config
+from irma.common.exceptions import IrmaValueError
 from lib.common.compat import timestamp
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
@@ -105,21 +106,22 @@ class ScanFile(NoSQLDatabaseObject):
         if dbname:
             self._dbname = dbname
 
-        if sha256:
-            super(ScanFile, self).__init__(**kwargs)
-            self.load(self.get_id_by_sha256(sha256))
-        elif id:
+        if id:
             super(ScanFile, self).__init__(id=id, **kwargs)
         else:
-            self.sha256 = None
-            self.sha1 = None
-            self.md5 = None
-            self.date_upload = None
-            self.date_last_scan = None
-            self.size = None
-            self.filename = None
-            self.alt_filenames = []
-            self.file_oid = None
+            super(ScanFile, self).__init__(**kwargs)
+            if sha256:
+                self.load(self.get_id_by_sha256(sha256))
+            else:
+                self.sha256 = None
+                self.sha1 = None
+                self.md5 = None
+                self.date_upload = None
+                self.date_last_scan = None
+                self.size = None
+                self.filename = None
+                self.alt_filenames = []
+                self.file_oid = None
 
     def save(self, data, name):
         self.sha256 = hashlib.sha256(data).hexdigest()
@@ -136,7 +138,8 @@ class ScanFile(NoSQLDatabaseObject):
             self.filename = name
             self.file_oid = file_data.id
         else:
-            self.load(id)
+            self.id = id
+            self.load(self.id)
             self.date_last_scan = timestamp()
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
@@ -144,11 +147,13 @@ class ScanFile(NoSQLDatabaseObject):
 
     @classmethod
     def get_id_by_sha256(cls, sha256):
-        res = super(ScanFile, cls).find({'sha256': sha256}, ['_id'])
+        res = cls.find({'sha256': sha256}, ['_id'])
         return res[0]['_id'] if res.count() == 1 else None
 
     @property
     def data(self):
+        if self.file_oid is None:
+            raise IrmaValueError('There is not data associated')
         return ScanFileData(id=self.id).data
 
 
@@ -156,4 +161,3 @@ class ScanFileData(FileObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
     _collection_file = cfg_coll.scan_filedata
-
