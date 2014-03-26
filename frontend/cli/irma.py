@@ -4,7 +4,7 @@ import requests
 import json
 import argparse
 
-ADDRESS = "http://frontend.irma.qb:8080"
+ADDRESS = "http://frontend.irma.qb/_api/"
 
 class IrmaReturnCode:
     success = 0
