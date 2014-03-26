@@ -69,7 +69,7 @@
 
     
     <p>
-      <input type="submit" class="action btn btn-lg btn-primary" value="Scan for malwares" ng-disabled="!uploader.getNotUploadedItems().length">
+      <input type="submit" class="action btn btn-lg btn-success" value="Scan for malwares" ng-disabled="!uploader.getNotUploadedItems().length">
     </p>
   </form>
 
@@ -115,7 +115,7 @@
               <span boolean-display="true"></span> The file came out as clean
             </div>
             <div class="col-md-7 result" ng-if="toolResults.result">
-              <span boolean-display="false"></span> The file came out as: {{toolResults.result}}
+              <span boolean-display="false"></span> The file came out as: <span class="virus">{{toolResults.result}}</span>
             </div>
             <div class="col-md-7 col-md-offset-5 version" ng-if="toolResults.displayVersion">{{toolResults.version || 'No version information available'}}</div>
           </div>
@@ -124,7 +124,7 @@
     </div>
 
     <p ng-if="context == 'results'">
-      <button class="action btn btn-lg btn-primary" ng-click="abort()">New Scan</button>
+      <button class="action btn btn-lg btn-success" ng-click="abort()">New Scan</button>
     </p>
   </div>
 </div>

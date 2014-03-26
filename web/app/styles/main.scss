@@ -5,7 +5,7 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 body {
 }
 
-.btn-primary {
+/*.btn-primary {
   background-color: #0a7a00;
   border-color: #064700;
 }
@@ -16,7 +16,7 @@ body {
 .btn-primary[disabled] {
   background-color: #0a7a00;
   border-color: #064700;
-}
+}*/
 
 .browsehappy {
     margin: 0.2em 0;
@@ -246,6 +246,9 @@ p {
   .version {
     color: #aaa;
     font-size: 0.8em;
+  }
+  .virus {
+    color: #d9534f;
   }
 }
 
