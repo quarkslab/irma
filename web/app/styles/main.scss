@@ -5,6 +5,19 @@ $icon-font-path: "/bower_components/sass-bootstrap/fonts/";
 body {
 }
 
+.btn-primary {
+  background-color: #0a7a00;
+  border-color: #064700;
+}
+.btn-primary:hover {
+  background-color: #0b8b00;
+  border-color: #064700;
+}
+.btn-primary[disabled] {
+  background-color: #0a7a00;
+  border-color: #064700;
+}
+
 .browsehappy {
     margin: 0.2em 0;
     background: #ccc;
@@ -236,26 +249,3 @@ p {
   }
 }
 
-/*.file-display {
-  h3 {
-    font-family: 'Raleway', sans-serif;
-    font-size: 30px;
-    margin-left: 200px;
-  }
-}
-
-.tool-display {
-  border-bottom: 1px solid #d0d0d0;
-  margin-bottom: 20px;
-
-  h4 {
-    font-family: 'Raleway', sans-serif;
-    font-size: 20px;
-  }
-  p {
-    text-align: left;
-    color: #000;
-    font-size: 16px;
-    padding: 5px;
-  }
-}*/

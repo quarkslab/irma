@@ -1,6 +1,6 @@
 'use strict';
 
-var apiRoot = '/_api';
+var apiRoot = 'http://frontend.irma.qb/_api';
 
 angular.module('irma', [
   'ngCookies',
