@@ -113,7 +113,7 @@ class ScanFile(NoSQLDatabaseObject):
         else:
             super(ScanFile, self).__init__(**kwargs)
             if sha256:
-                self.load(self.get_id_by_sha256(sha256))
+                self.load(self._get_id_by_sha256(sha256))
             else:
                 self.sha256 = None
                 self.sha1 = None
@@ -130,16 +130,15 @@ class ScanFile(NoSQLDatabaseObject):
         self.sha1 = hashlib.sha1(data).hexdigest()
         self.md5 = hashlib.md5(data).hexdigest()
 
-        _id = self.get_id_by_sha256(self.sha256)
+        _id = self._get_id_by_sha256(self.sha256)
         if not _id:
             file_data = ScanFileData()
             file_data.save(data, name)
             self.date_upload = timestamp()
             self.date_last_scan = self.date_upload
-            self.size = file_data.length
+            self.size = len(data)
             self.filename = name
             self.file_oid = file_data.id
-            super(ScanFile, self).save()
         else:
             self.load(_id)
             self.date_last_scan = timestamp()
@@ -175,8 +174,13 @@ class ScanFile(NoSQLDatabaseObject):
             return None
         return ScanFileData(id=self.file_oid).data
 
+    @property
+    def hashvalue(self):
+        # used for unicity and ftp integrity
+        return self.sha256
+
 
 class ScanFileData(FileObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
-    _collection_file = cfg_coll.scan_filedata
+    _collection = cfg_coll.scan_filedata
