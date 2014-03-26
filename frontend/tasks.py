@@ -124,7 +124,6 @@ def clean_db():
         result = ScanInfo.find_old_instances()
         for sI in result:
             temp_scan_info = ScanInfo.get_temp_instance(sI['_id'])
-
             temp_scan_file = ScanFile(id=sI['_id'])
             temp_scan_file.update_data('')
 
