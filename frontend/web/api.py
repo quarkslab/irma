@@ -15,7 +15,7 @@ from bottle import route, request, default_app, run
     irma dependencies are no more required.
 """
 
-DEBUG = True
+DEBUG = False
 if DEBUG:
     from mucore import IrmaFrontendWarning, IrmaFrontendError, IrmaFrontendReturn
     import mucore as core
