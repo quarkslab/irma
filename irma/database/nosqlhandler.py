@@ -140,25 +140,12 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    def exists_file(self, db_name, collection_name, hashvalue):
-        """ check if file already exits in gridfs by checking hash value"""
-        collection = self._table(db_name, collection_name + ".files")
-        # check if record exists
-        try:
-            res = collection.find_one({'hashvalue': hashvalue}, {'_id': 1})
-            if res:
-                return res['_id']
-            else:
-                return None
-        except Exception as e:
-            raise IrmaDatabaseError("{0}".format(e))
-
-    def put_file(self, db_name, collection_name, data, name, hashvalue, altnames):
+    def put_file(self, db_name, collection_name, data, name):
         """ put data into gridfs """
         fsdbh = gridfs.GridFS(self._database(db_name), collection=collection_name)
         # create a new record
         try:
-            file_oid = fsdbh.put(data, filename=name, hashvalue=hashvalue, altnames=altnames)
+            file_oid = fsdbh.put(data, filename=name)
             return file_oid
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))

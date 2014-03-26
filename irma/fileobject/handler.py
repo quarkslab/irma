@@ -15,31 +15,17 @@ class FileObject(object):
             self._id = ObjectId(id)
             self.load()
 
-    def _exists(self, hashvalue):
-        db = NoSQLDatabase(self._dbname, self._uri)
-        return db.exists_file(self._dbname, self._collection, hashvalue)
-
     def load(self):
         db = NoSQLDatabase(self._dbname, self._uri)
         self._dbfile = db.get_file(self._dbname, self._collection, self._id)
 
     def save(self, data, name):
         db = NoSQLDatabase(self._dbname, self._uri)
-        self._id = db.put_file(self._dbname, self._collection, data, name, '', [])
+        self._id = db.put_file(self._dbname, self._collection, data, name)
 
     def delete(self):
         db = NoSQLDatabase(self._dbname, self._uri)
         db.remove(self._dbname, self._collection, self._id)
-
-    @property
-    def name(self):
-        """Get the filename"""
-        return self._dbfile.filename
-
-    @property
-    def length(self):
-        """Get file length"""
-        return self._dbfile_length
 
     @property
     def data(self):
