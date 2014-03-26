@@ -4,15 +4,16 @@ from bottle import route, request, default_app, run
 
 """
     IRMA FRONTEND API
-    defines all accessible route once the bottle server is up.
-    To launch the server just type:
+    defines all accessible route accessed via uwsgi..
+
+    For test purpose set DEBUG to True and launch, the server will use mockup core class
+    irma dependencies are no more required.
+
+    To launch the Debug server just type:
 
     $ python -m frontend.web.api
 
     it will launch the server on 0.0.0.0 port 8080
-
-    For test purpose set DEBUG to True and launch, the server will use mockup core class
-    irma dependencies are no more required.
 """
 
 DEBUG = False
