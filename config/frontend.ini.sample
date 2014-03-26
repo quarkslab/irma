@@ -29,5 +29,12 @@ db = 0
 
 [ftp_brain]
 host = 127.0.0.1
-username=frontend
-password=frontend
+username = frontend
+password = frontend
+
+[cron_frontend]
+clean_db_scan_info_max_age = 2592000
+clean_db_scan_file_max_age = 172800
+clean_db_cron_hour = 0
+clean_db_cron_minute = 0
+clean_db_cron_day_of_week = *
