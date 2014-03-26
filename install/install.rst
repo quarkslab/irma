@@ -196,7 +196,7 @@ FAQ
 Support
 =======
 
-.. image:: /../../../IRMA/blob/master/docs/images/sos.jpg
+.. image:: /../../../IRMA/images/sos.jpg
    :alt: need help
    :align: center
 
