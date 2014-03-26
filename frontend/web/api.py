@@ -25,7 +25,7 @@ else:
     from frontend.web.core import IrmaFrontendWarning, IrmaFrontendError
     import frontend.web.core as core
 
-# ______________________________________________________________ SERVER TEST MODE
+# _____________________________________________________________________________ SERVER TEST MODE
 
 @bottle.error(405)
 def method_not_allowed(res):
@@ -42,7 +42,7 @@ def enableCORSAfterRequestHook():
     """ allow CORS request for debug purpose """
     bottle.response.set_header('Access-Control-Allow-Origin', '*')
 
-# ______________________________________________________________ SERVER ROOT
+# _____________________________________________________________________________ SERVER ROOT
 
 @route("/")
 def svr_index():
@@ -54,11 +54,17 @@ def svr_index():
     """
     return IrmaFrontendReturn.success()
 
-# ______________________________________________________________ API SCAN
+# _____________________________________________________________________________ COMMON PARAM CHECKS
 
-def validid(scanid):
+def _valid_id(scanid):
     """ check scanid format - should be a str(ObjectId)"""
-    return re.match(r'[0-9a-fA-F]{24}', scanid)
+    return re.match(r'^[0-9a-fA-F]{24}$', scanid)
+
+def _valid_sha256(sha256):
+    """ check hashvalue format - should be a sha256 hexdigest"""
+    return re.match(r'^[0-9a-fA-F]{64}$', sha256)
+
+# _____________________________________________________________________________ API SCAN
 
 @route("/scan/new")
 def scan_new():
@@ -95,7 +101,7 @@ def scan_add(scanid):
         on error 'msg' gives reason message
     """
     # Filter malformed scanid
-    if not validid(scanid):
+    if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
         files = {}
@@ -127,7 +133,7 @@ def scan_launch(scanid):
         on error 'msg' gives reason message
     """
     # Filter malformed scanid
-    if not validid(scanid):
+    if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
         # handle 'force' parameter
@@ -159,7 +165,7 @@ def scan_result(scanid):
         on error 'msg' gives reason message
     """
     # Filter malformed scanid
-    if not validid(scanid):
+    if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
         results = core.scan_results(scanid)
@@ -184,7 +190,7 @@ def scan_progress(scanid):
         on error 'msg' gives reason message
     """
     # Filter malformed scanid
-    if not validid(scanid):
+    if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
         progress = core.scan_progress(scanid)
@@ -210,7 +216,7 @@ def scan_cancel(scanid):
         on error 'msg' gives reason message
     """
     # Filter malformed scanid
-    if not validid(scanid):
+    if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
         cancel = core.scan_cancel(scanid)
@@ -221,7 +227,7 @@ def scan_cancel(scanid):
         return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
-# ______________________________________________________________ API STATUS
+# _____________________________________________________________________________ API PROBE
 
 @route("/probe/list")
 def probe_list():
@@ -242,8 +248,22 @@ def probe_list():
         return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
+# _____________________________________________________________________________ API FILE
 
-# ______________________________________________________________ MAIN
+@route("/file/search/<sha256>")
+def file_search(sha256):
+    # Filter malformed scanid
+    if not _valid_sha256(sha256):
+        return IrmaFrontendReturn.error("not a valid sha256")
+    try:
+        return IrmaFrontendReturn.success(scan_results=core.file_search(sha256))
+    except IrmaFrontendWarning as e:
+        return IrmaFrontendReturn.warning(str(e))
+    except IrmaFrontendError as e:
+        return IrmaFrontendReturn.error(str(e))
+    except Exception as e:
+        return IrmaFrontendReturn.error(str(e))
+# _____________________________________________________________________________ MAIN
 
 application = default_app()
 

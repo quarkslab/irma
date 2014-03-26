@@ -45,12 +45,7 @@ class ScanInfo(NoSQLDatabaseObject):
         for (oid, info) in self.oids.items():
             name = info['name']
             r = ScanResults(id=oid, mode=IrmaLockMode.read)
-            if r.results:
-                scanfile = ScanFile(id=oid)
-                sha256 = scanfile.hashvalue
-                res[sha256] = {}
-                res[sha256]['filename'] = name
-                res[sha256]['results'] = dict((probe, results) for (probe, results) in r.results.iteritems() if probe in self.probelist)
+            res.update(r.get_result(name=name, probelist=self.probelist))
         return res
 
     @classmethod
@@ -99,6 +94,21 @@ class ScanResults(NoSQLDatabaseObject):
     def init_id(cls, id, **kwargs):
         return super(ScanResults, cls).init_id(id, **kwargs)
 
+    def get_result(self, name=None, probelist=None):
+        res = {}
+        if self.results:
+            scanfile = ScanFile(id=self.id)
+            sha256 = scanfile.hashvalue
+            res[sha256] = {}
+            if name is not None:
+                res[sha256]['filename'] = name
+            else:
+                res[sha256]['filename'] = "-".join([scanfile.filename] + scanfile.alt_filenames)
+            if probelist is not None:
+                res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems() if probe in probelist)
+            else:
+                res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems())
+        return res
 
 class ScanFile(NoSQLDatabaseObject):
     _uri = cfg_dburi
@@ -119,7 +129,11 @@ class ScanFile(NoSQLDatabaseObject):
         else:
             super(ScanFile, self).__init__(**kwargs)
             if sha256:
-                self.load(self._get_id_by_sha256(sha256))
+                _id = self._get_id_by_sha256(sha256)
+                if _id is None:
+                    raise IrmaDatabaseError("sha256 not found")
+                else:
+                    self.load(_id)
             else:
                 self.sha256 = None
                 self.sha1 = None
