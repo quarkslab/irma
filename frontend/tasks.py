@@ -4,6 +4,7 @@ from frontend.objects import ScanFile, ScanInfo, ScanResults
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaLockError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
+from lib.common.utils import  humanize_time_str
 from lib.irma.ftp.handler import FtpTls
 from format import format_result
 
@@ -121,13 +122,13 @@ def scan_result(scanid, file_hash, probe, result):
 @frontend_app.task()
 def clean_db():
     try:
-        result = ScanInfo.find_old_instances()
-        for sI in result:
-            temp_scan_info = ScanInfo.get_temp_instance(sI['_id'])
-            temp_scan_file = ScanFile(id=sI['_id'])
-            temp_scan_file.update_data('')
-
-            temp_scan_info.remove()
+        max_age_scaninfo = config.frontend_config['cron_frontend']['clean_db_scan_info_max_age']
+        max_age_scanfile = config.frontend_config['cron_frontend']['clean_db_scan_file_max_age']
+        nb_scaninfo = ScanInfo.remove_old_instances(max_age_scaninfo)
+        nb_scanfile = ScanFile.remove_old_instances(max_age_scanfile)
+        print "removed {0} scan info (older than {1}s)".format(nb_scaninfo, humanize_time_str(max_age_scaninfo, 'seconds'))
+        print "removed {0} scan files (older than {1}s) ".format(nb_scanfile, humanize_time_str(max_age_scanfile, 'seconds'))
+        return
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
         raise clean_db.retry(countdown=15, max_retries=10)

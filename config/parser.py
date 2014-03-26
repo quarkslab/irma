@@ -48,7 +48,8 @@ template_frontend_config = {
                                     ('password', TemplatedConfiguration.string, None),
                                     ],
                          'cron_frontend': [
-                                    ('clean_db_scan_info_max_age', TemplatedConfiguration.integer, 86400),  # a day in seconds
+                                    ('clean_db_scan_info_max_age', TemplatedConfiguration.integer, 2592000),  # 30 day in seconds
+                                    ('clean_db_scan_file_max_age', TemplatedConfiguration.integer, 172800),  # 2 day in seconds
                                     ('clean_db_cron_hour', TemplatedConfiguration.string, '0'),
                                     ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
                                     ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),

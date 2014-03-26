@@ -62,12 +62,18 @@ class ScanInfo(NoSQLDatabaseObject):
         return super(ScanInfo, cls).is_lock_free(id)
 
     @classmethod
-    def find_old_instances(cls):
-        return super(ScanInfo, cls).find(
-            {'date': {'$lt': timestamp() - config.frontend_config['cron_frontend']['clean_db_scan_info_max_age']}},
+    def remove_old_instances(cls, age):
+        found = super(ScanInfo, cls).find(
+            {'date': {'$lt': timestamp() - age}},
             ['_id']
         )
-
+        if found.count() == 0:
+            return 0
+        else:
+            for f in found:
+                temp_scan_info = ScanInfo.get_temp_instance(f['_id'])
+                temp_scan_info.remove()
+            return found.count()
 
 class ScanResults(NoSQLDatabaseObject):
     _uri = cfg_dburi
@@ -178,6 +184,23 @@ class ScanFile(NoSQLDatabaseObject):
     def hashvalue(self):
         # used for unicity and ftp integrity
         return self.sha256
+
+    @classmethod
+    def remove_old_instances(cls, age):
+        found = super(ScanFile, cls).find(
+            {'date_upload': {'$lt': timestamp() - age}},
+            ['_id']
+        )
+        nb_deleted = 0
+        if found.count() == 0:
+            return nb_deleted
+        else:
+            for f in found:
+                temp_scan_file = ScanFile.get_temp_instance(f['_id'])
+                if temp_scan_file.delete_data():
+                    nb_deleted += 1
+            return nb_deleted
+
 
 
 class ScanFileData(FileObject):
