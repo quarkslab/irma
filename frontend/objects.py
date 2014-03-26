@@ -141,7 +141,7 @@ class ScanFile(NoSQLDatabaseObject):
             self.file_oid = file_data.id
             super(ScanFile, self).save()
         else:
-            self.load(id)
+            self.load(_id)
             self.date_last_scan = timestamp()
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
