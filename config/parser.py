@@ -12,7 +12,9 @@ template_frontend_config = {
                          'collections': [('scan_info', TemplatedConfiguration.string, None),
                                           ('scan_results', TemplatedConfiguration.string, None),
                                           ('scan_files', TemplatedConfiguration.string, None),
+                                          ('scan_filedata', TemplatedConfiguration.string, None),
                                           ('scan_file_fs', TemplatedConfiguration.string, None),
+
                                          ],
                          'celery_brain': [('timeout', TemplatedConfiguration.integer, 10),
                                           ],
