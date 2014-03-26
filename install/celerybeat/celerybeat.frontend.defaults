@@ -12,4 +12,4 @@ CELERY_APP="frontend.tasks:frontend_app"
 CELERYBEAT_CHDIR="/home/irma/irma/"
 
 # Extra arguments to celerybeat
-#CELERYBEAT_OPTS="--schedule=/var/run/celerybeat-schedule"
+CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"

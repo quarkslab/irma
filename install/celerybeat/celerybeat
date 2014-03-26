@@ -85,12 +85,6 @@ _config_sanity() {
 
 scripts=""
 
-if test -f /etc/default/celeryd; then
-    scripts="/etc/default/celeryd"
-    _config_sanity /etc/default/celeryd
-    . /etc/default/celeryd
-fi
-
 EXTRA_CONFIG="/etc/default/${SCRIPT_NAME}"
 if test -f "$EXTRA_CONFIG"; then
     scripts="$scripts, $EXTRA_CONFIG"
@@ -133,7 +127,7 @@ fi
 
 export CELERY_LOADER
 
-CELERYBEAT_OPTS="$CELERYBEAT_OPTS -f $CELERYBEAT_LOG_FILE -l $CELERYBEAT_LOG_LEVEL"
+CELERYBEAT_OPTS="$CELERYBEAT_OPTS --uid $CELERYBEAT_USER -f $CELERYBEAT_LOG_FILE -l $CELERYBEAT_LOG_LEVEL"
 
 if [ -n "$2" ]; then
     CELERYBEAT_OPTS="$CELERYBEAT_OPTS $2"
@@ -236,14 +230,9 @@ stop_beat () {
     fi
 }
 
-_chuid () {
-    su "$CELERYBEAT_USER" -c "$CELERYBEAT $*"
-}
-
 start_beat () {
     echo "Starting ${SCRIPT_NAME}..."
-    _chuid $CELERY_APP_ARG $CELERYBEAT_OPTS $DAEMON_OPTS --detach \
-                --pidfile="$CELERYBEAT_PID_FILE"
+    $CELERYBEAT $CELERY_APP_ARG $CELERYBEAT_OPTS $DAEMON_OPTS --detach --pidfile="$CELERYBEAT_PID_FILE"
 }
 
 
