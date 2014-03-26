@@ -131,7 +131,7 @@ def scan_launch(scanid):
     try:
         # handle 'force' parameter
         force = False
-        if 'force' in request.params and request.params['force'] == 'True':
+        if 'force' in request.params and request.params['force'].lower() == 'true':
             force = True
         # handle 'probe' parameter
         in_probelist = None

@@ -6,7 +6,6 @@ def format_av(output, result):
         data = result['data']
         if 'scan_results' in data:
             res_list = data['scan_results'].values()
-            print "DEBUG: ", res_list
             if len(res_list) > 1:
                 # if multiple output, filter None results
                 res = [item for item in res_list if item is not None]
