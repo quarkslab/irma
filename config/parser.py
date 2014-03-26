@@ -85,7 +85,7 @@ def _conf_celery(app, broker, backend=None, queue=None):
         CELERYBEAT_SCHEDULE={
             # Database clean
             'clean_db': {
-                'task': 'frontend_app.clean_db',
+                'task': 'frontend.tasks.clean_db',
                 'schedule': crontab(
                     hour=frontend_config['cron_frontend']['clean_db_cron_hour'],
                     minute=frontend_config['cron_frontend']['clean_db_cron_minute'],
