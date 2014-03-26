@@ -1,6 +1,5 @@
 from irma.database.nosqlhandler import NoSQLDatabase
 from bson import ObjectId
-import hashlib
 
 
 class FileObject(object):
@@ -26,59 +25,25 @@ class FileObject(object):
 
     def save(self, data, name):
         db = NoSQLDatabase(self._dbname, self._uri)
-        hashvalue = hashlib.sha256(data).hexdigest()
-        self._id = self._exists(hashvalue)
-        if not self._id:
-            self._id = db.put_file(self._dbname, self._collection, data, name, hashvalue, [])
-            self.load()
-            return True
-        else:
-            self.load()
-            if name != self.name and name not in self.altnames:
-                self.altnames = self.altnames + [name]
-                self.update_altnames(self.altnames)
-            return False
+        self._id = db.put_file(self._dbname, self._collection, data, name, '', [])
 
-    def update_altnames(self, altnames):
+    def delete(self):
         db = NoSQLDatabase(self._dbname, self._uri)
-        db.update_file_altnames(self._dbname, self._collection, self._id, altnames)
-        self.load()
+        db.remove(self._dbname, self._collection, self._id)
 
     @property
     def name(self):
-        """Get the first seen filename"""
+        """Get the filename"""
         return self._dbfile.filename
 
     @property
     def length(self):
         """Get file length"""
-        return self._dbfile.length
-
-    @property
-    def upload_date(self):
-        """Get fiel length"""
-        return self._dbfile.upload_date
-
-    @property
-    def hashvalue(self):
-        """Get the hexdigest of filedata"""
-        return self._dbfile.hashvalue
-
-    @property
-    def altnames(self):
-        """Get the alternative filenames"""
-        return self._dbfile.altnames
-
-    @altnames.setter
-    def altnames(self, value):
-        """Append the alternative filenames if not already there"""
-        if value not in self.altnames:
-            self.update_altnames(value)
-        return
+        return self._dbfile_length
 
     @property
     def data(self):
-        """Get the file data"""
+        """Get the data"""
         return self._dbfile.read()
 
     @property
