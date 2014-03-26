@@ -2,6 +2,7 @@ import hashlib
 import config.parser as config
 from irma.common.exceptions import IrmaValueError
 from lib.common.compat import timestamp
+from lib.irma.common.exceptions import IrmaDatabaseError
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus, IrmaLockMode
@@ -138,23 +139,39 @@ class ScanFile(NoSQLDatabaseObject):
             self.filename = name
             self.file_oid = file_data.id
         else:
-            self.id = id
-            self.load(self.id)
+            self.load(id)
             self.date_last_scan = timestamp()
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
+            if self.file_oid is None:   # if deleted, save again
+                file_data = ScanFileData()
+                file_data.save(data, self.filename)
+                self.file_oid = file_data.id
         self.update()
+
+    def delete_data(self):
+        if self.file_oid is not None:
+            ScanFileData(self.file_oid).delete()
+            self.file_oid = None
+            self.update()
+            return True
+        return False
 
     @classmethod
     def get_id_by_sha256(cls, sha256):
         res = cls.find({'sha256': sha256}, ['_id'])
-        return res[0]['_id'] if res.count() == 1 else None
+        if res.count() > 1:
+            raise IrmaDatabaseError("Multiple entries in ScanFile with same sha256 value")
+        elif res.count() == 0:
+            return None
+        else:
+            return res[0]['_id']
 
     @property
     def data(self):
         if self.file_oid is None:
-            raise IrmaValueError('There is not data associated')
-        return ScanFileData(id=self.id).data
+            return None
+        return ScanFileData(id=self.file_oid).data
 
 
 class ScanFileData(FileObject):
