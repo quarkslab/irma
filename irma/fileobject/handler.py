@@ -27,6 +27,10 @@ class FileObject(object):
         db = NoSQLDatabase(self._dbname, self._uri)
         self._id = db.put_file(self._dbname, self._collection, data, name, '', [])
 
+    def delete(self):
+        db = NoSQLDatabase(self._dbname, self._uri)
+        db.remove(self._dbname, self._collection, self._id)
+
     @property
     def name(self):
         """Get the filename"""
