@@ -5,6 +5,7 @@ from lib.common.compat import timestamp
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus, IrmaLockMode
+from lib.irma.common.exceptions import IrmaDatabaseError
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
@@ -128,8 +129,8 @@ class ScanFile(NoSQLDatabaseObject):
         self.sha1 = hashlib.sha1(data).hexdigest()
         self.md5 = hashlib.md5(data).hexdigest()
 
-        id = self.get_id_by_sha256(self.sha256)
-        if not id:
+        _id = self.get_id_by_sha256(self.sha256)
+        if not _id:
             file_data = ScanFileData()
             file_data.save(data, name)
             self.date_upload = timestamp()
@@ -137,24 +138,35 @@ class ScanFile(NoSQLDatabaseObject):
             self.size = file_data.length
             self.filename = name
             self.file_oid = file_data.id
+            super(ScanFile, self).save()
         else:
-            self.id = id
-            self.load(self.id)
+            self.load(_id)
             self.date_last_scan = timestamp()
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
-        self.update()
+            # if file has been deleted -> save again
+            if self.file_oid is None:
+                file_data = ScanFileData()
+                file_data.save(data, name)
+                self.file_oid = file_data.id
+            self.update()
 
     @classmethod
-    def get_id_by_sha256(cls, sha256):
+    def _get_id_by_sha256(cls, sha256):
         res = cls.find({'sha256': sha256}, ['_id'])
-        return res[0]['_id'] if res.count() == 1 else None
+        if len(res) > 1:
+            raise IrmaDatabaseError("Multiple entries in ScanFile with same sha256 value")
+        # FIXME when empty res == None or res == [] ?
+        elif len(res) == 0:
+            return None
+        else
+            return res[0]['_id']
 
     @property
     def data(self):
         if self.file_oid is None:
-            raise IrmaValueError('There is not data associated')
-        return ScanFileData(id=self.id).data
+            return None
+        return ScanFileData(id=self.file_oid).data
 
 
 class ScanFileData(FileObject):
