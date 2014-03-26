@@ -23,6 +23,8 @@ Installation
 
 *pip install into <path>*
 
+For detailed instructions about setting up a local pypi server please see `brain_install`_.
+
 .. code-block:: bash
 
     $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-frontend
@@ -118,5 +120,6 @@ Please see `LICENSE`_.
 ------------
 
 .. _install.rst: /install/install.rst
+.. _brain_install: ../irma-brain/install/install.rst
 .. _LICENSE: /LICENSE
 
