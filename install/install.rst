@@ -2,6 +2,13 @@
  IRMA Frontend - Installation guide
 ***********************************
 
+.. image:: /../../../IRMA/blob/master/docs/images/setup.jpg
+   :alt: overview
+   :align: center
+
+--------------------
+
+
 **Table of Contents**
 
 
@@ -188,6 +195,10 @@ FAQ
 =======
 Support
 =======
+
+.. image:: /../../../IRMA/blob/master/docs/images/sos.jpg
+   :alt: need help
+   :align: center
 
 Feeling lost ? need support ? irc: #irma-qb@chat.freenode.net 
 

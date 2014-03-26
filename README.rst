@@ -120,6 +120,6 @@ Please see `LICENSE`_.
 ------------
 
 .. _install.rst: /install/install.rst
-.. _brain_install: /../../../irma-brain/install/install.rst
+.. _brain_install: /../../../irma-brain/blob/master/install/install.rst
 .. _LICENSE: /LICENSE
 
