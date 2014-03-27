@@ -141,6 +141,24 @@ launch pure-ftpd
 
 --------------------
 
+==============================
+Install a local pip pkg server
+==============================
+
+This is an optional way of distributing irma package on local machines.
+There's a lot of custome pypi server, we used `simplepipy`_.
+
+
+.. code-block:: bash
+    $ git clone https://github.com/steiza/simplepypi simplepypi
+    $ cd simplepypi
+    $ sudo python setup.py install
+
+launch server (default configuration localhost:8000)
+
+.. code-block:: bash
+    $ sudo simplepypi
+
 ===
 FAQ
 ===
@@ -195,6 +213,6 @@ Feeling lost ? need support ? irc: #irma-qb@chat.freenode.net
 
 ----------------------
 
-
+.. _simplepypi: https://github.com/steiza/simplepypi
 
    
