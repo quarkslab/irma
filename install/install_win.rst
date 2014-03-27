@@ -79,4 +79,4 @@ add your path with ';' delimiter
 
 .. _pip_for_windows: https://sites.google.com/site/pydatalog/python/pip-for-windows
 .. _python27: https://www.python.org/downloads/windows/
-.. install: /install/install_linux.rst
+.. _install: /install/install_linux.rst
