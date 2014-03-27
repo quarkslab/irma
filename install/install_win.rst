@@ -8,8 +8,8 @@ Windows - Main Master
 
  * latest python 2.7 for windows `python27`_
  * pip package manager `pip_for_windows`_
- * install pip requirements-win.txt (see `install.rst`_)
- * install irma-probe-win package with pip (see `install.rst`_)
+ * install pip requirements-win.txt (see `install`_)
+ * install irma-probe-win package with pip (see `install`_)
 
 irma-probe-win package contains a batch file celery.bat, that could normally be found in default python scripts path ([PYTHON INSTALLDIR]\Scripts default is c:\Python27\Scripts).
 
@@ -79,4 +79,4 @@ add your path with ';' delimiter
 
 .. _pip_for_windows: https://sites.google.com/site/pydatalog/python/pip-for-windows
 .. _python27: https://www.python.org/downloads/windows/
-.. install.rst: /install/install.rst
+.. install: /install/install_linux.rst
