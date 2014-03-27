@@ -6,18 +6,23 @@ IRMA_PROBE_PKG_TARGET = os.environ.get('IRMA_PROBE_PKG_TARGET', "Windows")
 target = None
 target_linux = 0
 target_windows = 1
+target_str = {target_linux:"linux", target_windows:"windows"}
+
+if sys.platform.startswith('win'):
+    target = target_windows
+else:
+    target = target_linux
+
 
 if IRMA_PROBE_PKG_TARGET == "Linux":
     target = target_linux
 elif IRMA_PROBE_PKG_TARGET == "Windows":
     target = target_windows
 
-if target is None:
-    raise ValueError("invalid env variable IRMA_PROBE_PKG_TARGET")
-else:
-    print "Packaging for Target '{0}'".format(IRMA_PROBE_PKG_TARGET)
+print "Packaging/Installing for Target '{0}'".format(target_str[target])
 
 basename = 'irma-probe'
+
 if target == target_linux:
     name = basename + "-linux"
     scripts = []
