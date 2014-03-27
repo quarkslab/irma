@@ -1,4 +1,4 @@
-import logging, re, os, sys, glob
+import logging, re, os, sys, glob, locale
 
 from lib.common.hash import sha256sum
 from subprocess import Popen, PIPE
@@ -99,8 +99,17 @@ class Antivirus(object):
         cmdarray = cmd.split()
         # execute command with popen, clean up outputs
         pd = Popen(cmdarray, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = map(lambda x: x.strip() if x.strip() else None, pd.communicate())
+        raw_stdout, stderr = map(lambda x: x.strip() if x.strip() else None, pd.communicate())
         retcode = pd.returncode
+        if sys.platform.startswith('win'):
+            # get local encoding
+            local_encoding = sys.__stdout__.encoding
+            if local_encoding is None:
+                local_encoding = locale.getpreferredencoding()
+            # decode local encoding of stdout
+            stdout = raw_stdout.decode(local_encoding)
+        else:
+            stdout = raw_stdout
         # return tuple (retcode, out, err)
         return (retcode, stdout, stderr)
 
