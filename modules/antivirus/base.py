@@ -101,7 +101,7 @@ class Antivirus(object):
         pd = Popen(cmdarray, stdout=PIPE, stderr=PIPE)
         raw_stdout, stderr = map(lambda x: x.strip() if x.strip() else None, pd.communicate())
         retcode = pd.returncode
-        if sys.platform.startswith('win'):
+        if raw_stdout is not None and sys.platform.startswith('win'):
             # get local encoding
             local_encoding = sys.__stdout__.encoding
             if local_encoding is None:
