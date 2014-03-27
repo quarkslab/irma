@@ -75,7 +75,8 @@ add your path with ';' delimiter
    :alt: path
    :align: center
 
+------------
 
-.. _pip_for_windows https://sites.google.com/site/pydatalog/python/pip-for-windows
-.. _python27 https://www.python.org/downloads/windows/
-.. install.rst /install/install.rst
+.. _pip_for_windows: https://sites.google.com/site/pydatalog/python/pip-for-windows
+.. _python27: https://www.python.org/downloads/windows/
+.. install.rst: /install/install.rst
