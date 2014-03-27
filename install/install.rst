@@ -25,8 +25,9 @@ packages:
 * nginx
 * uwsgi
 * ruby
+* python-gridfs
 
-with pip install:
+python package:
 
 * celery
 * pymongo
@@ -167,6 +168,15 @@ FAQ
 .. code-block:: bash
 
    $ pip install <package-name>==<version>
+
+--------------------
+
+**install all requirements with pip**
+
+.. code-block:: bash
+
+   $ pip install -r requirements.txt
+
 
 --------------------
 
