@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-import sys
-import os
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../")
 import config.parser as config
 from celery import Celery
 
@@ -11,6 +7,10 @@ import pymongo
 import amqp
 import requests
 import libvirt
+
+FRONTEND_TEST_URL = "http://frontend.irma.qb/"
+FRONTEND_API_TEST_URL = "http://frontend.irma.qb/_api/probe/list"
+
 
 scan_app = Celery('scan')
 config.conf_brain_celery(scan_app)
@@ -79,7 +79,7 @@ def ping_rabbitmq(address, port, usr, pwd, vhost):
 
 def ping_frontend(url):
     try:
-        requests.get(url=url + '/')
+        requests.get(url=url)
         return [(status_ok, 'frontend {0} is up and runnning'.format(url))]
     except:
         return [(status_ko, 'frontend {0} is down'.format(url))]
@@ -97,7 +97,10 @@ for broker in [ 'broker_brain', 'broker_probe', 'broker_frontend']:
     print_msg(ping_rabbitmq(config.brain_config[broker].host, config.brain_config[broker].port, config.brain_config[broker].username, config.brain_config[broker].password, config.brain_config[broker].vhost))
 
 print_hdr("Frontend")
-print_msg(ping_frontend("http://frontend.irma.qb:8080"))
+print_msg(ping_frontend(FRONTEND_TEST_URL))
+
+print_hdr("Frontend Api")
+print_msg(ping_frontend(FRONTEND_API_TEST_URL))
 
 print_hdr("Celery")
 for app in [scan_app, probe_app, frontend_app]:
