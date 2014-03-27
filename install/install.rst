@@ -187,6 +187,15 @@ FAQ
 
 --------------------
 
+**install all requirements with pip**
+
+.. code-block:: bash
+
+   $ pip install -r requirements.txt
+
+
+--------------------
+
 **Install a custom python package with custom install path (e.g. irma packages install)**
 
 .. code-block:: bash
