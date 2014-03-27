@@ -103,7 +103,7 @@ class ScanResults(NoSQLDatabaseObject):
             if name is not None:
                 res[sha256]['filename'] = name
             else:
-                res[sha256]['filename'] = "-".join([scanfile.filename] + scanfile.alt_filenames)
+                res[sha256]['filename'] = " - ".join(scanfile.alt_filenames)
             if probelist is not None:
                 res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems() if probe in probelist)
             else:
@@ -158,6 +158,7 @@ class ScanFile(NoSQLDatabaseObject):
             self.date_last_scan = self.date_upload
             self.size = len(data)
             self.filename = name
+            self.alt_filenames.append(name)
             self.file_oid = file_data.id
         else:
             self.load(_id)
