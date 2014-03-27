@@ -101,6 +101,14 @@ irma-admin configuration file:
 
 The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``
 
+you could easily generate the user database by running:
+
+.. code-block:: bash
+
+    $ python -m brain.objects
+
+database path is taken from config file.
+
 =======
 Licence
 =======
