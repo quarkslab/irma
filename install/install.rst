@@ -17,38 +17,29 @@
 Requirements
 ------------
 
-packages:
+**packages:**
 
 * python27
-* pip
+* python-pip
 * mongodb-server
 * nginx
 * uwsgi
 * ruby
 * python-gridfs
 
-python package:
+**python packages:**
 
 * celery
 * pymongo
 * redis
-* gridfs
 
-ruby package:
-
-* see section `Web gui generation`_
-
-node.js package:
+**ruby packages:**
 
 * see section `Web gui generation`_
 
-===============
-Debian packages
-===============
+**node.js packages:**
 
-* python27
-* pip
-* mongodb-server
+* see section `Web gui generation`_
 
 -------------
 Configuration
@@ -120,7 +111,12 @@ launch celery
 Web gui generation
 ------------------
 
-requirements: npm, bower, grunt, compass
+Requirements: 
+
+* npm
+* bower
+* grunt
+* compass
 
 **npm**
 
