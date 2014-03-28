@@ -15,17 +15,30 @@ This package handles the dispatch of the meta scan job to the probes. Deals with
 Installation
 ============
 
-*clone from github*
+------------
+Get the code
+------------
+
+Two possibilities:
+
+* if you have a pypi server of your own (1)
+* if you don't (2)
+
+**1. pip install into <path>**
+
+.. code-block:: bash
+
+    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-admin
+
+**2. clone from github**
 
 .. code-block:: bash
 
     $ git clone https://github.com/quarkslab/irma-brain.git irma
 
-*pip install into <path>*
-
-.. code-block:: bash
-
-    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-admin
+------------
+Installation
+------------
 
 For detailed instructions, please see `install.rst`_.
 
@@ -101,13 +114,13 @@ irma-admin configuration file:
 
 The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``
 
-you could easily generate the user database by running:
+You could easily generate the user database by running:
 
 .. code-block:: bash
 
     $ python -m brain.objects
 
-database path is taken from config file.
+database path is taken from the config file.
 
 =======
 Licence
