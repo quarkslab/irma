@@ -146,7 +146,7 @@ Install a local pip pkg server
 ==============================
 
 This is an optional way of distributing irma package on local machines.
-There's a lot of custome pypi server, we used `simplepipy`_.
+There's a lot of custome pypi server, we used simplepipy.
 
 
 .. code-block:: bash
