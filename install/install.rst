@@ -36,11 +36,11 @@ python package:
 
 ruby package:
 
-* see section web gui generate
+* see section `Web gui generation`_
 
 node.js package:
 
-* see section web gui generate
+* see section `Web gui generation`_
 
 ===============
 Debian packages
@@ -116,11 +116,11 @@ launch celery
     $ sudo chmod +x /etc/init.d/celeryd
     $ sudo service celeryd start
 
-----------------
-web gui generate
-----------------
+------------------
+Web gui generation
+------------------
 
-requirements: npm, grunt, compass
+requirements: npm, bower, grunt, compass
 
 **npm**
 
