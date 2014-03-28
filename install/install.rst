@@ -77,7 +77,7 @@ edit ``install/uwsgi/frontend-api.xml`` according to your install
 .. code-block::
     
 	<chdir>/home/irma/irma</chdir>
-	<app mountpoint="/">
+	<app mountpoint="/_api">
 		<script>./frontend/web/api.py</script>
 	</app>
    
