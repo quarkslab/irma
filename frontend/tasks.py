@@ -141,10 +141,10 @@ def clean_db():
     try:
         max_age_scaninfo = config.frontend_config['cron_frontend']['clean_db_scan_info_max_age']
         max_age_scanfile = config.frontend_config['cron_frontend']['clean_db_scan_file_max_age']
-        nb_scaninfo = ScanInfo.remove_old_instances(max_age_scaninfo)
-        nb_scanfile = ScanFile.remove_old_instances(max_age_scanfile)
-        print "removed {0} scan info (older than {1})".format(nb_scaninfo, humanize_time_str(max_age_scaninfo, 'seconds'))
-        print "removed {0} scan files (older than {1}) ".format(nb_scanfile, humanize_time_str(max_age_scanfile, 'seconds'))
+        nb_scaninfo = ScanInfo.remove_old_instances(max_age_scaninfo * 24 * 60 * 60)
+        nb_scanfile = ScanFile.remove_old_instances(max_age_scanfile * 24 * 60 * 60)
+        print "removed {0} scan info (older than {1})".format(nb_scaninfo, humanize_time_str(max_age_scaninfo, 'days'))
+        print "removed {0} scan files (older than {1}) ".format(nb_scanfile, humanize_time_str(max_age_scanfile, 'days'))
         return (nb_scaninfo, nb_scanfile)
     except Exception as e:
         print "Exception has occurred:{0}".format(e)

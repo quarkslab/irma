@@ -111,11 +111,11 @@ irma-frontend configuration file content:
 |                +-------------+------------+-----------+
 |                |   password  | ``string`` |           |
 +----------------+-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|  2592000  |
-|                |_info_max_age|            | (30 days) |
+|                |clean_db_scan| ``integer``|    100    |
+|                |_info_max_age|            | (in days) |
 |                +-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|   172800  |
-|                |_file_max_age|            |  (2 days) |
+|                |clean_db_scan| ``integer``|     2     |
+|                |_file_max_age|            | (in days) |
 |                +-------------+------------+-----------+
 | cron_frontend  |clean_db_cron| ``integer``|     0     |
 |                |_hour        |            |           |
