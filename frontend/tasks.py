@@ -102,12 +102,14 @@ def scan_result(scanid, file_hash, probe, result):
         scanfile.update()
         scanfile.release()
 
+        try:
+            formatted_res = format_result(probe, result)
+        except:
+            formatted_res = {'result':"parsing error", 'version':None}
+
         # keep scan results into scanresults objects
         scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
-        try:
-            scan_res.results[probe] = format_result(probe, result)
-        except:
-            scan_res.results[probe] = {'result':"parsing error", 'version':None}
+        scan_res.results[probe] = formatted_res
         scan_res.update()
         scan_res.release()
         print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan_res.probedone)
@@ -115,7 +117,7 @@ def scan_result(scanid, file_hash, probe, result):
         # Update main reference results with fresh results
         ref_res = ScanRefResults.init_id(file_oid, mode=IrmaLockMode.write)
         # keep uptodate results for this file in scanrefresults
-        ref_res.results[probe] = scan_res.results[probe]
+        ref_res.results[probe] = formatted_res
         ref_res.update()
         ref_res.release()
 
