@@ -25,6 +25,21 @@ body {
     padding: 0.2em 0;
 }
 
+.alerts {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  text-align: center;
+
+  li {
+    padding: 10px;
+    font-size: 20px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+  }
+}
+
 p {
   color: #999999;
   text-align: center;
@@ -52,7 +67,6 @@ p {
     padding-left: 500px;
     padding-top: 50px;
     position: relative;
-    z-index: 10;
     font-family: 'Raleway', sans-serif;
   }
 

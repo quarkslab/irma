@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('irma')
-.controller('MainCtrl', function ($scope, $timeout, $http, $fileUploader) {
+.controller('MainCtrl', function ($scope, $timeout, $http, $fileUploader, alerts) {
 
   $scope.context = 'selection';
   $scope.scanId = null;
@@ -48,6 +48,7 @@ angular.module('irma')
         uploader.uploadAll();
       } else {
         console.error('Error occured when asking for a new scan');
+        alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured when asking for a new scan', dismiss: 10000});
       }
     });
   };
@@ -92,12 +93,15 @@ angular.module('irma')
           if(response.data.code === 0){
             $scope.scanDisplay();
           } else {
+            alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured during scan launch', dismiss: 10000});
             console.error('Error occured during scan launch');
           }
         });
       }, speed);
-    else
+    else {
+      alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured during upload', dismiss: 10000});
       console.error('Error occured during upload');
+    }
   });
 
 
@@ -129,14 +133,17 @@ angular.module('irma')
         $scope.fetchResults();
 
       } else if(response.data.code === 1){
-        $scope.progress = 100;
+        
 
-        if(response.data.msg == 'finished')
+        if(response.data.msg == 'finished'){
+          $scope.progress = 100;
           $scope.resultsDisplay();
-        else
+        } else
           $scope.currentProcess = $timeout($scope.updateScan, speed);
-      } else
+      } else {
+        alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured during scan', dismiss: 10000});
         console.error('Error occured during scan');
+      }
     });
   };
 
@@ -145,8 +152,10 @@ angular.module('irma')
     var task = $http.get($scope.rootApi+'/scan/result/'+$scope.scanId).then(function(response){
       if(response.data.code === 0){
         $scope.results = response.data.scan_results;
-      } else
+      } else {
+        alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured retrieving results', dismiss: 10000});
         console.error('Error occured retrieving results');
+      }
     });
     return task;
   };
@@ -156,5 +165,6 @@ angular.module('irma')
 
   // Initialization
   $scope.loadProbes();
+  
 
 });

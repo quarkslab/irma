@@ -15,13 +15,16 @@ This package handles scan submission to the brain. Keep track of scanned files r
 Installation
 ============
 
-*clone from github*
+------------
+Get the code
+------------
 
-.. code-block:: bash
+Two possibilities:
 
-    $ git clone https://github.com/quarkslab/irma-frontend.git irma
+* if you have a pypi server of your own (1)
+* if you don't (2)
 
-*pip install into <path>*
+**1. pip install into <path>**
 
 For detailed instructions about setting up a local pypi server please see `brain_install`_.
 
@@ -29,6 +32,16 @@ For detailed instructions about setting up a local pypi server please see `brain
 
     $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-frontend
 
+
+**2. clone from github**
+
+.. code-block:: bash
+
+    $ git clone https://github.com/quarkslab/irma-frontend.git irma
+
+------------
+Installation
+------------
 For detailed instructions, please see `install.rst`_.
 
 ======
