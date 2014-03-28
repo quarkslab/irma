@@ -1,6 +1,6 @@
 import celery
 import config.parser as config
-from frontend.objects import ScanFile, ScanInfo, ScanResults
+from frontend.objects import ScanFile, ScanInfo, ScanRefResults
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaLockError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
@@ -23,40 +23,41 @@ def scan_launch(scanid, force):
         ftp_config = config.frontend_config['ftp_brain']
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
         if not scan.status == IrmaScanStatus.created:
+            scan.release()
             return IrmaTaskReturn.error("Invalid scan status")
 
         # If nothing return
-        if len(scan.oids) == 0:
+        if len(scan.scanfile_ids) == 0:
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             return IrmaTaskReturn.success("No files to scan")
 
         filtered_file_oids = []
-        for (oid, info) in scan.oids.items():
-            if force:
-                # remove results already present
-                info['probedone'] = []
-            elif scan.probelist is not None:
-                # filter probe_done with asked probelist
-                info['probedone'] = [probe for probe in info['probedone'] if probe in scan.probelist]
+        for (scanfile_id, info) in scan.scanfile_ids.items():
+            if not force:
+                # fetch results already present in base
+                for (probe, results) in ScanRefResults.init_id(scanfile_id).results.items():
+                    if scan.probelist is not None and probe not in scan.probelist:
+                        continue
+                    info['results'][probe] = results
             # Compute remaining list
-            probetodo = [probe for probe in scan.probelist if probe not in info['probedone']]
+            probetodo = [probe for probe in scan.probelist if probe not in info['results'].keys()]
             if len(probetodo) != 0:
-                filtered_file_oids.append((oid, info['name'], probetodo))
+                filtered_file_oids.append((scanfile_id, info['name'], probetodo))
+        scan.update()
 
         # If nothing left, return
         if len(filtered_file_oids) == 0:
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             return IrmaTaskReturn.success("Nothing to do")
-        scan.update()
         scan.release()
 
         with FtpTls(ftp_config.host, ftp_config.port, ftp_config.username, ftp_config.password) as ftps:
             scan_request = []
             ftps.mkdir(scanid)
-            for (oid, filename, probelist) in filtered_file_oids:
-                f = ScanFile(id=oid)
+            for (scanfile_id, filename, probelist) in filtered_file_oids:
+                f = ScanFile(id=scanfile_id)
                 # our ftp handler store file under with its sha256 name
                 hashname = ftps.upload_data(scanid, f.data)
                 if hashname != f.hashvalue:
@@ -82,7 +83,7 @@ def scan_result(scanid, file_hash, probe, result):
     try:
         scan = scan_res = None
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-        for file_oid in scan.oids.keys():
+        for file_oid in scan.scanfile_ids.keys():
             f = ScanFile(id=file_oid)
             if f.hashvalue == file_hash:
                 break
@@ -90,21 +91,26 @@ def scan_result(scanid, file_hash, probe, result):
             return IrmaTaskReturn.error("filename not found in scan info")
         assert file_oid == f.id
 
-        scan_res = ScanResults.init_id(file_oid, mode=IrmaLockMode.write)
+        if scanid not in f.scan_id:
+            # update scanid list if not alreadypresent
+            f.take()
+            f.scan_id.append(scanid)
+            f.update()
+            f.release()
+
+        scan_res = ScanRefResults.init_id(file_oid, mode=IrmaLockMode.write)
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
         if probe not in scan_res.probelist:
             scan_res.probelist.append(probe)
-        if probe not in scan.oids[file_oid]['probedone']:
-            scan.oids[file_oid]['probedone'].append(probe)
-        else:
-            print "Warning: Scanid {0} Probe {1} already tagged as 'done'".format(scanid, probe)
-        print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan.oids[file_oid]['probedone'])
+        print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan.scanfile_ids[file_oid]['results'].keys())
         try:
+            # keep uptodate results for this file in scanres
             scan_res.results[probe] = format_result(probe, result)
         except:
             scan_res.results[probe] = {'result':"parsing error", 'version':None}
         scan_res.update()
         scan_res.release()
+        scan.update_results(file_oid, probe, scan_res.results[probe])
         scan.update()
         if scan.is_completed():
             scan.update_status(IrmaScanStatus.finished)

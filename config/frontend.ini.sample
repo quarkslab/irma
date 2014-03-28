@@ -6,7 +6,9 @@ dbname = irma
 [collections]
 scan_info = scan_info
 scan_results = scan_res
+scan_ref_results = scan_ref_res
 scan_files = scan_files
+scan_filedata = scan_filedata
 scan_file_fs = fs
 
 [broker_brain]
