@@ -24,6 +24,7 @@ Requirements
 * mongodb-server
 * nginx
 * uwsgi
+* uwsgi-python-plugin
 * ruby
 * python-gridfs
 
@@ -32,6 +33,7 @@ Requirements
 * celery
 * pymongo
 * redis
+* bottle
 
 **ruby packages:**
 
