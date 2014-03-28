@@ -132,22 +132,35 @@ requirements: npm, grunt, compass
     $ export PATH=$PATH:/opt/node/bin
     $ export NODE_PATH=/opt/node:/opt/node/lib/node_modules
 
-**grunt**
+**bower**
 
 .. code-block:: bash
 
     $ sudo npm install -g bower
+    
+**grunt**
+
+.. code-block:: bash
+
     $ sudo npm install -g grunt
     $ sudo npm install -g grunt-cli
+
+**compass**
+
+.. code-block:: bash
+
     $ sudo gem install compass
 
+**gui generation**
 
 .. code-block:: bash
 
     $ cd <IRMA_INSTALL_DIR>/web
     $ npm install
     $ bower install
-    $ grunt install (--force)
+    $ ln -s app/bower_components bower_components
+    $ grunt build
+    $ ln -s .tmp/styles dist/styles
 
 --------------------
 
