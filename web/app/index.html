@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width">
     <link rel="icon" type="image/png" href="ball.png" />
 
-    <!-- build:css styles/display.css -->
+    <!-- build:css styles/main.css -->
     <link href='http://fonts.googleapis.com/css?family=Raleway:900,700,500,300' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
@@ -28,25 +28,13 @@
       <script src="bower_components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
-    <!-- Add your site or application content here -->
     <div ng-view=""></div>
+    <alerts></alerts>
 
-    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
-    <!-- <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-XXXXX-X');
-      ga('send', 'pageview');
-    </script> -->
-
+    <!-- build:js scripts/modules.js -->
     <script src="bower_components/jquery/jquery.js"></script>
     <script src="bower_components/underscore/underscore.js"></script>
     <script src="bower_components/angular/angular.js"></script>
-
-    <!-- build:js scripts/modules.js -->
     <script src="bower_components/angular-resource/angular-resource.js"></script>
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
@@ -57,7 +45,8 @@
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
     <script src="scripts/app.js"></script>
     <script src="scripts/controllers/main.js"></script>
-    <script src="scripts/directives/fileInput.js"></script>
+    <script src="scripts/directives/utilities.js"></script>
+    <script src="scripts/services/alerts.js"></script>
     <!-- endbuild -->
 </body>
 </html>
