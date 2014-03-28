@@ -34,6 +34,14 @@ python package:
 * redis
 * gridfs
 
+ruby package:
+
+* see section web gui generate
+
+node.js package:
+
+* see section web gui generate
+
 ===============
 Debian packages
 ===============
@@ -126,11 +134,11 @@ requirements: npm, grunt, compass
 
 **grunt**
 
-with correct 
 .. code-block:: bash
 
     $ sudo npm install -g bower
     $ sudo npm install -g grunt
+    $ sudo npm install -g grunt-cli
     $ sudo gem install compass
 
 
