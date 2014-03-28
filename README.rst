@@ -48,7 +48,7 @@ Config
 
 The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``. Be sure to create it.
 
-irma-admin configuration file:
+irma-brain configuration file:
 
 +----------------+-------------+------------+-----------+
 |     Section    |      Key    |    Type    |  Default  |
