@@ -46,6 +46,8 @@ For detailed instructions, please see `install.rst`_.
 Config
 ======
 
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``. Be sure to create it.
+
 irma-admin configuration file:
 
 +----------------+-------------+------------+-----------+
@@ -111,8 +113,6 @@ irma-admin configuration file:
 |                +-------------+------------+-----------+
 |                |   password  | ``string`` |           |
 +----------------+-------------+------------+-----------+
-
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``
 
 You could easily generate the user database by running:
 
