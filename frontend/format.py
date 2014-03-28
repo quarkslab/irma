@@ -47,14 +47,14 @@ def format_static(output, result):
         data = result['data'].values()[0]
         if type(data) == dict:
             res = []
-            for (k, v) in data:
+            for (k, v) in data.items():
                 if v is None:
                     res.append("{0}:none".format(k))
                 elif type(v) == list:
-                    res.append("nb {0}:{1}".format(k, len(v)))
+                    res.append("{0}:{1}".format(k, len(v)))
                 elif type(v) == int or type(v) == str:
                     res.append("{0}:{1}".format(k, v))
-            output['result'] = " - ".join(res)
+            output['result'] = " / ".join(res)
         else:
             output['result'] = "no results"
     else:
