@@ -1,6 +1,6 @@
 import celery
 import config.parser as config
-from frontend.objects import ScanFile, ScanInfo, ScanRefResults
+from frontend.objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaLockError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
@@ -33,17 +33,20 @@ def scan_launch(scanid, force):
             return IrmaTaskReturn.success("No files to scan")
 
         filtered_file_oids = []
-        for (scanfile_id, info) in scan.scanfile_ids.items():
+        for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
+            scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
             if not force:
                 # fetch results already present in base
                 for (probe, results) in ScanRefResults.init_id(scanfile_id).results.items():
                     if scan.probelist is not None and probe not in scan.probelist:
                         continue
-                    info['results'][probe] = results
+                    scan_res.results[probe] = results
+            scan_res.update()
+            scan_res.release()
             # Compute remaining list
-            probetodo = [probe for probe in scan.probelist if probe not in info['results'].keys()]
+            probetodo = [probe for probe in scan.probelist if probe not in scan_res.probedone]
             if len(probetodo) != 0:
-                filtered_file_oids.append((scanfile_id, info['name'], probetodo))
+                filtered_file_oids.append((scanfile_id, scan_res.name, probetodo))
         scan.update()
 
         # If nothing left, return
@@ -83,44 +86,52 @@ def scan_result(scanid, file_hash, probe, result):
     try:
         scan = scan_res = None
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-        for file_oid in scan.scanfile_ids.keys():
-            f = ScanFile(id=file_oid)
-            if f.hashvalue == file_hash:
+        for (file_oid, scanres_id) in scan.scanfile_ids.items():
+            scanfile = ScanFile(id=file_oid)
+            if scanfile.hashvalue == file_hash:
                 break
-        if f.hashvalue != file_hash:
+        if scanfile.hashvalue != file_hash:
             return IrmaTaskReturn.error("filename not found in scan info")
-        assert file_oid == f.id
+        assert file_oid == scanfile.id
 
-        if scanid not in f.scan_id:
+        scanfile.take()
+        if scanid not in scanfile.scan_id:
             # update scanid list if not alreadypresent
-            f.take()
-            f.scan_id.append(scanid)
-            f.update()
-            f.release()
+            scanfile.scan_id.append(scanid)
+        scanfile.date_last_scan = timestamp()
+        scanfile.update()
+        scanfile.release()
 
-        scan_res = ScanRefResults.init_id(file_oid, mode=IrmaLockMode.write)
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        if probe not in scan_res.probelist:
-            scan_res.probelist.append(probe)
-        print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan.scanfile_ids[file_oid]['results'].keys())
+        # keep scan results into scanresults objects
+        scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
         try:
-            # keep uptodate results for this file in scanres
             scan_res.results[probe] = format_result(probe, result)
         except:
             scan_res.results[probe] = {'result':"parsing error", 'version':None}
         scan_res.update()
         scan_res.release()
-        scan.update_results(file_oid, probe, scan_res.results[probe])
-        scan.update()
+        print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan_res.probedone)
+
+        # Update main reference results with fresh results
+        ref_res = ScanRefResults.init_id(file_oid, mode=IrmaLockMode.write)
+        if probe not in ref_res.probelist:
+            # keep uptodate results for this file in scanrefresults
+            ref_res.results[probe] = scan_res.results[probe]
+            ref_res.update()
+        ref_res.release()
+
+        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
         if scan.is_completed():
             scan.update_status(IrmaScanStatus.finished)
         scan.release()
+
     except IrmaLockError as e:
         print "IrmaLockError has occurred:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
     except Exception as e:
         if scan is not None: scan.release()
         if scan_res is not None: scan_res.release()
+        if ref_res is not None: ref_res.release()
         print "Exception has occurred:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
 

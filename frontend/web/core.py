@@ -213,7 +213,7 @@ def file_search(sha256):
     """
     try:
         f = ScanFile(sha256=sha256)
-        scan_res = ScanRefResults(id=f.id)
-        return scan_res.get_result()
+        ref_res = ScanRefResults(id=f.id)
+        return ref_res.get_results()
     except IrmaDatabaseError as e:
         raise IrmaFrontendWarning(str(e))

@@ -75,18 +75,9 @@ class ScanInfo(NoSQLDatabaseObject):
                 return False
         return True
 
-    def update_results(self, file_id, probe, result):
-        if file_id not in self.scanfile_ids:
-            raise IrmaDatabaseError('Trying to write a scan result for an unknown file')
-        # keep result for this scan in scaninfo
-        scan_res = ScanResults(id=file_id, mode=IrmaLockMode.write)
-        scan_res.results[probe] = result
-        scan_res.update()
-        return
-
     def get_results(self):
         res = {}
-        for scaninfo_id in self.scanfile_ids.values:
+        for scaninfo_id in self.scanfile_ids.values():
             res.update(ScanResults(id=scaninfo_id).get_results())
         return res
 
@@ -147,6 +138,9 @@ class ScanRefResults(NoSQLDatabaseObject):
             res[sha256] = {}
             res[sha256]['filename'] = " - ".join(scanfile.alt_filenames)
             res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems())
+            res[sha256]['nb_scan'] = len(scanfile.scan_id)
+            res[sha256]['date_upload'] = scanfile.date_upload
+            res[sha256]['date_last_scan'] = scanfile.date_last_scan
         return res
 
 class ScanFile(NoSQLDatabaseObject):
@@ -203,7 +197,6 @@ class ScanFile(NoSQLDatabaseObject):
             self.scan_id = []
         else:
             self.load(_id)
-            self.date_last_scan = timestamp()
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
             if self.file_oid is None:   # if deleted, save again
