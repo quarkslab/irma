@@ -17,29 +17,29 @@
 Requirements
 ------------
 
-packages:
+**packages:**
 
 * python27
-* pip
+* python-pip
 * mongodb-server
 * nginx
 * uwsgi
 * ruby
+* python-gridfs
 
-with pip install:
+**python packages:**
 
 * celery
 * pymongo
 * redis
-* gridfs
 
-===============
-Debian packages
-===============
+**ruby packages:**
 
-* python27
-* pip
-* mongodb-server
+* see section `Web gui generation`_
+
+**node.js packages:**
+
+* see section `Web gui generation`_
 
 -------------
 Configuration
@@ -107,11 +107,16 @@ launch celery
     $ sudo chmod +x /etc/init.d/celeryd
     $ sudo service celeryd start
 
-----------------
-web gui generate
-----------------
+------------------
+Web gui generation
+------------------
 
-requirements: npm, grunt, compass
+Requirements: 
+
+* npm
+* bower
+* grunt
+* compass
 
 **npm**
 
@@ -123,22 +128,35 @@ requirements: npm, grunt, compass
     $ export PATH=$PATH:/opt/node/bin
     $ export NODE_PATH=/opt/node:/opt/node/lib/node_modules
 
-**grunt**
+**bower**
 
-with correct 
 .. code-block:: bash
 
     $ sudo npm install -g bower
+    
+**grunt**
+
+.. code-block:: bash
+
     $ sudo npm install -g grunt
+    $ sudo npm install -g grunt-cli
+
+**compass**
+
+.. code-block:: bash
+
     $ sudo gem install compass
 
+**gui generation**
 
 .. code-block:: bash
 
     $ cd <IRMA_INSTALL_DIR>/web
     $ npm install
     $ bower install
-    $ grunt install (--force)
+    $ ln -s app/bower_components bower_components
+    $ grunt build
+    $ ln -s .tmp/styles dist/styles
 
 --------------------
 
@@ -167,6 +185,15 @@ FAQ
 .. code-block:: bash
 
    $ pip install <package-name>==<version>
+
+--------------------
+
+**install all requirements with pip**
+
+.. code-block:: bash
+
+   $ pip install -r requirements.txt
+
 
 --------------------
 

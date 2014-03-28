@@ -2,6 +2,7 @@ import celery
 import config.parser as config
 from frontend.objects import ScanInfo, ScanFile, ScanResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
+from lib.irma.common.exceptions import IrmaDatabaseError
 
 # ______________________________________________________________________________ FRONTEND Exceptions
 
@@ -206,3 +207,17 @@ def probe_list():
     """
     return _task_probe_list()
 
+def file_search(sha256):
+    """ return results for file with given sha256 value
+
+    :rtype: dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]
+    :return:
+        if exists returns all available scan results for file with given sha256 value
+    :raise: IrmaFrontendWarning, IrmaFrontendError
+    """
+    try:
+        f = ScanFile(sha256=sha256)
+        scan_res = ScanResults(id=f.id)
+        return scan_res.get_result()
+    except IrmaDatabaseError as e:
+        raise IrmaFrontendWarning(str(e))

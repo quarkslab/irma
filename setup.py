@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='irma-frontend-dev',
+    name='irma-frontend',
     version='1.0',
     author='QuarksLab',
     author_email='irma@quarkslab.com',
