@@ -48,7 +48,9 @@ For detailed instructions, please see `install.rst`_.
 Config
 ======
 
-irma-admin configuration file:
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Be sure to create it.
+
+irma-frontend configuration file content:
 
 +----------------+-------------+------------+-----------+
 |     Section    |      Key    |    Type    |  Default  |
@@ -124,8 +126,6 @@ irma-admin configuration file:
 |                |clean_db_scan| ``integer``|     \*    |
 |                |_day_of_week |            |           |
 +----------------+-------------+------------+-----------+
-
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``
 
 =======
 Licence

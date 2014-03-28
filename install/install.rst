@@ -24,6 +24,7 @@ Requirements
 * mongodb-server
 * nginx
 * uwsgi
+* uwsgi-python-plugin
 * ruby
 * python-gridfs
 
@@ -32,6 +33,7 @@ Requirements
 * celery
 * pymongo
 * redis
+* bottle
 
 **ruby packages:**
 
@@ -77,7 +79,7 @@ edit ``install/uwsgi/frontend-api.xml`` according to your install
 .. code-block::
     
 	<chdir>/home/irma/irma</chdir>
-	<app mountpoint="/">
+	<app mountpoint="/_api">
 		<script>./frontend/web/api.py</script>
 	</app>
    
