@@ -114,10 +114,9 @@ def scan_result(scanid, file_hash, probe, result):
 
         # Update main reference results with fresh results
         ref_res = ScanRefResults.init_id(file_oid, mode=IrmaLockMode.write)
-        if probe not in ref_res.probelist:
-            # keep uptodate results for this file in scanrefresults
-            ref_res.results[probe] = scan_res.results[probe]
-            ref_res.update()
+        # keep uptodate results for this file in scanrefresults
+        ref_res.results[probe] = scan_res.results[probe]
+        ref_res.update()
         ref_res.release()
 
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
