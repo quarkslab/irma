@@ -1,6 +1,6 @@
-***********************************
- IRMA Frontend - Installation guide
-***********************************
+**************************************
+ IRMA Probe Linux - Installation guide
+**************************************
 
 **Table of Contents**
 
