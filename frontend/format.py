@@ -27,6 +27,8 @@ def format_vt(output, result):
         data = result['data'].values()[0]
         if type(data) is int:
             output['result'] = "error {0}".format(data)
+        if 'response_code' in data and data['response_code'] == 0:
+            output['result'] = "file never scanned"
         if 'scans' in data:
             scan = data['scans']
             av_res = []
@@ -41,8 +43,22 @@ def format_vt(output, result):
     return
 
 def format_static(output, result):
-    output['result'] = "no formatter"
-    output['version'] = "unknown"
+    if 'data' in result:
+        data = result['data'].values()[0]
+        if type(data) == dict:
+            res = []
+            for (k, v) in data:
+                if v is None:
+                    res.append("{0}:none".format(k))
+                elif type(v) == list:
+                    res.append("nb {0}:{1}".format(k, len(v)))
+                elif type(v) == int or type(v) == str:
+                    res.append("{0}:{1}".format(k, v))
+            output['result'] = " - ".join(res)
+        else:
+            output['result'] = "no results"
+    else:
+        output['result'] = "Error"
     return
 
 def format_nsrl(output, result):
