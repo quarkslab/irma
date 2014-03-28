@@ -22,7 +22,7 @@ packages:
 * redis-server
 * pure-ftpd 
 
-with pip install:
+python packages:
 
 * celery
 * redis
