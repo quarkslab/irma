@@ -76,7 +76,8 @@ def sanitize_dict(d):
     for k, v in d.iteritems():
         if isinstance(v, dict):
             v = sanitize_dict(v)
-        new[k.replace('.', '_')] = v
+        newk = k.replace('.', '_').replace('$', '')
+        new[newk] = v
     return new
 
 probe_formatter = {

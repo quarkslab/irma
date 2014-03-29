@@ -84,15 +84,12 @@ def scan_launch(scanid, force):
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
     try:
-        scan = scan_res = None
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-        for (file_oid, scanres_id) in scan.scanfile_ids.items():
-            scanfile = ScanFile(id=file_oid)
-            if scanfile.hashvalue == file_hash:
-                break
-        if scanfile.hashvalue != file_hash:
+        scan = scan_res = ref_res = None
+
+        scanfile = ScanFile(sha256=file_hash)
+        scan = ScanInfo(id=scanid)
+        if scanfile.id not in scan.scanfile_ids:
             return IrmaTaskReturn.error("filename not found in scan info")
-        assert file_oid == scanfile.id
 
         scanfile.take()
         if scanid not in scanfile.scan_id:
@@ -107,24 +104,25 @@ def scan_result(scanid, file_hash, probe, result):
         except:
             formatted_res = {'result':"parsing error", 'version':None}
 
+        # Update main reference results with fresh results
+        ref_res = ScanRefResults.init_id(scanfile.id, mode=IrmaLockMode.write)
+        # keep uptodate results for this file in scanrefresults
+        ref_res.results[probe] = formatted_res
+        ref_res.update()
+        ref_res.release()
+
         # keep scan results into scanresults objects
+        scanres_id = scan.scanfile_ids[scanfile.id]
         scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
         scan_res.results[probe] = formatted_res
         scan_res.update()
         scan_res.release()
         print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan_res.probedone)
 
-        # Update main reference results with fresh results
-        ref_res = ScanRefResults.init_id(file_oid, mode=IrmaLockMode.write)
-        # keep uptodate results for this file in scanrefresults
-        ref_res.results[probe] = formatted_res
-        ref_res.update()
-        ref_res.release()
-
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
         if scan.is_completed():
+            scan.take()
             scan.update_status(IrmaScanStatus.finished)
-        scan.release()
+            scan.release()
 
     except IrmaLockError as e:
         print "IrmaLockError has occurred:{0}".format(e)
