@@ -1,5 +1,5 @@
 *****************
- IRMA Probe linux
+ IRMA Probe Linux
 *****************
 
 **Table of Contents**
