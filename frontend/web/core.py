@@ -175,8 +175,11 @@ def scan_cancel(scanid):
     if scan.status != IrmaScanStatus.launched:
         # If not launched answer directly
         # Else ask brain for job status
-
+        scan.take()
+        scan.update_status(IrmaScanStatus.cancelled)
+        scan.release()
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
+
     (status, res) = _task_scan_cancel(scanid)
     if status == IrmaReturnCode.success:
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
