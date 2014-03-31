@@ -1,128 +1,152 @@
 import unittest, os, random
-from frontend.cli.irma import _ping, _scan_new, _scan_add, _probe_list, _scan_launch, _scan_progress, IrmaScanStatus, \
-    _scan_result
+from frontend.cli.irma import _scan_new, _scan_add, _probe_list, _scan_launch, _scan_progress, _scan_cancel, IrmaScanStatus, \
+    _scan_result, IrmaError
 import time
 
-SCAN_TIMEOUT_SEC = 300
+SCAN_TIMEOUT_SEC = 20
 BEFORE_NEXT_PROGRESS = 5
-DEBUG = True
+DEBUG = False
 EICAR_NAME = "eicar.com"
 EICAR_HASH = u'275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
+
 EICAR_RESULTS = {
-           u'nsrl': {u'result': [u'eicar.com.txt,68,18115,358,']},
-           u'clamav': {u'version': u'ClamAV 0.97.8/18526/Sat Mar  1 22:54:55 2014', u'result': u'Eicar-Test-Signature'},
-           u'virustotal': {u'result': u'47/49 positives'},
-           u'kaspersky': {u'version': u'Kaspersky Anti-Virus (R) 14.0.0.4837', u'result': u'EICAR-Test-File'}}
+           # u'NSRL': {u'result': [u'eicar.com.txt,68,18115,358,']},
+           u'ClamAV': {u'version': u'ClamAV 0.97.8/18526/Sat Mar  1 22:54:55 2014', u'result': u'Eicar-Test-Signature'},
+           u'VirusTotal': {u'result': u'ClamAV:Eicar-Test-Signature - Kaspersky:EICAR-Test-File - Symantec:EICAR Test String - McAfee:EICAR test file - Sophos:EICAR-AV-Test'},
+           u'Kaspersky': {u'version': u'Kaspersky Anti-Virus (R) 14.0.0.4837', u'result': u'EICAR-Test-File'},
+           u'Sophos':{u'result': u'EICAR-AV-Test'},
+           u'McAfeeVSCL':{u'result': None},
+           u'Symantec':{u'result': u'EICAR Test String'},
+           u'StaticAnalyzer':{u'result': u'no results'}
+           }
 
 ##############################################################################
 # Test Cases
 ##############################################################################
 class FunctionnalTestCase(unittest.TestCase):
     def setUp(self):
-        # check database is ready for test
-        try:
-            _ping()
-        except:
-            self.skipTest(FunctionnalTestCase)
+        # setup test
+        self.filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), EICAR_NAME)
+        assert os.path.exists(self.filename)
 
     def tearDown(self):
         # do the teardown
         pass
 
-class IrmaCliTest(FunctionnalTestCase):
+    def _test_scan_eicar_file(self, force=False, probe=EICAR_RESULTS.keys(), timeout=SCAN_TIMEOUT_SEC):
+        self.scanid = _scan_new(DEBUG)
+        self.assertIsNotNone(self.scanid)
+
+        _scan_add(self.scanid, [self.filename], DEBUG)
+        probelaunched = _scan_launch(self.scanid, force, probe, DEBUG)
+        self.assertEquals(sorted(probelaunched), sorted(probe))
+        start = time.time()
+        while True:
+            (status , _, total, _) = _scan_progress(self.scanid, DEBUG)
+            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
+                break
+            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
+                self.assertEquals(total, len(probelaunched))
+            now = time.time()
+            self.assertLessEqual(now, start + timeout, "Results Timeout")
+            time.sleep(BEFORE_NEXT_PROGRESS)
+        results = _scan_result(self.scanid, DEBUG)
+        self.assertEquals(results.keys(), [EICAR_HASH])
+        self.assertEquals(sorted(results[EICAR_HASH]['results'].keys()), sorted(probelaunched))
+        for p in probe:
+            self.assertEquals(results[EICAR_HASH]['results'][p]['result'], EICAR_RESULTS[p]['result'])
+        return
+
     def assertListContains(self, list1, list2):
         for l in list1:
             self.assertIn(l, list2)
 
+class IrmaEicarTest(FunctionnalTestCase):
 
     def test_get_probe_list(self):
         probelist = _probe_list(DEBUG)
         self.assertEqual(type(probelist), list)
         return
 
-    def test_scan_one_file(self):
-        scanid = _scan_new(DEBUG)
-        self.assertIsNotNone(scanid)
-        filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), EICAR_NAME)
-        _scan_add(scanid, [filename], DEBUG)
+    def test_scan_kaspersky(self):
+        self._test_scan_eicar_file(force=True, probe=["Kaspersky"])
+
+    def test_scan_sophos(self):
+        self._test_scan_eicar_file(force=True, probe=["Sophos"])
+
+    def test_scan_mcafee(self):
+        self._test_scan_eicar_file(force=True, probe=["McAfeeVSCL"])
+
+    def test_scan_clamav(self):
+        self._test_scan_eicar_file(force=True, probe=["ClamAV"])
+
+    def test_scan_symantec(self):
+        self._test_scan_eicar_file(force=True, probe=["Symantec"])
+
+    def test_scan_staticanalyzer(self):
+        self._test_scan_eicar_file(force=True, probe=["StaticAnalyzer"])
+
+    def test_scan_virustotal(self):
+        self._test_scan_eicar_file(force=True, probe=["VirusTotal"])
+
+class IrmaMonkeyTests(FunctionnalTestCase):
+
+    def test_scan_add_after_launch(self):
+        force = True
+        probe = None
+        timeout = SCAN_TIMEOUT_SEC
+        self.scanid = _scan_new(DEBUG)
+        _scan_add(self.scanid, [self.filename], DEBUG)
+        _scan_launch(self.scanid, force, probe, DEBUG)
+        start = time.time()
+        while True:
+            (status , _, _, _) = _scan_progress(self.scanid, DEBUG)
+            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
+                break
+            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
+                with self.assertRaises(IrmaError):
+                    _scan_add(self.scanid, [self.filename], DEBUG)
+            now = time.time()
+            self.assertLessEqual(now, start + timeout, "Results Timeout")
+            time.sleep(BEFORE_NEXT_PROGRESS)
+        _scan_result(self.scanid, DEBUG)
+        with self.assertRaises(IrmaError):
+            _scan_add(self.scanid, [self.filename], DEBUG)
+        return
+
+    def test_scan_add_after_cancel_new(self):
+        self.scanid = _scan_new(DEBUG)
+        with self.assertRaises(IrmaError):
+            _scan_cancel(self.scanid)
+        with self.assertRaises(IrmaError):
+            _scan_add(self.scanid, [self.filename], DEBUG)
+        return
+
+    def test_scan_add_after_cancel_add(self):
+        self.scanid = _scan_new(DEBUG)
+        _scan_add(self.scanid, [self.filename], DEBUG)
+        with self.assertRaises(IrmaError):
+            _scan_cancel(self.scanid)
+        with self.assertRaises(IrmaError):
+            _scan_add(self.scanid, [self.filename], DEBUG)
+        return
+
+    def test_scan_add_after_cancel_launch(self):
         force = False
         probe = None
-        probelaunched = _scan_launch(scanid, force, probe, DEBUG)
-        self.assertEquals(type(probelaunched), list)
-        start = time.time()
-        while True:
-            (status , _, total, _) = _scan_progress(scanid, DEBUG)
-            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
-                break
-            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
-                self.assertEquals(total, len(probelaunched))
-            now = time.time()
-            self.assertLessEqual(now, start + SCAN_TIMEOUT_SEC, "Results Timeout")
-            time.sleep(BEFORE_NEXT_PROGRESS)
-        results = _scan_result(scanid, DEBUG)
-        self.assertEquals(type(results), dict)
-        self.assertListContains(results.keys(), EICAR_HASH)
-        self.assertListContains(results[EICAR_HASH]['results'].keys(), probelaunched)
-        for probe in results[EICAR_HASH]['results'].keys():
-            self.assertEquals(results[EICAR_HASH]['results'][probe]['result'], EICAR_RESULTS[probe]['result'])
+        self.scanid = _scan_new(DEBUG)
+        _scan_add(self.scanid, [self.filename], DEBUG)
+        _scan_launch(self.scanid, force, probe, DEBUG)
+        with self.assertRaises(IrmaError):
+            _scan_cancel(self.scanid)
+        with self.assertRaises(IrmaError):
+            _scan_add(self.scanid, [self.filename], DEBUG)
         return
 
-    def test_scan_one_file_forced(self):
-        scanid = _scan_new(DEBUG)
-        self.assertIsNotNone(scanid)
-        filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), EICAR_NAME)
-        _scan_add(scanid, [filename], DEBUG)
-        force = True
-        probe = None
-        probelaunched = _scan_launch(scanid, force, probe, DEBUG)
-        self.assertEquals(type(probelaunched), list)
-        start = time.time()
-        while True:
-            (status , _, total, _) = _scan_progress(scanid, DEBUG)
-            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
-                break
-            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
-                self.assertEquals(total, len(probelaunched))
-            now = time.time()
-            print "{0} sec elapsed".format(now - start)
-            self.assertLessEqual(now, start + SCAN_TIMEOUT_SEC, "Results Timeout")
-            time.sleep(BEFORE_NEXT_PROGRESS)
-        results = _scan_result(scanid, DEBUG)
-        self.assertEquals(type(results), dict)
-        self.assertListContains(results.keys(), EICAR_HASH)
-        self.assertListContains(results[EICAR_HASH]['results'].keys(), probelaunched)
-        for probe in results[EICAR_HASH]['results'].keys():
-            self.assertEquals(results[EICAR_HASH]['results'][probe]['result'], EICAR_RESULTS[probe]['result'])
+    def test_scan_add_after_cancel_results(self):
+        self._test_scan_eicar_file(force=False)
+        with self.assertRaises(IrmaError):
+            _scan_add(self.scanid, [self.filename], DEBUG)
         return
-
-    def test_scan_one_probe(self):
-        probelist = [probe for probe in _probe_list(DEBUG) if probe in EICAR_RESULTS.keys()]
-        probeselected = probelist[random.randrange(len(probelist))]
-        scanid = _scan_new(DEBUG)
-        self.assertIsNotNone(scanid)
-        filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), EICAR_NAME)
-        _scan_add(scanid, [filename], DEBUG)
-        force = True
-        probe = [probeselected]
-        probelaunched = _scan_launch(scanid, force, probe, DEBUG)
-        self.assertEquals(probelaunched, [probeselected])
-        start = time.time()
-        while True:
-            (status , _, total, _) = _scan_progress(scanid, DEBUG)
-            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
-                break
-            if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
-                self.assertEquals(total, len(probelaunched))
-            now = time.time()
-            self.assertLessEqual(now, start + SCAN_TIMEOUT_SEC, "Results Timeout")
-            time.sleep(BEFORE_NEXT_PROGRESS)
-        results = _scan_result(scanid, DEBUG)
-        self.assertEquals(type(results), dict)
-        self.assertListContains(results.keys(), EICAR_HASH)
-        self.assertListContains(results[EICAR_HASH]['results'].keys(), probelaunched)
-        for probe in results[EICAR_HASH]['results'].keys():
-            self.assertEquals(results[EICAR_HASH]['results'][probe]['result'], EICAR_RESULTS[probe]['result'])
-        return
-
 if __name__ == '__main__':
     unittest.main()
