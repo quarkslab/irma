@@ -8,33 +8,6 @@ Overview
 
 This package handles the scan job for one file.
 
-============
-Installation
-============
-
-------------
-Get the code
-------------
-
-Two possibilities:
-
-* if you have a pypi server of your own (1)
-* if you don't (2)
-
-**1. pip install into <path>**
-
-.. code-block:: bash
-
-    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-probe-linux
-    
-    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-probe-win
-
-**2. clone from github**
-
-.. code-block:: bash
-
-    $ git clone --recursive https://github.com/quarkslab/irma-probe.git irma
-
 
 Features
 --------
