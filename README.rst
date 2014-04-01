@@ -37,7 +37,7 @@ For detailed instructions about setting up a local pypi server please see `brain
 
 .. code-block:: bash
 
-    $ git clone https://github.com/quarkslab/irma-frontend.git irma
+    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
 
 ------------
 Installation
