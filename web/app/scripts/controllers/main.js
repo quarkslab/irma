@@ -1,8 +1,9 @@
 'use strict';
 
 angular.module('irma')
-.controller('MainCtrl', function ($scope, $timeout, $http, $fileUploader, alerts) {
+.controller('MainCtrl', function ($scope, $timeout, $http, $fileUploader, $window, alerts) {
 
+  $window.bypass = $scope;
   $scope.context = 'selection';
   $scope.scanId = null;
   $scope.rootApi = apiRoot;
@@ -12,6 +13,7 @@ angular.module('irma')
     force: false
   };
   $scope.advancedSettings = false;
+  $scope.emptyResults = {};
 
   var uploader = $scope.uploader = $fileUploader.create(),
     speed = 1000;
@@ -34,6 +36,7 @@ angular.module('irma')
   $scope.uploadFiles = function(){
     if(!uploader.getNotUploadedItems().length)
       return false;
+
 
     // Get a scan id
     $http.get($scope.rootApi+'/scan/new').then(function(response){
@@ -63,10 +66,20 @@ angular.module('irma')
   });
   uploader.bind('completeall', function (event, items) {
     // Check if all files were successfully uploaded
+    
+    $scope.emptyResults = {}; $scope.results = {};
+    for(var i=0; i<$scope.settings.probes.length; i++){
+      if($scope.settings.probes[i].active)
+        $scope.emptyResults[$scope.settings.probes[i].name] = {result: '__loading__'};
+    }
+
     var allGood = true;
     _.each(uploader.queue, function(item){
+      $scope.results[_.uniqueId('file_')] = {filename: item.file.name, results: angular.copy($scope.emptyResults)};
       if(!item.isSuccess) allGood = false;
     });
+
+    console.log($scope.results);
 
     if(allGood)
       // Asks for the scan to begin
@@ -85,12 +98,10 @@ angular.module('irma')
         if($scope.settings.force)
           params.params.force = true;
 
-        console.log(params);
-
         $http.get($scope.rootApi+'/scan/launch/'+$scope.scanId, params).then(function(response){
 
-          $scope.results = {};
           if(response.data.code === 0){
+            $scope.progress = 0;
             $scope.scanDisplay();
           } else {
             alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured during scan launch', dismiss: 10000});
@@ -115,20 +126,20 @@ angular.module('irma')
       $scope.context = 'selection';
     };
 
-    $scope.progress = 0;
     $scope.context = 'scan';
-    $scope.currentProcess = $timeout($scope.updateScan, speed);
+    $scope.progress = 0;
+    $scope.scanProgress = {total: 0, successfull: 0, finished: 0};
+    
+    $scope.currentProcess = $timeout($scope.updateScan, 0);
   };
 
   $scope.updateScan = function(){
     $http.get($scope.rootApi+'/scan/progress/'+$scope.scanId).then(function(response){
 
-
-
-
       if(response.data.code === 0){
 
         $scope.progress = Math.round(response.data.progress_details.finished / response.data.progress_details.total *100);
+        $scope.scanProgress = response.data.progress_details;
         $scope.currentProcess = $timeout($scope.updateScan, speed);
         $scope.fetchResults();
 
@@ -152,6 +163,10 @@ angular.module('irma')
     var task = $http.get($scope.rootApi+'/scan/result/'+$scope.scanId).then(function(response){
       if(response.data.code === 0){
         $scope.results = response.data.scan_results;
+
+        for(var file in $scope.results){
+          $scope.results[file].results = _.extend($scope.emptyResults, $scope.results[file].results);
+        }
       } else {
         alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured retrieving results', dismiss: 10000});
         console.error('Error occured retrieving results');
