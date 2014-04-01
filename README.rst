@@ -37,7 +37,7 @@ For detailed instructions about setting up a local pypi server please see `brain
 
 .. code-block:: bash
 
-    $ git clone https://github.com/quarkslab/irma-frontend.git irma
+    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
 
 ------------
 Installation
@@ -48,7 +48,9 @@ For detailed instructions, please see `install.rst`_.
 Config
 ======
 
-irma-admin configuration file:
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Be sure to create it.
+
+irma-frontend configuration file content:
 
 +----------------+-------------+------------+-----------+
 |     Section    |      Key    |    Type    |  Default  |
@@ -109,11 +111,11 @@ irma-admin configuration file:
 |                +-------------+------------+-----------+
 |                |   password  | ``string`` |           |
 +----------------+-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|  2592000  |
-|                |_info_max_age|            | (30 days) |
+|                |clean_db_scan| ``integer``|    100    |
+|                |_info_max_age|            | (in days) |
 |                +-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|   172800  |
-|                |_file_max_age|            |  (2 days) |
+|                |clean_db_scan| ``integer``|     2     |
+|                |_file_max_age|            | (in days) |
 |                +-------------+------------+-----------+
 | cron_frontend  |clean_db_cron| ``integer``|     0     |
 |                |_hour        |            |           |
@@ -124,8 +126,6 @@ irma-admin configuration file:
 |                |clean_db_scan| ``integer``|     \*    |
 |                |_day_of_week |            |           |
 +----------------+-------------+------------+-----------+
-
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``
 
 =======
 Licence

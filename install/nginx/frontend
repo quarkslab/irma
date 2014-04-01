@@ -6,6 +6,7 @@ server {
 	index index.html;
 
 	server_name localhost;
+	client_max_body_size 100m;
 
 	location /_api {
 		rewrite ^/_api/(.+) /$1 break;

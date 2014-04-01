@@ -1,7 +1,7 @@
 <uwsgi>
 	<plugin>python</plugin>
 	<chdir>/home/irma/irma</chdir>
-	<app mountpoint="/">
+	<app mountpoint="/_api">
 		<script>./frontend/web/api.py</script>
 	</app>
 	<master/>

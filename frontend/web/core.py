@@ -1,6 +1,6 @@
 import celery
 import config.parser as config
-from frontend.objects import ScanInfo, ScanFile, ScanResults
+from frontend.objects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
 from lib.irma.common.exceptions import IrmaDatabaseError
 
@@ -78,18 +78,14 @@ def scan_add(scanid, files):
     if scan.status != IrmaScanStatus.created:
         # Can not add file to scan launched
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
-    oids = {}
+    scan.take()
     for (name, data) in files.items():
         fobj = ScanFile()
         fobj.save(data, name)
-        # fetch probe results already present
-        probedone = ScanResults.init_id(fobj.id).probelist
-        oids[fobj.id] = {'name':name, 'probedone':probedone}
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-    scan.oids.update(oids)
+        scan.add_file(fobj.id, name, fobj.hashvalue)
     scan.update()
     scan.release()
-    return len(scan.oids)
+    return len(scan.scanfile_ids)
 
 def scan_launch(scanid, force, probelist):
     """ launch specified scan 
@@ -179,8 +175,11 @@ def scan_cancel(scanid):
     if scan.status != IrmaScanStatus.launched:
         # If not launched answer directly
         # Else ask brain for job status
-
+        scan.take()
+        scan.update_status(IrmaScanStatus.cancelled)
+        scan.release()
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
+
     (status, res) = _task_scan_cancel(scanid)
     if status == IrmaReturnCode.success:
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
@@ -217,7 +216,7 @@ def file_search(sha256):
     """
     try:
         f = ScanFile(sha256=sha256)
-        scan_res = ScanResults(id=f.id)
-        return scan_res.get_result()
+        ref_res = ScanRefResults(id=f.id)
+        return ref_res.get_results()
     except IrmaDatabaseError as e:
         raise IrmaFrontendWarning(str(e))

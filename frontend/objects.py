@@ -12,6 +12,32 @@ cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
 cfg_coll = config.frontend_config['collections']
 
+class ScanResults(NoSQLDatabaseObject):
+    _uri = cfg_dburi
+    _dbname = cfg_dbname
+    _collection = cfg_coll.scan_results
+
+    def __init__(self, dbname=None, **kwargs):
+        if dbname:
+            self._dbname = dbname
+        self.name = None
+        self.hashvalue = None
+        self.results = {}
+        super(ScanResults, self).__init__(**kwargs)
+
+    def get_results(self):
+        res = {}
+        sha256 = self.hashvalue
+        res[sha256] = {}
+        res[sha256]['filename'] = self.name
+        res[sha256]['results'] = self.results
+        return res
+
+    @property
+    def probedone(self):
+        return self.results.keys()
+
+
 class ScanInfo(NoSQLDatabaseObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
@@ -22,10 +48,18 @@ class ScanInfo(NoSQLDatabaseObject):
             self._dbname = dbname
         self.user = None
         self.date = timestamp()
-        self.oids = {}
+        self.scanfile_ids = {}
         self.probelist = None
         self.status = IrmaScanStatus.created
         super(ScanInfo, self).__init__(**kwargs)
+
+    def add_file(self, scanfile_id, name, hashvalue):
+        scan_res = ScanResults()
+        scan_res.name = name
+        scan_res.hashvalue = hashvalue
+        scan_res.update()
+        self.scanfile_ids[scanfile_id] = scan_res.id
+        return
 
     def update_status(self, status):
         self.status = status
@@ -33,8 +67,9 @@ class ScanInfo(NoSQLDatabaseObject):
 
     def is_completed(self):
         probelist = self.probelist
-        for fileinfo in self.oids.values():
-            remaining = [probe for probe in probelist if probe not in fileinfo['probedone']]
+        for res_id in self.scanfile_ids.values():
+            scan_res = ScanResults(id=res_id)
+            remaining = [probe for probe in probelist if probe not in scan_res.probedone]
             if len(remaining) != 0:
                 # at least one result is not there
                 return False
@@ -42,10 +77,8 @@ class ScanInfo(NoSQLDatabaseObject):
 
     def get_results(self):
         res = {}
-        for (oid, info) in self.oids.items():
-            name = info['name']
-            r = ScanResults(id=oid, mode=IrmaLockMode.read)
-            res.update(r.get_result(name=name, probelist=self.probelist))
+        for scaninfo_id in self.scanfile_ids.values():
+            res.update(ScanResults(id=scaninfo_id).get_results())
         return res
 
     @classmethod
@@ -70,44 +103,44 @@ class ScanInfo(NoSQLDatabaseObject):
                 temp_scan_info.remove()
             return found.count()
 
-class ScanResults(NoSQLDatabaseObject):
+class ScanRefResults(NoSQLDatabaseObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
-    _collection = cfg_coll.scan_results
+    _collection = cfg_coll.scan_ref_results
 
     def __init__(self, dbname=None, **kwargs):
         if dbname:
             self._dbname = dbname
-        self.probelist = []
         self.results = {}
-        super(ScanResults, self).__init__(**kwargs)
+        super(ScanRefResults, self).__init__(**kwargs)
 
     @classmethod
     def has_lock_timed_out(cls, id):
-        return super(ScanResults, cls).has_lock_timed_out(id)
+        return super(ScanRefResults, cls).has_lock_timed_out(id)
 
     @classmethod
     def is_lock_free(cls, id):
-        return super(ScanResults, cls).is_lock_free(id)
+        return super(ScanRefResults, cls).is_lock_free(id)
 
     @classmethod
     def init_id(cls, id, **kwargs):
-        return super(ScanResults, cls).init_id(id, **kwargs)
+        return super(ScanRefResults, cls).init_id(id, **kwargs)
 
-    def get_result(self, name=None, probelist=None):
+    @property
+    def probelist(self):
+        return self.results.keys()
+
+    def get_results(self):
         res = {}
         if self.results:
             scanfile = ScanFile(id=self.id)
             sha256 = scanfile.hashvalue
             res[sha256] = {}
-            if name is not None:
-                res[sha256]['filename'] = name
-            else:
-                res[sha256]['filename'] = " - ".join(scanfile.alt_filenames)
-            if probelist is not None:
-                res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems() if probe in probelist)
-            else:
-                res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems())
+            res[sha256]['filename'] = " - ".join(scanfile.alt_filenames)
+            res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems())
+            res[sha256]['nb_scan'] = len(scanfile.scan_id)
+            res[sha256]['date_upload'] = scanfile.date_upload
+            res[sha256]['date_last_scan'] = scanfile.date_last_scan
         return res
 
 class ScanFile(NoSQLDatabaseObject):
@@ -144,6 +177,7 @@ class ScanFile(NoSQLDatabaseObject):
                 self.filename = None
                 self.alt_filenames = []
                 self.file_oid = None
+                self.scan_id = []
 
     def save(self, data, name):
         self.sha256 = hashlib.sha256(data).hexdigest()
@@ -160,9 +194,9 @@ class ScanFile(NoSQLDatabaseObject):
             self.filename = name
             self.alt_filenames.append(name)
             self.file_oid = file_data.id
+            self.scan_id = []
         else:
             self.load(_id)
-            self.date_last_scan = timestamp()
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
             if self.file_oid is None:   # if deleted, save again
