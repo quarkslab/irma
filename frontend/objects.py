@@ -1,16 +1,15 @@
 import hashlib
 import config.parser as config
-from irma.common.exceptions import IrmaValueError
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaDatabaseError
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
-from lib.irma.common.utils import IrmaScanStatus, IrmaLockMode
-from lib.irma.common.exceptions import IrmaDatabaseError
+from lib.irma.common.utils import IrmaScanStatus
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
 cfg_coll = config.frontend_config['collections']
+
 
 class ScanResults(NoSQLDatabaseObject):
     _uri = cfg_dburi
@@ -63,16 +62,16 @@ class ScanInfo(NoSQLDatabaseObject):
 
     def update_status(self, status):
         self.status = status
-        self.update({'status':self.status})
+        self.update({'status': self.status})
 
     def is_completed(self):
         probelist = self.probelist
         for res_id in self.scanfile_ids.values():
             scan_res = ScanResults(id=res_id)
-            remaining = [probe for probe in probelist if probe not in scan_res.probedone]
-            if len(remaining) != 0:
-                # at least one result is not there
-                return False
+            for probe in probelist:
+                if probe not in scan_res.probedone:
+                    # at least one result is not there
+                    return False
         return True
 
     def get_results(self):
@@ -102,6 +101,7 @@ class ScanInfo(NoSQLDatabaseObject):
                 temp_scan_info = ScanInfo.get_temp_instance(f['_id'])
                 temp_scan_info.remove()
             return found.count()
+
 
 class ScanRefResults(NoSQLDatabaseObject):
     _uri = cfg_dburi
@@ -137,11 +137,13 @@ class ScanRefResults(NoSQLDatabaseObject):
             sha256 = scanfile.hashvalue
             res[sha256] = {}
             res[sha256]['filename'] = " - ".join(scanfile.alt_filenames)
-            res[sha256]['results'] = dict((probe, results) for (probe, results) in self.results.iteritems())
+            for (probe, results) in self.results.iteritems():
+                res[sha256]['results'][probe] = results
             res[sha256]['nb_scan'] = len(scanfile.scan_id)
             res[sha256]['date_upload'] = scanfile.date_upload
             res[sha256]['date_last_scan'] = scanfile.date_last_scan
         return res
+
 
 class ScanFile(NoSQLDatabaseObject):
     _uri = cfg_dburi
@@ -162,11 +164,11 @@ class ScanFile(NoSQLDatabaseObject):
         else:
             super(ScanFile, self).__init__(**kwargs)
             if sha256:
-                _id = self._get_id_by_sha256(sha256)
-                if _id is None:
+                _oid = self._get_id_by_sha256(sha256)
+                if _oid is None:
                     raise IrmaDatabaseError("sha256 not found")
                 else:
-                    self.load(_id)
+                    self.load(_oid)
             else:
                 self.sha256 = None
                 self.sha1 = None
@@ -217,7 +219,7 @@ class ScanFile(NoSQLDatabaseObject):
     def _get_id_by_sha256(cls, sha256):
         res = cls.find({'sha256': sha256}, ['_id'])
         if res.count() > 1:
-            raise IrmaDatabaseError("Multiple entries in ScanFile with same sha256 value")
+            raise IrmaDatabaseError("Multiple ScanFile with same sha256 value")
         elif res.count() == 0:
             return None
         else:
@@ -249,7 +251,6 @@ class ScanFile(NoSQLDatabaseObject):
                 if temp_scan_file.delete_data():
                     nb_deleted += 1
             return nb_deleted
-
 
 
 class ScanFileData(FileObject):

@@ -4,7 +4,7 @@ from frontend.objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaLockError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
-from lib.common.utils import  humanize_time_str
+from lib.common.utils import humanize_time_str
 from lib.irma.ftp.handler import FtpTls
 from format import format_result
 
@@ -34,19 +34,27 @@ def scan_launch(scanid, force):
 
         filtered_file_oids = []
         for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
-            scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
             if not force:
+                scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
                 # fetch results already present in base
-                for (probe, results) in ScanRefResults.init_id(scanfile_id).results.items():
-                    if scan.probelist is not None and probe not in scan.probelist:
+                ref_res = ScanRefResults.init_id(scanfile_id)
+                for (probe, results) in ref_res.results.items():
+                    if scan.probelist is not None:
+                        continue
+                    if probe not in scan.probelist:
                         continue
                     scan_res.results[probe] = results
-            scan_res.update()
-            scan_res.release()
+                scan_res.update()
+                scan_res.release()
+            scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.read)
+            probetodo = []
             # Compute remaining list
-            probetodo = [probe for probe in scan.probelist if probe not in scan_res.probedone]
+            for probe in scan.probelist:
+                if probe not in scan_res.probedone:
+                    probetodo.append(probe)
             if len(probetodo) != 0:
-                filtered_file_oids.append((scanfile_id, scan_res.name, probetodo))
+                scan_req = (scanfile_id, scan_res.name, probetodo)
+                filtered_file_oids.append(scan_req)
         scan.update()
 
         # If nothing left, return
@@ -56,7 +64,11 @@ def scan_launch(scanid, force):
             return IrmaTaskReturn.success("Nothing to do")
         scan.release()
 
-        with FtpTls(ftp_config.host, ftp_config.port, ftp_config.username, ftp_config.password) as ftps:
+        host = ftp_config.host
+        port = ftp_config.port
+        user = ftp_config.username
+        pwd = ftp_config.password
+        with FtpTls(host, port, user, pwd) as ftps:
             scan_request = []
             ftps.mkdir(scanid)
             for (scanfile_id, filename, probelist) in filtered_file_oids:
@@ -64,7 +76,9 @@ def scan_launch(scanid, force):
                 # our ftp handler store file under with its sha256 name
                 hashname = ftps.upload_data(scanid, f.data)
                 if hashname != f.hashvalue:
-                    return IrmaTaskReturn.error("Ftp Error: integrity failure while uploading file {0} for scanid {1}".format(scanid, filename))
+                    reason = "Ftp Error: integrity failure while uploading \
+                    file {0} for scanid {1}".format(scanid, filename)
+                    return IrmaTaskReturn.error(reason)
                 scan_request.append((hashname, probelist))
                 # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
@@ -76,7 +90,8 @@ def scan_launch(scanid, force):
         print "IrmaLockError has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=15, max_retries=10)
     except Exception as e:
-        if scan is not None: scan.release()
+        if scan is not None:
+            scan.release()
         print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=15, max_retries=10)
 
@@ -102,7 +117,7 @@ def scan_result(scanid, file_hash, probe, result):
         try:
             formatted_res = format_result(probe, result)
         except:
-            formatted_res = {'result':"parsing error", 'version':None}
+            formatted_res = {'result': "parsing error", 'version': None}
 
         # Update main reference results with fresh results
         ref_res = ScanRefResults.init_id(scanfile.id, mode=IrmaLockMode.write)
@@ -117,7 +132,9 @@ def scan_result(scanid, file_hash, probe, result):
         scan_res.results[probe] = formatted_res
         scan_res.update()
         scan_res.release()
-        print "Scanid [{0}] Result from {1} probedone {2}".format(scanid, probe, scan_res.probedone)
+        print ("Scanid {0}".format(scanid) +
+               "Result from {0} ".format(probe) +
+               "probedone {0}".format(scan_res.probedone))
 
         if scan.is_completed():
             scan.take()
@@ -128,9 +145,12 @@ def scan_result(scanid, file_hash, probe, result):
         print "IrmaLockError has occurred:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
     except Exception as e:
-        if scan is not None: scan.release()
-        if scan_res is not None: scan_res.release()
-        if ref_res is not None: ref_res.release()
+        if scan is not None:
+            scan.release()
+        if scan_res is not None:
+            scan_res.release()
+        if ref_res is not None:
+            ref_res.release()
         print "Exception has occurred:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
 
@@ -138,14 +158,22 @@ def scan_result(scanid, file_hash, probe, result):
 @frontend_app.task()
 def clean_db():
     try:
-        max_age_scaninfo = config.frontend_config['cron_frontend']['clean_db_scan_info_max_age']
-        max_age_scanfile = config.frontend_config['cron_frontend']['clean_db_scan_file_max_age']
-        nb_scaninfo = ScanInfo.remove_old_instances(max_age_scaninfo * 24 * 60 * 60)
-        nb_scanfile = ScanFile.remove_old_instances(max_age_scanfile * 24 * 60 * 60)
-        print "removed {0} scan info (older than {1})".format(nb_scaninfo, humanize_time_str(max_age_scaninfo, 'days'))
-        print "removed {0} scan files (older than {1}) ".format(nb_scanfile, humanize_time_str(max_age_scanfile, 'days'))
+        cron_cfg = config.frontend_config['cron_frontend']
+        max_age_scaninfo = cron_cfg['clean_db_scan_info_max_age']
+        # days to seconds
+        max_age_scaninfo *= 24 * 60 * 60
+        max_age_scanfile = cron_cfg['clean_db_scan_file_max_age']
+        # days to seconds
+        max_age_scanfile *= 24 * 60 * 60
+        nb_scaninfo = ScanInfo.remove_old_instances(max_age_scaninfo)
+        nb_scanfile = ScanFile.remove_old_instances(max_age_scanfile)
+        hage_scaninfo = humanize_time_str(max_age_scaninfo, 'seconds')
+        hage_scanfile = humanize_time_str(max_age_scanfile, 'seconds')
+        print ("removed {0} scan info ".format(nb_scaninfo) +
+               "(older than {0})".format(hage_scaninfo))
+        print ("removed {0} scan files ".format(nb_scanfile) +
+               "(older than {0}) ".format(hage_scanfile))
         return (nb_scaninfo, nb_scanfile)
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
         raise clean_db.retry(countdown=15, max_retries=10)
-

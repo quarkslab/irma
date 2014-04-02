@@ -1,12 +1,15 @@
-import re, os
+import re
+import os
 import bottle
+import importlib
 from bottle import route, request, default_app, run
 
 """
     IRMA FRONTEND API
     defines all accessible route accessed via uwsgi..
 
-    For test purpose set DEBUG to True and launch, the server will use mockup core class
+    For test purpose set DEBUG to True and launch,
+    the server will use mockup core class
     irma dependencies are no more required.
 
     To launch the Debug server just type:
@@ -18,14 +21,23 @@ from bottle import route, request, default_app, run
 
 DEBUG = False
 if DEBUG:
-    from mucore import IrmaFrontendWarning, IrmaFrontendError, IrmaFrontendReturn
-    import mucore as core
+    s_utils = "mucore"
+    s_core = "mucore"
 else:
-    from lib.irma.common.utils import IrmaFrontendReturn
-    from frontend.web.core import IrmaFrontendWarning, IrmaFrontendError
-    import frontend.web.core as core
+    s_utils = "lib.irma.common.utils"
+    s_core = "frontend.web.core"
 
-# _____________________________________________________________________________ SERVER TEST MODE
+utils = importlib.import_module(s_utils)
+core = importlib.import_module(s_core)
+
+IrmaFrontendReturn = getattr(utils, "IrmaFrontendReturn")
+IrmaFrontendError = getattr(core, "IrmaFrontendError")
+IrmaFrontendWarning = getattr(core, "IrmaFrontendWarning")
+
+
+# ==================
+#  SERVER TEST MODE
+# ==================
 
 @bottle.error(405)
 def method_not_allowed(res):
@@ -35,14 +47,19 @@ def method_not_allowed(res):
         new_res.set_header('Access-Control-Allow-Origin', '*')
         return new_res
     res.headers['Allow'] += ', OPTIONS'
-    return request.app.default_error_handler(res)
+    req_app = request.app
+    return req_app.default_error_handler(res)
+
 
 @bottle.hook('after_request')
 def enableCORSAfterRequestHook():
     """ allow CORS request for debug purpose """
     bottle.response.set_header('Access-Control-Allow-Origin', '*')
 
-# _____________________________________________________________________________ SERVER ROOT
+
+# =============
+#  SERVER ROOT
+# =============
 
 @route("/")
 def svr_index():
@@ -54,25 +71,32 @@ def svr_index():
     """
     return IrmaFrontendReturn.success()
 
-# _____________________________________________________________________________ COMMON PARAM CHECKS
+
+# =====================
+#  COMMON PARAM CHECKS
+# =====================
 
 def _valid_id(scanid):
     """ check scanid format - should be a str(ObjectId)"""
     return re.match(r'^[0-9a-fA-F]{24}$', scanid)
 
+
 def _valid_sha256(sha256):
     """ check hashvalue format - should be a sha256 hexdigest"""
     return re.match(r'^[0-9a-fA-F]{64}$', sha256)
 
-# _____________________________________________________________________________ API SCAN
+
+# ==========
+#  API SCAN
+# ==========
 
 @route("/scan/new")
 def scan_new():
-    """ create new scan 
-    
+    """ create new scan
+
     :route: /scan/new
     :rtype: dict of 'code': int, 'msg': str [, optional 'scan_id':str]
-    :return: 
+    :return:
         on success 'scan_id' contains the newly created scan id
         on error 'msg' gives reason message
     """
@@ -89,14 +113,14 @@ def scan_new():
 
 @route("/scan/add/<scanid>", method='POST')
 def scan_add(scanid):
-    """ add posted file(s) to the specified scan 
-    
+    """ add posted file(s) to the specified scan
+
     :route: /scan/add/<scanid>
     :postparam: multipart form with filename(s) and file(s) data
     :param scanid: id returned by scan_new
     :note: files are posted as multipart/form-data
     :rtype: dict of 'code': int, 'msg': str [, optional 'nb_files':int]
-    :return: 
+    :return:
         on success 'nb_files' total number of files for the scan
         on error 'msg' gives reason message
     """
@@ -119,16 +143,17 @@ def scan_add(scanid):
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
+
 @route("/scan/launch/<scanid>", method='GET')
 def scan_launch(scanid):
-    """ launch specified scan 
-    
+    """ launch specified scan
+
     :route: /scan/launch/<scanid>
     :getparam: force=True or False
     :getparam: probe=probe1,probe2
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'probe_list':list]
-    :return: 
+    :return:
         on success 'probe_list' is the list of probes used for the scan
         on error 'msg' gives reason message
     """
@@ -138,8 +163,9 @@ def scan_launch(scanid):
     try:
         # handle 'force' parameter
         force = False
-        if 'force' in request.params and request.params['force'].lower() == 'true':
-            force = True
+        if 'force' in request.params:
+            if request.params['force'].lower() == 'true':
+                force = True
         # handle 'probe' parameter
         in_probelist = None
         if 'probe' in request.params:
@@ -153,14 +179,19 @@ def scan_launch(scanid):
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
+
 @route("/scan/result/<scanid>", method='GET')
 def scan_result(scanid):
-    """ get all results from files of specified scan 
-    
+    """ get all results from files of specified scan
+
     :route: /scan/result/<scanid>
     :param scanid: id returned by scan_new
-    :rtype: dict of 'code': int, 'msg': str [, optional 'scan_results': dict of [sha256 value: dict of 'filenames':list of filename, 'results': dict of [str probename: dict [results of probe]]]]
-    :return: 
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'scan_results': dict of [
+            sha256 value: dict of
+                'filenames':list of filename,
+                'results': dict of [str probename: dict [results of probe]]]]
+    :return:
         on success 'scan_results' is the dict of results for each filename
         on error 'msg' gives reason message
     """
@@ -177,16 +208,23 @@ def scan_result(scanid):
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
+
 @route("/scan/progress/<scanid>", method='GET')
 def scan_progress(scanid):
     """ get scan progress for specified scan
-    
+
     :route: /scan/progress/<scanid>
     :param scanid: id returned by scan_new
-    :rtype: dict of 'code': int, 'msg': str [, optional 'progress_details': total':int, 'finished':int, 'successful':int]
-    :return: 
-        on success 'progress_details' contains informations about submitted jobs by irma-brain
-        on warning 'msg' gives scan status that does not required progress_details like 'processed' or 'finished'
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'progress_details':
+            'total':int,
+            'finished':int,
+            'successful':int]
+    :return:
+        on success 'progress_details' contains informations \
+        about submitted jobs by irma-brain
+        on warning 'msg' gives scan status that does not required \
+        progress_details like 'processed' or 'finished'
         on error 'msg' gives reason message
     """
     # Filter malformed scanid
@@ -206,12 +244,17 @@ def scan_progress(scanid):
 @route("/scan/cancel/<scanid>", method='GET')
 def scan_cancel(scanid):
     """ cancel all remaining jobs for specified scan
-    
+
     :route: /scan/cancel/<scanid>
     :param scanid: id returned by scan_new
-    :rtype: dict of 'code': int, 'msg': str [, optional 'cancel_details': total':int, 'finished':int, 'cancelled':int]
-    :return: 
-        on success 'cancel_details' contains informations about cancelled jobs by irma-brain
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'cancel_details':
+            total':int,
+            'finished':int,
+            'cancelled':int]
+    :return:
+        on success 'cancel_details' contains informations \
+        about cancelled jobs by irma-brain
         on warning 'msg' gives scan status that make it not cancellable
         on error 'msg' gives reason message
     """
@@ -227,15 +270,20 @@ def scan_cancel(scanid):
         return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
-# _____________________________________________________________________________ API PROBE
+
+
+# ===========
+#  API PROBE
+# ===========
 
 @route("/probe/list")
 def probe_list():
     """ get active probe list
-    
+
     :route: /probe/list
-    :rtype: dict of 'code': int, 'msg': str [, optional 'probe_list': list of str]
-    :return: 
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'probe_list': list of str]
+    :return:
         on success 'probe_list' contains list of probes names
         on error 'msg' gives reason message
     """
@@ -248,7 +296,11 @@ def probe_list():
         return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
-# _____________________________________________________________________________ API FILE
+
+
+# ==========
+#  API FILE
+# ==========
 
 @route("/file/search/<sha256>")
 def file_search(sha256):
@@ -256,18 +308,24 @@ def file_search(sha256):
     if not _valid_sha256(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
     try:
-        return IrmaFrontendReturn.success(scan_results=core.file_search(sha256))
+        found = core.file_search(sha256)
+        return IrmaFrontendReturn.success(scan_results=found)
     except IrmaFrontendWarning as e:
         return IrmaFrontendReturn.warning(str(e))
     except IrmaFrontendError as e:
         return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
-# _____________________________________________________________________________ MAIN
+
+
+# ======
+#  MAIN
+# ======
 
 application = default_app()
 
 if __name__ == "__main__":
     print "Irma Web Api",
-    if DEBUG: print " /!\\ Debug MODE /!\\"
+    if DEBUG:
+        print " /!\\ Debug MODE /!\\"
     run(host='0.0.0.0', port=8080)

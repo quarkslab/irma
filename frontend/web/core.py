@@ -4,15 +4,22 @@ from frontend.objects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
 from lib.irma.common.exceptions import IrmaDatabaseError
 
-# ______________________________________________________________________________ FRONTEND Exceptions
+
+# =====================
+#  Frontend Exceptions
+# =====================
 
 class IrmaFrontendWarning(Exception):
     pass
 
+
 class IrmaFrontendError(Exception):
     pass
 
-# ______________________________________________________________________________ Task functions
+
+# ================
+#  Task functions
+# ================
 
 cfg_timeout = config.get_brain_celery_timeout()
 
@@ -21,6 +28,7 @@ config.conf_frontend_celery(frontend_app)
 
 scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
+
 
 def _task_probe_list():
     """ send a task to the brain asking for active probe list """
@@ -35,6 +43,7 @@ def _task_probe_list():
     except celery.exceptions.TimeoutError:
         raise IrmaFrontendError("Celery timeout - probe_list")
 
+
 def _task_scan_progress(scanid):
     """ send a task to the brain asking for status of subtasks launched """
     try:
@@ -43,6 +52,7 @@ def _task_scan_progress(scanid):
         return (status, res)
     except celery.exceptions.TimeoutError:
         raise IrmaFrontendError("Celery timeout - scan progress")
+
 
 def _task_scan_cancel(scanid):
     """ send a task to the brain to cancel all remaining subtasks """
@@ -53,11 +63,14 @@ def _task_scan_cancel(scanid):
     except celery.exceptions.TimeoutError:
         raise IrmaFrontendError("Celery timeout - scan progress")
 
-# ______________________________________________________________________________ Public functions
+
+# ==================
+#  Public functions
+# ==================
 
 def scan_new():
-    """ Create new scan 
-    
+    """ Create new scan
+
     :rtype: str
     :return: scan id
     :raise: IrmaDataBaseError
@@ -65,9 +78,10 @@ def scan_new():
     scan = ScanInfo()
     return scan.id
 
+
 def scan_add(scanid, files):
-    """ add file(s) to the specified scan 
-    
+    """ add file(s) to the specified scan
+
     :param scanid: id returned by scan_new
     :param files: dict of 'filename':str, 'data':str
     :rtype: int
@@ -87,12 +101,13 @@ def scan_add(scanid, files):
     scan.release()
     return len(scan.scanfile_ids)
 
+
 def scan_launch(scanid, force, probelist):
-    """ launch specified scan 
-    
+    """ launch specified scan
+
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'probe_list':list]
-    :return: 
+    :return:
         on success 'probe_list' is the list of probes used for the scan
         on error 'msg' gives reason message
     :raise: IrmaDataBaseError, IrmaFrontendError
@@ -121,12 +136,14 @@ def scan_launch(scanid, force, probelist):
     frontend_app.send_task("frontend.tasks.scan_launch", args=(scan.id, force))
     return scan.probelist
 
+
 def scan_results(scanid):
-    """ get all results from files of specified scan 
-    
+    """ get all results from files of specified scan
+
     :param scanid: id returned by scan_new
-    :rtype: dict of sha256 value: dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]
-    :return: 
+    :rtype: dict of sha256 value: dict of ['filename':str,
+        'results':dict of [str probename: dict [results of probe]]]
+    :return:
         dict of results for each hash value
     :raise: IrmaDatabaseError
     """
@@ -134,12 +151,13 @@ def scan_results(scanid):
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
     return scan.get_results()
 
+
 def scan_progress(scanid):
     """ get scan progress for specified scan
-    
+
     :param scanid: id returned by scan_new
     :rtype: dict of 'total':int, 'finished':int, 'successful':int
-    :return: 
+    :return:
         dict with total/finished/succesful jobs submitted by irma-brain
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
@@ -152,7 +170,8 @@ def scan_progress(scanid):
     if status == IrmaReturnCode.success:
         return res
     elif status == IrmaReturnCode.warning:
-        # if scan is processed for the brain, it means all probes jobs are completes
+        # if scan is processed for the brain,
+        # it means all probes jobs are completed
         # we are just waiting for results
         if res == IrmaScanStatus.processed:
             scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
@@ -162,12 +181,14 @@ def scan_progress(scanid):
     else:
         raise IrmaFrontendError(res)
 
+
 def scan_cancel(scanid):
     """ cancel all remaining jobs for specified scan
-    
+
     :param scanid: id returned by scan_new
-    :rtype: dict of 'cancel_details': total':int, 'finished':int, 'cancelled':int
-    :return: 
+    :rtype: dict of 'cancel_details': total':int, 'finished':int,
+        'cancelled':int
+    :return:
         informations about number of cancelled jobs by irma-brain
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
@@ -187,7 +208,8 @@ def scan_cancel(scanid):
         scan.release()
         return res
     elif status == IrmaReturnCode.warning:
-        # if scan is finished for the brain, it means we are just waiting for results
+        # if scan is finished for the brain
+        # it means we are just waiting for results
         if res == IrmaScanStatus.processed:
             scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
             scan.update_status(IrmaScanStatus.processed)
@@ -196,22 +218,26 @@ def scan_cancel(scanid):
     else:
         raise IrmaFrontendError(res)
 
+
 def probe_list():
     """ get active probe list
-    
+
     :rtype: list of str
-    :return: 
+    :return:
         list of probes names
     :raise: IrmaFrontendWarning, IrmaFrontendError
     """
     return _task_probe_list()
 
+
 def file_search(sha256):
     """ return results for file with given sha256 value
 
-    :rtype: dict of ['filename':str, 'results':dict of [str probename: dict [results of probe]]]
+    :rtype: dict of ['filename':str,
+        'results':dict of [str probename: dict [results of probe]]]
     :return:
-        if exists returns all available scan results for file with given sha256 value
+        if exists returns all available scan results
+        for file with given sha256 value
     :raise: IrmaFrontendWarning, IrmaFrontendError
     """
     try:

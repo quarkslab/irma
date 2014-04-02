@@ -1,5 +1,7 @@
-import unittest, os, random
-from frontend.cli.irma import _scan_new, _scan_add, _probe_list, _scan_launch, _scan_progress, _scan_cancel, IrmaScanStatus, \
+import unittest
+import os
+from frontend.cli.irma import _scan_new, _scan_add, _probe_list, \
+    _scan_launch, _scan_progress, _scan_cancel, IrmaScanStatus, \
     _scan_result, IrmaError
 import time
 
@@ -7,18 +9,25 @@ SCAN_TIMEOUT_SEC = 20
 BEFORE_NEXT_PROGRESS = 5
 DEBUG = False
 EICAR_NAME = "eicar.com"
-EICAR_HASH = u'275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
-
+EICAR_HASH = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 EICAR_RESULTS = {
-           # u'NSRL': {u'result': [u'eicar.com.txt,68,18115,358,']},
-           u'ClamAV': {u'version': u'ClamAV 0.97.8/18526/Sat Mar  1 22:54:55 2014', u'result': u'Eicar-Test-Signature'},
-           u'VirusTotal': {u'result': u'ClamAV:Eicar-Test-Signature - Kaspersky:EICAR-Test-File - Symantec:EICAR Test String - McAfee:EICAR test file - Sophos:EICAR-AV-Test'},
-           u'Kaspersky': {u'version': u'Kaspersky Anti-Virus (R) 14.0.0.4837', u'result': u'EICAR-Test-File'},
-           u'Sophos':{u'result': u'EICAR-AV-Test'},
-           u'McAfeeVSCL':{u'result': None},
-           u'Symantec':{u'result': u'EICAR Test String'},
-           u'StaticAnalyzer':{u'result': u'no results'}
-           }
+    # u'NSRL': {u'result': [u'eicar.com.txt,68,18115,358,']},
+    u'ClamAV': {
+        u'version': u'ClamAV 0.97.8/18526/Sat Mar  1 22:54:55 2014',
+        u'result': u'Eicar-Test-Signature'},
+    u'VirusTotal': {
+        u'result': u'ClamAV:Eicar-Test-Signature - Kaspersky:EICAR-Test-File -\
+         Symantec:EICAR Test String - McAfee:EICAR test file - \
+         Sophos:EICAR-AV-Test'},
+    u'Kaspersky': {
+        u'version': u'Kaspersky Anti-Virus (R) 14.0.0.4837',
+        u'result': u'EICAR-Test-File'},
+    u'Sophos': {u'result': u'EICAR-AV-Test'},
+    u'McAfeeVSCL': {u'result': None},
+    u'Symantec': {u'result': u'EICAR Test String'},
+    u'StaticAnalyzer': {u'result': u'no results'}
+    }
+
 
 ##############################################################################
 # Test Cases
@@ -26,14 +35,18 @@ EICAR_RESULTS = {
 class FunctionnalTestCase(unittest.TestCase):
     def setUp(self):
         # setup test
-        self.filename = "{0}/{1}".format(os.path.abspath(os.path.dirname(__file__)), EICAR_NAME)
+        cwd = os.path.abspath(os.path.dirname(__file__))
+        self.filename = "{0}/{1}".format(cwd, EICAR_NAME)
         assert os.path.exists(self.filename)
 
     def tearDown(self):
         # do the teardown
         pass
 
-    def _test_scan_eicar_file(self, force=False, probe=EICAR_RESULTS.keys(), timeout=SCAN_TIMEOUT_SEC):
+    def _test_scan_eicar_file(self,
+                              force=False,
+                              probe=EICAR_RESULTS.keys(),
+                              timeout=SCAN_TIMEOUT_SEC):
         self.scanid = _scan_new(DEBUG)
         self.assertIsNotNone(self.scanid)
 
@@ -42,7 +55,7 @@ class FunctionnalTestCase(unittest.TestCase):
         self.assertEquals(sorted(probelaunched), sorted(probe))
         start = time.time()
         while True:
-            (status , _, total, _) = _scan_progress(self.scanid, DEBUG)
+            (status, _, total, _) = _scan_progress(self.scanid, DEBUG)
             if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
                 break
             if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
@@ -52,14 +65,17 @@ class FunctionnalTestCase(unittest.TestCase):
             time.sleep(BEFORE_NEXT_PROGRESS)
         results = _scan_result(self.scanid, DEBUG)
         self.assertEquals(results.keys(), [EICAR_HASH])
-        self.assertEquals(sorted(results[EICAR_HASH]['results'].keys()), sorted(probelaunched))
+        ref_keys = results[EICAR_HASH]['results'].keys()
+        self.assertEquals(sorted(ref_keys), sorted(probelaunched))
         for p in probe:
-            self.assertEquals(results[EICAR_HASH]['results'][p]['result'], EICAR_RESULTS[p]['result'])
+            res = results[EICAR_HASH]['results'][p]['result']
+            self.assertEquals(res, EICAR_RESULTS[p]['result'])
         return
 
     def assertListContains(self, list1, list2):
         for l in list1:
             self.assertIn(l, list2)
+
 
 class IrmaEicarTest(FunctionnalTestCase):
 
@@ -89,6 +105,7 @@ class IrmaEicarTest(FunctionnalTestCase):
     def test_scan_virustotal(self):
         self._test_scan_eicar_file(force=True, probe=["VirusTotal"])
 
+
 class IrmaMonkeyTests(FunctionnalTestCase):
 
     def test_scan_add_after_launch(self):
@@ -100,7 +117,7 @@ class IrmaMonkeyTests(FunctionnalTestCase):
         _scan_launch(self.scanid, force, probe, DEBUG)
         start = time.time()
         while True:
-            (status , _, _, _) = _scan_progress(self.scanid, DEBUG)
+            (status, _, _, _) = _scan_progress(self.scanid, DEBUG)
             if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
                 break
             if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
