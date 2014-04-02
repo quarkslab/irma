@@ -34,7 +34,7 @@ Two possibilities:
 
 .. code-block:: bash
 
-    $ git clone https://github.com/quarkslab/irma-brain.git irma
+    $ git clone --recursive https://github.com/quarkslab/irma-brain.git irma
 
 ------------
 Installation
