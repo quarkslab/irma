@@ -21,6 +21,7 @@ config.conf_probe_celery(probe_app)
 frontend_app = Celery('frontend')
 config.conf_frontend_celery(frontend_app)
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -31,37 +32,48 @@ class bcolors:
 
 status_ok = 0
 status_ko = 1
-status_str = [bcolors.OKGREEN + "[+]" + bcolors.ENDC, bcolors.FAIL + "[-]" + bcolors.ENDC]
+status_str = [bcolors.OKGREEN + "[+]" + bcolors.ENDC,
+              bcolors.FAIL + "[-]" + bcolors.ENDC]
+
 
 def print_hdr(msg):
     print
     print bcolors.HEADER + "## {0} ##".format(msg) + bcolors.ENDC
     print
 
+
 def print_msg(code_msg_list):
     for (status, line) in code_msg_list:
         print '\t',
         print status_str[status], line
+
 
 def ping_celery_app(celery):
     try:
         res = []
         ping_status = celery.control.ping(timeout=0.5)
         if len(ping_status) == 0:
-            res.append((status_ko, 'celery app {0} is down'.format(celery.main)))
+            res.append((status_ko,
+                        'celery app {0} is down'.format(celery.main)))
         for r in ping_status:
             for host, response in r.items():
                 if response['ok'] == u'pong':
-                    res.append((status_ok, 'celery app {0} is up and running'.format(host)))
+                    msg = 'celery app {0} is up'.format(host)
+                    res.append((status_ok, msg))
                 else:
-                    res.append((status_ko, 'celery app {0} is down'.format(host)))
+                    msg = 'celery app {0} is down'.format(host)
+                    res.append((status_ko, msg))
         queues = celery.control.inspect().active_queues()
         for (host, infolist) in queues.items():
             queuenames = "-".join([info['name'] for info in infolist])
-            res.append((status_ok, '\t| {0} queue {1}'.format(host, queuenames)))
+            msg = '\t| {0} queue {1}'.format(host, queuenames)
+            res.append((status_ok, msg))
     except:
-        res.append((status_ko, 'no celery running perhaps broker is down on %s' % celery.conf['BROKER_URL']))
+        url = celery.conf['BROKER_URL']
+        msg = "no celery running perhaps broker is down on {0}".format(url)
+        res.append((status_ko, msg))
     return res
+
 
 def ping_db(uri):
     try:
@@ -70,12 +82,22 @@ def ping_db(uri):
     except:
         return [(status_ko, 'mongodb {0} is down'.format(uri))]
 
+
 def ping_rabbitmq(address, port, usr, pwd, vhost):
     try:
-        amqp.Connection(host='{address}:{port}'.format(address=address, port=port), userid=usr, password=pwd, virtual_host=vhost)
-        return [(status_ok, 'rabbitmq vhost {vhost} on {address} is up and runnning'.format(vhost=vhost, address=address))]
+        host = '{address}:{port}'.format(address=address, port=port)
+        amqp.Connection(host=host,
+                        userid=usr,
+                        password=pwd,
+                        virtual_host=vhost)
+        msg = "rabbitmq vhost {0} on {1} is up".format(vhost,
+                                                       address)
+        return [(status_ok, msg)]
     except:
-        return [(status_ko, 'rabbitmq vhost {vhost} on {address} is down'.format(vhost=vhost, address=address))]
+        msg = 'rabbitmq vhost {0} on {1} is down'.format(vhost,
+                                                         address)
+        return [(status_ko, msg)]
+
 
 def ping_frontend(url):
     try:
@@ -83,6 +105,7 @@ def ping_frontend(url):
         return [(status_ok, 'frontend {0} is up and runnning'.format(url))]
     except:
         return [(status_ko, 'frontend {0} is down'.format(url))]
+
 
 def ping_libvirt(uri):
     try:
@@ -93,8 +116,12 @@ def ping_libvirt(uri):
     return
 
 print_hdr("RabbitMQ")
-for broker in [ 'broker_brain', 'broker_probe', 'broker_frontend']:
-    print_msg(ping_rabbitmq(config.brain_config[broker].host, config.brain_config[broker].port, config.brain_config[broker].username, config.brain_config[broker].password, config.brain_config[broker].vhost))
+for broker in ['broker_brain', 'broker_probe', 'broker_frontend']:
+    print_msg(ping_rabbitmq(config.brain_config[broker].host,
+                            config.brain_config[broker].port,
+                            config.brain_config[broker].username,
+                            config.brain_config[broker].password,
+                            config.brain_config[broker].vhost))
 
 print_hdr("Frontend")
 print_msg(ping_frontend(FRONTEND_TEST_URL))
