@@ -137,8 +137,7 @@ class ScanRefResults(NoSQLDatabaseObject):
             sha256 = scanfile.hashvalue
             res[sha256] = {}
             res[sha256]['filename'] = " - ".join(scanfile.alt_filenames)
-            for (probe, results) in self.results.iteritems():
-                res[sha256]['results'][probe] = results
+            res[sha256]['results'] = self.results
             res[sha256]['nb_scan'] = len(scanfile.scan_id)
             res[sha256]['date_upload'] = scanfile.date_upload
             res[sha256]['date_last_scan'] = scanfile.date_last_scan
