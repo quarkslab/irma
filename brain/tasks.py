@@ -78,9 +78,10 @@ def route(sig):
 
 def get_probelist():
     now = time.time()
-    cache_time = now - cache_probelist['time']
     result_queue = config.brain_config['broker_probe'].queue
-    if not cache_probelist['list'] or cache_time > PROBELIST_CACHE_TIME:
+    if cache_probelist['time'] is not None:
+        cache_time = now - cache_probelist['time']
+    if cache_probelist['time'] is None or cache_time > PROBELIST_CACHE_TIME:
         slist = list()
         i = probe_app.control.inspect()
         queues = i.active_queues()
