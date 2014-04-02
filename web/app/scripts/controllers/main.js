@@ -162,10 +162,8 @@ angular.module('irma')
   $scope.fetchResults = function(fn){
     var task = $http.get($scope.rootApi+'/scan/result/'+$scope.scanId).then(function(response){
       if(response.data.code === 0){
-        $scope.results = response.data.scan_results;
-
         for(var file in $scope.results){
-          $scope.results[file].results = _.extend(angular.copy($scope.emptyResults), $scope.results[file].results);
+          $scope.results[file].results = _.extend(angular.copy($scope.emptyResults), response.data.scan_results[file].results);
         }
       } else {
         alerts.add({type: 'danger', message: '<strong>Error:</strong> An error occured retrieving results', dismiss: 10000});
