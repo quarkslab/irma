@@ -125,6 +125,15 @@ def scan_launch(scanid, force, probelist):
 
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
     if probelist is not None:
+        unknown_probes = []
+        for p in probelist:
+            if p not in all_probe_list:
+                unknown_probes.append(p)
+        if len(unknown_probes) != 0:
+            reason = "Probe {0} unknown".format(", ".join(unknown_probes))
+            scan.update_status(IrmaScanStatus.cancelled)
+            scan.release()
+            raise IrmaFrontendError(reason)
         scan.probelist = probelist
     else:
         # all available probe
