@@ -87,9 +87,7 @@ def _conf_celery(app, broker, backend=None, queue=None):
             CELERY_DEFAULT_QUEUE=queue,
             # delivery_mode=1 enable transient mode
             # (don't survive to a server restart)
-            CELERY_QUEUES=(
-                Queue(queue, routing_key=queue),
-                )
+            CELERY_QUEUES=(Queue(queue, routing_key=queue),)
             )
     cron_cfg = frontend_config['cron_frontend']
     app.conf.update(
@@ -146,7 +144,9 @@ def _get_backend_uri(backend_config):
     host = backend_config.host
     port = backend_config.port
     db = backend_config.db
-    return "redis://{host}:{port}/{db}".format(host=host, port=port, db=db)
+    return "redis://{host}:{port}/{db}".format(host=host,
+                                               port=port,
+                                               db=db)
 
 
 def get_brain_backend_uri():
@@ -160,12 +160,14 @@ def get_brain_backend_uri():
 def _get_broker_uri(broker_config):
     user = broker_config.username
     pwd = broker_config.password
-    auth = "{user}:{pwd}".format(user=user, pwd=pwd)
     host = broker_config.host
     port = broker_config.port
     vhost = broker_config.vhost
-    address = "{host}:{port}/{vhost}".format(host=host, port=port, vhost=vhost)
-    return "amqp://{auth}@{address}".format(auth=auth, address=address)
+    return "amqp://{user}:{pwd}@{host}:{port}/{vhost}".format(user=user,
+                                                              pwd=pwd,
+                                                              host=host,
+                                                              port=port,
+                                                              vhost=vhost)
 
 
 def get_brain_broker_uri():
