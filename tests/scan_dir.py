@@ -22,7 +22,7 @@ Probelist = [u'ClamAV', u'VirusTotal', u'Kaspersky', u'Sophos',
 scanner = None
 
 
-def handler(_, _):
+def handler(*_):
     print 'Cancelling...'
     if scanner is not None:
         scanner.cancel()
