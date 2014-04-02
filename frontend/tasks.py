@@ -39,8 +39,6 @@ def scan_launch(scanid, force):
                 # fetch results already present in base
                 ref_res = ScanRefResults.init_id(scanfile_id)
                 for (probe, results) in ref_res.results.items():
-                    if scan.probelist is not None:
-                        continue
                     if probe not in scan.probelist:
                         continue
                     scan_res.results[probe] = results
