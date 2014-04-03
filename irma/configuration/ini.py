@@ -7,6 +7,7 @@ except ImportError:
 from irma.common.exceptions import IrmaConfigurationError
 from irma.configuration.config import Configuration, ConfigurationSection
 
+
 class IniConfiguration(Configuration):
     """Windows ini-like configuration file parser."""
 
@@ -27,8 +28,12 @@ class IniConfiguration(Configuration):
                         value = config.get(section, name)
                 setattr(getattr(self, section), name, value)
 
+
 class TemplatedConfiguration(Configuration):
-    """Windows ini-like configuration file parser with template for required keys and their types."""
+    """
+    Windows ini-like configuration file parser
+    with template for required keys and their types.
+    """
     boolean = 0
     integer = 1
     string = 2
@@ -60,15 +65,21 @@ class TemplatedConfiguration(Configuration):
             # as it may have default value, check at value fetching
             setattr(self, section, ConfigurationSection())
             if type(template[section]) != list:
-                raise IrmaConfigurationError("Malformed Template section type should be list")
+                reason = "Malformed Template section type should be list"
+                raise IrmaConfigurationError(reason)
             for (key_name, key_type, key_def_value) in template[section]:
                 if not config.has_option(section, key_name):
                     # If key not found but a default value exists, set it
-                    if key_def_value:
-                        setattr(getattr(self, section), key_name, key_def_value)
+                    if key_def_value is not None:
+                        setattr(getattr(self, section),
+                                key_name,
+                                key_def_value)
                         continue
                     else:
-                        raise IrmaConfigurationError("file {0} missing section {1} key {2}".format(cfg_file, section, key_name))
+                        reason = ("file {0} ".format(cfg_file) +
+                                  "missing section {0} ".format(section) +
+                                  "key {0}".format(key_name))
+                        raise IrmaConfigurationError(reason)
                 try:
                     if key_type == self.boolean:
                         value = config.getboolean(section, key_name)
@@ -78,4 +89,7 @@ class TemplatedConfiguration(Configuration):
                         value = config.get(section, key_name)
                     setattr(getattr(self, section), key_name, value)
                 except ValueError:
-                    raise IrmaConfigurationError("file {0} missing section {1} Wrong type for key {2}".format(cfg_file, section, key_name,))
+                    reason = ("file {0} ".format(cfg_file) +
+                              "missing section {0} ".format(section) +
+                              "Wrong type for key {0}".format(key_name))
+                    raise IrmaConfigurationError(reason)
