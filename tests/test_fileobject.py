@@ -28,7 +28,8 @@ def enable_logging(level=logging.INFO, handler=None, formatter=None):
     global log
     log = logging.getLogger()
     if formatter is None:
-        formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(asctime)s [%(name)s] " +
+                                      "%(levelname)s: %(message)s")
     if handler is None:
         handler = logging.StreamHandler()
     handler.setFormatter(formatter)

@@ -20,7 +20,11 @@ class TestObject(NoSQLDatabaseObject):
     _dbname = test_db_name
     _collection = test_db_collection
 
-    def __init__(self, dbname=None, id=None, mode=IrmaLockMode.read, save=True):
+    def __init__(self,
+                 dbname=None,
+                 id=None,
+                 mode=IrmaLockMode.read,
+                 save=True):
         if dbname is not None:
             self._dbname = dbname
         self.user = "test"
@@ -41,11 +45,14 @@ class TestObject(NoSQLDatabaseObject):
 ##############################################################################
 # Logging options
 ##############################################################################
-def enable_logging(level=logging.INFO, handler=None, formatter=None):
+def enable_logging(level=logging.INFO,
+                   handler=None,
+                   formatter=None):
     global log
     log = logging.getLogger()
     if formatter is None:
-        formatter = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+        formatter = logging.Formatter("%(asctime)s [%(name)s] " +
+                                      "%(levelname)s: %(message)s")
     if handler is None:
         handler = logging.StreamHandler()
     handler.setFormatter(formatter)
@@ -81,7 +88,8 @@ class DbTestCase(unittest.TestCase):
 class CheckSingleton(DbTestCase):
 
     def test_singleton(self):
-        self.assertEquals(id(NoSQLDatabase(test_db_name, test_db_uri)), id(NoSQLDatabase(test_db_name, test_db_uri)))
+        self.assertEquals(id(NoSQLDatabase(test_db_name, test_db_uri)),
+                          id(NoSQLDatabase(test_db_name, test_db_uri)))
 
 
 class CheckAddObject(DbTestCase):
@@ -182,9 +190,10 @@ class CheckAddObject(DbTestCase):
         t.list.append(3)
         t.update()
         self.assertEquals(t.list, [1, 2, 3])
-        t.update({'user':"bla"})
+        t.update({'user': "bla"})
         t1 = TestObject(id=t.id)
         self.assertEquals(t1.user, "bla")
+
 
 class CheckLockObject(DbTestCase):
     def test_is_lock_free(self):
@@ -204,7 +213,8 @@ class CheckLockObject(DbTestCase):
     def test_has_state_changed(self):
         t = TestObject()
         t2 = TestObject(id=t.id)
-        t.date = t2.date    # the instantiation of t2 has changed the value of date in the db
+        # the instantiation of t2 has changed the value of date in the db
+        t.date = t2.date
         self.assertFalse(t.has_state_changed())
         t2.list.append(1)
         t2.list.append(2)
