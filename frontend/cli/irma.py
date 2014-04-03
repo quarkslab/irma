@@ -4,7 +4,7 @@ import requests
 import json
 import argparse
 
-ADDRESS = "http://frontend.irma.qb/_api/"
+ADDRESS = "http://frontend.irma.qb/_api"
 
 
 class IrmaReturnCode:
@@ -160,8 +160,8 @@ def scan_progress(scanid=None, partial=None, verbose=False):
         if finished != 0:
             rate_success = successful * 100 / finished
             print ("{0}/{1} jobs finished ".format(finished, total) +
-                   "({0}%%) / ".format(rate_total) +
-                   "{0} success ({1}%%)".format(successful, rate_success))
+                   "({0}%) / ".format(rate_total) +
+                   "{0} success ({1}%)".format(successful, rate_success))
     else:
         print "Scan status : {0}".format(status)
     if status == IrmaScanStatus.label[IrmaScanStatus.finished] or partial:
