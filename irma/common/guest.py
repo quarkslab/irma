@@ -1,7 +1,8 @@
-# See http://stackoverflow.com/questions/1305532/
 
+
+# See http://stackoverflow.com/questions/1305532/
 class Guest:
-    
+
     def __init__(self):
         self._label = None
         self._uuid = None
@@ -14,14 +15,13 @@ class Guest:
         self._started_on = None
         self._shutdown_on = None
 
-    ##########################################################################
-    # Getters and setters
-    ##########################################################################
-
+    # =====================
+    #  Getters and setters
+    # =====================
     @property
     def label(self):
-        return self._label;
-    
+        return self._label
+
     @label.setter
     def label(self, val):
         self._label = val
@@ -30,11 +30,10 @@ class Guest:
     def label(self):
         del self._label
 
-
     @property
     def uuid(self):
-        return self._uuid;
-    
+        return self._uuid
+
     @uuid.setter
     def uuid(self, val):
         self._uuid = val
@@ -43,11 +42,10 @@ class Guest:
     def uuid(self):
         del self._uuid
 
-    
     @property
     def os_type(self):
-        return self._os_type;
-    
+        return self._os_type
+
     @os_type.setter
     def os_type(self, val):
         self._os_type = val
@@ -56,11 +54,10 @@ class Guest:
     def os_type(self):
         del self._os_type
 
-     
     @property
     def os_variant(self):
-        return self._os_variant;
-    
+        return self._os_variant
+
     @os_variant.setter
     def os_variant(self, val):
         self._os_variant = val
@@ -69,11 +66,10 @@ class Guest:
     def os_variant(self):
         del self._os_variant
 
-     
     @property
     def state(self):
-        return self._state;
-    
+        return self._state
+
     @state.setter
     def state(self, val):
         self._state = val
@@ -82,11 +78,10 @@ class Guest:
     def state(self):
         del self._state
 
-
     @property
     def locked(self):
-        return self._locked;
-    
+        return self._locked
+
     @locked.setter
     def locked(self, val):
         self._locked = val
@@ -95,11 +90,10 @@ class Guest:
     def locked(self):
         del self._locked
 
-
     @property
     def disks(self):
-        return self._disks;
-    
+        return self._disks
+
     @disks.setter
     def disks(self, val):
         self._disks = val
@@ -108,11 +102,10 @@ class Guest:
     def disks(self):
         del self._disks
 
-
     @property
     def master_label(self):
-        return self._master_label;
-    
+        return self._master_label
+
     @master_label.setter
     def master_label(self, val):
         self._master_label = val
@@ -121,11 +114,10 @@ class Guest:
     def master_label(self):
         del self._master_label
 
-
     @property
     def started_on(self):
-        return self._started_on;
-    
+        return self._started_on
+
     @started_on.setter
     def started_on(self, val):
         self._started_on = val
@@ -134,11 +126,10 @@ class Guest:
     def started_on(self):
         del self._started_on
 
-    
     @property
     def shutdown_on(self):
-        return self._shutdown_on;
-    
+        return self._shutdown_on
+
     @shutdown_on.setter
     def shutdown_on(self, val):
         self._shutdown_on = val
@@ -146,7 +137,6 @@ class Guest:
     @shutdown_on.deleter
     def shutdown_on(self):
         del self._shutdown_on
-    
 
     def test(self):
         self._label = None
@@ -160,7 +150,11 @@ class Guest:
         self._started_on = None
         self._shutdown_on = None
 
-        return dict((key, getattr(self, key)) for key in dir(self) if not key.startswith('_') and not callable(getattr(self, key)))
+        res = dict()
+        for key in dir(self):
+            if not key.startswith('_') and not callable(getattr(self, key)):
+                res[key] = getattr(self, key)
+        return res
 
 if __name__ == '__main__':
     guest = Guest()

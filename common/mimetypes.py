@@ -1,23 +1,30 @@
-import magic, os, logging
+import magic
+import os
+import logging
 
 log = logging.getLogger(__name__)
 
+
 class Magic(object):
 
-    ##########################################################################
-    # internal helpers
-    ##########################################################################
+    # ==================
+    #  internal helpers
+    # ==================
 
     @classmethod
-    def _initialize(cls, magic_file=None, mime=False, mime_encoding=False, keep_going=False):
+    def _initialize(cls,
+                    magic_file=None,
+                    mime=False,
+                    mime_encoding=False,
+                    keep_going=False):
         # setting flags
         cls.flags = magic.MAGIC_NONE
         if mime:
-            cls.flags |= MAGIC_MIME
+            cls.flags |= magic.MAGIC_MIME
         elif mime_encoding:
-            cls.flags |= MAGIC_MIME_ENCODING
+            cls.flags |= magic.MAGIC_MIME_ENCODING
         if keep_going:
-            cls.flags |= MAGIC_CONTINUE
+            cls.flags |= magic.MAGIC_CONTINUE
         # creating cookie
         try:
             cls.cookie = magic.open(cls.flags)
@@ -27,25 +34,29 @@ class Magic(object):
                     cls.cookie.load(magic_file)
                 else:
                     print("warning")
-                    log.warning("magic database {0} does not exist, reverting to default.".format(magic_file))
+                    log.warning("magic database {0} ".format(magic_file) +
+                                "does not exist, reverting to default.")
                     cls.cookie.load()
             else:
                 cls.cookie.load()
-        except AttributeError as e:
-            cls.cookie = magic.Magic(mime=mime, magic_file=magic_file, mime_encoding=mime_encoding, keep_going=keep_going)
+        except AttributeError:
+            cls.cookie = magic.Magic(mime=mime,
+                                     magic_file=magic_file,
+                                     mime_encoding=mime_encoding,
+                                     keep_going=keep_going)
             cls.cookie.file = cls.cookie.from_file
             cls.cookie.buffer = cls.cookie.from_buffer
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+    # ================
+    #  Public methods
+    # ================
 
     @classmethod
     def from_buffer(cls, buf, **kwargs):
         cls._initialize(**kwargs)
         # perform processing
         try:
-            filetype = cls.cookie.buffer(data)
+            filetype = cls.cookie.buffer(buf)
         except:
             filetype = None
         finally:

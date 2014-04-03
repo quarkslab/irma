@@ -9,5 +9,6 @@ DateTime = sqlalchemy.DateTime
 Base = declarative_base()
 ForeignKey = sqlalchemy.ForeignKey
 
+
 class SQLDatabaseObject(object):
     pass

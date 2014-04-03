@@ -1,9 +1,8 @@
-import types
 
 
-##############################################################################
-# Singleton Design Pattern
-##############################################################################
+# ==========================
+#  Singleton Design Pattern
+# ==========================
 
 class SingletonMetaClass(type):
     """Metaclass for singleton design pattern.
@@ -20,7 +19,8 @@ class SingletonMetaClass(type):
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(SingletonMetaClass, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = \
+                super(SingletonMetaClass, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
 # Metaclass compatible with python 2 and 3. Inherit from this for singletons
@@ -34,7 +34,7 @@ base class to make a class implement the singleton design pattern.
 
         # a class implementing a singleton
         class aParametricSingleton(Singleton):
-            
+
             # do some stuff here
             pass
 
@@ -44,9 +44,10 @@ base class to make a class implement the singleton design pattern.
 
 """
 
-##############################################################################
-# Parametric Singleton Design Pattern
-##############################################################################
+
+# =====================================
+#  Parametric Singleton Design Pattern
+# =====================================
 
 class ParametricSingletonMetaClass(type):
     """Metaclass for parametric singleton design pattern
@@ -65,14 +66,15 @@ class ParametricSingletonMetaClass(type):
 
     def __call__(cls, *args, **kwargs):
         # check for "depends_on" attribute
-        if not "depends_on" in kwargs and not hasattr(cls, "depends_on"):
+        if "depends_on" not in kwargs and not hasattr(cls, "depends_on"):
             raise TypeError("argument or attribute 'depends_on' not defined")
         # check for unbound methods
         if "depends_on" in kwargs and \
            (not kwargs["depends_on"] or not callable(kwargs["depends_on"])):
             raise TypeError("function in parameter 'depends_on' is not bound")
         elif hasattr(cls, "depends_on") and \
-             (not getattr(cls, "depends_on") or not callable(getattr(cls, "depends_on"))):
+            (not getattr(cls, "depends_on") or
+             not callable(getattr(cls, "depends_on"))):
             raise TypeError("function in attribute 'depends_on' is not bound")
 
         # call depends_on to get the key
@@ -86,14 +88,18 @@ class ParametricSingletonMetaClass(type):
         if cls not in cls._instances:
             cls._instances[cls] = {}
         if key not in cls._instances[cls]:
-            cls._instances[cls][key] = super(ParametricSingletonMetaClass, cls).__call__(*args, **kwargs)
+            cls._instances[cls][key] = \
+                super(ParametricSingletonMetaClass, cls).\
+                __call__(*args, **kwargs)
         return cls._instances[cls][key]
 
     def update_key(cls, old_key, new_key):
         cls._instances[cls][new_key] = cls._instances[cls].pop(old_key)
 
-# Metaclass compatible with python 2 and 3. Inherit from this for parametric singletons
-ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton', (object,), {})
+# Metaclass compatible with python 2 and 3.
+# Inherit from this for parametric singletons
+ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton',
+                                                   (object,), {})
 """Base class for parametric singletons
 
 This class implements the parametric singleton design pattern. One can inherit
@@ -107,7 +113,7 @@ used for the hash table storing the instances:
 .. code-block:: python
 
     class aParametricSingleton(ParametricSingleton):
-  
+
         @staticmethod
         def depends_on(*args, **kwargs):
             return "my key"
@@ -115,11 +121,12 @@ used for the hash table storing the instances:
 * example with a **``lambda`` wrapped with a static method**:
 
 .. code-block:: python
-        
+
     class aParametricSingleton(ParametricSingleton):
 
         depends_on = staticmethod(lambda *args, **kwargs: "my key")
 """
+
 
 class PluginMetaClass(type):
     """Metaclass for auto-registering plugin pattern
@@ -127,14 +134,14 @@ class PluginMetaClass(type):
     .. warning::
 
             This metaclass should not be used directly. To declare a class
-            using the plugin pattern, one should use the :class:`Plugin` 
+            using the plugin pattern, one should use the :class:`Plugin`
             class instead.
 
     """
-    ##########################################################################
-    # class constructor
-    ##########################################################################
 
+    # ===================
+    #  class constructor
+    # ===================
     def __init__(cls, name, bases, attrs):
         # small hack to skip Plugin base class when initializing
         if not len(attrs):
@@ -152,18 +159,18 @@ class PluginMetaClass(type):
             # track of it later.
             cls._plugins.append(cls)
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  Plugin metadata
+    # =================
 
     _plugin_name = None
     _plugin_version = None
     _plugin_description = None
     _plugin_dependencies = None
 
-    ##########################################################################
-    # setters and getters
-    ##########################################################################
+    # =====================
+    #  Setters and getters
+    # =====================
 
     @property
     def plugin_name(cls):
@@ -185,10 +192,10 @@ class PluginMetaClass(type):
     def plugins(cls):
         return cls._plugins
 
-    ##########################################################################
-    # utility methods
-    ##########################################################################
-    
+    # =================
+    #  Utility methods
+    # =================
+
     def get_plugins(cls, *args, **kwargs):
         """return instances of plugins"""
         return [plugin(*args, **kwargs) for plugin in cls._plugins]

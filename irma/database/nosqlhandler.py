@@ -8,7 +8,9 @@ from irma.common.exceptions import IrmaDatabaseError
 
 log = logging.getLogger(__name__)
 
-# TODO: Create an abstract class so we can use multiple databases, not only mongodb
+
+# TODO: Create an abstract class so we can use multiple databases,
+# not only mongodb
 class NoSQLDatabase(Singleton):
     """Internal database.
 
@@ -41,7 +43,7 @@ class NoSQLDatabase(Singleton):
 
     def _connect(self):
         if self._db_conn:
-            logging.warn("Already connected to database")
+            log.warn("Already connected to database")
         try:
             self._db_conn = Connection(self._db_uri)
         except Exception as e:
@@ -56,7 +58,7 @@ class NoSQLDatabase(Singleton):
             raise IrmaDatabaseError("{0}".format(e))
 
     def _database(self, db_name):
-        if not db_name in self._db_cache:
+        if db_name not in self._db_cache:
             try:
                 self._db_cache[db_name] = self._db_conn[db_name]
             except Exception as e:
@@ -65,7 +67,8 @@ class NoSQLDatabase(Singleton):
 
     def _table(self, db_name, coll_name):
         database = self._database(db_name)
-        # TODO: Fix collision if two tables from different databases have the same name
+        # TODO: Fix collision if two tables
+        # from different databases have the same name
         if coll_name not in self._coll_cache:
             try:
                 self._coll_cache[coll_name] = database[coll_name]
@@ -93,7 +96,7 @@ class NoSQLDatabase(Singleton):
         """ check if entry with _id is in collection"""
         collection = self._table(db_name, collection_name)
         try:
-            res = collection.find_one({'_id':_id})
+            res = collection.find_one({'_id': _id})
             return res is not None
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
@@ -108,7 +111,10 @@ class NoSQLDatabase(Singleton):
             raise IrmaDatabaseError("{0}".format(e))
 
     def update(self, db_name, collection_name, _id, update_dict):
-        """ Update entries in collection according to the dictionnary specified"""
+        """
+        Update entries in collection according to
+        the dictionnary specified
+        """
         collection = self._table(db_name, collection_name)
         try:
             collection.update({"_id": _id}, {"$set": update_dict})
@@ -119,7 +125,7 @@ class NoSQLDatabase(Singleton):
         """ Delete entry in collection according to the given id"""
         collection = self._table(db_name, collection_name)
         try:
-            collection.remove({'_id':_id})
+            collection.remove({'_id': _id})
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
@@ -128,9 +134,12 @@ class NoSQLDatabase(Singleton):
 
         :param db_name: The database
         :param collection_name: The name of the collection
-        :param *args **kwargs: see http://api.mongodb.org/python/current/api/pymongo/collection.html#pymongo.collection.Collection.find
-                and http://docs.mongodb.org/manual/tutorial/query-documents/
-        :rtype: cursor, see http://api.mongodb.org/python/current/api/pymongo/cursor.html#pymongo.cursor.Cursor
+        :param *args **kwargs: see
+            http://api.mongodb.org/python/current/api/pymongo/collection.html#\
+            pymongo.collection.Collection.find
+            and http://docs.mongodb.org/manual/tutorial/query-documents/
+        :rtype: cursor, see http://api.mongodb.org/python/current/api/pymongo/\
+        cursor.html#pymongo.cursor.Cursor
                 and http://docs.mongodb.org/manual/core/cursors/
         :return: the result of the query
         """
@@ -142,7 +151,8 @@ class NoSQLDatabase(Singleton):
 
     def put_file(self, db_name, collection_name, data, name):
         """ put data into gridfs """
-        fsdbh = gridfs.GridFS(self._database(db_name), collection=collection_name)
+        fsdbh = gridfs.GridFS(self._database(db_name),
+                              collection=collection_name)
         # create a new record
         try:
             file_oid = fsdbh.put(data, filename=name)
@@ -152,7 +162,8 @@ class NoSQLDatabase(Singleton):
 
     def get_file(self, db_name, collection_name, file_oid):
         """ get data from gridfs by file object-id """
-        fsdbh = gridfs.GridFS(self._database(db_name), collection=collection_name)
+        fsdbh = gridfs.GridFS(self._database(db_name),
+                              collection=collection_name)
         try:
             return fsdbh.get(file_oid)
         except Exception as e:

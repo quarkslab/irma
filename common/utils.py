@@ -1,8 +1,12 @@
-import uuid, re, random
+import uuid
+import re
+import random
+
 
 class UUID(object):
 
-    pattern = re.compile(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', re.IGNORECASE)
+    pattern = re.compile(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}',
+                         re.IGNORECASE)
 
     @classmethod
     def validate(cls, val):
@@ -20,9 +24,10 @@ class UUID(object):
     def normalize(cls, val):
         return str(uuid.UUID(val))
 
+
 class MAC(object):
 
-    pattern = re.compile("[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}:[0-9a-f]{2}", re.IGNORECASE)
+    pattern = re.compile(r'[0-9a-f]{2}(:[0-9a-f]{2}){5}', re.IGNORECASE)
 
     @classmethod
     def validate(cls, val):
@@ -32,14 +37,17 @@ class MAC(object):
 
     @classmethod
     def generate(cls, oui=None):
-        if not oui or len(oui) != 3 or \
-            not reduce(lambda x, y: x and y, map(lambda x: isinstance(x, int), oui)):
-            oui = [0x00, 0x16, 0x3e] # Xensource, Inc.
+        if not oui or \
+            len(oui) != 3 or \
+            not reduce(lambda x, y: x and y,
+                       map(lambda x: isinstance(x, int), oui)):
+            # Xensource, Inc.
+            oui = [0x00, 0x16, 0x3e]
         mac = []
         mac.extend(map(lambda x: x % 255, oui))
-        mac.extend([ random.randint(0x00, 0x7f),
-                     random.randint(0x00, 0xff),
-                     random.randint(0x00, 0xff) ])
+        mac.extend([random.randint(0x00, 0x7f),
+                    random.randint(0x00, 0xff),
+                    random.randint(0x00, 0xff)])
         return ':'.join(map(lambda x: "%02x" % x, mac))
 
     @classmethod
@@ -47,7 +55,7 @@ class MAC(object):
         return str(val)
 
 # author liudmil-mitev
-# source https://github.com/liudmil-mitev/experiments/blob/master/time/humanize_time.py
+# source https://github.com/liudmil-mitev/experiments/
 
 INTERVALS = [1, 60, 3600, 86400, 604800, 2419200, 29030400]
 NAMES = [('second', 'seconds'),
@@ -57,6 +65,7 @@ NAMES = [('second', 'seconds'),
          ('week', 'weeks'),
          ('month', 'months'),
          ('year', 'years')]
+
 
 def humanize_time(amount, units):
     """
@@ -86,6 +95,7 @@ def humanize_time(amount, units):
             result.append((a, NAMES[i][1 % a]))
             amount -= a * INTERVALS[i]
     return result
+
 
 def humanize_time_str(amount, units):
     res = []

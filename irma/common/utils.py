@@ -1,4 +1,8 @@
-# ______________________________________________________________ TASKS RESPONSE FORMATTER
+
+
+# ==========================
+#  Tasks response formatter
+# ==========================
 
 class IrmaTaskReturn:
     @staticmethod
@@ -13,36 +17,52 @@ class IrmaTaskReturn:
     def error(msg):
         return (IrmaReturnCode.error, msg)
 
-# ______________________________________________________________ FRONTEND RESPONSE FORMATTER
+
+# =============================
+#  Frontend response formatter
+# =============================
 
 class IrmaFrontendReturn:
     @staticmethod
     def response(code, msg, **kwargs):
-        ret = {'code':code, 'msg':msg}
+        ret = {'code': code, 'msg': msg}
         ret.update(kwargs)
         return ret
 
     @staticmethod
     def success(**kwargs):
-        return IrmaFrontendReturn.response(IrmaReturnCode.success, "success", **kwargs)
+        return IrmaFrontendReturn.response(IrmaReturnCode.success,
+                                           "success", **kwargs)
 
     @staticmethod
     def warning(msg, **kwargs):
-        return IrmaFrontendReturn.response(IrmaReturnCode.warning, msg, **kwargs)
+        return IrmaFrontendReturn.response(IrmaReturnCode.warning,
+                                           msg,
+                                           **kwargs)
 
     @staticmethod
     def error(msg, **kwargs):
-        return IrmaFrontendReturn.response(IrmaReturnCode.error, msg, **kwargs)
+        return IrmaFrontendReturn.response(IrmaReturnCode.error,
+                                           msg,
+                                           **kwargs)
 
-# ______________________________________________________________ RETURN CODE
+
+# =============
+#  Return code
+# =============
 
 class IrmaReturnCode:
     success = 0
     warning = 1
     error = -1
-    label = {success:"success", warning:"warning", error:"error"}
+    label = {success: "success",
+             warning: "warning",
+             error: "error"}
 
-# ______________________________________________________________ SCAN STATUS (Brain/Frontend)
+
+# ==============================
+#  Scan status (Brain/Frontend)
+# ==============================
 
 class IrmaScanStatus:
     created = 0
@@ -52,18 +72,19 @@ class IrmaScanStatus:
     processed = 30
     finished = 50
     flushed = 100
-    label = {
-             created:"created",
-             launched:"launched",
-             cancelling:"cancelling",
-             cancelled:"cancelled",
-             processed:"processed",
-             finished:"finished",
-             flushed:"flushed"
-    }
+    label = {created: "created",
+             launched: "launched",
+             cancelling: "cancelling",
+             cancelled: "cancelled",
+             processed: "processed",
+             finished: "finished",
+             flushed: "flushed"
+             }
 
-# ______________________________________________________________ LOCK VALUES FOR NoSQLDatabaseObjects
-#                                                                   (FOR INTERNAL USE ONLY)
+
+# ==========================================================
+#  Lock values for NoSQLDatabaseObjects (internal use only)
+# ==========================================================
 
 class IrmaLock:
     free = 0
@@ -74,8 +95,10 @@ class IrmaLock:
     }
     lock_timeout = 60   # in seconds (delta between timestamps)
 
-# ______________________________________________________________ LOCK VALUES FOR NoSQLDatabaseObjects
-#                                                                   (FOR THE CALL TO THE CONSTRUCTORS)
+
+# =========================================================================
+#  Lock values for NoSQLDatabaseObjects (FOR THE CALL TO THE CONSTRUCTORS)
+# =========================================================================
 
 class IrmaLockMode:
     read = 'r'
