@@ -1,10 +1,12 @@
-import logging, sqlalchemy
+import logging
+import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from irma.common.exceptions import IrmaDatabaseError
 
 log = logging.getLogger(__name__)
+
 
 class SQLDatabase(object):
     """Internal database.
@@ -23,8 +25,7 @@ class SQLDatabase(object):
         self._connect()
 
     def __del__(self):
-        if self._session:
-            self._session.commit()
+        self._disconnect()
 
     def __enter__(self):
         return self
@@ -41,13 +42,13 @@ class SQLDatabase(object):
         self._session = Session()
 
     def _disconnect(self):
-        if not self._session:
+        if self._session is None:
             return
         try:
             self._session.commit()
             self._session.close()
+            self._session = None
         except Exception as e:
-            self._session.rollback()
             raise IrmaDatabaseError("{0}".format(e))
 
     ##########################################################################
@@ -78,7 +79,7 @@ class SQLDatabase(object):
 
     def one(self, classname, filter_expr):
         try:
-            return self._session.query(classname).filter_by(filter_expr).one()
+            return self._session.query(classname).filter(filter_expr).one()
         except NoResultFound:
             raise IrmaDatabaseError("No result found instead of one")
         except MultipleResultsFound:
