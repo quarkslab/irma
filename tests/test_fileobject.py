@@ -13,11 +13,8 @@ test_db_collection_files = "testfile"
 
 # test object
 class TestObject(FileObject):
-    _uri_file = test_db_uri
     _uri = test_db_uri
-    _dbname_file = test_db_name
     _dbname = test_db_name
-    _collection_file = test_db_collection_files
     _collection = test_db_collection
 
 
@@ -65,7 +62,7 @@ class DbTestCase(unittest.TestCase):
             self.skipTest(DbTestCase)
 
 
-class CheckFileSave(DbTestCase):
+class TestFileObject(DbTestCase):
     def test_file_save_load(self):
         t = TestObject()
         data = 'Some awesome data'
@@ -73,23 +70,36 @@ class CheckFileSave(DbTestCase):
         t2 = TestObject(id=t.id)
         self.assertEqual(t2.data, data)
 
-    def test_file_update(self):
-        t = TestObject()
-        t.save('Some useless data', 'AName')
-        new_data = 'Some useful data'
-        t.update_data(new_data)
-        t2 = TestObject(id=t.id)
-        self.assertEqual(t2.data, new_data)
-
-    def test_add_altname(self):
+    def test_file_update_on_save(self):
         t = TestObject()
         data = 'Some awesome data'
-        another_name = 'AnotherName'
         t.save(data, 'AName')
-        t.save(data, another_name)
-        t2 = TestObject(id=t.id)
-        self.assertIn(another_name, t2.altnames)
+        self.assertEqual(t.data, data)
 
+    def test_file_delete(self):
+        t = TestObject()
+        data = 'even more awesome data'
+        t.save(data, 'tempfile.bin')
+        t.delete()
+        with self.assertRaises(IrmaDatabaseError):
+            TestObject(id=t.id)
+
+    def test_dbname(self):
+        t = TestObject()
+        data = 'catch me if you can'
+        t.save(data, 'tempfile.bin')
+        u = TestObject(dbname=TestObject._dbname, id=t.id)
+        self.assertEqual(u.id, t.id)
+        self.assertEqual(u.data, data)
+
+    def test_id_none(self):
+        t = TestObject()
+        self.assertIsNone(t.id)
+
+    def test_no_data(self):
+        t = TestObject()
+        with self.assertRaises(IrmaDatabaseError):
+            t.data
 
 if __name__ == '__main__':
     enable_logging()
