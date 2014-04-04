@@ -15,9 +15,9 @@ log = logging.getLogger(__name__)
 class Antivirus(object):
     """Antivirus Base Class"""
 
-    #===========
-    # constants
-    #===========
+    # ===========
+    #  Constants
+    # ===========
 
     class ScanResult:
         CLEAN = 0
@@ -30,9 +30,9 @@ class Antivirus(object):
         MEDIUM = 2
         HIGH = 3
 
-    #==================================
-    # constructor and destructor stuff
-    #==================================
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, *args, **kwargs):
         # set default antivirus information
@@ -45,7 +45,9 @@ class Antivirus(object):
         self._scan_retcodes = {
             self.ScanResult.CLEAN: lambda x: x in [0],
             self.ScanResult.INFECTED: lambda x: x in [1],
-            self.ScanResult.ERROR: lambda x: not self._scan_retcodes[self.ScanResult.CLEAN](x) and not self._scan_retcodes[self.ScanResult.INFECTED](x),
+            self.ScanResult.ERROR: lambda x:
+                not self._scan_retcodes[self.ScanResult.CLEAN](x) and
+                not self._scan_retcodes[self.ScanResult.INFECTED](x),
         }
         # scan options
         # TODO: implement heuristics levels
@@ -56,9 +58,9 @@ class Antivirus(object):
         self._scan_results = dict()
         self._is_windows = sys.platform.startswith('win')
 
-    ##########################################################################
-    # antivirus methods
-    ##########################################################################
+    # ====================
+    #  Antivirus methods
+    # ====================
 
     # TODO: enable multiple paths
     # TODO: enable heuristics levels
@@ -81,12 +83,13 @@ class Antivirus(object):
             paths = os.path.abspath(paths)
         cmd = self.scan_cmd(paths, heuristic)
         results = self.run_cmd(cmd)
-        log.debug("Executed command line: {0}, results {1}".format(cmd, results))
+        log.debug("Executed command line: {0}, ".format(cmd) +
+                  "results {0}".format(results))
         return self.check_scan_results(paths, results)
 
-    ##########################################################################
-    # internal helpers
-    ##########################################################################
+    # ==================
+    #  Internal helpers
+    # ==================
 
     @staticmethod
     def build_cmd(cmd, *args):
@@ -105,7 +108,8 @@ class Antivirus(object):
         cmdarray = cmd.split()
         # execute command with popen, clean up outputs
         pd = Popen(cmdarray, stdout=PIPE, stderr=PIPE)
-        raw_stdout, stderr = map(lambda x: x.strip() if x.strip() else None, pd.communicate())
+        raw_stdout, stderr = map(lambda x: x.strip() if x.strip() else None,
+                                 pd.communicate())
         retcode = pd.returncode
         if raw_stdout is not None and sys.platform.startswith('win'):
             # get local encoding
@@ -149,21 +153,26 @@ class Antivirus(object):
             retcode = self.ScanResult.INFECTED
         elif self._scan_retcodes[self.ScanResult.ERROR](retcode):
             retcode = self.ScanResult.ERROR
-            log.error("command line returned {0}: {1}".format(retcode, (stdout, stderr)))
+            log.error("command line returned {0}".format(retcode) +
+                      ": {0}".format((stdout, stderr)))
         else:
-            raise RuntimeError("unhandled return code {0} in class {1}: {2}".format(retcode, type(self).__name__, results))
+            reason = ("unhandled return code {0} ".format(retcode) +
+                      "in class {0}: ".format(type(self).__name__) +
+                      "{0}".format(results))
+            raise RuntimeError(reason)
         # handle infected and error error codes
         if retcode in [self.ScanResult.INFECTED, self.ScanResult.ERROR]:
             if stdout:
                 for pattern in self.scan_patterns:
                     matches = pattern.finditer(stdout)
                     for match in matches:
-                        self.scan_results[match.group('file').lower()] = match.group('name')
+                        filename = match.group('file').lower()
+                        self.scan_results[filename] = match.group('name')
         return retcode
 
-    ##########################################################################
-    # getters (for RO variable, for late resolution and value uniformisation)
-    ##########################################################################
+    # =========================================================================
+    #  getters (for RO variable, for late resolution and value uniformisation)
+    # =========================================================================
 
     @property
     def name(self):
@@ -207,9 +216,9 @@ class Antivirus(object):
     def scan_results(self):
         return self._scan_results
 
-    ##########################################################################
-    # antivirus methods (need to be overriden)
-    ##########################################################################
+    # ==========================================
+    #  Antivirus methods (need to be overriden)
+    # ==========================================
 
     def get_name(self):
         """return the name of the antivirus"""
@@ -242,28 +251,28 @@ if __name__ == '__main__':
     ##########################################################################
 
     import argparse
-    from modules.antivirus.clam        import Clam
+    from modules.antivirus.clam import Clam
     from modules.antivirus.comodo_cavl import ComodoCAVL
-    from modules.antivirus.eset_nod32  import EsetNod32
-    from modules.antivirus.fprot       import FProt
+    from modules.antivirus.eset_nod32 import EsetNod32
+    from modules.antivirus.fprot import FProt
     from modules.antivirus.mcafee_vscl import McAfeeVSCL
-    from modules.antivirus.sophos      import Sophos
-    from modules.antivirus.kaspersky   import Kaspersky
-    from modules.antivirus.symantec    import Symantec
+    from modules.antivirus.sophos import Sophos
+    from modules.antivirus.kaspersky import Kaspersky
+    from modules.antivirus.symantec import Symantec
 
     ##########################################################################
     # helpers
     ##########################################################################
 
     antivirus_mapping = {
-        'clam'       : Clam,
+        'clam':        Clam,
         'comodo_cavl': ComodoCAVL,
-        'eset_nod32' : EsetNod32,
-        'fprot'      : FProt,
+        'eset_nod32':  EsetNod32,
+        'fprot':       FProt,
         'mcafee_vscl': McAfeeVSCL,
-        'sophos'     : Sophos,
-        'kaspersky'  : Kaspersky,
-        'symantec'   : Symantec,
+        'sophos':      Sophos,
+        'kaspersky':   Kaspersky,
+        'symantec':    Symantec,
     }
 
     def antivirus_info(**kwargs):
@@ -274,14 +283,16 @@ if __name__ == '__main__':
         result += "database: \n"
         if antivirus.database:
             for file in antivirus.database:
-                result += "    {0} (sha256 = {1})\n".format(file, sha256sum(file))
+                result += "    {0} (sha256 = {1})\n".format(file,
+                                                            sha256sum(file))
         print(result)
 
     def antivirus_scan(**kwargs):
         antivirus = antivirus_mapping[kwargs['antivirus']]()
         for filename in kwargs['filename']:
             antivirus.scan(filename)
-        results = map(lambda d: "{0}: {1}".format(d[0], d[1]), antivirus.scan_results.items())
+        results = map(lambda d: "{0}: {1}".format(d[0], d[1]),
+                      antivirus.scan_results.items())
         print("\n".join(results))
 
     ##########################################################################
@@ -290,17 +301,28 @@ if __name__ == '__main__':
 
     # define command line arguments
     parser = argparse.ArgumentParser(description='Antivirus CLI mode')
-    parser.add_argument('antivirus', type=str, choices=antivirus_mapping.keys(), help='filename to scan')
-    parser.add_argument('-v', '--verbose', action='count', default=0)
+    parser.add_argument('antivirus',
+                        type=str,
+                        choices=antivirus_mapping.keys(),
+                        help='filename to scan')
+    parser.add_argument('-v',
+                        '--verbose',
+                        action='count',
+                        default=0)
     subparsers = parser.add_subparsers(help='sub-command help')
 
     # create the info parser
-    info_parser = subparsers.add_parser('info', help='show antivirus information')
+    info_parser = subparsers.add_parser('info',
+                                        help='show antivirus information')
     info_parser.set_defaults(func=antivirus_info)
 
     # create the scan parser
-    scan_parser = subparsers.add_parser('scan', help='scan given filename list')
-    scan_parser.add_argument('filename', type=str, nargs='+', help='filename to scan')
+    scan_parser = subparsers.add_parser('scan',
+                                        help='scan given filename list')
+    scan_parser.add_argument('filename',
+                             type=str,
+                             nargs='+',
+                             help='filename to scan')
     scan_parser.set_defaults(func=antivirus_scan)
 
     args = parser.parse_args()
@@ -313,6 +335,7 @@ if __name__ == '__main__':
 
     args = vars(parser.parse_args())
     func = args.pop('func')
-    # with 'func' removed, args is now a kwargs with only the specific arguments
+    # with 'func' removed, args is now a kwargs
+    # with only the specific arguments
     # for each subfunction useful for interactive mode.
     func(**args)
