@@ -6,60 +6,94 @@ import time
 #
 # Some constants ...
 #
-SYSLOG_UDP_PORT             = 514 
+SYSLOG_UDP_PORT = 514
+
 
 class SysLogHandler(logging.handlers.SysLogHandler):
     """
     A handler class which sends formatted logging records to a syslog
-    server. Extends the default SysLogHandler with SSL and enable lazy 
+    server. Extends the default SysLogHandler with SSL and enable lazy
     connection.
 
     .. code-block:: python
 
         address = ('localhost', 514)
         [...]
-        syslog = SysLogHandler(address=address, socktype=socket.SOCK_STREAM, use_ssl=True,
-            keyfile  = "client.key", certfile = "client.crt", ca_certs = "ca.crt",
-            cert_reqs= ssl.CERT_REQUIRED)
+        syslog = SysLogHandler(address=address,
+                               socktype=socket.SOCK_STREAM,
+                               use_ssl=True,
+                               keyfile  = "client.key",
+                               certfile = "client.crt",
+                               ca_certs = "ca.crt",
+                               cert_reqs= ssl.CERT_REQUIRED)
         [...]
         logger.addHandler(syslog)
-
     """
 
-    # priorities (these are ordered)
-    LOG_EMERG     = logging.handlers.SysLogHandler.LOG_EMERG    #  system is unusable
-    LOG_ALERT     = logging.handlers.SysLogHandler.LOG_ALERT    #  action must be taken immediately
-    LOG_CRIT      = logging.handlers.SysLogHandler.LOG_CRIT     #  critical conditions
-    LOG_ERR       = logging.handlers.SysLogHandler.LOG_ERR      #  error conditions
-    LOG_WARNING   = logging.handlers.SysLogHandler.LOG_WARNING  #  warning conditions
-    LOG_NOTICE    = logging.handlers.SysLogHandler.LOG_NOTICE   #  normal but significant condition
-    LOG_INFO      = logging.handlers.SysLogHandler.LOG_INFO     #  informational
-    LOG_DEBUG     = logging.handlers.SysLogHandler.LOG_DEBUG    #  debug-level messages
-    
-    #  facility codes
-    LOG_KERN      = logging.handlers.SysLogHandler.LOG_KERN     #  kernel messages
-    LOG_USER      = logging.handlers.SysLogHandler.LOG_USER     #  random user-level messages
-    LOG_MAIL      = logging.handlers.SysLogHandler.LOG_MAIL     #  mail system
-    LOG_DAEMON    = logging.handlers.SysLogHandler.LOG_DAEMON   #  system daemons
-    LOG_AUTH      = logging.handlers.SysLogHandler.LOG_AUTH     #  security/authorization messages
-    LOG_SYSLOG    = logging.handlers.SysLogHandler.LOG_SYSLOG   #  messages generated internally by syslogd
-    LOG_LPR       = logging.handlers.SysLogHandler.LOG_LPR      #  line printer subsystem
-    LOG_NEWS      = logging.handlers.SysLogHandler.LOG_NEWS     #  network news subsystem
-    LOG_UUCP      = logging.handlers.SysLogHandler.LOG_UUCP     #  UUCP subsystem
-    LOG_CRON      = logging.handlers.SysLogHandler.LOG_CRON     #  clock daemon
-    LOG_AUTHPRIV  = logging.handlers.SysLogHandler.LOG_AUTHPRIV #  security/authorization messages (private)
-    LOG_FTP       = logging.handlers.SysLogHandler.LOG_FTP      #  FTP daemon
-    
-    #  other codes through 15 reserved for system use
-    LOG_LOCAL0    = logging.handlers.SysLogHandler.LOG_LOCAL0   #  reserved for local use
-    LOG_LOCAL1    = logging.handlers.SysLogHandler.LOG_LOCAL1   #  reserved for local use
-    LOG_LOCAL2    = logging.handlers.SysLogHandler.LOG_LOCAL2   #  reserved for local use
-    LOG_LOCAL3    = logging.handlers.SysLogHandler.LOG_LOCAL3   #  reserved for local use
-    LOG_LOCAL4    = logging.handlers.SysLogHandler.LOG_LOCAL4   #  reserved for local use
-    LOG_LOCAL5    = logging.handlers.SysLogHandler.LOG_LOCAL5   #  reserved for local use
-    LOG_LOCAL6    = logging.handlers.SysLogHandler.LOG_LOCAL6   #  reserved for local use
-    LOG_LOCAL7    = logging.handlers.SysLogHandler.LOG_LOCAL7   #  reserved for local use
-    
+    # ================================
+    #  Priorities (these are ordered)
+    # ================================
+    # system is unusable
+    LOG_EMERG = logging.handlers.SysLogHandler.LOG_EMERG
+    # action must be taken immediately
+    LOG_ALERT = logging.handlers.SysLogHandler.LOG_ALERT
+    # critical conditions
+    LOG_CRIT = logging.handlers.SysLogHandler.LOG_CRIT
+    # error conditions
+    LOG_ERR = logging.handlers.SysLogHandler.LOG_ERR
+    # warning conditions
+    LOG_WARNING = logging.handlers.SysLogHandler.LOG_WARNING
+    # normal but significant condition
+    LOG_NOTICE = logging.handlers.SysLogHandler.LOG_NOTICE
+    # informational
+    LOG_INFO = logging.handlers.SysLogHandler.LOG_INFO
+    # debug-level messages
+    LOG_DEBUG = logging.handlers.SysLogHandler.LOG_DEBUG
+
+    # ================
+    #  Facility codes
+    # ================
+    # kernel messages
+    LOG_KERN = logging.handlers.SysLogHandler.LOG_KERN
+    # random user-level messages
+    LOG_USER = logging.handlers.SysLogHandler.LOG_USER
+    # mail system
+    LOG_MAIL = logging.handlers.SysLogHandler.LOG_MAIL
+    # system daemons
+    LOG_DAEMON = logging.handlers.SysLogHandler.LOG_DAEMON
+    # security/authorization messages
+    LOG_AUTH = logging.handlers.SysLogHandler.LOG_AUTH
+    # messages generated internally by syslogd
+    LOG_SYSLOG = logging.handlers.SysLogHandler.LOG_SYSLOG
+    # line printer subsystem
+    LOG_LPR = logging.handlers.SysLogHandler.LOG_LPR
+    # network news subsystem
+    LOG_NEWS = logging.handlers.SysLogHandler.LOG_NEWS
+    # UUCP subsystem
+    LOG_UUCP = logging.handlers.SysLogHandler.LOG_UUCP
+    # clock daemon
+    LOG_CRON = logging.handlers.SysLogHandler.LOG_CRON
+    # security/authorization messages (private)
+    LOG_AUTHPRIV = logging.handlers.SysLogHandler.LOG_AUTHPRIV
+    # FTP daemon
+    LOG_FTP = logging.handlers.SysLogHandler.LOG_FTP
+
+    # ========================
+    #  Reserved for local use
+    # ========================
+    LOG_LOCAL0 = logging.handlers.SysLogHandler.LOG_LOCAL0
+    LOG_LOCAL1 = logging.handlers.SysLogHandler.LOG_LOCAL1
+    LOG_LOCAL2 = logging.handlers.SysLogHandler.LOG_LOCAL2
+    LOG_LOCAL3 = logging.handlers.SysLogHandler.LOG_LOCAL3
+    LOG_LOCAL4 = logging.handlers.SysLogHandler.LOG_LOCAL4
+    LOG_LOCAL5 = logging.handlers.SysLogHandler.LOG_LOCAL5
+    LOG_LOCAL6 = logging.handlers.SysLogHandler.LOG_LOCAL6
+    LOG_LOCAL7 = logging.handlers.SysLogHandler.LOG_LOCAL7
+
+    # ================================================
+    #  Other codes through 15 reserved for system use
+    # ================================================
+
     priority_names = {
         "alert":    LOG_ALERT,
         "crit":     LOG_CRIT,
@@ -67,14 +101,14 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         "debug":    LOG_DEBUG,
         "emerg":    LOG_EMERG,
         "err":      LOG_ERR,
-        "error":    LOG_ERR,        #  DEPRECATED
+        "error":    LOG_ERR,        # DEPRECATED
         "info":     LOG_INFO,
         "notice":   LOG_NOTICE,
-        "panic":    LOG_EMERG,      #  DEPRECATED
-        "warn":     LOG_WARNING,    #  DEPRECATED
+        "panic":    LOG_EMERG,      # DEPRECATED
+        "warn":     LOG_WARNING,    # DEPRECATED
         "warning":  LOG_WARNING,
         }
-    
+
     facility_names = {
         "auth":     LOG_AUTH,
         "authpriv": LOG_AUTHPRIV,
@@ -85,7 +119,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         "lpr":      LOG_LPR,
         "mail":     LOG_MAIL,
         "news":     LOG_NEWS,
-        "security": LOG_AUTH,       #  DEPRECATED
+        "security": LOG_AUTH,       # DEPRECATED
         "syslog":   LOG_SYSLOG,
         "user":     LOG_USER,
         "uucp":     LOG_UUCP,
@@ -98,21 +132,21 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         "local6":   LOG_LOCAL6,
         "local7":   LOG_LOCAL7,
         }
-    
-    #The map below appears to be trivially lowercasing the key. However,
-    #there's more to it than meets the eye - in some locales, lowercasing
-    #gives unexpected results. See SF #1524081: in the Turkish locale,
-    #"INFO".lower() != "info"
+
+    # The map below appears to be trivially lowercasing the key. However,
+    # there's more to it than meets the eye - in some locales, lowercasing
+    # gives unexpected results. See SF #1524081: in the Turkish locale,
+    # "INFO".lower() != "info"
 
     priority_map = {
-        "DEBUG" : "debug",
-        "INFO" : "info",
-        "WARNING" : "warning",
-        "ERROR" : "error",
-        "CRITICAL" : "critical"
+        "DEBUG":    "debug",
+        "INFO":     "info",
+        "WARNING":  "warning",
+        "ERROR":    "error",
+        "CRITICAL": "critical"
     }
 
-    def __init__(self, address=('localhost', SYSLOG_UDP_PORT), 
+    def __init__(self, address=('localhost', SYSLOG_UDP_PORT),
                  facility=LOG_USER, socktype=socket.SOCK_DGRAM, **kwargs):
         """
         Initialize a handler.
@@ -157,7 +191,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         # syslog may require either DGRAM or STREAM sockets
         try:
             if hasattr(self.socket, 'settimeout'):
-                s.settimeout(self.timeout)
+                self.socket.settimeout(self.timeout)
             self.socket.connect(address)
         except socket.error:
             self.socket.close()
@@ -166,7 +200,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
                 if self.use_ssl:
                     self.socket = ssl.wrap_socket(self.socket, **self.kwargs)
                 if hasattr(self.socket, 'settimeout'):
-                    s.settimeout(self.timeout)
+                    self.socket.settimeout(self.timeout)
                 self.socket.connect(address)
             except socket.error:
                 self.socket.close()
@@ -190,7 +224,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         if attempt:
             try:
                 self.makeSocket(self.timeout)
-                self.retryTime = None # next time, no delay before trying
+                self.retryTime = None  # next time, no delay before trying
             except socket.error:
                 # Creation failed, so set the retry time and return.
                 if self.retryTime is None:
@@ -284,7 +318,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         """
         if self.closeOnError and self.socket:
             self.close()
-            self.socket = None #try to reconnect next time
+            self.socket = None  # try to reconnect next time
         else:
             logging.Handler.handleError(self, record)
 

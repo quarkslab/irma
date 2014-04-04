@@ -1,25 +1,34 @@
-import logging, libvirt, xmltodict, tempfile, mimetypes, os.path
+import logging
+import libvirt
+import xmltodict
+import tempfile
+import mimetypes
+import os
 
-from lib.common import compat
-from lib.common.utils import UUID, MAC
-from lib.common.oopatterns import ParametricSingleton
+from common import compat
+from common.utils import UUID, MAC
+from common.oopatterns import ParametricSingleton
 
-from lib.virt.core.mapper.domain import Domain
+from virt.core.mapper.domain import Domain
 
-from lib.virt.core.storage_pool import StoragePoolManager
-from lib.virt.core.storage_volume import StorageVolumeManager
+from virt.core.storage_pool import StoragePoolManager
+from virt.core.storage_volume import StorageVolumeManager
 
-from lib.virt.core.connection import ConnectionManager
-from lib.virt.core.exceptions import DomainManagerError
+from virt.core.connection import ConnectionManager
+from virt.core.exceptions import DomainManagerError
 
 log = logging.getLogger(__name__)
 
-class DomainManager(ParametricSingleton):
-    """Domain manager to a manage a domain on a local or remote virtual machine manager"""
 
-    ##########################################################################
-    # parametric singleton stuff
-    ##########################################################################
+class DomainManager(ParametricSingleton):
+    """
+    Domain manager to a manage a domain on a local
+    or remote virtual machine manager
+    """
+
+    # ============================
+    #  Parametric singleton stuff
+    # ============================
 
     @staticmethod
     def depends_on(cls, *args, **kwargs):
@@ -30,12 +39,15 @@ class DomainManager(ParametricSingleton):
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
         if not isinstance(handler, libvirt.virConnect):
-            raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(handler)))
+            reason = ("'connection' field type '{0}'".format(type(handler)) +
+                      "is not valid")
+            raise DomainManagerError(reason)
 
         try:
             uri = handler.getURI()
-        except libvirt.libvirtError as e:
-            raise DomainManagerError("unable to get domain uri from connection handle")
+        except libvirt.libvirtError:
+            reason = "unable to get domain uri from connection handle"
+            raise DomainManagerError(reason)
         return uri
 
     ##########################################################################
@@ -56,32 +68,59 @@ class DomainManager(ParametricSingleton):
     CRASHED = libvirt.VIR_DOMAIN_CRASHED
     PMSUSPENDED = libvirt.VIR_DOMAIN_PMSUSPENDED
 
-    # start flags
-    START_PAUSED = libvirt.VIR_DOMAIN_START_PAUSED              # Launch guest in paused state
-    START_AUTODESTROY = libvirt.VIR_DOMAIN_START_AUTODESTROY    # Automatically kill guest when virConnectPtr is closed
-    START_BYPASS_CACHE = libvirt.VIR_DOMAIN_START_BYPASS_CACHE  # Avoid file system cache pollution
-    START_FORCE_BOOT = libvirt.VIR_DOMAIN_START_FORCE_BOOT      # Boot, discarding any managed save
+    # =============
+    #  Start flags
+    # =============
+    # Launch guest in paused state
+    START_PAUSED = libvirt.VIR_DOMAIN_START_PAUSED
+    # Automatically kill guest when virConnectPtr is closed
+    START_AUTODESTROY = libvirt.VIR_DOMAIN_START_AUTODESTROY
+    # Avoid file system cache pollution
+    START_BYPASS_CACHE = libvirt.VIR_DOMAIN_START_BYPASS_CACHE
+    # Boot, discarding any managed save
+    START_FORCE_BOOT = libvirt.VIR_DOMAIN_START_FORCE_BOOT
 
-    # stop (not forced) flags
-    STOP_ACPI = libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN      # Send ACPI event
-    STOP_AGENT = libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT        # Use guest agent
+    # =========================
+    #  Stop (not forced) flags
+    # =========================
+    # Send ACPI event
+    STOP_ACPI = libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN
+    # Use guest agent
+    STOP_AGENT = libvirt.VIR_DOMAIN_SHUTDOWN_GUEST_AGENT
 
-    # stop (forced) flags
-    STOP_FORCE_GRACEFUL = libvirt.VIR_DOMAIN_DESTROY_GRACEFUL   # only SIGTERM, no SIGKILL
+    # =====================
+    #  Stop (forced) flags
+    # =====================
+    # only SIGTERM, no SIGKILL
+    STOP_FORCE_GRACEFUL = libvirt.VIR_DOMAIN_DESTROY_GRACEFUL
 
-    # reboot flags
-    REBOOT_ACPI = libvirt.VIR_DOMAIN_REBOOT_ACPI_POWER_BTN      # Send ACPI event
-    REBOOT_AGENT = libvirt.VIR_DOMAIN_REBOOT_GUEST_AGENT        # Use guest agent
+    # ==============
+    #  Reboot flags
+    # ==============
+    # Send ACPI event
+    REBOOT_ACPI = libvirt.VIR_DOMAIN_REBOOT_ACPI_POWER_BTN
+    # Use guest agent
+    REBOOT_AGENT = libvirt.VIR_DOMAIN_REBOOT_GUEST_AGENT
 
-    # coredump flags
-    DUMP_CRASH = libvirt.VIR_DUMP_CRASH                         # crash after dump
-    DUMP_LIVE = libvirt.VIR_DUMP_LIVE                           # live dump
-    DUMP_BYPASS_CACHE = libvirt.VIR_DUMP_BYPASS_CACHE           # avoid file system cache pollution
-    DUMP_RESET = libvirt.VIR_DUMP_RESET                         # reset domain after dump finishes
+    # ================
+    #  Coredump flags
+    # ================
+    # crash after dump
+    DUMP_CRASH = libvirt.VIR_DUMP_CRASH
+    # live dump
+    DUMP_LIVE = libvirt.VIR_DUMP_LIVE
+    # avoid file system cache pollution
+    DUMP_BYPASS_CACHE = libvirt.VIR_DUMP_BYPASS_CACHE
+    # reset domain after dump finishes
+    DUMP_RESET = libvirt.VIR_DUMP_RESET
 
-    # memdump flags
-    MEMORY_VIRTUAL = libvirt.VIR_MEMORY_VIRTUAL                 # addresses are virtual addresses
-    MEMORY_PHYSICAL = libvirt.VIR_MEMORY_PHYSICAL               # addresses are physical addresses
+    # ===============
+    #  Memdump flags
+    # ===============
+    # addresses are virtual addresses
+    MEMORY_VIRTUAL = libvirt.VIR_MEMORY_VIRTUAL
+    # addresses are physical addresses
+    MEMORY_PHYSICAL = libvirt.VIR_MEMORY_PHYSICAL
 
     ##########################################################################
     # constructor and destructor stuff
@@ -90,9 +129,12 @@ class DomainManager(ParametricSingleton):
     def __init__(self, connection, prefetch=False):
         """Instantiate a domain manager for specified connection
 
-        :param connection: either an instance of a ``ConnectionManager`` or directly a libvirt connection handler
-        :param prefetch: set to True if prefetching domain handlers for this connection is required
-        :raises: DomainManagerError if ``connection`` is not an expected type or None
+        :param connection: either an instance of a ``ConnectionManager``
+        or directly a libvirt connection handler
+        :param prefetch: set to True if prefetching
+        domain handlers for this connection is required
+        :raises: DomainManagerError if ``connection``
+        is not an expected type or None
         """
         if isinstance(connection, basestring):
             connection = ConnectionManager(connection)
@@ -105,31 +147,32 @@ class DomainManager(ParametricSingleton):
 
         try:
             self._uri = self._drv.getURI()
-        except libvirt.libvirtError as e:
-            raise DomainManagerError("unable to get domain uri from connection handle")
+        except libvirt.libvirtError:
+            reason = "unable to get domain uri from connection handle"
+            raise DomainManagerError(reason)
 
         if prefetch:
             domains = self.list()
             for domain in domains:
                 self.lookup(domain)
 
-    ##########################################################################
-    # context manager stuff
-    ##########################################################################
+    # =======================
+    #  Context manager stuff
+    # =======================
 
     def __enter__(self):
         return self
 
-    ##########################################################################
-    # internal helpers
-    ##########################################################################
+    # ==================
+    #  Internal helpers
+    # ==================
 
     def _list_active(self):
         labels = list()
         try:
             ids = self._drv.listDomainsID()
-            for id in ids:
-                labels.append(self._drv.lookupByID(id).name())
+            for i in ids:
+                labels.append(self._drv.lookupByID(i).name())
         except libvirt.libvirtError as e:
             raise DomainManagerError("{0}".format(e))
         return tuple(labels)
@@ -153,7 +196,8 @@ class DomainManager(ParametricSingleton):
     def _lookupByID(self, id):
         # type checking
         if not isinstance(id, int):
-            raise DomainManagerError("'id' field type '{0}' is not valid".format(type(id)))
+            reason = "'id' field type '{0}' is not valid".format(type(id))
+            raise DomainManagerError(reason)
 
         handle = None
         # check if domain has already been cached
@@ -176,7 +220,8 @@ class DomainManager(ParametricSingleton):
     def _lookupByName(self, name):
         # type checking
         if not isinstance(name, basestring):
-            raise DomainManagerError("'name' field type '{0}' is not valid".format(type(name)))
+            reason = "'name' field type '{0}' is not valid".format(type(name))
+            raise DomainManagerError(reason)
 
         handle = None
         # check if domain has already been cached
@@ -199,7 +244,8 @@ class DomainManager(ParametricSingleton):
     def _lookupByUUID(self, uuid):
         # type checking
         if not isinstance(uuid, basestring) or not UUID.validate(uuid):
-            raise DomainManagerError("'uuid' field '{0}' is not valid".format(uuid))
+            reason = "'uuid' field '{0}' is not valid".format(uuid)
+            raise DomainManagerError(reason)
 
         handle = None
         # check if domain has already been cached
@@ -227,9 +273,9 @@ class DomainManager(ParametricSingleton):
         release = version % 1000
         return (major, minor, release)
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+    # ================
+    #  Public methods
+    # ================
 
     def lookup(self, domain):
         handle = None
@@ -253,7 +299,7 @@ class DomainManager(ParametricSingleton):
     def list(self, filter=ACTIVE | INACTIVE):
         """list machines on this domain
 
-        :param filter: either DomainManager.ACTIVE or DomainManager.INACTIVE 
+        :param filter: either DomainManager.ACTIVE or DomainManager.INACTIVE
                to respectively active or inactive machines
         :returns: a tuple containing domain names (w.r.t specified filter)
         """
@@ -270,14 +316,14 @@ class DomainManager(ParametricSingleton):
         return tuple(labels)
 
     state_desc = {
-        NOSTATE  : "no state",
-        RUNNING  : "is running",
-        BLOCKED  : "is blocked on resource",
-        PAUSED   : "is paused by user",
-        SHUTDOWN : "is being shut down",
-        SHUTOFF  : "is shut off",
-        CRASHED  : "is crashed",
-        PMSUSPENDED : "is pm-suspended"
+        NOSTATE:     "no state",
+        RUNNING:     "is running",
+        BLOCKED:     "is blocked on resource",
+        PAUSED:      "is paused by user",
+        SHUTDOWN:    "is being shut down",
+        SHUTOFF:     "is shut off",
+        CRASHED:     "is crashed",
+        PMSUSPENDED: "is pm-suspended"
     }
 
     def state(self, domains):
@@ -286,7 +332,7 @@ class DomainManager(ParametricSingleton):
         :param domains: either a label, uuid, id, virDomain object or a list
                         of label, uuid, id, a virDomain object.
         :returns: (state, a string description) tuple if domains is a label, a
-                uuid, a id, a virDomain or a tuple of (state, a string
+                uuid, an id, a virDomain or a tuple of (state, a string
                 description) if domains is a list. If an error (state, a
                 string description) equals to (None, None).
         """
@@ -311,12 +357,13 @@ class DomainManager(ParametricSingleton):
     def start(self, domains, flags=0):
         """start specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
+        :param domains: either a label, uuid, id, a virDomain,
+            a dict (to specify flags)
+            or a list of label, uuid, id, virDomain object or a list of dict.
         :param flags: default flag if not specified otherwise
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :returns: False if failed, True if success if domains is a label,
+            an uuid, an id, a virDomain or a tuple if domains is a list.
+            When domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -328,7 +375,7 @@ class DomainManager(ParametricSingleton):
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domaine' in domains:
                 domain = domains.get('domain', None)
                 flags = domains.get('flags', flags)
                 result = self.start(domain, flags)
@@ -344,13 +391,16 @@ class DomainManager(ParametricSingleton):
     def stop(self, domains, force=False, flags=0):
         """stop specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
+        :param domains: either a label, uuid, id,
+            a virDomain, a dict (to specify flags)
+            or a list of label, uuid, id, virDomain
+            object or a list of dict.
         :param force: default policy for force if not specified otherwise
         :param flags: default flag if not specified otherwise
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                a id, a virDomain or a tuple if domains is a list. When domain
-                is None, returns None.
+        :returns: False if failed, True if success
+            if domains is a label, an uuid,
+            an id, a virDomain or a tuple if domains is a list. When domain
+            is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -365,7 +415,7 @@ class DomainManager(ParametricSingleton):
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 flags = domains.get('flags', flags)
                 force = domains.get('force', force)
@@ -387,8 +437,8 @@ class DomainManager(ParametricSingleton):
                         object or a list of dict.
         :param autostart: default autostart value if not specified otherwise
         :returns: False if failed, True if success if domains is a label, a
-                  uuid, a id, a virDomain or a tuple if domains is a list. When
-                  domain is None, returns None.
+                  uuid, an id, a virDomain or a tuple if domains is a list.
+                  When domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -400,7 +450,7 @@ class DomainManager(ParametricSingleton):
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 autostart = domains.get('autostart', autostart)
                 result = self.autostart(domain, autostart)
@@ -416,12 +466,13 @@ class DomainManager(ParametricSingleton):
     def reboot(self, domains, flags=0):
         """reboot specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
+        :param domains: either a label, uuid, id, a virDomain,
+            a dict (to specify flags) or a list of label, uuid,
+            id, virDomain object or a list of dict.
         :param flags: default flags value if not specified otherwise
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                  a id, a virDomain or a tuple if domains is a list. When domain
-                  is None, returns None.
+        :returns: False if failed, True if success if domains is a label,
+            an uuid, an id, a virDomain or a tuple if domains is a list.
+            When domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -433,7 +484,7 @@ class DomainManager(ParametricSingleton):
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 autostart = domains.get('flags', flags)
                 result = self.reboot(domain, flags)
@@ -449,24 +500,26 @@ class DomainManager(ParametricSingleton):
     def reset(self, domains):
         """reset specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                  a id, a virDomain or a tuple if domains is a list. When domain
-                  is None, returns None.
+        :param domains: either a label, uuid, id, a virDomain,
+            a dict (to specify flags) or a list of label, uuid,
+            id, virDomain object or a list of dict.
+        :returns: False if failed, True if success if domains
+            is a label, an uuid, an id, a virDomain or a tuple
+            if domains is a list. When domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
-                    # extra flags; not used yet, so callers should always pass 0
+                    # extra flags; not used yet,
+                    # so callers should always pass 0
                     domains.reset(flags=0)
                     result = True
             except libvirt.libvirtError as e:
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 result = self.reset(domain)
         elif isinstance(domains, (basestring, int)):
@@ -481,24 +534,26 @@ class DomainManager(ParametricSingleton):
     def resume(self, domains):
         """resume specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                  a id, a virDomain or a tuple if domains is a list. When domain
-                  is None, returns None.
+        :param domains: either a label, uuid, id, a virDomain,
+            a dict (to specify flags) or a list of label, uuid,
+            id, virDomain object or a list of dict.
+        :returns: False if failed, True if success if domains is
+            a label, an uuid, an id, a virDomain or a tuple if
+            domains is a list. When domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and not domains.isActive():
-                    # extra flags; not used yet, so callers should always pass 0
+                    # extra flags; not used yet,
+                    # so callers should always pass 0
                     domains.resume()
                     result = True
             except libvirt.libvirtError as e:
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 result = self.resume(domain)
         elif isinstance(domains, (basestring, int)):
@@ -513,24 +568,26 @@ class DomainManager(ParametricSingleton):
     def suspend(self, domains):
         """suspend specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                  a id, a virDomain or a tuple if domains is a list. When domain
-                  is None, returns None.
+        :param domains: either a label, uuid, id, a virDomain,
+            a dict (to specify flags) or a list of label, uuid, id,
+            virDomain object or a list of dict.
+        :returns: False if failed, True if success if domains is a label,
+            an uuid, an id, a virDomain or a tuple if domains is a list.
+            When domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
-                    # extra flags; not used yet, so callers should always pass 0
+                    # extra flags; not used yet,
+                    # so callers should always pass 0
                     domains.suspend()
                     result = True
             except libvirt.libvirtError as e:
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 result = self.suspend(domain)
         elif isinstance(domains, (basestring, int)):
@@ -545,27 +602,32 @@ class DomainManager(ParametricSingleton):
     def screenshot(self, domains, name=None, screen=0):
         """perform screenshot on specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
+        :param domains: either a label, uuid, id, a virDomain,
+            a dict (to specify flags) or a list of label, uuid,
+            id, virDomain object or a list of dict.
         :param name: default name value if not specified otherwise
         :param screen: default screen value if not specified otherwise
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                  a id, a virDomain or a tuple if domains is a list. When domain
-                  is None, returns None.
+        :returns: False if failed, True if success if domains is a label,
+            an uuid, an id, a virDomain or a tuple if domains is a list.
+            When domain sis None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
                     stream = self._drv.newStream(flags=0)
-                    # extra flags; not used yet, so callers should always pass 0
+                    # extra flags; not used yet,
+                    # so callers should always pass 0
                     mime = domains.screenshot(stream, screen, flags=0)
                     if not name:
                         ext = mimetypes.guess_extension(mime) or '.ppm'
-                        temp = tempfile.NamedTemporaryFile(suffix=ext, delete=False)
+                        temp = tempfile.NamedTemporaryFile(suffix=ext,
+                                                           delete=False)
                     else:
                         temp = open(name, 'wb')
-                    stream.recvAll(lambda stream, data, fdes: fdes.write(data), temp)
+                    stream.recvAll(lambda stream,
+                                   data,
+                                   fdes: fdes.write(data), temp)
                     stream.finish()
                     temp.close()
                     result = temp.name
@@ -573,7 +635,7 @@ class DomainManager(ParametricSingleton):
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 name = domains.get('name', None)
                 screen = domains.get('screen', screen)
@@ -590,20 +652,22 @@ class DomainManager(ParametricSingleton):
     def coredump(self, domains, name=None, flags=DUMP_LIVE):
         """perform a core dump on specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
+        :param domains: either a label, uuid, id, a virDomain, a dict
+            (to specify flags) or a list of label, uuid, id, virDomain
+            object or a list of dict.
         :param flags: default flags value if not specified otherwise
         :param name: default name value if not specified otherwise
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                  a id, a virDomain or a tuple if domains is a list. When domain
-                  is None, returns None.
+        :returns: False if failed, True if success if domains is a label,
+             an uuid, an id, a virDomain or a tuple if domains is a list.
+             When domain is None, returns None.
         """
         result = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
                     if not name:
-                        file = tempfile.NamedTemporaryFile(suffix='.bin', delete=False)
+                        file = tempfile.NamedTemporaryFile(suffix='.bin',
+                                                           delete=False)
                         name = file.name
                         file.close()
                     domains.coreDump(name, flags)
@@ -612,7 +676,7 @@ class DomainManager(ParametricSingleton):
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 name = domains.get('name', name)
                 flags = domains.get('flags', flags)
@@ -647,7 +711,7 @@ class DomainManager(ParametricSingleton):
                 result = (False, None)
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 start = domains.get('start', start)
                 size = domains.get('size', size)
@@ -668,16 +732,18 @@ class DomainManager(ParametricSingleton):
     def clone(self, domains, name):
         """perform screenshot on specified domains
 
-        :param domains: either a label, uuid, id, a virDomain, a dict (to specify flags) 
-                        or a list of label, uuid, id, virDomain object or a list of dict.
+        :param domains: either a label, uuid, id, a virDomain,
+            a dict (to specify flags) or a list of label, uuid,
+            id, virDomain object or a list of dict.
         :param name: default name value if not specified otherwise
         :param screen: default screen value if not specified otherwise
-        :returns: False if failed, True if success if domains is a label, a uuid,
-                  a id, a virDomain or a tuple if domains is a list. When domain
-                  is None, returns None.
+        :returns: False if failed, True if success if domains is a label,
+            an uuid, an id, a virDomain or a tuple if domains is a list.
+            When domain is None, returns None.
         """
         if not name:
-            raise DomainManagerError("'name' field value '{0}' is invalid".format(name))
+            reason = "'name' field value '{0}' is invalid".format(name)
+            raise DomainManagerError(reason)
 
         result = None
         if isinstance(domains, libvirt.virDomain):
@@ -690,7 +756,8 @@ class DomainManager(ParametricSingleton):
                     clone_dict = orig_dict
                     dom = self.lookup(name)
                     if dom:
-                        raise DomainManagerError("domain '{0}' already exists".format(name))
+                        reason = "domain '{0}' already exists".format(name)
+                        raise DomainManagerError(reason)
 
                     while True:
                         uuid = UUID.generate()
@@ -701,26 +768,38 @@ class DomainManager(ParametricSingleton):
                     # change devices
                     for type, device in clone_dict['devices'].items():
                         if type == 'interface':
-                            interfaces = device if isinstance(device, list) else [device]
+                            if isinstance(device, list):
+                                interfaces = device
+                            else:
+                                interfaces = [device]
                             for interface in interfaces:
                                 interface['mac']['@address'] = MAC.generate()
                         elif type == 'disk':
-                            disks = device if isinstance(device, list) else [device]
+                            if isinstance(device, list):
+                                disks = device
+                            else:
+                                disks = [device]
                             for disk in disks:
                                 disk_path = disk['source']['@file']
-                                volman = StorageVolumeManager(self._connection, None)
+                                volman = StorageVolumeManager(self._connection,
+                                                              None)
                                 poolman = StoragePoolManager(self._connection)
-                                volman.pool = poolman.lookupByVolume(volman.lookup(disk_path))
-                                # TODO: handle case when pool is not defined, have to create one
+                                vol = volman.lookup(disk_path)
+                                volman.pool = poolman.lookupByVolume(vol)
+                                # TODO: handle case when pool is not defined
+                                # have to create one
                                 volume = volman.info(disk_path)
-                                new_vol = volman.clone(orig_dict['name'], '.'.join([clone, volume.target['format']['@type']]))
+                                vol_type = volume.target['format']['@type']
+                                new_name = '.'.join([clone, vol_type])
+                                new_vol = volman.clone(orig_dict['name'],
+                                                       new_name)
                                 disk['source']['@file'] = new_vol.path()
                     self.create(clone_dict)
             except libvirt.libvirtError as e:
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if domains.has_key('domain'):
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 name = domains.get('name', None)
                 result = self.clone(domain, name)
@@ -733,12 +812,18 @@ class DomainManager(ParametricSingleton):
             result = tuple(result)
         return result
 
-    def delete(self, label, storage=None, wipe=False, managed_save=True, snapshot_metadata=True):
+    def delete(self,
+               label,
+               storage=None,
+               wipe=False,
+               managed_save=True,
+               snapshot_metadata=True):
         # TODO: needs refactoring, more parameters handling
         try:
             machine = self.lookup(label)
             if machine.isActive():
-                raise IrmaMachineManagerError("Cannot delete a running machine.")
+                reason = "Cannot delete a running machine."
+                raise DomainManagerError(reason)
 
             flags = 0
             # extra flags; not used yet, so callers should always pass 0
@@ -757,18 +842,21 @@ class DomainManager(ParametricSingleton):
                     continue
                 disks = device if isinstance(device, list) else [device]
                 for disk in disks:
-                    orig_vol = self._drv.storageVolLookupByPath(disk['source']['@file'])
+                    path = disk['source']['@file']
+                    orig_vol = self._drv.storageVolLookupByPath(path)
                     orig_vol.delete(flags)
 
             # remove from cache (remove from id when shutting down)
             if machine.name() in self._cache['name']:
-                del self._cache['name'][machine.name()] 
+                del self._cache['name'][machine.name()]
             if machine.UUIDString() in self._cache['uuid']:
                 del self._cache['uuid'][machine.UUIDString()]
             # undefine
             machine.undefine()
         except libvirt.libvirtError as e:
-            raise DomainManagerError("Couldn't delete virtual machine {0}: {1}".format(label, e))
+            reason = ("Couldn't delete virtual machine {0}".format(label) +
+                      ": {0}".format(e))
+            raise DomainManagerError(reason)
 
     def info(self, label):
         # TODO: need refactoring, temporary

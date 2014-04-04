@@ -1,13 +1,14 @@
-import logging, xmltodict
+import logging
+import xmltodict
 from collections import OrderedDict
 
-from lib.common import compat
-from lib.virt.core.exceptions import StoragePoolError
+from virt.core.exceptions import StoragePoolError
 
 log = logging.getLogger(__name__)
 
+
 # TODO: create our own mapper based on xpath and the code available at
-# http://stackoverflow.com/questions/5661968/how-to-populate-xml-file-using-xpath-in-python
+# http://stackoverflow.com/questions/5661968/
 class StoragePool(OrderedDict):
 
     @staticmethod

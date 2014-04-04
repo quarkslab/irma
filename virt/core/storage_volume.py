@@ -1,19 +1,23 @@
-import logging, libvirt, time, os.path
+import logging
+import libvirt
+import os.path
 
 from multiprocessing import Array, Process as Task
 
-from lib.common import compat
-from lib.common.utils import UUID
-from lib.common.oopatterns import ParametricSingleton
-from lib.virt.core.connection import ConnectionManager
-from lib.virt.core.storage_pool import StoragePoolManager
-from lib.virt.core.mapper.storage_volume import StorageVolume
-from lib.virt.core.exceptions import StoragePoolManagerError, StorageVolumeManagerError, StorageVolumeError
+from common.oopatterns import ParametricSingleton
+from virt.core.connection import ConnectionManager
+from virt.core.storage_pool import StoragePoolManager
+from virt.core.mapper.storage_volume import StorageVolume
+from virt.core.exceptions import StorageVolumeManagerError, StorageVolumeError
 
 log = logging.getLogger(__name__)
 
+
 class StorageVolumeManager(ParametricSingleton):
-    """Storage volume manager to a manage volumes on local or remote storage pool manager"""
+    """
+    Storage volume manager to a manage volumes on
+    local or remote storage pool manager
+    """
 
     ##########################################################################
     # parametric singleton stuff
@@ -21,7 +25,8 @@ class StorageVolumeManager(ParametricSingleton):
 
     @staticmethod
     def depends_on(cls, *args, **kwargs):
-        # singleton is based on the uri and the pool, extracted from the libvirt handler
+        # singleton is based on the uri and the pool,
+        # extracted from the libvirt handler
         (conn_handler, pool_handler) = args[0]
         # get libvirt.virConnect instance from conn_handler
         if isinstance(conn_handler, basestring):
@@ -50,35 +55,57 @@ class StorageVolumeManager(ParametricSingleton):
     ##########################################################################
 
     # maximum allocation
-    MAX_ALLOCATION = 197632 # determined empirically
+    # (determined empirically)
+    MAX_ALLOCATION = 197632
 
     # create/clone flags
-    CREATE_PREALLOC_METADATA = 1 # libvirt.VIR_STORAGE_VOL_CREATE_PREALLOC_METADATA is not defined in libvirt.py
+    # libvirt.VIR_STORAGE_VOL_CREATE_PREALLOC_METADATA
+    # is not defined in libvirt.py
+    CREATE_PREALLOC_METADATA = 1
 
-    # resize flags
-    RESIZE_ALLOCATE = libvirt.VIR_STORAGE_VOL_RESIZE_ALLOCATE # force allocation of new size
-    RESIZE_DELTA = libvirt.VIR_STORAGE_VOL_RESIZE_DELTA # size is relative to current
-    RESIZE_SHRINK = libvirt.VIR_STORAGE_VOL_RESIZE_SHRINK # allow decrease in capacity
+    # ==============
+    #  resize flags
+    # ==============
+    # force allocation of new size
+    RESIZE_ALLOCATE = libvirt.VIR_STORAGE_VOL_RESIZE_ALLOCATE
+    # size is relative to current
+    RESIZE_DELTA = libvirt.VIR_STORAGE_VOL_RESIZE_DELTA
+    # allow decrease in capacity
+    RESIZE_SHRINK = libvirt.VIR_STORAGE_VOL_RESIZE_SHRINK
 
-    # wipe algorithms
-    WIPE_ALG_ZERO = libvirt.VIR_STORAGE_VOL_WIPE_ALG_ZERO # 1-pass, all zeroes
-    WIPE_ALG_NNSA = libvirt.VIR_STORAGE_VOL_WIPE_ALG_NNSA # 4-pass NNSA Policy Letter NAP-14.1-C (XVI-8)
-    WIPE_ALG_DOD = libvirt.VIR_STORAGE_VOL_WIPE_ALG_DOD # 4-pass DoD 5220.22-M section 8-306 procedure
-    WIPE_ALG_BSI = libvirt.VIR_STORAGE_VOL_WIPE_ALG_BSI # 9-pass method recommended by the German Center of Security in Information Technologies
-    WIPE_ALG_GUTMANN = libvirt.VIR_STORAGE_VOL_WIPE_ALG_GUTMANN # The canonical 35-pass sequence
-    WIPE_ALG_SCHNEIER = libvirt.VIR_STORAGE_VOL_WIPE_ALG_SCHNEIER # 7-pass method described by Bruce Schneier in "Applied Cryptography" (1996)
-    WIPE_ALG_PFITZNER7 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER7 # 7-pass random
-    WIPE_ALG_PFITZNER33 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER33 # 33-pass random
-    WIPE_ALG_RANDOM = libvirt.VIR_STORAGE_VOL_WIPE_ALG_RANDOM # 1-pass random
+    # =================
+    #  Wipe algorithms
+    # =================
+    # 1-pass, all zeroes
+    WIPE_ALG_ZERO = libvirt.VIR_STORAGE_VOL_WIPE_ALG_ZERO
+    # 4-pass NNSA Policy Letter NAP-14.1-C (XVI-8)
+    WIPE_ALG_NNSA = libvirt.VIR_STORAGE_VOL_WIPE_ALG_NNSA
+    # 4-pass DoD 5220.22-M section 8-306 procedure
+    WIPE_ALG_DOD = libvirt.VIR_STORAGE_VOL_WIPE_ALG_DOD
+    # 9-pass method recommended by the German Center of
+    # Security in Information Technologies
+    WIPE_ALG_BSI = libvirt.VIR_STORAGE_VOL_WIPE_ALG_BSI
+    # The canonical 35-pass sequence
+    WIPE_ALG_GUTMANN = libvirt.VIR_STORAGE_VOL_WIPE_ALG_GUTMANN
+    # 7-pass method described by Bruce Schneier "Applied Cryptography" (1996)
+    WIPE_ALG_SCHNEIER = libvirt.VIR_STORAGE_VOL_WIPE_ALG_SCHNEIER
+    # 7-pass random
+    WIPE_ALG_PFITZNER7 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER7
+    # 33-pass random
+    WIPE_ALG_PFITZNER33 = libvirt.VIR_STORAGE_VOL_WIPE_ALG_PFITZNER33
+    # 1-pass random
+    WIPE_ALG_RANDOM = libvirt.VIR_STORAGE_VOL_WIPE_ALG_RANDOM
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, connection, pool, prefetch=False):
         """Instantiate a storage pool manager for specified connection
 
-        :param connection: either a ``basestring`` from which will be created a connection, an instance of a ``ConnectionManager`` or directly a libvirt connection handler
+        :param connection: either a ``basestring`` from which will be created
+            a connection, an instance of a ``ConnectionManager`` or directly
+            a libvirt connection handler
         :param prefetch: ``True`` if prefetching storage pool handlers for this
 connection is required. Set to ``False`` by default
         :raises: StorageVolumeManagerError
@@ -118,13 +145,13 @@ connection is required. Set to ``False`` by default
                 if key in cache:
                     cache[key][value] = entry
 
-    # libvirt.virConnection from connection 
+    # libvirt.virConnection from connection
     def _set_drv(self, connection):
         self._drv = connection
         if isinstance(self._drv, basestring):
             self._drv = ConnectionManager(self._drv)
         if isinstance(self._drv, ConnectionManager):
-            self._drv = self._drv.connection       
+            self._drv = self._drv.connection
 
     # libvirt.virStoragePool from virStoragePool
     def _set_pool(self, pool):
@@ -132,7 +159,7 @@ connection is required. Set to ``False`` by default
         if isinstance(self._pool, basestring):
             manager = StoragePoolManager(self._drv)
             self._pool = manager.lookup(self._pool)
-        
+
     def _update_pool(self, pool):
         opool = getattr(self, "_pool", None)
         self._set_pool(pool)
@@ -143,7 +170,8 @@ connection is required. Set to ``False`` by default
             if isinstance(opool_name, libvirt.virStoragePool):
                 opool_name = opool_name.name()
             pool_name = self._pool.name()
-            StorageVolumeManager.update_key((drv_uri, opool_name), (drv_uri, pool_name))
+            StorageVolumeManager.update_key((drv_uri, opool_name),
+                                            (drv_uri, pool_name))
 
     def _lookupByName(self, name):
         handle = None
@@ -219,7 +247,8 @@ connection is required. Set to ``False`` by default
     def lookup(self, volume):
         """lookup a volume and return the corresponding libvirt.virStoragePool
 
-        :param connection: either a ``basestring`` with the label of the virStorageVol to find, an instance of a ``StorageVolume``
+        :param connection: either a ``basestring`` with the label of
+            the virStorageVol to find, an instance of a ``StorageVolume``
         :returns: an instance of virStorageVol
         """
         handle = None
@@ -245,7 +274,9 @@ connection is required. Set to ``False`` by default
                 handle = self._lookupByPath(volume)
         # warn if no handle has been found
         if not handle:
-            log.warn("Unable to find volume {0} on {1}", volume, self._drv.getURI())
+            log.warn("Unable to find volume " +
+                     "{0} on {1}".format(volume,
+                                         self._drv.getURI()))
         # return handle
         return handle
 
@@ -286,10 +317,14 @@ connection is required. Set to ``False`` by default
             volume_xml = volume.unparse()
             # add a warning for allocation
             allocation = volume.allocation
-            if allocation and allocation["#text"] > StorageVolumeManager.MAX_ALLOCATION:
+            max_alloc = StorageVolumeManager.MAX_ALLOCATION
+            if allocation and allocation["#text"] > max_alloc:
                 size = allocation["#text"]
                 unit = allocation["@unit"]
-                log.warning("allocation of {0}{1} asked for {2}, only {3} really allocated.".format(size, unit, volume.name, StorageVolumeManager.MAX_ALLOCATION))
+                log.warning("allocation of {0}{1} ".format(size, unit) +
+                            "asked for {0}, ".format(volume.name) +
+                            "only {0} ".format(max_alloc) +
+                            "really allocated.")
             # sanitizing flags
             flags = flags & StorageVolumeManager.CREATE_PREALLOC_METADATA
             self._pool.createXML(volume_xml, flags=flags)
@@ -319,7 +354,9 @@ connection is required. Set to ``False`` by default
             clone_xml = clone_obj.unparse()
             # sanitizing flags
             flags = flags & StorageVolumeManager.CREATE_PREALLOC_METADATA
-            clone_vol = self._pool.createXMLFrom(clone_xml, origin_volume, flags=flags)
+            clone_vol = self._pool.createXMLFrom(clone_xml,
+                                                 origin_volume,
+                                                 flags=flags)
         except (libvirt.libvirtError, StorageVolumeError) as e:
             log.exception(e)
             raise StorageVolumeManagerError(e)
@@ -355,7 +392,10 @@ connection is required. Set to ``False`` by default
         # resize the volume
         try:
             # sanitizing flags
-            flags = flags & (StorageVolumeManager.RESIZE_ALLOCATE|StorageVolumeManager.RESIZE_DELTA|StorageVolumeManager.RESIZE_SHRINK)
+            mask = (StorageVolumeManager.RESIZE_ALLOCATE |
+                    StorageVolumeManager.RESIZE_DELTA |
+                    StorageVolumeManager.RESIZE_SHRINK)
+            flags = flags & mask
             volume.resize(capacity, flags=flags)
         except libvirt.libvirtError as e:
             log.exception(e)
@@ -376,7 +416,16 @@ connection is required. Set to ``False`` by default
             flags = flags & 0
             if algorithm:
                 # sanitize algorithm
-                algorithm = algorithm & (StorageVolumeManager.WIPE_ALG_ZERO|StorageVolumeManager.WIPE_ALG_NNSA|StorageVolumeManager.WIPE_ALG_DOD|StorageVolumeManager.WIPE_ALG_BSI|StorageVolumeManager.WIPE_ALG_GUTMANN|StorageVolumeManager.WIPE_ALG_SCHNEIER|StorageVolumeManager.WIPE_ALG_PFITZNER7|StorageVolumeManager.WIPE_ALG_PFITZNER33|StorageVolumeManager.WIPE_ALG_RANDOM)
+                mask = (StorageVolumeManager.WIPE_ALG_ZERO
+                        | StorageVolumeManager.WIPE_ALG_NNSA
+                        | StorageVolumeManager.WIPE_ALG_DOD
+                        | StorageVolumeManager.WIPE_ALG_BSI
+                        | StorageVolumeManager.WIPE_ALG_GUTMANN
+                        | StorageVolumeManager.WIPE_ALG_SCHNEIER
+                        | StorageVolumeManager.WIPE_ALG_PFITZNER7
+                        | StorageVolumeManager.WIPE_ALG_PFITZNER33
+                        | StorageVolumeManager.WIPE_ALG_RANDOM)
+                algorithm = algorithm & mask
                 volume.wipePattern(algorithm, flags=flags)
             else:
                 volume.wipe(flags=flags)
@@ -384,7 +433,13 @@ connection is required. Set to ``False`` by default
             log.exception(e)
             raise StorageVolumeManagerError(e)
 
-    def download(self, volume, filename, offset=0, length=0, flags=0, async=False):
+    def download(self,
+                 volume,
+                 filename,
+                 offset=0,
+                 length=0,
+                 flags=0,
+                 async=False):
 
         def _recv_handler(stream, buffer, opaque):
             filedes, status = opaque
@@ -428,16 +483,28 @@ connection is required. Set to ``False`` by default
             type, capacity, bytecount = volume.info()
         # creating shared memory to get status
         status = Array('L', [0, bytecount]) if async else None
-        task = Task(target=_download_worker, args=(volume, filename, offset, length, flags, status))
+        task = Task(target=_download_worker, args=(volume,
+                                                   filename,
+                                                   offset,
+                                                   length,
+                                                   flags,
+                                                   status))
         task.start()
         # if not asynchronous, wait for the task to finish
         if async:
-            # NOTE: (status[0], status[1]) contain (already copied, total) bytes count
+            # NOTE: (status[0], status[1]) contain
+            # (already copied, total) bytes count
             return task, status
         else:
             task.join()
-        
-    def upload(self, volume, filename, offset=0, length=0, flags=0, async=False):
+
+    def upload(self,
+               volume,
+               filename,
+               offset=0,
+               length=0,
+               flags=0,
+               async=False):
 
         def _send_handler(stream, count, opaque):
             filedes, status = opaque
@@ -480,11 +547,17 @@ connection is required. Set to ``False`` by default
             type, capacity, bytecount = volume.info()
         # creating shared memory to get status
         status = Array('L', [0, bytecount]) if async else None
-        task = Task(target=_upload_worker, args=(volume, filename, offset, length, flags, status))
+        task = Task(target=_upload_worker, args=(volume,
+                                                 filename,
+                                                 offset,
+                                                 length,
+                                                 flags,
+                                                 status))
         task.start()
         # if not asynchronous, wait for the task to finish
         if async:
-            # NOTE: (status[0], status[1]) contain (already copied, total) bytes count
+            # NOTE: (status[0], status[1]) contain
+            # (already copied, total) bytes count
             return task, status
         else:
             task.join()

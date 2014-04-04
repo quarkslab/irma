@@ -35,7 +35,7 @@ class WriteBatchContext(object):
         """Overrides `db` put and delete methods"""
         def batch__put(key, value):
             self._batch.Put(key, value)
-        db.__put =  batch__put
+        db.__put = batch__put
 
         def batch__delete(key):
             self._batch.Delete(key)
@@ -201,7 +201,9 @@ __doc__ = """
 [('a', 'foo'), ('b', 'bar')]
 
 >>> import json
->>> levelroot = LevelRoot(root, leveldb_cls=LevelDictSerialized, serializer=json)
+>>> levelroot = LevelRoot(root,
+                          leveldb_cls=LevelDictSerialized,
+                          serializer=json)
 >>> db = levelroot['db2']
 >>> db['a'] = {'data': 1}
 >>> db['b'] = ['foo', False, None]

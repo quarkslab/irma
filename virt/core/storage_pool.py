@@ -1,15 +1,19 @@
-import logging, libvirt, xmltodict
+import logging
+import libvirt
 
-from lib.common import compat
-from lib.common.utils import UUID
-from lib.common.oopatterns import ParametricSingleton
-from lib.virt.core.connection import ConnectionManager
-from lib.virt.core.exceptions import StoragePoolManagerError
+from common.utils import UUID
+from common.oopatterns import ParametricSingleton
+from virt.core.connection import ConnectionManager
+from virt.core.exceptions import StoragePoolManagerError
 
 log = logging.getLogger(__name__)
 
+
 class StoragePoolManager(ParametricSingleton):
-    """Storage pool manager to a manage storage on local or remote virtual machine manager"""
+    """
+    Storage pool manager to a manage storage on
+    local or remote virtual machine manager
+    """
 
     ##########################################################################
     # parametric singleton stuff
@@ -24,41 +28,52 @@ class StoragePoolManager(ParametricSingleton):
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
         try:
-            uri = handler.getURI()          
+            uri = handler.getURI()
         except libvirt.libvirtError as e:
             log.exception(e)
             raise StoragePoolManagerError(e)
         return uri
 
-    ##########################################################################
-    # constants
-    ##########################################################################
+    # ===========
+    #  Constants
+    # ===========
 
-    # Available state
+    # =================
+    #  Available state
+    # =================
     ACTIVE = 1
     INACTIVE = 2
 
-    # Available status
+    # ==================
+    #  Available status
+    # ==================
     POOL_INACTIVE = libvirt.VIR_STORAGE_POOL_INACTIVE
     POOL_BUILDING = libvirt.VIR_STORAGE_POOL_BUILDING
     POOL_RUNNING = libvirt.VIR_STORAGE_POOL_RUNNING
     POOL_DEGRADED = libvirt.VIR_STORAGE_POOL_DEGRADED
     POOL_INACCESSIBLE = libvirt.VIR_STORAGE_POOL_INACCESSIBLE
 
-    # Available delete flags
-    DELETE_NORMAL = libvirt.VIR_STORAGE_POOL_DELETE_NORMAL # Delete metadata only (fast)
-    DELETE_ZEROED = libvirt.VIR_STORAGE_POOL_DELETE_ZEROED # Clear all data to zeros (slow)
-    
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ========================
+    #  Available delete flags
+    # ========================
+    # Delete metadata only (fast)
+    DELETE_NORMAL = libvirt.VIR_STORAGE_POOL_DELETE_NORMAL
+    # Clear all data to zeros (slow)
+    DELETE_ZEROED = libvirt.VIR_STORAGE_POOL_DELETE_ZEROED
+
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, connection, prefetch=False):
         """Instantiate a storage pool manager for specified connection
 
-        :param connection: either an instance of a ``ConnectionManager`` or directly a libvirt connection handler
-        :param prefetch: set to True if prefetching storage pool handlers for this connection is required
-        :raises: StoragePoolManagerError if ``connection`` is not an expected type or None
+        :param connection: either an instance of a ``ConnectionManager``
+            or directly a libvirt connection handler
+        :param prefetch: set to True if prefetching storage pool handlers
+            for this connection is required
+        :raises: StoragePoolManagerError if ``connection`` is not an
+            expected type or None
         """
         # handle cache
         self._cache = {'name': {}, 'uuid': {}}
@@ -79,13 +94,13 @@ class StoragePoolManager(ParametricSingleton):
     # internal helpers
     ##########################################################################
 
-    # libvirt.virConnection from connection 
+    # libvirt.virConnection from connection
     def _set_drv(self, connection):
         self._drv = connection
         if isinstance(self._drv, basestring):
             self._drv = ConnectionManager(self._drv)
         if isinstance(self._drv, ConnectionManager):
-            self._drv = self._drv.connection       
+            self._drv = self._drv.connection
 
     def _list_active(self):
         labels = list()
@@ -164,20 +179,25 @@ class StoragePoolManager(ParametricSingleton):
         # TODO: in the future, handle storage pool objects
         # warn if no handle has been found
         if not handle:
-            log.warn("Unable to find pool '{0}' on '{1}'", pool, self._drv.getURI())
+            log.warn("Unable to find pool '{0}'".format(pool) +
+                     " on '{1}'".format(self._drv.getURI()))
         # return handle
         return handle
 
-    def list(self, filter=ACTIVE|INACTIVE):
+    def list(self, filter=ACTIVE | INACTIVE):
         """list storage pools on this domain
 
-        :param filter: either StoragePoolManager.ACTIVE or StoragePoolManager.INACTIVE 
-                       to respectively active or inactive storage pools
-        :returns: a tuple containing storage pools names (w.r.t specified filter)
+        :param filter: either StoragePoolManager.ACTIVE or
+            StoragePoolManager.INACTIVE
+            to respectively active or inactive storage pools
+        :returns: a tuple containing storage pools names
+            (w.r.t specified filter)
         """
         labels = list()
         # modifying filters
-        filter = filter & (StoragePoolManager.ACTIVE|StoragePoolManager.INACTIVE)
+        mask = (StoragePoolManager.ACTIVE
+                | StoragePoolManager.INACTIVE)
+        filter = filter & mask
         # fetching labels according to filters
         if not filter or filter & StoragePoolManager.ACTIVE:
             labels.extend(self._list_active())
@@ -186,18 +206,19 @@ class StoragePoolManager(ParametricSingleton):
         return tuple(labels)
 
     state_desc = {
-        POOL_INACTIVE : "is not running",
-        POOL_BUILDING : "is initializing pool, not available",
-        POOL_RUNNING  : "is running normally",
-        POOL_DEGRADED : "is running degraded", 
-        POOL_INACCESSIBLE : "is running, but not accessible"
+        POOL_INACTIVE:     "is not running",
+        POOL_BUILDING:     "is initializing pool, not available",
+        POOL_RUNNING:      "is running normally",
+        POOL_DEGRADED:     "is running degraded",
+        POOL_INACCESSIBLE: "is running, but not accessible"
     }
 
     def state(self, pool):
         """get state of the storage pool specified via pool
 
-        :param pool: either a label, uuid, virStoragePool object 
-        :returns: (state, a string description) tuple if pool is a label, a uuid, a virStoragePool.
+        :param pool: either a label, uuid, virStoragePool object
+        :returns: (state, a string description) tuple if pool is
+            a label, a uuid, a virStoragePool.
         """
         result = (None, None)
         if isinstance(pool, basestring):
@@ -216,7 +237,7 @@ class StoragePoolManager(ParametricSingleton):
     def start(self, pool, flags=0):
         """start specified pool
 
-        :param pool: either a label, uuid, a virStoragePool 
+        :param pool: either a label, uuid, a virStoragePool
         """
         if isinstance(pool, basestring):
             pool = self._lookup_pool(pool)
@@ -256,10 +277,12 @@ class StoragePoolManager(ParametricSingleton):
         if isinstance(pool, basestring):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
-        if isinstance(pool, libvirtError.virStoragePool):
+        if isinstance(pool, libvirt.virStoragePool):
             try:
                 # sanitize flags
-                flags = flags & (StoragePoolManager.DELETE_NORMAL|StoragePoolManager.DELETE_ZEROED)
+                mask = StoragePoolManager.DELETE_NORMAL
+                mask |= StoragePoolManager.DELETE_ZEROED
+                flags = flags & mask
                 pool.delete(flags=flags)
             except libvirt.libvirtError as e:
                 log.exception(e)
@@ -282,7 +305,8 @@ class StoragePoolManager(ParametricSingleton):
                         pool.setAutostart(autostart)
                         result = autostart
                     else:
-                        log.warn("Pool {0} already have autostart set to '{1}'".format(pool, result))
+                        log.warn("Pool {0} already have".format(pool) +
+                                 " autostart set to '{0}'".format(result))
             except libvirt.libvirtError as e:
                 log.exception(e)
                 raise StoragePoolManagerError(e)
@@ -313,7 +337,7 @@ class StoragePoolManager(ParametricSingleton):
                 log.exception(e)
                 raise StoragePoolManagerError(e)
         return result
-    
+
     def refresh(self, pool, flags=0):
         if isinstance(pool, basestring):
             pool = self._lookup_pool(pool)

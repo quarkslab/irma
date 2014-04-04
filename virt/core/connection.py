@@ -1,13 +1,17 @@
-import logging, libvirt
+import logging
+import libvirt
 
-from lib.common import compat
-from lib.common.oopatterns import ParametricSingleton
-from lib.virt.core.exceptions import ConnectionManagerError
+from common.oopatterns import ParametricSingleton
+from virt.core.exceptions import ConnectionManagerError
 
 log = logging.getLogger(__name__)
 
+
 class ConnectionManager(ParametricSingleton):
-    """Connection manager to a drive a local or remote virtual machine manager"""
+    """
+    Connection manager to a drive a local
+    or remote virtual machine manager
+    """
 
     handlers = {}
 
@@ -54,23 +58,29 @@ class ConnectionManager(ParametricSingleton):
     SSH = "ssh"
     EXT = "ext"
     TCP = "tcp"
-    LIBSSH = "libssh2"        
+    LIBSSH = "libssh2"
 
     ##########################################################################
     # constructor and destructor stuff
     ##########################################################################
-    
+
     def __init__(self, uri):
-        """Instantiate a connection to the virtual machine manager specified by ``domainuri``
+        """
+        Instantiate a connection to the virtual
+        machine manager specified by ``domainuri``
 
         :param uri: URI to reach the virtual machine manager
-        :raises: ConnectionManagerError if ``uri`` provided is not a string or a valid URI
+        :raises: ConnectionManagerError if ``uri`` provided
+        is not a string or a valid URI
         """
         if not isinstance(uri, basestring):
-            raise ConnectionManagerError("'uri' argument must be supplied as a string, not as a {0}".format(type(uri)))
+            reason = ("'uri' argument must be supplied as a string, " +
+                      "not as a {0}".format(type(uri)))
+            raise ConnectionManagerError(reason)
         elif not ConnectionManager.validate_uri(uri):
-            raise ConnectionManagerError("'uri' field value '{0}' is not valid".format(uri))
-         
+            reason = "'uri' field value '{0}' is not valid".format(uri)
+            raise ConnectionManagerError(reason)
+
         self._uri = uri
 
         self._drv = None
@@ -90,11 +100,11 @@ class ConnectionManager(ParametricSingleton):
     ##########################################################################
     # internal helpers
     ##########################################################################
-    
+
     def _connect(self):
         if self._drv:
             return self._drv
-        self._drv =  ConnectionManager.handlers.get(self._uri, None)
+        self._drv = ConnectionManager.handlers.get(self._uri, None)
         if not self._drv:
             try:
                 self._drv = libvirt.open(self._uri)
@@ -138,7 +148,7 @@ class ConnectionManager(ParametricSingleton):
     @staticmethod
     def create_uri(param):
         """create an uri from parameters passed in arguments
-        
+
         :returns: a connection uri string
         :raises: NotImplementedError in any case
         .. versionadded:: 0.3
@@ -151,7 +161,8 @@ class ConnectionManager(ParametricSingleton):
 
         :returns: true if valid else false
         """
-        # TODO: perform more type checking, format checking and coherence checking
+        # TODO: perform more type checking,
+        # format checking and coherence checking
         valid = False
         if isinstance(uri, basestring):
             valid = True
@@ -159,7 +170,7 @@ class ConnectionManager(ParametricSingleton):
 
     def version(self):
         """get the libvirt version
-        
+
         :returns: (major, minor, release) tuple
         """
         version = self._drv.getLibVersion()
