@@ -6,8 +6,9 @@ from probes.antivirus.antivirus import AntivirusProbe
 
 log = logging.getLogger(__name__)
 
+
 class ClamProbe(AntivirusProbe):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################

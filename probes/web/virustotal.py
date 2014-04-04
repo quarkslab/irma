@@ -3,11 +3,11 @@ import logging
 from modules.web.virustotal import VirusTotal
 from probes.web.web import WebProbe
 
-
 log = logging.getLogger(__name__)
 
+
 class VirusTotalProbe(WebProbe):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################

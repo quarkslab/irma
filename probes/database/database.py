@@ -7,8 +7,9 @@ from probes.processing import Processing
 
 log = logging.getLogger(__name__)
 
+
 class DatabaseProbe(Plugin, Processing):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################
