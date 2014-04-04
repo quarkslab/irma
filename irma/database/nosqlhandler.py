@@ -168,3 +168,12 @@ class NoSQLDatabase(Singleton):
             return fsdbh.get(file_oid)
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
+
+    def delete_file(self, db_name, collection_name, file_oid):
+        """ delete from gridfs by file object-id """
+        fsdbh = gridfs.GridFS(self._database(db_name),
+                              collection=collection_name)
+        try:
+            return fsdbh.delete(file_oid)
+        except Exception as e:
+            raise IrmaDatabaseError("{0}".format(e))
