@@ -1,4 +1,6 @@
-import logging, os, hashlib, datetime
+import logging
+import os
+import hashlib
 
 from lib.common.oopatterns import Plugin
 from lib.plugin_result import PluginResult
@@ -7,8 +9,9 @@ from probes.information.system import System
 
 log = logging.getLogger(__name__)
 
+
 class AntivirusProbe(Plugin, Processing):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################
@@ -17,7 +20,7 @@ class AntivirusProbe(Plugin, Processing):
     _plugin_version = None
     _plugin_description = None
     _plugin_dependencies = [
-        System, # append system information
+        System,  # append system information
     ]
 
     ##########################################################################
@@ -46,7 +49,8 @@ class AntivirusProbe(Plugin, Processing):
     def ready(self):
         result = False
         if super(AntivirusProbe, self).ready():
-            if self._module.scan_path and os.path.exists(self._module.scan_path):
+            if self._module.scan_path and \
+               os.path.exists(self._module.scan_path):
                 if os.path.isfile(self._module.scan_path):
                     result = True
         return result
@@ -68,7 +72,8 @@ class AntivirusProbe(Plugin, Processing):
         # calculate database metadata
         if self._module.database:
             for filename in self._module.database:
-                plugin_results.data['database'][filename] = self.file_metadata(filename)
+                database = plugin_results.data['database']
+                database[filename] = self.file_metadata(filename)
         plugin_results.data['scan_results'] = self._module.scan_results
         # append dependency data
         if type(self).plugin_dependencies:

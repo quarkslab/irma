@@ -3,11 +3,11 @@ import logging
 from modules.antivirus.symantec import Symantec
 from probes.antivirus.antivirus import AntivirusProbe
 
-
 log = logging.getLogger(__name__)
 
+
 class SymantecProbe(AntivirusProbe):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################

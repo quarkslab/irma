@@ -1,4 +1,8 @@
-import kombu, ssl, tempfile, os, uuid
+import kombu
+import ssl
+import tempfile
+import os
+import uuid
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
@@ -47,7 +51,8 @@ broker = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
 )
 
 backend = "redis://{host}:{port}/{database}".format(
-    host=config.backend_probe.host, port=config.backend_probe.port,
+    host=config.backend_probe.host,
+    port=config.backend_probe.port,
     database=config.backend_probe.db)
 
 # declare a new application
@@ -55,25 +60,31 @@ app = Celery("probe.tasks")
 app.conf.update(
     BROKER_URL=broker,
     CELERY_RESULT_BACKEND=backend,
-#    CELERY_IGNORE_RESULT=True,
+    # CELERY_IGNORE_RESULT=True,
     CELERY_ACCEPT_CONTENT=['json'],
     CELERY_RESULT_SERIALIZER='json',
     CELERY_TASK_SERIALIZER='json',
-#    BROKER_USE_SSL = {
-#        'ca_certs': config.broker_probe['ssl_ca'],
-#        'keyfile': config.broker_probe['ssl_key'],
-#        'certfile': config.broker_probe['ssl_cert'],
-#        'cert_reqs': ssl.CERT_REQUIRED
-#        },
-#    BROKER_LOGIN_METHOD='EXTERNAL',
-#    CELERY_DISABLE_RATE_LIMITS=True,
-#    CELERY_ACKS_LATE=True
-)
+    CELERY_ACKS_LATE=True
+    )
+"""
+    BROKER_USE_SSL = {
+        'ca_certs': config.broker_probe['ssl_ca'],
+        'keyfile': config.broker_probe['ssl_key'],
+        'certfile': config.broker_probe['ssl_cert'],
+        'cert_reqs': ssl.CERT_REQUIRED
+        },
+    BROKER_LOGIN_METHOD='EXTERNAL',
+    CELERY_DISABLE_RATE_LIMITS=True,
+"""
 
 # determine dynamically queues to connect to
 queues = []
-probes = sum([ AntivirusProbe.plugins, WebProbe.plugins, DatabaseProbe.plugins, InformationProbe.plugins ], [])
-probes = map(lambda pb: pb(conf=config.get(pb.plugin_name, None)), probes)
+probes = sum([AntivirusProbe.plugins,
+              WebProbe.plugins,
+              DatabaseProbe.plugins,
+              InformationProbe.plugins], [])
+probes = map(lambda pb: pb(conf=config.get(pb.plugin_name, None)),
+             probes)
 probes = filter(lambda pb: pb.ready(), probes)
 probes = dict((type(pb).plugin_name, pb) for pb in probes)
 for probe in probes.keys():
@@ -88,6 +99,7 @@ app.conf.update(
 # declare celery tasks
 ##############################################################################
 
+
 @app.task(acks_late=True)
 def probe_scan(frontend, scanid, filename):
     try:
@@ -97,8 +109,12 @@ def probe_scan(frontend, scanid, filename):
         conf_ftp = config.ftp_brain
         (fd, tmpname) = tempfile.mkstemp()
         os.close(fd)
-        with FtpTls(conf_ftp.host, conf_ftp.port, conf_ftp.username, conf_ftp.password) as ftps:
-            ftps.download("{0}/{1}".format(frontend, scanid), filename, tmpname)
+        with FtpTls(conf_ftp.host,
+                    conf_ftp.port,
+                    conf_ftp.username,
+                    conf_ftp.password) as ftps:
+            path = "{0}/{1}".format(frontend, scanid)
+            ftps.download(path, filename, tmpname)
         results = probe.run(tmpname)
         # Some AV always delete suspicious file
         if os.path.exists(tmpname):
@@ -114,10 +130,11 @@ def probe_scan(frontend, scanid, filename):
 
 if __name__ == '__main__':
     app.worker_main([
-        '--app=probe.tasks:app',    # app instance to use
-        '-l', 'info',               # logging level
-        '--without-gossip',         # do not subscribe to other workers events.
-        '--without-mingle',         # do not synchronize with other workers at startup
-        '--without-heartbeat',      # do not send event heartbeats
+        '--app=probe.tasks:app',  # app instance to use
+        '-l', 'info',             # logging level
+        '--without-gossip',       # do not subscribe to other workers events.
+        '--without-mingle',       # do not synchronize with
+                                  # other workers at startup
+        '--without-heartbeat',    # do not send event heartbeats
         '-nprobe-{0}'.format(uuid.uuid4())   # unique id
     ])

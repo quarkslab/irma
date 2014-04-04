@@ -2,11 +2,11 @@ import logging
 
 from probes.database.database import DatabaseProbe
 
-
 log = logging.getLogger(__name__)
 
+
 class NSRLProbe(DatabaseProbe):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################
@@ -33,7 +33,10 @@ class NSRLProbe(DatabaseProbe):
             # late imports
             global NSRL
             from modules.database.nsrl import NSRL
-            self._module = NSRL(nsrl_file_db, nsrl_prod_db, nsrl_os_db, nsrl_mfg_db)
+            self._module = NSRL(nsrl_file_db,
+                                nsrl_prod_db,
+                                nsrl_os_db,
+                                nsrl_mfg_db)
         except Exception as e:
             print e
             log.exception(e)

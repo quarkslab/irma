@@ -3,11 +3,11 @@ import logging
 from modules.antivirus.kaspersky import Kaspersky
 from probes.antivirus.antivirus import AntivirusProbe
 
-
 log = logging.getLogger(__name__)
 
+
 class KasperskyProbe(AntivirusProbe):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################

@@ -3,11 +3,11 @@ import logging
 from modules.information.analyzer import StaticAnalyzer
 from probes.information.information import InformationProbe
 
-
 log = logging.getLogger(__name__)
 
+
 class StaticAnalyzerProbe(InformationProbe):
-    
+
     ##########################################################################
     # plugin metadata
     ##########################################################################

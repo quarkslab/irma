@@ -1,5 +1,6 @@
-import logging, platform
+import platform
 from probes.processing import Processing
+
 
 class System(Processing):
 

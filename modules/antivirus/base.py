@@ -1,4 +1,9 @@
-import logging, re, os, sys, glob, locale
+import logging
+import re
+import os
+import sys
+import glob
+import locale
 
 from lib.common.hash import sha256sum
 from subprocess import Popen, PIPE
@@ -6,12 +11,13 @@ from subprocess import Popen, PIPE
 
 log = logging.getLogger(__name__)
 
+
 class Antivirus(object):
     """Antivirus Base Class"""
 
-    ##########################################################################
+    #===========
     # constants
-    ##########################################################################
+    #===========
 
     class ScanResult:
         CLEAN = 0
@@ -24,9 +30,9 @@ class Antivirus(object):
         MEDIUM = 2
         HIGH = 3
 
-    ##########################################################################
+    #==================================
     # constructor and destructor stuff
-    ##########################################################################
+    #==================================
 
     def __init__(self, *args, **kwargs):
         # set default antivirus information
@@ -37,9 +43,9 @@ class Antivirus(object):
         self._scan_path = None
         self._scan_args = []
         self._scan_retcodes = {
-            self.ScanResult.CLEAN    : lambda x: x in [0],
-            self.ScanResult.INFECTED : lambda x: x in [1],
-            self.ScanResult.ERROR    : lambda x: not self._scan_retcodes[self.ScanResult.CLEAN](x) and not self._scan_retcodes[self.ScanResult.INFECTED](x),
+            self.ScanResult.CLEAN: lambda x: x in [0],
+            self.ScanResult.INFECTED: lambda x: x in [1],
+            self.ScanResult.ERROR: lambda x: not self._scan_retcodes[self.ScanResult.CLEAN](x) and not self._scan_retcodes[self.ScanResult.INFECTED](x),
         }
         # scan options
         # TODO: implement heuristics levels
