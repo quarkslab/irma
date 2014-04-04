@@ -62,7 +62,7 @@ class DbTestCase(unittest.TestCase):
             self.skipTest(DbTestCase)
 
 
-class CheckAddObject(DbTestCase):
+class TestSqlObject(DbTestCase):
 
     def test_add_testobject(self):
         with SQLDatabase(test_dbengine) as db:

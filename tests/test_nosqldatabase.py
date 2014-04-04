@@ -92,7 +92,7 @@ class CheckSingleton(DbTestCase):
                          id(NoSQLDatabase(test_db_name, test_db_uri)))
 
 
-class CheckAddObject(DbTestCase):
+class TestNoSQLDatabaseObject(DbTestCase):
 
     def test_add_testobject(self):
         db = NoSQLDatabase(test_db_name, test_db_uri)
@@ -195,7 +195,7 @@ class CheckAddObject(DbTestCase):
         self.assertEqual(t1.user, "bla")
 
 
-class CheckLockObject(DbTestCase):
+class TestLockObject(DbTestCase):
     def test_is_lock_free(self):
         t = TestObject()
         self.assertTrue(TestObject.is_lock_free(t.id))

@@ -69,7 +69,7 @@ class FtpTestCase(unittest.TestCase):
             self.skipTest(FtpTestCase)
 
 
-class CheckFtpHandler(FtpTestCase):
+class TestFtpHandler(FtpTestCase):
 
     def test_ftp_upload_file(self):
         ftps = FtpTls(self.test_ftp_host,

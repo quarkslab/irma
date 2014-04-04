@@ -26,7 +26,7 @@ def enable_logging(level=logging.INFO, handler=None, formatter=None):
 # ============
 #  Test Cases
 # ============
-class CheckIniConfiguration(unittest.TestCase):
+class TestIniConfiguration(unittest.TestCase):
 
     def test_ini_config_value(self):
         directory = os.path.dirname(os.path.realpath(__file__))
@@ -61,7 +61,7 @@ template = {'foo':
             }
 
 
-class CheckTemplatedConfiguration(unittest.TestCase):
+class TestTemplatedConfiguration(unittest.TestCase):
 
     def test_templated_config_value(self):
         directory = os.path.dirname(os.path.realpath(__file__))
