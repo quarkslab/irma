@@ -67,11 +67,12 @@ class NSRLOsSerializer(NSRLSerializer):
 
 class NSRLFileSerializer(NSRLSerializer):
 
-    fields = ["MD5", "CRC32", "FileName", "FileSize", "ProductCode", "OpSystemCode", "SpecialCode"]
+    fields = ["MD5", "CRC32", "FileName", "FileSize",
+              "ProductCode", "OpSystemCode", "SpecialCode"]
 
     @classmethod
     def dumps(cls, value):
-        
+
         def detect_charset(string):
             import chardet
             return chardet.detect(string)['encoding']
@@ -86,9 +87,9 @@ class NSRLFileSerializer(NSRLSerializer):
             if isinstance(value, list):
                 for index, row in enumerate(value):
                     if not isinstance(row['FileName'], unicode):
-                        charset = detect_charset(row['FileName']) 
+                        charset = detect_charset(row['FileName'])
                         charset = 'unicode-escape' if not charset else charset
-                        try: 
+                        try:
                             row['FileName'] = row['FileName'].decode(charset)
                         except:
                             # treat false positive from chardet
@@ -114,7 +115,8 @@ class NSRLManufacturerSerializer(NSRLSerializer):
 
 class NSRLProductSerializer(NSRLSerializer):
 
-    fields = ["ProductName", "ProductVersion", "OpSystemCode", "MfgCode", "Language", "ApplicationType"]
+    fields = ["ProductName", "ProductVersion", "OpSystemCode",
+              "MfgCode", "Language", "ApplicationType"]
 
 ##############################################################################
 # NSRL records
@@ -143,7 +145,7 @@ class NSRLLevelDict(LevelDictSerialized, LevelDBSingleton):
         from csv import DictReader
 
         log_threshold = 50000
-        
+
         # create database
         db = cls(dbfile, **kwargs)
         # open csv files
@@ -238,10 +240,10 @@ class NSRL(object):
 
     def lookup_by_sha1(self, sha1sum):
         operations = [
-            ( sha1sum, 'SHA-1',        self.nsrl_file, None),
-            ( None,    'ProductCode',  self.nsrl_product, 'SHA-1'), 
-            ( None,    'OpSystemCode', self.nsrl_os, 'SHA-1'),
-            ( None,    'MfgCode',      self.nsrl_manufacturer, 'ProductCode')
+            (sha1sum, 'SHA-1', self.nsrl_file, None),
+            (None, 'ProductCode', self.nsrl_product, 'SHA-1'),
+            (None, 'OpSystemCode', self.nsrl_os, 'SHA-1'),
+            (None, 'MfgCode', self.nsrl_manufacturer, 'ProductCode')
         ]
         entries = dict((name, {}) for (_, name, _, _) in operations)
         try:
@@ -267,7 +269,7 @@ class NSRL(object):
 if __name__ == '__main__':
 
     ##########################################################################
-    # local import 
+    # local import
     ##########################################################################
 
     import argparse
@@ -289,7 +291,7 @@ if __name__ == '__main__':
 
     def nsrl_get(**kwargs):
         database_type = kwargs['type']
-        database = nsrl_databases[database_type](kwargs['database'], block_cache_size=1<<30, max_open_files=3000)
+        database = nsrl_databases[database_type](kwargs['database'], block_cache_size=1 << 30, max_open_files=3000)
         value = database.get(kwargs['key'])
         print("key {0}: value {1}".format(kwargs['key'], value))
 

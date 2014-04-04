@@ -1,14 +1,17 @@
-import logging, argparse, re, os
+import logging
+import re
+import os
 
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
 
+
 class ComodoCAVL(Antivirus):
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
@@ -17,16 +20,17 @@ class ComodoCAVL(Antivirus):
         self._name = "Comodo Antivirus for Linux"
         # scan tool variables
         self._scan_args = (
-            "-v ", # verbose mode, display more detailed output
-            "-s ", # scan a file or directory
+            "-v ",  # verbose mode, display more detailed output
+            "-s ",  # scan a file or directory
         )
         self._scan_patterns = [
-            re.compile(r'(?P<file>.*) ---\> Found .*, Malware Name is (?P<name>.*)', re.IGNORECASE)
+            re.compile(r'(?P<file>.*) ---\> Found .*,' +
+                       r' Malware Name is (?P<name>.*)', re.IGNORECASE)
         ]
 
-    ##########################################################################
-    # antivirus methods (need to be overriden)
-    ##########################################################################
+    # ==========================================
+    #  Antivirus methods (need to be overriden)
+    # ==========================================
 
     def get_version(self):
         """return the version of the antivirus"""
@@ -44,7 +48,9 @@ class ComodoCAVL(Antivirus):
         result = None
         if self.scan_path:
             dirname = os.path.dirname(self.scan_path)
-            database_path = self.locate('scanners/*.cav', dirname, syspath=False)
+            database_path = self.locate('scanners/*.cav',
+                                        dirname,
+                                        syspath=False)
             result = database_path
         return result
 

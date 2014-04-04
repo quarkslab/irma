@@ -1,14 +1,16 @@
-import logging, argparse, re
+import logging
+import re
 
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
 
+
 class EsetNod32(Antivirus):
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
@@ -19,16 +21,17 @@ class EsetNod32(Antivirus):
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [1, 50]
         # scan tool variables
         self._scan_args = (
-            "--clean-mode=NONE " # do not remove infected files
-            "--no-log-all" # do not log clean files
+            "--clean-mode=NONE "  # do not remove infected files
+            "--no-log-all"        # do not log clean files
         )
         self._scan_patterns = [
-            re.compile(r'name="(?P<file>.*)", threat="(?P<name>.*), action=.*', re.IGNORECASE|re.MULTILINE)
+            re.compile(r'name="(?P<file>.*)", threat="(?P<name>.*), action=.*',
+                       re.IGNORECASE | re.MULTILINE)
         ]
 
-    ##########################################################################
-    # antivirus methods (need to be overriden)
-    ##########################################################################
+    # ==========================================
+    #  Antivirus methods (need to be overriden)
+    # ==========================================
 
     def get_version(self):
         """return the version of the antivirus"""
@@ -37,7 +40,9 @@ class EsetNod32(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)', stdout, re.IGNORECASE)
+                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                                    stdout,
+                                    re.IGNORECASE)
                 if matches:
                     result = matches.group('version').strip()
         return result
@@ -45,10 +50,10 @@ class EsetNod32(Antivirus):
     def get_database(self):
         """return list of files in the database"""
         search_paths = [
-            '/var/opt/eset/esets/lib/', 
+            '/var/opt/eset/esets/lib/',
         ]
         database_patterns = [
-            '*.dat', # determined using strace on linux
+            '*.dat',  # determined using strace on linux
         ]
         results = []
         for pattern in database_patterns:

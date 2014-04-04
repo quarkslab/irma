@@ -1,14 +1,19 @@
-import logging, argparse, re, os, tempfile, time
+import logging
+import re
+import os
+import tempfile
+import time
 
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
 
+
 class Sophos(Antivirus):
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
@@ -19,20 +24,22 @@ class Sophos(Antivirus):
         self._log_path = os.path.join(tempfile.gettempdir(), "sophos.log")
         # scan tool variables
         self._scan_args = (
-            "-archive " # scan inside archives
-            "-ss " # only print errors or found viruses
-            "-nc " # do not ask remove confirmation when infected
-            "-nb " # no bell sound
-            "-p={0} ".format(self._log_path) # log to file specified
+            "-archive "  # scan inside archives
+            "-ss "  # only print errors or found viruses
+            "-nc "  # do not ask remove confirmation when infected
+            "-nb "  # no bell sound
+            "-p={0} ".format(self._log_path)  # log to file specified
         )
-        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [1, 2, 3]
+        code_infected = self.ScanResult.INFECTED
+        self._scan_retcodes[code_infected] = lambda x: x in [1, 2, 3]
         self._scan_patterns = [
-            re.compile(r">>> Virus '(?P<name>.+)' found in file (?P<file>.*)", re.IGNORECASE)
+            re.compile(r">>> Virus '(?P<name>.+)' found in file (?P<file>.*)",
+                       re.IGNORECASE)
         ]
 
-    ##########################################################################
-    # antivirus methods (need to be overriden)
-    ##########################################################################
+    # ==========================================
+    #  Antivirus methods (need to be overriden)
+    # ==========================================
 
     def get_version(self):
         """return the version of the antivirus"""
@@ -41,7 +48,9 @@ class Sophos(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)', stdout, re.IGNORECASE)
+                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                                    stdout,
+                                    re.IGNORECASE)
                 if matches:
                     result = matches.group('version').strip()
         return result
@@ -52,16 +61,18 @@ class Sophos(Antivirus):
         # always installed by default. Instead, hardcode some common paths and
         # locate files using predefined patterns
         if self._is_windows:
-            search_paths = map(lambda x: "{path}/Sophos/*".format(path=x), [os.environ.get('PROGRAMFILES', ''), os.environ.get('PROGRAMFILES(X86)', '')])
+            search_paths = map(lambda x: "{path}/Sophos/*".format(path=x),
+                               [os.environ.get('PROGRAMFILES', ''),
+                                os.environ.get('PROGRAMFILES(X86)', '')])
         else:
             search_paths = [
-                '/opt/sophos-av/lib/sav', # default location in debian
+                '/opt/sophos-av/lib/sav',  # default location in debian
             ]
         database_patterns = [
-            '*.dat', #
-            'vdl??.vdb', #
-            'sus??.vdb', #
-            '*.ide', #
+            '*.dat',
+            'vdl??.vdb',
+            'sus??.vdb',
+            '*.ide',
         ]
         results = []
         for pattern in database_patterns:
@@ -73,7 +84,10 @@ class Sophos(Antivirus):
         """return the full path of the scan tool"""
         if self._is_windows:
             scan_bin = "sav32cli.exe"
-            scan_paths = map(lambda x: "{path}/Sophos".format(path=x), [os.environ.get('PROGRAMFILES', ''), os.environ.get('PROGRAMFILES(X86)', '')])
+            scan_paths = map(lambda x:
+                             "{path}/Sophos".format(path=x),
+                             [os.environ.get('PROGRAMFILES', ''),
+                              os.environ.get('PROGRAMFILES(X86)', '')])
         else:
             scan_bin = "savscan"
             scan_paths = "/opt/sophos-av"
@@ -96,7 +110,9 @@ class Sophos(Antivirus):
             # wait for log to be updated
             mtime = os.path.getmtime(self._log_path)
             delay = 10
-            while self._last_log_time != mtime and (mtime - self._last_log_time) > 0.5 and delay != 0 :
+            while (self._last_log_time != mtime and
+                   (mtime - self._last_log_time) > 0.5 and
+                   delay != 0):
                 time.sleep(1)
                 mtime = os.path.getmtime(self._log_path)
                 delay -= 1

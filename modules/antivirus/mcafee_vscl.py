@@ -1,14 +1,17 @@
-import logging, argparse, re, os, sys
+import logging
+import re
+import os
 
 from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
 
+
 class McAfeeVSCL(Antivirus):
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
@@ -18,29 +21,37 @@ class McAfeeVSCL(Antivirus):
         # scan tool variables
         if self._is_windows:
             self._scan_args = (
-                "/ANALYZE " # turn on heuristic analysis for program and macro
-                "/MANALYZE " # turn on macro heuristics
-                "/RECURSIVE " # examine any subdirectories in addition to the specified target directory.
-                "/UNZIP " # scan inside archives
-                "/NOMEM " # do not scan memory for viruses
+                "/ANALYZE "    # turn on heuristic analysis
+                               # for program and macro
+                "/MANALYZE "   # turn on macro heuristics
+                "/RECURSIVE "  # examine any subdirectories in
+                               # addition to the specified target directory.
+                "/UNZIP "      # scan inside archives
+                "/NOMEM "      # do not scan memory for viruses
             )
         else:
             self._scan_args = (
-                "--ASCII " # display filenames as ASCII text
-                "--ANALYZE " # turn on heuristic analysis for programs and macros
-                "--MANALYZE " # turn on macro heuristics
-                "--MACRO-HEURISTICS " # turn on macro heuristics
-                "--RECURSIVE " # examine any subdirectories in addition to the specified target directory.
-                "--UNZIP " # scan inside archive files
+                "--ASCII "             # display filenames as ASCII text
+                "--ANALYZE "           # turn on heuristic analysis for
+                                       # programs and macros
+                "--MANALYZE "          # turn on macro heuristics
+                "--MACRO-HEURISTICS "  # turn on macro heuristics
+                "--RECURSIVE "         # examine any subdirectories
+                                       # to the specified target directory.
+                "--UNZIP "             # scan inside archive files
             )
         self._scan_patterns = [
-            re.compile(r'(?P<file>[^\s]*) \.\.\. Found the (?P<name>.*) [a-z]+ \!\!', re.IGNORECASE),
-            re.compile(r'(?P<file>[^\s]*) \.\.\. Found [a-z]+ or variant (?P<name>.*) \!\!', re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
+                       r'Found the (?P<name>.*) [a-z]+ \!\!',
+                       re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
+                       r'Found [a-z]+ or variant (?P<name>.*) \!\!',
+                       re.IGNORECASE),
         ]
 
-    ##########################################################################
-    # antivirus methods (need to be overriden)
-    ##########################################################################
+    # ==========================================
+    #  Antivirus methods (need to be overriden)
+    # ==========================================
 
     def get_version(self):
         """return the version of the antivirus"""
@@ -49,7 +60,9 @@ class McAfeeVSCL(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)', stdout, re.IGNORECASE)
+                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                                    stdout,
+                                    re.IGNORECASE)
                 if matches:
                     result = matches.group('version').strip()
         return result
@@ -57,17 +70,19 @@ class McAfeeVSCL(Antivirus):
     def get_database(self):
         """return list of files in the database"""
         if self._is_windows:
-            search_paths = [ 
-                os.path.normpath('C:\VSCL') # default install path in windows probes in irma
+            search_paths = [
+                # default install path in windows probes in irma
+                os.path.normpath('C:\VSCL')
             ]
         else:
             search_paths = [
-                '/usr/local/uvscan', # default location in debian
+                # default location in debian
+                '/usr/local/uvscan',
             ]
         database_patterns = [
-            'avvscan.dat', # data file for virus scanning
-            'avvnames.dat', # data file for virus names
-            'avvclean.dat', # data file for virus cleaning
+            'avvscan.dat',   # data file for virus scanning
+            'avvnames.dat',  # data file for virus names
+            'avvclean.dat',  # data file for virus cleaning
         ]
         results = []
         for pattern in database_patterns:
