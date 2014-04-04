@@ -58,7 +58,7 @@ def enableCORSAfterRequestHook():
 
 
 # =============
-#  SERVER ROOT
+#  Server root
 # =============
 
 @route("/")
@@ -73,7 +73,7 @@ def svr_index():
 
 
 # =====================
-#  COMMON PARAM CHECKS
+#  Common param checks
 # =====================
 
 def _valid_id(scanid):
@@ -87,7 +87,7 @@ def _valid_sha256(sha256):
 
 
 # ==========
-#  API SCAN
+#  Scan api
 # ==========
 
 @route("/scan/new")
@@ -273,7 +273,7 @@ def scan_cancel(scanid):
 
 
 # ===========
-#  API PROBE
+#  Probe api
 # ===========
 
 @route("/probe/list")
@@ -299,7 +299,7 @@ def probe_list():
 
 
 # ==========
-#  API FILE
+#  File api
 # ==========
 
 @route("/file/search/<sha256>")
@@ -319,9 +319,10 @@ def file_search(sha256):
 
 
 # ======
-#  MAIN
+#  Main
 # ======
 
+# deprecated launched via uwsgi now
 application = default_app()
 
 if __name__ == "__main__":
