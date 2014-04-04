@@ -1,6 +1,6 @@
 import logging
 import unittest
-
+import xmlrunner
 from irma.common.exceptions import IrmaDatabaseError, IrmaLockError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
@@ -88,8 +88,8 @@ class DbTestCase(unittest.TestCase):
 class CheckSingleton(DbTestCase):
 
     def test_singleton(self):
-        self.assertEquals(id(NoSQLDatabase(test_db_name, test_db_uri)),
-                          id(NoSQLDatabase(test_db_name, test_db_uri)))
+        self.assertEqual(id(NoSQLDatabase(test_db_name, test_db_uri)),
+                         id(NoSQLDatabase(test_db_name, test_db_uri)))
 
 
 class CheckAddObject(DbTestCase):
@@ -103,7 +103,7 @@ class CheckAddObject(DbTestCase):
 
         t1 = TestObject()
         self.assertIsNotNone(t1.id)
-        self.assertEquals(collection.count(), 1)
+        self.assertEqual(collection.count(), 1)
 
     def test_id_type_testobject(self):
         db = NoSQLDatabase(test_db_name, test_db_uri)
@@ -113,8 +113,8 @@ class CheckAddObject(DbTestCase):
         collection.remove()
 
         t1 = TestObject()
-        self.assertEquals(type(t1._id), ObjectId)
-        self.assertEquals(type(t1.id), str)
+        self.assertEqual(type(t1._id), ObjectId)
+        self.assertEqual(type(t1.id), str)
 
     def test_add_two_testobjects(self):
         db = NoSQLDatabase(test_db_name, test_db_uri)
@@ -126,7 +126,7 @@ class CheckAddObject(DbTestCase):
         t1 = TestObject()
         t2 = TestObject()
         self.assertNotEquals(t1.id, t2.id)
-        self.assertEquals(collection.count(), 2)
+        self.assertEqual(collection.count(), 2)
 
     def test_check_type(self):
         db = NoSQLDatabase(test_db_name, test_db_uri)
@@ -136,12 +136,12 @@ class CheckAddObject(DbTestCase):
         collection.remove()
         t1 = TestObject()
         t2 = TestObject(id=t1.id)
-        self.assertEquals(collection.count(), 1)
-        self.assertEquals(type(t2.id), str)
-        self.assertEquals(type(t2.list), list)
-        self.assertEquals(type(t2.dict), dict)
-        self.assertEquals(type(t2.user), unicode)
-        self.assertEquals(type(t2.date), datetime)
+        self.assertEqual(collection.count(), 1)
+        self.assertEqual(type(t2.id), str)
+        self.assertEqual(type(t2.list), list)
+        self.assertEqual(type(t2.dict), dict)
+        self.assertEqual(type(t2.user), unicode)
+        self.assertEqual(type(t2.date), datetime)
         collection.remove()
 
     def test_check_invalid_id(self):
@@ -162,9 +162,9 @@ class CheckAddObject(DbTestCase):
         t.id = str(fixed_id)
         t.update()
         t2 = TestObject(id=str(fixed_id))
-        self.assertEquals(t2.id, str(fixed_id))
-        self.assertEquals(t2.user, "coin")
-        self.assertEquals(t2.list, [1, 2, 3])
+        self.assertEqual(t2.id, str(fixed_id))
+        self.assertEqual(t2.user, "coin")
+        self.assertEqual(t2.list, [1, 2, 3])
 
     def test_init_id(self):
         fixed_id = str(ObjectId())
@@ -176,11 +176,11 @@ class CheckAddObject(DbTestCase):
         t.list.append(2)
         t.list.append(3)
         t.update()
-        self.assertEquals(t.id, str(fixed_id))
+        self.assertEqual(t.id, str(fixed_id))
         t1 = TestObject.init_id(fixed_id)
-        self.assertEquals(t1.id, str(fixed_id))
-        self.assertEquals(t1.user, "coin")
-        self.assertEquals(t1.list, [1, 2, 3])
+        self.assertEqual(t1.id, str(fixed_id))
+        self.assertEqual(t1.user, "coin")
+        self.assertEqual(t1.list, [1, 2, 3])
 
     def test_update(self):
         t = TestObject()
@@ -189,10 +189,10 @@ class CheckAddObject(DbTestCase):
         t.list.append(2)
         t.list.append(3)
         t.update()
-        self.assertEquals(t.list, [1, 2, 3])
+        self.assertEqual(t.list, [1, 2, 3])
         t.update({'user': "bla"})
         t1 = TestObject(id=t.id)
-        self.assertEquals(t1.user, "bla")
+        self.assertEqual(t1.user, "bla")
 
 
 class CheckLockObject(DbTestCase):
@@ -224,14 +224,15 @@ class CheckLockObject(DbTestCase):
 
     def test_take_release(self):
         t = TestObject()
-        self.assertEquals(t._lock, IrmaLock.free)
+        self.assertEqual(t._lock, IrmaLock.free)
         t.take()
-        self.assertEquals(t._lock, IrmaLock.locked)
+        self.assertEqual(t._lock, IrmaLock.locked)
         with self.assertRaises(IrmaLockError):
             t.take()
         t.release()
-        self.assertEquals(t._lock, IrmaLock.free)
+        self.assertEqual(t._lock, IrmaLock.free)
 
 if __name__ == '__main__':
     enable_logging()
-    unittest.main()
+    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
+    unittest.main(testRunner=xmlr)

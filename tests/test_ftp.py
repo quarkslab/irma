@@ -1,6 +1,7 @@
 import logging
 import hashlib
 import unittest
+import xmlrunner
 import tempfile
 import os
 from irma.ftp.handler import FtpTls
@@ -38,6 +39,7 @@ class FtpTestCase(unittest.TestCase):
         # check database is ready for test
         self.ftp_running()
         self.flush_all()
+        self.cwd = os.path.dirname(os.path.realpath(__file__))
 
     def tearDown(self):
         # do the teardown
@@ -74,21 +76,24 @@ class CheckFtpHandler(FtpTestCase):
                       self.test_ftp_port,
                       self.test_ftp_user,
                       self.test_ftp_passwd)
-        hashname = ftps.upload_file("/", "test.ini")
-        self.assertEquals(len(ftps.list("/")), 1)
-        self.assertEquals(hashname,
-                          hashlib.sha256(open("test.ini").read()).hexdigest())
+        filename = os.path.join(self.cwd, "test.ini")
+        hashname = ftps.upload_file("/", filename)
+        self.assertEqual(len(ftps.list("/")), 1)
+        self.assertEqual(hashname,
+                         hashlib.sha256(open(filename).read()).hexdigest())
 
     def test_ftp_upload_data(self):
         ftps = FtpTls(self.test_ftp_host,
                       self.test_ftp_port,
                       self.test_ftp_user,
                       self.test_ftp_passwd)
-        with open("test.ini", 'rb') as f:
+        filename = os.path.join(self.cwd, "test.ini")
+        ftps.upload_file("/", filename)
+        with open(filename, 'rb') as f:
             hashname = ftps.upload_data("/", f.read())
-        self.assertEquals(len(ftps.list("/")), 1)
-        self.assertEquals(hashname,
-                          hashlib.sha256(open("test.ini").read()).hexdigest())
+        self.assertEqual(len(ftps.list("/")), 1)
+        self.assertEqual(hashname,
+                         hashlib.sha256(open(filename).read()).hexdigest())
 
     def test_ftp_create_dir(self):
         ftps = FtpTls(self.test_ftp_host,
@@ -96,7 +101,7 @@ class CheckFtpHandler(FtpTestCase):
                       self.test_ftp_user,
                       self.test_ftp_passwd)
         ftps.mkdir("test1")
-        self.assertEquals(len(ftps.list("/")), 1)
+        self.assertEqual(len(ftps.list("/")), 1)
 
     def test_ftp_create_subdir(self):
         ftps = FtpTls(self.test_ftp_host,
@@ -106,10 +111,10 @@ class CheckFtpHandler(FtpTestCase):
         ftps.mkdir("/test1")
         ftps.mkdir("/test1/test2")
         ftps.mkdir("/test1/test2/test3")
-        self.assertEquals(len(ftps.list("/")), 1)
-        self.assertEquals(len(ftps.list("/test1")), 1)
-        self.assertEquals(len(ftps.list("/test1/test2")), 1)
-        self.assertEquals(len(ftps.list("/test1/test2/test3")), 0)
+        self.assertEqual(len(ftps.list("/")), 1)
+        self.assertEqual(len(ftps.list("/test1")), 1)
+        self.assertEqual(len(ftps.list("/test1/test2")), 1)
+        self.assertEqual(len(ftps.list("/test1/test2/test3")), 0)
 
     def test_ftp_upload_in_subdir(self):
         ftps = FtpTls(self.test_ftp_host,
@@ -119,10 +124,11 @@ class CheckFtpHandler(FtpTestCase):
         ftps.mkdir("/test1")
         ftps.mkdir("/test1/test2")
         ftps.mkdir("/test1/test2/test3")
-        hashname = ftps.upload_file("/test1/test2/test3", "test.ini")
-        self.assertEquals(len(ftps.list("/test1/test2/test3")), 1)
-        self.assertEquals(hashname,
-                          hashlib.sha256(open("test.ini").read()).hexdigest())
+        filename = os.path.join(self.cwd, "test.ini")
+        hashname = ftps.upload_file("/test1/test2/test3", filename)
+        self.assertEqual(len(ftps.list("/test1/test2/test3")), 1)
+        self.assertEqual(hashname,
+                         hashlib.sha256(open(filename).read()).hexdigest())
 
     def test_ftp_remove_not_existing_file(self):
         ftps = FtpTls(self.test_ftp_host,
@@ -145,10 +151,11 @@ class CheckFtpHandler(FtpTestCase):
                       self.test_ftp_port,
                       self.test_ftp_user,
                       self.test_ftp_passwd)
-        hashname = ftps.upload_file("/", "test.ini")
+        filename = os.path.join(self.cwd, "test.ini")
+        hashname = ftps.upload_file("/", filename)
         altered_name = "0000" + hashname[4:]
         ftps._conn.rename(hashname, altered_name)
-        self.assertEquals(len(hashname), len(altered_name))
+        self.assertEqual(len(hashname), len(altered_name))
         _, tmpname = tempfile.mkstemp(prefix="test_ftp")
         with self.assertRaises(IrmaFtpError):
             ftps.download("/", altered_name, tmpname)
@@ -165,7 +172,7 @@ class CheckFtpHandler(FtpTestCase):
         ftps.download(".", hashname, tmpname)
         data2 = open(tmpname).read()
         os.unlink(tmpname)
-        self.assertEquals(data, data2)
+        self.assertEqual(data, data2)
 
     def test_ftp_double_connect(self):
         FtpTls(self.test_ftp_host,
@@ -187,4 +194,6 @@ class CheckFtpHandler(FtpTestCase):
                    self.test_ftp_passwd)
 
 if __name__ == '__main__':
-    unittest.main()
+    enable_logging()
+    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
+    unittest.main(testRunner=xmlr)

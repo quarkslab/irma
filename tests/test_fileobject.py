@@ -1,10 +1,11 @@
-# Test config
 import logging
 import unittest
+import xmlrunner
 from irma.common.exceptions import IrmaDatabaseError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.fileobject.handler import FileObject
 
+# test config
 test_db_uri = "mongodb://localhost"
 test_db_name = "unitest"
 test_db_collection = "testobject"
@@ -18,9 +19,9 @@ class TestObject(FileObject):
     _collection = test_db_collection
 
 
-##############################################################################
-# Logging options
-##############################################################################
+# =================
+#  Logging options
+# =================
 def enable_logging(level=logging.INFO, handler=None, formatter=None):
     global log
     log = logging.getLogger()
@@ -34,9 +35,9 @@ def enable_logging(level=logging.INFO, handler=None, formatter=None):
     log.setLevel(level)
 
 
-##############################################################################
-# Test Cases
-##############################################################################
+# ============
+#  Test Cases
+# ============
 class DbTestCase(unittest.TestCase):
     def setUp(self):
         # check database is ready for test
@@ -103,4 +104,5 @@ class TestFileObject(DbTestCase):
 
 if __name__ == '__main__':
     enable_logging()
-    unittest.main()
+    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
+    unittest.main(testRunner=xmlr)
