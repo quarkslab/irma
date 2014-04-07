@@ -65,15 +65,16 @@ def enable_logging(level=logging.INFO,
 ##############################################################################
 class DbTestCase(unittest.TestCase):
     def setUp(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
+        self.db = NoSQLDatabase(test_db_name, test_db_uri)
+        dbh = self.db.db_instance()
         database = dbh[test_db_name]
-        collection = database[test_db_collection]
-        collection.remove()
+        self.collection = database[test_db_collection]
+        self.collection.remove()
 
     def tearDown(self):
-        # do the teardown
-        pass
+        self.db._disconnect()
+        del self.collection
+        del self.db
 
 
 class CheckSingleton(DbTestCase):
@@ -93,14 +94,9 @@ class TestNoSQLDatabaseObject(DbTestCase):
             t2 = TestObject(mode='a')
 
     def test_add_testobject(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-
         t1 = TestObject()
         self.assertIsNotNone(t1.id)
-        self.assertEqual(collection.count(), 1)
+        self.assertEqual(self.collection.count(), 1)
 
     def test_id_type_testobject(self):
         t1 = TestObject()
@@ -108,25 +104,15 @@ class TestNoSQLDatabaseObject(DbTestCase):
         self.assertEqual(type(t1.id), str)
 
     def test_add_two_testobjects(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-
         t1 = TestObject()
         t2 = TestObject()
         self.assertNotEquals(t1.id, t2.id)
-        self.assertEqual(collection.count(), 2)
+        self.assertEqual(self.collection.count(), 2)
 
     def test_check_type(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-
         t1 = TestObject()
         t2 = TestObject(id=t1.id)
-        self.assertEqual(collection.count(), 1)
+        self.assertEqual(self.collection.count(), 1)
         self.assertEqual(type(t2.id), str)
         self.assertEqual(type(t2.list), list)
         self.assertEqual(type(t2.dict), dict)
@@ -184,15 +170,10 @@ class TestNoSQLDatabaseObject(DbTestCase):
         self.assertEqual(t1.user, "bla")
 
     def test_remove(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-
         t1 = TestObject()
-        self.assertEqual(collection.count(), 1)
+        self.assertEqual(self.collection.count(), 1)
         t1.remove()
-        self.assertEqual(collection.count(), 0)
+        self.assertEqual(self.collection.count(), 0)
 
     def test_get_temp_instance(self):
         with self.assertRaises(NotImplementedError):
