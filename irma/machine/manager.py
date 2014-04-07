@@ -4,12 +4,13 @@ from lib.virt.core.domain import DomainManager
 
 log = logging.getLogger(__name__)
 
+
 class MachineManager(object):
     """abstract class for machine manager"""
 
     UNDEFINED = 0
-    RUNNING   = 1
-    HALTED    = 2
+    RUNNING = 1
+    HALTED = 2
     SUSPENDED = 3
 
     def acquire(self, label):
@@ -42,7 +43,7 @@ class VirtualMachineManager(MachineManager):
     # public interface
     ##########################################################################
 
-    def list(self, filter=ACTIVE|INACTIVE):
+    def list(self, filter=ACTIVE | INACTIVE):
         """List machines.
         @raise NotImplementedError: this method is abstract.
         """
