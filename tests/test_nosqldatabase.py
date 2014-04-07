@@ -218,6 +218,7 @@ class TestNoSQLDatabaseObject(DbTestCase):
         self.assertIsInstance(t1.__repr__(), str)
         self.assertIsInstance(t1.__str__(), str)
 
+
 class TestLockObject(DbTestCase):
     def test_is_lock_free(self):
         t = TestObject()
