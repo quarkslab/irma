@@ -65,24 +65,15 @@ def enable_logging(level=logging.INFO,
 ##############################################################################
 class DbTestCase(unittest.TestCase):
     def setUp(self):
-        # check database is ready for test
-        self.database_running_and_empty()
+        db = NoSQLDatabase(test_db_name, test_db_uri)
+        dbh = db.db_instance()
+        database = dbh[test_db_name]
+        collection = database[test_db_collection]
+        collection.remove()
 
     def tearDown(self):
         # do the teardown
         pass
-
-    def database_running_and_empty(self):
-        # check that unittest database is empty before testing
-        try:
-            db = NoSQLDatabase(test_db_name, test_db_uri)
-            dbh = db.db_instance()
-            database = dbh[test_db_collection]
-            collection = database[test_db_collection]
-            assert collection.count() <= 10
-        except IrmaDatabaseError as e:
-            print "TestDatabase Error: {0}".format(e)
-            self.skipTest(DbTestCase)
 
 
 class CheckSingleton(DbTestCase):
@@ -106,19 +97,12 @@ class TestNoSQLDatabaseObject(DbTestCase):
         dbh = db.db_instance()
         database = dbh[test_db_name]
         collection = database[test_db_collection]
-        collection.remove()
 
         t1 = TestObject()
         self.assertIsNotNone(t1.id)
         self.assertEqual(collection.count(), 1)
 
     def test_id_type_testobject(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-        collection.remove()
-
         t1 = TestObject()
         self.assertEqual(type(t1._id), ObjectId)
         self.assertEqual(type(t1.id), str)
@@ -128,7 +112,6 @@ class TestNoSQLDatabaseObject(DbTestCase):
         dbh = db.db_instance()
         database = dbh[test_db_name]
         collection = database[test_db_collection]
-        collection.remove()
 
         t1 = TestObject()
         t2 = TestObject()
@@ -140,7 +123,7 @@ class TestNoSQLDatabaseObject(DbTestCase):
         dbh = db.db_instance()
         database = dbh[test_db_name]
         collection = database[test_db_collection]
-        collection.remove()
+
         t1 = TestObject()
         t2 = TestObject(id=t1.id)
         self.assertEqual(collection.count(), 1)
@@ -149,7 +132,6 @@ class TestNoSQLDatabaseObject(DbTestCase):
         self.assertEqual(type(t2.dict), dict)
         self.assertEqual(type(t2.user), unicode)
         self.assertEqual(type(t2.date), datetime)
-        collection.remove()
 
     def test_check_invalid_id(self):
         with self.assertRaises(IrmaDatabaseError):
