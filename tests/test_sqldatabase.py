@@ -122,6 +122,17 @@ class TestSqlObject(DbTestCase):
         db = SQLDatabase(test_dbengine)
         self.assertEqual(db.count(TestObject), 3)
 
+    def test_all(self):
+        db = SQLDatabase(test_dbengine)
+        test1 = TestObject(name="test1", size=10, date=datetime.now())
+        test2 = TestObject(name="test2", size=10, date=datetime.now())
+        test3 = TestObject(name="test3", size=30, date=datetime.now())
+        db.add_all([test1, test2, test3])
+
+        db = SQLDatabase(test_dbengine)
+        test = db.all(TestObject)
+        self.assertEqual(len(test), 3)
+
     def test_one_by(self):
         db = SQLDatabase(test_dbengine)
         test1 = TestObject(name="test1", size=10, date=datetime.now())
