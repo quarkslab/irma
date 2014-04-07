@@ -1,17 +1,21 @@
-from lib.common.hash import sha256sum
+import sys
+import logging
 
-##############################################################################
-# api
-##############################################################################
+log = logging.getLogger(__name__)
+
+
+# =====
+#  Api
+# =====
 
 class VirusTotal(object):
 
-    ##########################################################################
-    # helpers
-    ##########################################################################
+    # =========
+    #  Helpers
+    # =========
 
     @staticmethod
-    def get_response(url, method = "get", **kwargs):
+    def get_response(url, method="get", **kwargs):
         jdata, response = '', ''
         while True:
             try:
@@ -27,9 +31,9 @@ class VirusTotal(object):
                 break
         return jdata, response
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, api_key, **kwargs):
         # late import to avoid dependencies
@@ -39,12 +43,12 @@ class VirusTotal(object):
         self.api_key = api_key
         self.api_url = 'https://www.virustotal.com/vtapi/v2/'
 
-    ##########################################################################
-    # internal methods
-    ##########################################################################
+    # ==================
+    #  Internal methods
+    # ==================
 
-    def get_report(self, hash):
-        params = { 'resource': hash, 'apikey': self.api_key }
-        url = '{base}{path}'.format(base = self.api_url, path = 'file/report')
-        jdata, response = VirusTotal.get_response(url, params = params)
+    def get_report(self, hashval):
+        params = {'resource': hashval, 'apikey': self.api_key}
+        url = '{base}{path}'.format(base=self.api_url, path='file/report')
+        jdata, _ = VirusTotal.get_response(url, params=params)
         return jdata

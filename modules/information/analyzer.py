@@ -1,25 +1,29 @@
-import logging, re, os
+import logging
+import re
+import os
 
 log = logging.getLogger(__name__)
 
-class StaticAnalyzer(object):
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+class StaticAnalyzer(object):
+    # ==================================
+    #  Constructor and destructor stuff
+    # ==================================
 
     def __init__(self, *args, **kwargs):
-        global PE, Magic
+        global PE
+        global Magic
         # late import to avoid to have dependencies
         from modules.information.pe import PE
         from lib.common.mimetypes import Magic
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+    # ================
+    #  Public methods
+    # ================
 
     _handlers = {
-        re.compile('PE32') : lambda filename, data, kwargs: PE(filename, data, kwargs).analyze()
+        re.compile('PE32'):
+        lambda filename, data, kwargs: PE(filename, data, kwargs).analyze()
     }
 
     @classmethod
@@ -28,7 +32,8 @@ class StaticAnalyzer(object):
         if not filename and not data:
             return None
         if filename and data:
-            log.error("either filename ({0}) or data ({1}) should be set".format(filename, data))
+            log.error("either filename ({0}) ".format(filename) +
+                      "or data ({0}) should be set".format(data))
             return None
         # check if file exists
         mimetype = None
