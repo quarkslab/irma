@@ -183,6 +183,40 @@ class TestNoSQLDatabaseObject(DbTestCase):
         t1 = TestObject(id=t.id)
         self.assertEqual(t1.user, "bla")
 
+    def test_remove(self):
+        db = NoSQLDatabase(test_db_name, test_db_uri)
+        dbh = db.db_instance()
+        database = dbh[test_db_name]
+        collection = database[test_db_collection]
+
+        t1 = TestObject()
+        self.assertEqual(collection.count(), 1)
+        t1.remove()
+        self.assertEqual(collection.count(), 0)
+
+    def test_get_temp_instance(self):
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.get_temp_instance(0)
+
+        t1 = TestObject()
+        temp_id = t1.id
+        self.assertIsNotNone(TestObject.get_temp_instance(temp_id))
+        t1.remove()
+        with self.assertRaises(IrmaDatabaseError):
+            TestObject.get_temp_instance(temp_id)
+
+    def test_find(self):
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.find()
+
+        self.assertEqual(TestObject.find().count(), 0)
+        t1 = TestObject()
+        self.assertEqual(TestObject.find().count(), 1)
+
+    def test_instance_to_str(self):
+        t1 = TestObject()
+        self.assertIsInstance(t1.__repr__(), str)
+        self.assertIsInstance(t1.__str__(), str)
 
 class TestLockObject(DbTestCase):
     def test_is_lock_free(self):
@@ -191,6 +225,9 @@ class TestLockObject(DbTestCase):
         t.take()
         self.assertFalse(TestObject.is_lock_free(t.id))
 
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.is_lock_free(0)
+
     def test_has_lock_timed_out(self):
         t = TestObject()
         t.take()
@@ -198,6 +235,9 @@ class TestLockObject(DbTestCase):
         t._lock_time = 0
         t.update()
         self.assertTrue(TestObject.has_lock_timed_out(t.id))
+
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.has_lock_timed_out(0)
 
     def test_has_state_changed(self):
         t = TestObject()
@@ -220,6 +260,8 @@ class TestLockObject(DbTestCase):
             t.take()
         t.release()
         self.assertEqual(t._lock, IrmaLock.free)
+        with self.assertRaises(IrmaValueError):
+            t.take(mode='a')
 
 if __name__ == '__main__':
     enable_logging()
