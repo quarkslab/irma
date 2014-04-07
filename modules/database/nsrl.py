@@ -1,4 +1,7 @@
-import logging, binascii, json, encodings, os, pprint
+import logging
+import json
+import os
+import pprint
 
 from abc import ABCMeta
 from lib.common.oopatterns import ParametricSingletonMetaClass
@@ -6,9 +9,10 @@ from lib.leveldict.leveldict import LevelDictSerialized
 
 log = logging.getLogger(__name__)
 
-##############################################################################
-# serializers
-##############################################################################
+
+# =============
+#  Serializers
+# =============
 
 class NSRLSerializer(object):
 
@@ -18,9 +22,14 @@ class NSRLSerializer(object):
     def loads(cls, value):
         value = json.loads(value)
         if isinstance(value[0], list):
-            result = map(lambda col: dict((field, col[index]) for index, field in enumerate(cls.fields)), value)
+            result = map(lambda col:
+                         dict((field, col[index])
+                              for index, field in
+                              enumerate(cls.fields)), value)
         else:
-            result = dict((field, value[index]) for index, field in enumerate(cls.fields))
+            result = dict((field, value[index])
+                          for index, field in
+                          enumerate(cls.fields))
         return result
 
     @classmethod
@@ -32,38 +41,52 @@ class NSRLSerializer(object):
 
         try:
             if isinstance(value, list):
-                result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
+                result = json.dumps(map(lambda row:
+                                        map(lambda key: row.get(key),
+                                            cls.fields),
+                                        value))
             else:
-                result = json.dumps(map(lambda col: value.get(col), cls.fields))
-        except Exception as e:
+                result = json.dumps(map(lambda col:
+                                        value.get(col),
+                                        cls.fields))
+        except Exception:
             if isinstance(value, list):
-                for index, row in enumerate(value):
+                for row in value:
                     for colkey, colval in row.items():
                         if not isinstance(colval, unicode):
                             charset = detect_charset(colval)
-                            charset = 'unicode-escape' if not charset else charset
+                            if charset is None:
+                                charset = 'unicode-escape'
                             try:
                                 row[colkey] = colval.decode(charset)
                             except:
                                 row[colkey] = colval.decode('unicode-escape')
-                result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
+                result = json.dumps(map(lambda row:
+                                        map(lambda key:
+                                            row.get(key),
+                                            cls.fields),
+                                        value))
             else:
                 for colkey, colval in value.items():
                     if not isinstance(colval, unicode):
                         # try to use chardet to find encoding
                         charset = detect_charset(colval)
-                        charset = 'unicode-escape' if not charset else charset
+                        if charset is None:
+                            charset = 'unicode-escape'
                         try:
-                            value[colkey] = value[colkey].decode(charset)
+                            value[colkey] = colval.decode(charset)
                         except:
                             # treat false positive from chardet
-                            value[colkey] = value[colkey].decode('unicode-escape')
-                result = json.dumps(map(lambda col: value.get(col), cls.fields))
+                            value[colkey] = colval.decode('unicode-escape')
+                result = json.dumps(map(lambda col: value.get(col),
+                                        cls.fields))
         return result
+
 
 class NSRLOsSerializer(NSRLSerializer):
 
-    fields = ['OpSystemVersion', 'OpSystemName', 'MfgCode' ]
+    fields = ['OpSystemVersion', 'OpSystemName', 'MfgCode']
+
 
 class NSRLFileSerializer(NSRLSerializer):
 
@@ -79,52 +102,67 @@ class NSRLFileSerializer(NSRLSerializer):
 
         try:
             if isinstance(value, list):
-                result = json.dumps(map(lambda row: map(lambda key: row.get(key), cls.fields), value))
+                result = json.dumps(map(lambda row:
+                                        map(lambda key: row.get(key),
+                                            cls.fields),
+                                        value))
             else:
-                result = json.dumps(map(lambda col: value.get(col), cls.fields))
-        except Exception as e:
+                result = json.dumps(map(lambda col: value.get(col),
+                                        cls.fields))
+        except Exception:
             # failed to json it, bruteforce encoding
             if isinstance(value, list):
-                for index, row in enumerate(value):
-                    if not isinstance(row['FileName'], unicode):
-                        charset = detect_charset(row['FileName'])
+                for row in value:
+                    fname = row['FileName']
+                    if not isinstance(fname, unicode):
+                        charset = detect_charset(fname)
                         charset = 'unicode-escape' if not charset else charset
                         try:
-                            row['FileName'] = row['FileName'].decode(charset)
+                            row['FileName'] = fname.decode(charset)
                         except:
                             # treat false positive from chardet
-                            row['FileName'] = row['FileName'].decode('unicode-escape')
-                result = json.dumps(map(lambda col: map(lambda key: col.get(key), cls.fields), value))
+                            row['FileName'] = fname.decode('unicode-escape')
+                result = json.dumps(map(lambda col:
+                                        map(lambda key: col.get(key),
+                                            cls.fields),
+                                        value))
             else:
-                if not isinstance(value['FileName'], unicode):
+                fname = value['FileName']
+                if not isinstance(fname, unicode):
                     # try to use chardet to find encoding
-                    charset = detect_charset(value['FileName'])
+                    charset = detect_charset(fname)
                     charset = 'unicode-escape' if not charset else charset
                     try:
-                        value['FileName'] = value['FileName'].decode(charset)
+                        value['FileName'] = fname.decode(charset)
                     except:
                         # treat false positive from chardet
-                         value['FileName'] = value['FileName'].decode('unicode-escape')
-                result = json.dumps(map(lambda col: value.get(col), cls.fields))
+                        value['FileName'] = fname.decode('unicode-escape')
+                result = json.dumps(map(lambda col: value.get(col),
+                                        cls.fields))
         return result
 
 
 class NSRLManufacturerSerializer(NSRLSerializer):
 
-    fields = [ "MfgName" ]
+    fields = ["MfgName"]
+
 
 class NSRLProductSerializer(NSRLSerializer):
 
     fields = ["ProductName", "ProductVersion", "OpSystemCode",
               "MfgCode", "Language", "ApplicationType"]
 
-##############################################################################
-# NSRL records
-##############################################################################
+
+# ==============
+#  NSRL records
+# ==============
 
 # Hack to avoid metaclass conflicts
-class LevelDBSingletonMetaClass(ABCMeta, ParametricSingletonMetaClass): pass
+class LevelDBSingletonMetaClass(ABCMeta, ParametricSingletonMetaClass):
+    pass
+
 LevelDBSingleton = LevelDBSingletonMetaClass('LevelDBSingleton', (object,), {})
+
 
 class NSRLLevelDict(LevelDictSerialized, LevelDBSingleton):
 
@@ -169,9 +207,10 @@ class NSRLLevelDict(LevelDictSerialized, LevelDBSingleton):
 
         return db
 
-##############################################################################
-# NSRL File Record
-##############################################################################
+
+# ==================
+#  NSRL File Record
+# ==================
 
 class NSRLFile(NSRLLevelDict):
 
@@ -180,47 +219,62 @@ class NSRLFile(NSRLLevelDict):
     def __init__(self, db, **kwargs):
         super(NSRLFile, self).__init__(db, NSRLFileSerializer, **kwargs)
 
-##############################################################################
-# NSRL OS Record
-##############################################################################
+
+# =================
+#  NSRL OS Record
+# =================
 
 class NSRLOs(NSRLLevelDict):
 
     key = "OpSystemCode"
 
     def __init__(self, db, **kwargs):
-        super(NSRLOs, self).__init__(db, NSRLOsSerializer, **kwargs)
+        super(NSRLOs, self).__init__(db,
+                                     NSRLOsSerializer,
+                                     **kwargs)
 
-##############################################################################
-# NSRL OS Record
-##############################################################################
+
+# ================
+#  NSRL OS Record
+# ================
 
 class NSRLManufacturer(NSRLLevelDict):
 
     key = "MfgCode"
 
     def __init__(self, db, **kwargs):
-        super(NSRLManufacturer, self).__init__(db, NSRLManufacturerSerializer, **kwargs)
+        super(NSRLManufacturer, self).__init__(db,
+                                               NSRLManufacturerSerializer,
+                                               **kwargs)
 
-##############################################################################
-# NSRL Product Record
-##############################################################################
+
+# =====================
+#  NSRL Product Record
+# =====================
 
 class NSRLProduct(NSRLLevelDict):
 
     key = "ProductCode"
 
     def __init__(self, db, **kwargs):
-        super(NSRLProduct, self).__init__(db, NSRLProductSerializer, **kwargs)
+        super(NSRLProduct, self).__init__(db,
+                                          NSRLProductSerializer,
+                                          **kwargs)
 
-##############################################################################
-# NSRL module
-##############################################################################
+
+# =============
+#  NSRL module
+# =============
 
 class NSRL(object):
 
-    def __init__(self, nsrl_file, nsrl_product, nsrl_os, nsrl_manufacturer, **kwargs):
-        # TODO: need to specify paths in constructor, temporary pass via kwargs
+    def __init__(self,
+                 nsrl_file,
+                 nsrl_product,
+                 nsrl_os, nsrl_manufacturer,
+                 **kwargs):
+        # TODO: need to specify paths in constructor,
+        # temporary pass via kwargs
         self.nsrl_file = NSRLFile(nsrl_file)
         self.nsrl_product = NSRLProduct(nsrl_product)
         self.nsrl_os = NSRLOs(nsrl_os)
@@ -279,19 +333,22 @@ if __name__ == '__main__':
     ##########################################################################
 
     nsrl_databases = {
-        'file'        : NSRLFile,
-        'os'          : NSRLOs,
+        'file':         NSRLFile,
+        'os':           NSRLOs,
         'manufacturer': NSRLManufacturer,
-        'product'     : NSRLProduct,
+        'product':      NSRLProduct,
     }
 
     def nsrl_create_database(**kwargs):
         database_type = kwargs['type']
-        nsrl_databases[database_type].create_database(kwargs['database'], kwargs['filename'])
+        nsrl_databases[database_type].create_database(kwargs['database'],
+                                                      kwargs['filename'])
 
     def nsrl_get(**kwargs):
         database_type = kwargs['type']
-        database = nsrl_databases[database_type](kwargs['database'], block_cache_size=1 << 30, max_open_files=3000)
+        database = nsrl_databases[database_type](kwargs['database'],
+                                                 block_cache_size=1 << 30,
+                                                 max_open_files=3000)
         value = database.get(kwargs['key'])
         print("key {0}: value {1}".format(kwargs['key'], value))
 
@@ -309,31 +366,66 @@ if __name__ == '__main__':
     ##########################################################################
 
     # define command line arguments
-    parser = argparse.ArgumentParser(description='NSRL database module CLI mode')
-    parser.add_argument('-v', '--verbose', action='count', default=0)
+    desc_msg = 'NSRL database module CLI mode'
+    parser = argparse.ArgumentParser(description=desc_msg)
+    parser.add_argument('-v',
+                        '--verbose',
+                        action='count',
+                        default=0)
     subparsers = parser.add_subparsers(help='sub-command help')
 
     # create the create parser
-    create_parser = subparsers.add_parser('create', help='create NSRL records into a database')
-    create_parser.add_argument('-t' , '--type', type=str, choices=['file', 'os', 'manufacturer', 'product'], help='type of the record')
-    create_parser.add_argument('filename', type=str, help='filename of the NSRL record')
-    create_parser.add_argument('database', type=str, help='database to store NSRL records')
+    hlp_msg = 'create NSRL records into a database'
+    create_parser = subparsers.add_parser('create',
+                                          help=help_msg)
+    create_parser.add_argument('-t',
+                               '--type',
+                               type=str,
+                               choices=['file', 'os',
+                                        'manufacturer', 'product'],
+                               help='type of the record')
+    create_parser.add_argument('filename',
+                               type=str,
+                               help='filename of the NSRL record')
+    create_parser.add_argument('database',
+                               type=str,
+                               help='database to store NSRL records')
     create_parser.set_defaults(func=nsrl_create_database)
 
     # create the scan parser
-    get_parser = subparsers.add_parser('get', help='get the entry from database')
-    get_parser.add_argument('-t' , '--type', type=str, choices=['file', 'os', 'manufacturer', 'product'], help='type of the record')
-    get_parser.add_argument('database', type=str, help='database to read NSRL records')
-    get_parser.add_argument('key', type=str, help='key to retreive')
+    get_parser = subparsers.add_parser('get',
+                                       help='get the entry from database')
+    get_parser.add_argument('-t',
+                            '--type',
+                            type=str,
+                            choices=['file', 'os', 'manufacturer', 'product'],
+                            help='type of the record')
+    get_parser.add_argument('database',
+                            type=str,
+                            help='database to read NSRL records')
+    get_parser.add_argument('key',
+                            type=str,
+                            help='key to retreive')
     get_parser.set_defaults(func=nsrl_get)
 
     # create the scan parser
-    get_parser = subparsers.add_parser('resolve', help='resolve from sha1')
-    get_parser.add_argument('file', type=str, help='filename for file records')
-    get_parser.add_argument('product', type=str, help='filename for product records')
-    get_parser.add_argument('os', type=str, help='filename for os records')
-    get_parser.add_argument('manufacturer', type=str, help='filename for manufacturer records')
-    get_parser.add_argument('sha1', type=str, help='sha1 to lookup')
+    get_parser = subparsers.add_parser('resolve',
+                                       help='resolve from sha1')
+    get_parser.add_argument('file',
+                            type=str,
+                            help='filename for file records')
+    get_parser.add_argument('product',
+                            type=str,
+                            help='filename for product records')
+    get_parser.add_argument('os',
+                            type=str,
+                            help='filename for os records')
+    get_parser.add_argument('manufacturer',
+                            type=str,
+                            help='filename for manufacturer records')
+    get_parser.add_argument('sha1',
+                            type=str,
+                            help='sha1 to lookup')
     get_parser.set_defaults(func=nsrl_resolve)
 
     args = parser.parse_args()
@@ -346,6 +438,7 @@ if __name__ == '__main__':
 
     args = vars(parser.parse_args())
     func = args.pop('func')
-    # with 'func' removed, args is now a kwargs with only the specific arguments
+    # with 'func' removed, args is now a kwargs
+    # with only the specific arguments
     # for each subfunction useful for interactive mode.
     func(**args)
