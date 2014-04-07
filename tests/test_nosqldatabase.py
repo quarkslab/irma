@@ -1,7 +1,7 @@
 import logging
 import unittest
 import xmlrunner
-from irma.common.exceptions import IrmaDatabaseError, IrmaLockError
+from irma.common.exceptions import IrmaDatabaseError, IrmaLockError, IrmaValueError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
@@ -93,6 +93,13 @@ class CheckSingleton(DbTestCase):
 
 
 class TestNoSQLDatabaseObject(DbTestCase):
+
+    def test_constructor(self):
+        with self.assertRaises(IrmaValueError):
+            NoSQLDatabaseObject()
+        t1 = TestObject(mode=IrmaLockMode.write)
+        with self.assertRaises(IrmaValueError):
+            t2 = TestObject(mode='a')
 
     def test_add_testobject(self):
         db = NoSQLDatabase(test_db_name, test_db_uri)
