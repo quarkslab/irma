@@ -2,6 +2,7 @@ import pprint
 from time import mktime
 from datetime import datetime
 
+
 class PluginResult(object):
 
     def __init__(self, plugin, *args, **kwargs):
@@ -43,8 +44,10 @@ class PluginResult(object):
         self._calculate_duration()
 
     def _calculate_duration(self):
-        if self.metadata.get('end_time') and self.metadata.get('start_time'):
-            delta = self.metadata.get('end_time') - self.metadata.get('start_time')
+        start_time = self.metadata.get('start_time')
+        end_time = self.metadata.get('end_time')
+        if end_time and start_time:
+            delta = end_time - start_time
         else:
             delta = datetime.timedelta(0)
         self.metadata['duration'] = int(delta.total_seconds())
@@ -53,12 +56,12 @@ class PluginResult(object):
         if not self._dependencies_data:
             self._dependencies_data = []
         self._dependencies_data.append(result)
-    
+
     @property
     def data(self):
         return self._data
 
-    @data.setter 
+    @data.setter
     def data(self, data):
         self._data = data
 
@@ -87,12 +90,18 @@ class PluginResult(object):
         self._metadata = metadata
 
     def serialize(self):
+        # retrieve values
+        plugin = self.metadata.get('plugin')
+        start_time = self.metadata.get('start_time')
+        end_time = self.metadata.get('end_time')
+        duration = self.metadata.get('duration')
+        # create result dictionary
         result = {
             'metadata': {
-                'plugin' : self.metadata.get('plugin'),
-                'start_time': mktime(self.metadata.get('start_time').timetuple()),
-                'end_time': mktime(self.metadata.get('end_time').timetuple()),
-                'duration': self.metadata.get('duration')
+                'plugin': plugin,
+                'start_time': mktime(start_time.timetuple()),
+                'end_time': mktime(end_time.timetuple()),
+                'duration': duration
             },
             'raw': self.raw,
             'data': self.data,
