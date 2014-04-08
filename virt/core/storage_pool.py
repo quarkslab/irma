@@ -352,7 +352,7 @@ class StoragePoolManager(ParametricSingleton):
                 raise StoragePoolManagerError(e)
 
     def lookupByVolume(self, volume):
-        from lib.virt.core.storage_volume import StorageVolumeManager
+        from virt.core.storage_volume import StorageVolumeManager
         pool = None
         if isinstance(volume, basestring):
             volman = StorageVolumeManager(self._drv, None)

@@ -1,5 +1,6 @@
 import logging
 import xmltodict
+
 from collections import OrderedDict
 
 from virt.core.exceptions import DomainError

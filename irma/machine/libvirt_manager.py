@@ -4,16 +4,16 @@ import time
 import random
 import os.path
 
-from lib.virt.core.domain import DomainManager
-from lib.virt.core.storage_pool import StoragePoolManager
-from lib.virt.core.storage_volume import StorageVolumeManager
-from lib.virt.core.connection import ConnectionManager
-from lib.virt.core.exceptions import DomainManagerError
+from virt.core.domain import DomainManager
+from virt.core.storage_pool import StoragePoolManager
+from virt.core.storage_volume import StorageVolumeManager
+from virt.core.connection import ConnectionManager
+from virt.core.exceptions import DomainManagerError
 
-from lib.common.utils import UUID, MAC
-from lib.common.oopatterns import ParametricSingleton
-from lib.irma.common.exceptions import IrmaMachineManagerError
-from lib.irma.machine.manager import VirtualMachineManager
+from common.utils import UUID, MAC
+from common.oopatterns import ParametricSingleton
+from irma.common.exceptions import IrmaMachineManagerError
+from irma.machine.manager import VirtualMachineManager
 
 log = logging.getLogger(__name__)
 
@@ -187,7 +187,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
                     elif type == 'disk':
                         disks = device
                         if not isinstance(disks, list):
-                            disks = [device]
+                            disks = [disks]
                         for disk in disks:
                             disk_path = disk['source']['@file']
                             vman = StorageVolumeManager(self._connection, None)
@@ -211,9 +211,9 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
                                 basedir = backingvol.target['path']
                                 basedir = os.path.dirname(basedir)
                                 disk_ext = volume.target['format']['@type']
-                                disk = '.'.join([clone, disk_ext])
+                                disk_name = '.'.join([clone, disk_ext])
                                 backingvol.target['path'] = \
-                                    os.path.join(basedir, disk)
+                                    os.path.join(basedir, disk_name)
                                 backingvol.backingstore = \
                                     {'path': disk_path, 'format':
                                         {'@type': disk_ext}}
