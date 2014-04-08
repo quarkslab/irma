@@ -1,4 +1,8 @@
-import logging, libvirt, time, random, os.path
+import logging
+import libvirt
+import time
+import random
+import os.path
 
 from lib.virt.core.domain import DomainManager
 from lib.virt.core.storage_pool import StoragePoolManager
@@ -12,6 +16,7 @@ from lib.irma.common.exceptions import IrmaMachineManagerError
 from lib.irma.machine.manager import VirtualMachineManager
 
 log = logging.getLogger(__name__)
+
 
 class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
     """Machine manager based on libvirt"""
@@ -29,12 +34,15 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
         if not isinstance(handler, libvirt.virConnect):
-            raise DomainManagerError("'connection' field type '{0}' is not valid".format(type(connection)))
+            what = type(connection)
+            reason = "Invalid type for 'connection' field: {0}".format(what)
+            raise DomainManagerError(reason)
 
         try:
             uri = handler.getURI()
         except libvirt.libvirtError as e:
-            raise DomainManagerError("unable to get domain uri from connection handle")
+            reason = "unable to get domain uri from connection handle"
+            raise DomainManagerError(reason)
         return uri
 
     ##########################################################################
@@ -61,10 +69,12 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
     ##########################################################################
 
     def _wait(self, label, state, timeout=0):
-        """Waits for a vm status.
-        @param label: virtual machine name.
-        @param state: virtual machine status, accepts more than one states in a list.
-        @raise IrmaMachineManagerError: if default waiting timeout expire or unable to find machine
+        """ wait for a vm status to be set.
+
+        :param label: virtual machine name.
+        :param state: virtual machine status, accepts many states with a list.
+        :raise IrmaMachineManagerError:
+            if timeout expire or virtual machine
         """
         if isinstance(state, int):
             state = [state]
@@ -73,7 +83,8 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         current, desc = self._domain.state(label)
         while current not in state:
             if timeout and seconds > int(timeout):
-                raise IrmaMachineManagerError("Timeout hit for machine {0} to change status".format(label))
+                reason = "status change timeout for '{0}'".format(label)
+                raise IrmaMachineManagerError(reason)
             time.sleep(1)
             seconds += 1
             current, desc = self._domain.state(label)
@@ -82,10 +93,16 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
     # public methods
     ##########################################################################
 
-    def list(self, filter=VirtualMachineManager.ACTIVE | VirtualMachineManager.INACTIVE):
-        """List all (running and inactive) virtual machines 
-        @return list of virtual machines names
-        @raise IrmaMachineManagerError: if unable to list machines
+    ACTIVE = VirtualMachineManager.ACTIVE
+    INACTIVE = VirtualMachineManager.INACTIVE
+
+    def list(self, filter=ACTIVE | INACTIVE):
+        """ List all (running and inactive) virtual machines
+
+        :return:
+            list of virtual machines names
+        :raise IrmaMachineManagerError:
+            if unable to list machines
         """
         labels = list()
         try:
@@ -95,13 +112,16 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         return labels
 
     def start(self, label):
-        """Start a machine
-        @param label: virtual machine name
-        @raise IrmaMachineManagerError: if unable to start virtual machine.
+        """ Start a machine
+
+        :param label: virtual machine name
+        :raise IrmaMachineManagerError:
+            if unable to start virtual machine.
         """
         state, desc = self._domain.state(label)
         if state != DomainManager.SHUTOFF:
-            raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(label, desc))
+            reason = "{0} should be off, currently {0} {1}".format(label, desc)
+            raise IrmaMachineManagerError(reason)
         try:
             res = self._domain.start(label)
             self._wait(label, DomainManager.RUNNING, self._wait_timeout)
@@ -109,14 +129,16 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
             raise IrmaMachineManagerError(e)
 
     def stop(self, label, force=False):
-        """Stop a virtual machine
-        @param label: machine name
-        @param force: if True, halt machine immediatly instead of gracefully
-        @raise IrmaMachineManagerError: if unable to stop virtual machine or find it.
+        """ Stop a virtual machine
+        :param label: machine name
+        :param force: if True, halt machine immediatly instead of gracefully
+        :raise IrmaMachineManagerError:
+            if unable to stop virtual machine or find it.
         """
         state, desc = self._domain.state(label)
         if state != DomainManager.RUNNING:
-            raise IrmaMachineManagerError("{0} should be running, currently {0} {1}".format(label, desc))
+            reason = "{0} should be running, {1} instead".format(label, desc)
+            raise IrmaMachineManagerError(reason)
         try:
             self._domain.stop(label, force)
             self._wait(label, DomainManager.SHUTOFF, self._wait_timeout)
@@ -124,28 +146,27 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
             raise IrmaMachineManagerError(e)
 
     def clone(self, origin, clone, use_backing_file=True):
-        """Clone a machine
-        @param src_label: source machine name
-        @param dst_label: destination machine name
-        @raise NotImplementedError: this method is abstract.
+        """ Clone a machine
+        :param src_label: source machine name
+        :param dst_label: destination machine name
+        :raise IrmaMachineManagerError:
+             if the machine exists or is currently running
         """
         # TODO: move checking in the lib.virt.core api
         state, desc = self._domain.state(origin)
         if state != DomainManager.SHUTOFF:
-            raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(origin, desc))
-
+            reason = "{0} should be off, {1} instead".format(origin, desc)
+            raise IrmaMachineManagerError(reason)
         if self._domain.lookup(clone):
-            raise IrmaMachineManagerError("clone {0} already exists".format(clone, desc))
-
+            reason = "clone {0} already exists".format(clone, desc)
+            raise IrmaMachineManagerError(reason)
         try:
             orig_dict = self._domain.info(origin)
             # if we do not want to use backing files, simply clone
             if not use_backing_file:
-                print "simply clone things"
-                # self._domain.clone(origin, clone)
+                self._domain.clone(origin, clone)
             # we want backing files, check for disks
             else:
-                print "try to create backing storage"
                 clone_dict = orig_dict
                 # generate a new uuid
                 while True:
@@ -158,34 +179,47 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
                 # change devices
                 for type, device in clone_dict['devices'].items():
                     if type == 'interface':
-                        interfaces = device if isinstance(device, list) else [device]
+                        interfaces = device
+                        if not isinstance(interfaces, list):
+                            interfaces = [interfaces]
                         for interface in interfaces:
                             interface['mac']['@address'] = MAC.generate()
                     elif type == 'disk':
-                        disks = device if isinstance(device, list) else [device]
+                        disks = device
+                        if not isinstance(disks, list):
+                            disks = [device]
                         for disk in disks:
                             disk_path = disk['source']['@file']
-                            volman = StorageVolumeManager(self._connection, None)
-                            poolman = StoragePoolManager(self._connection)
-                            volman.pool = poolman.lookupByVolume(volman.lookup(disk_path))
-                            # TODO: handle case when pool is not defined, have to create one
-                            volume = volman.info(disk_path)
+                            vman = StorageVolumeManager(self._connection, None)
+                            pman = StoragePoolManager(self._connection)
+                            volume = vman.lookup(disk_path)
+                            vman.pool = pman.lookupByVolume(volume)
+                            # TODO: pool is not defined, have to create one
+                            volume = vman.info(disk_path)
                             # check if has a backing storage
                             if volume.backingstore is not None:
-                                new_vol = volman.clone(orig_dict['name'], '.'.join([clone, volume.target['format']['@type']]))
+                                from_disk = orig_dict['name']
+                                disk_ext = volume.target['format']['@type']
+                                to_disk = '.'.join([clone, disk_ext])
+                                new_vol = vman.clone(from_disk, to_disk)
                                 disk['source']['@file'] = new_vol.path()
-                            # if not, create a backing storage and use create instead of clone
+                            # create a backing storage
                             else:
-                                log.warning("No backing storage found for '{0}', creating one.".format(disk_path))
                                 backingvol = volume
                                 backingvol.key = None
-                                backingvol.target['path'] = os.path.dirname(backingvol.target['path']) + '.'.join([clone, volume.target['format']['@type']])
-                                backingvol.backingstore = {'path': disk_path, 'format': { '@type': volume.target['format']['@type'] }}
-                                backingvol.name = '.'.join([clone, volume.target['format']['@type']])
-                                new_vol = volman.create(backingvol)
+                                # retreive path
+                                basedir = backingvol.target['path']
+                                basedir = os.path.dirname(basedir)
+                                disk_ext = volume.target['format']['@type']
+                                disk = '.'.join([clone, disk_ext])
+                                backingvol.target['path'] = \
+                                    os.path.join(basedir, disk)
+                                backingvol.backingstore = \
+                                    {'path': disk_path, 'format':
+                                        {'@type': disk_ext}}
+                                backingvol.name = '.'.join([clone, disk_ext])
+                                new_vol = vman.create(backingvol)
                                 disk['source']['@file'] = new_vol.path()
-                                print backingvol.unparse(pretty=True)
-                print clone_dict.unparse(pretty=True)
                 self._domain.create(clone_dict)
         except DomainManagerError as e:
             raise IrmaMachineManagerError(e)
@@ -197,7 +231,8 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         """
         state, desc = self._domain.state(label)
         if state != DomainManager.SHUTOFF:
-            raise IrmaMachineManagerError("{0} should be off, currently {0} {1}".format(label, desc))
+            reason = "{0} should be off, {1} instead".format(label, desc)
+            raise IrmaMachineManagerError(reason)
         try:
             # TODO: add the possibility to keep some disk
             self._domain.delete(label)
