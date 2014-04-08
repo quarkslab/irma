@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 from setuptools import setup, find_packages, findall
 
 IRMA_PROBE_PKG_TARGET = os.environ.get('IRMA_PROBE_PKG_TARGET', "Windows")
@@ -6,7 +7,8 @@ IRMA_PROBE_PKG_TARGET = os.environ.get('IRMA_PROBE_PKG_TARGET', "Windows")
 target = None
 target_linux = 0
 target_windows = 1
-target_str = {target_linux:"linux", target_windows:"windows"}
+target_str = {target_linux: "linux",
+              target_windows: "windows"}
 
 if sys.platform.startswith('win'):
     target = target_windows
