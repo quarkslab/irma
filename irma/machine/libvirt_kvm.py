@@ -1,5 +1,6 @@
 from lib.irma.machine.libvirt_manager import LibVirtMachineManager
 
+
 class KVM(LibVirtMachineManager):
     """KVM machine manager based on python-libvirt"""
 
