@@ -4,27 +4,14 @@ from lib.virt.core.domain import DomainManager
 
 log = logging.getLogger(__name__)
 
+
 class MachineManager(object):
     """abstract class for machine manager"""
 
     UNDEFINED = 0
-    RUNNING   = 1
-    HALTED    = 2
+    RUNNING =   1
+    HALTED =    2
     SUSPENDED = 3
-
-    def acquire(self, label):
-        """Acquire a machine to start analysis.
-        @param label: machine name.
-        @raise NotImplementedError: this method is abstract.
-        """
-        raise NotImplementedError
-
-    def release(self, label):
-        """Release a machine.
-        @param label: machine name.
-        @raise NotImplementedError: this method is abstract.
-        """
-        raise NotImplementedError
 
 
 class VirtualMachineManager(MachineManager):
