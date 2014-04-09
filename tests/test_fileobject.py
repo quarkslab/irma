@@ -1,6 +1,5 @@
 import logging
 import unittest
-import xmlrunner
 from irma.common.exceptions import IrmaDatabaseError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.fileobject.handler import FileObject
@@ -104,5 +103,4 @@ class TestFileObject(DbTestCase):
 
 if __name__ == '__main__':
     enable_logging()
-    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
-    unittest.main(testRunner=xmlr)
+    unittest.main()

@@ -1,6 +1,5 @@
 import logging
 import unittest
-import xmlrunner
 import os
 from datetime import datetime, timedelta
 from irma.common.exceptions import IrmaDatabaseError
@@ -300,5 +299,4 @@ class TestSqlObject(DbTestCase):
 
 if __name__ == '__main__':
     enable_logging()
-    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
-    unittest.main(testRunner=xmlr)
+    unittest.main()

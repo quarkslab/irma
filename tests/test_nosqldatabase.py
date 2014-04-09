@@ -1,6 +1,5 @@
 import logging
 import unittest
-import xmlrunner
 from irma.common.exceptions import IrmaDatabaseError, IrmaLockError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
@@ -234,5 +233,4 @@ class TestLockObject(DbTestCase):
 
 if __name__ == '__main__':
     enable_logging()
-    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
-    unittest.main(testRunner=xmlr)
+    unittest.main()
