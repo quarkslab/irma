@@ -60,8 +60,8 @@ class Scanner(object):
         scanid = self.scanid
         nb = len(files)
         probes = " - ".join(sorted(probelist))
-        print ("launching scan {0}".format(scanid) +
-               " of {0} files on {1}".format(scanid, nb, probes))
+        print("launching scan {0}".format(scanid) +
+              " of {0} files on {1}".format(scanid, nb, probes))
         start = time.time()
         while True:
             time.sleep(BEFORE_NEXT_PROGRESS)

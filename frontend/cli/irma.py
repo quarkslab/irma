@@ -159,9 +159,9 @@ def scan_progress(scanid=None, partial=None, verbose=False):
             rate_total = finished * 100 / total
         if finished != 0:
             rate_success = successful * 100 / finished
-            print ("{0}/{1} jobs finished ".format(finished, total) +
-                   "({0}%) / ".format(rate_total) +
-                   "{0} success ({1}%)".format(successful, rate_success))
+            print("{0}/{1} jobs finished ".format(finished, total) +
+                  "({0}%) / ".format(rate_total) +
+                  "{0} success ({1}%)".format(successful, rate_success))
     else:
         print "Scan status : {0}".format(status)
     if status == IrmaScanStatus.label[IrmaScanStatus.finished] or partial:
@@ -178,11 +178,11 @@ def print_results(list_res, justify=12):
             print "\t%s" % (av.ljust(justify)),
             avres = res[av].get('result', "No result")
             if type(avres) == str:
-                print avres.strip()
+                print(avres.strip())
             elif type(avres) == list:
-                print ("\n\t " + " " * justify).join(avres)
+                print("\n\t " + " " * justify).join(avres)
             elif avres is None:
-                print 'clean'
+                print('clean')
             else:
                 print avres
 
