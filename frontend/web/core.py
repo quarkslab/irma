@@ -228,6 +228,19 @@ def scan_cancel(scanid):
         raise IrmaFrontendError(res)
 
 
+def scan_finished(scanid):
+    """ return a boolean  indicating if scan is finished
+    :param scanid: id returned by scan_new
+    :rtype: boolean
+    :return:
+        True if scan is finished
+        False otherwise
+    :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
+    """
+    scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+    return scan.status == IrmaScanStatus.finished
+
+
 def probe_list():
     """ get active probe list
 

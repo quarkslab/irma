@@ -272,6 +272,32 @@ def scan_cancel(scanid):
         return IrmaFrontendReturn.error(str(e))
 
 
+@route("/scan/finished/<scanid>", method='GET')
+def scan_finished(scanid):
+    """ tell if scan specified is finished
+
+    :route: /scan/finished/<scanid>
+    :param scanid: id returned by scan_new
+    :rtype: dict of 'code': int, 'msg': str
+    :return:
+        on success results are ready
+        on warning 'msg' gives current scan status
+        on error 'msg' gives reason message
+    """
+    # Filter malformed scanid
+    if not _valid_id(scanid):
+        return IrmaFrontendReturn.error("not a valid scanid")
+    try:
+        if core.scan_finished(scanid):
+            return IrmaFrontendReturn.success("finished")
+        else:
+            return IrmaFrontendReturn.warning("not finished")
+    except IrmaFrontendError as e:
+        return IrmaFrontendReturn.error(str(e))
+    except Exception as e:
+        return IrmaFrontendReturn.error(str(e))
+
+
 # ===========
 #  Probe api
 # ===========
@@ -304,6 +330,19 @@ def probe_list():
 
 @route("/file/search/<sha256>")
 def file_search(sha256):
+    """ lookup file by sha256
+
+    :route: /file/search/<scanid>
+    :param scanid: id returned by scan_new
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'scan_results': dict of [
+            sha256 value: dict of
+                'filenames':list of filename,
+                'results': dict of [str probename: dict [results of probe]]]]
+    :return:
+        on success 'scan_results' contains results for file
+        on error 'msg' gives reason message
+    """
     # Filter malformed scanid
     if not _valid_sha256(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
