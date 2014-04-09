@@ -42,12 +42,9 @@ class SQLDatabase(object):
         self._session = Session()
 
     def _disconnect(self):
-        if self._session is None:
-            return
         try:
             self._session.commit()
-            self._session.close()
-            self._session = None
+            # we do not close the session to keep objects persistent
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 

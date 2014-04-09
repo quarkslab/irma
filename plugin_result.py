@@ -44,10 +44,10 @@ class PluginResult(object):
         self._calculate_duration()
 
     def _calculate_duration(self):
-        if self.metadata.get('end_time') and \
-           self.metadata.get('start_time'):
-            delta = self.metadata.get('end_time')
-            delta -= self.metadata.get('start_time')
+        start = self.metadata.get('start_time')
+        end = self.metadata.get('end_time')
+        if end and start:
+            delta = end - start
         else:
             delta = datetime.timedelta(0)
         self.metadata['duration'] = int(delta.total_seconds())

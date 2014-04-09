@@ -375,7 +375,7 @@ class DomainManager(ParametricSingleton):
                 result = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
-            if 'domaine' in domains:
+            if 'domain' in domains:
                 domain = domains.get('domain', None)
                 flags = domains.get('flags', flags)
                 result = self.start(domain, flags)
