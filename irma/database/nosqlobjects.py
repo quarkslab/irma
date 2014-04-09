@@ -198,6 +198,9 @@ class NoSQLDatabaseObject(object):
             reason = "has_lock_timed_out must be overloaded in the subclasses"
             raise NotImplementedError(reason)
         lock_time = cls(id=id, save=False)._lock_time
+        if lock_time is None:   # The lock is being take at the first
+                                # instantiation of the object
+            lock_time = 0
         return IrmaLock.lock_timeout < timestamp() - lock_time
 
     @classmethod
@@ -221,9 +224,11 @@ class NoSQLDatabaseObject(object):
         :return: True if the objects are different, False otherwise
         """
         from_db = self.__class__(id=self.id, save=False).to_dict()
+        if '_lock' in from_db:
+            del from_db['_lock']
+        if '_lock_time' in from_db:
+            del from_db['_lock_time']
 
-        del from_db['_lock']
-        del from_db['_lock_time']
         from_instance = self.to_dict()
         del from_instance['_lock']
         del from_instance['_lock_time']
