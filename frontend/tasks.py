@@ -130,9 +130,9 @@ def scan_result(scanid, file_hash, probe, result):
         scan_res.results[probe] = formatted_res
         scan_res.update()
         scan_res.release()
-        print ("Scanid {0}".format(scanid) +
-               "Result from {0} ".format(probe) +
-               "probedone {0}".format(scan_res.probedone))
+        print("Scanid {0}".format(scanid) +
+              "Result from {0} ".format(probe) +
+              "probedone {0}".format(scan_res.probedone))
 
         if scan.is_completed():
             scan.take()
@@ -167,10 +167,10 @@ def clean_db():
         nb_scanfile = ScanFile.remove_old_instances(max_age_scanfile)
         hage_scaninfo = humanize_time_str(max_age_scaninfo, 'seconds')
         hage_scanfile = humanize_time_str(max_age_scanfile, 'seconds')
-        print ("removed {0} scan info ".format(nb_scaninfo) +
-               "(older than {0})".format(hage_scaninfo))
-        print ("removed {0} scan files ".format(nb_scanfile) +
-               "(older than {0}) ".format(hage_scanfile))
+        print("removed {0} scan info ".format(nb_scaninfo) +
+              "(older than {0})".format(hage_scaninfo))
+        print("removed {0} scan files ".format(nb_scanfile) +
+              "(older than {0}) ".format(hage_scanfile))
         return (nb_scaninfo, nb_scanfile)
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
