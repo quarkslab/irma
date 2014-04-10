@@ -30,9 +30,10 @@ class IrmaFrontendReturn:
         return ret
 
     @staticmethod
-    def success(**kwargs):
+    def success(msg="success", **kwargs):
         return IrmaFrontendReturn.response(IrmaReturnCode.success,
-                                           "success", **kwargs)
+                                           msg,
+                                           **kwargs)
 
     @staticmethod
     def warning(msg, **kwargs):
