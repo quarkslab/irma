@@ -10,4 +10,5 @@ setup(
     license='LICENSE',
     description='Frontend package for IRMA',
     long_description=open('README.rst').read(),
+    scripts=['scripts/update.sh'],
 )
