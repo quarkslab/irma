@@ -289,7 +289,7 @@ def scan_finished(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
         if core.scan_finished(scanid):
-            return IrmaFrontendReturn.success("finished")
+            return IrmaFrontendReturn.success(msg="finished")
         else:
             return IrmaFrontendReturn.warning("not finished")
     except IrmaFrontendError as e:
