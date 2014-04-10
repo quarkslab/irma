@@ -3,3 +3,6 @@
 
 # PyCharm
 .idea/*
+
+# Coverage
+.coverage
