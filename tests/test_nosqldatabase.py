@@ -42,9 +42,9 @@ class TestObject(NoSQLDatabaseObject):
         return super(TestObject, cls).is_lock_free(id)
 
 
-##############################################################################
-# Logging options
-##############################################################################
+# =================
+#  Logging options
+# =================
 def enable_logging(level=logging.INFO,
                    handler=None,
                    formatter=None):
@@ -60,9 +60,10 @@ def enable_logging(level=logging.INFO,
     log.setLevel(level)
 
 
-##############################################################################
-# Test Cases
-##############################################################################
+# ============
+#  Test cases
+# ============
+
 class DbTestCase(unittest.TestCase):
     def setUp(self):
         self.db = NoSQLDatabase(test_db_name, test_db_uri)

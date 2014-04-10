@@ -1,6 +1,5 @@
 import logging
 import unittest
-from xmlrunner import xmlrunner
 from irma.database.nosqlhandler import NoSQLDatabase
 from pymongo import Connection
 
@@ -10,9 +9,10 @@ test_db_name = "unitest"
 test_db_collection = "testobject"
 
 
-##############################################################################
-# Logging options
-##############################################################################
+# =================
+#  Logging options
+# =================
+
 def enable_logging(level=logging.INFO,
                    handler=None,
                    formatter=None):
@@ -28,9 +28,10 @@ def enable_logging(level=logging.INFO,
     log.setLevel(level)
 
 
-##############################################################################
-# Test Cases
-##############################################################################
+# ============
+#  Test cases
+# ============
+
 class NoSQLDatabaseTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -69,5 +70,4 @@ class CheckNoSQLDatabase(NoSQLDatabaseTestCase):
             db._disconnect()
 
 if __name__ == '__main__':
-    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
-    unittest.main(testRunner=xmlr)
+    unittest.main()
