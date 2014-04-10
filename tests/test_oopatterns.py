@@ -209,7 +209,7 @@ class CheckParametricSingleton(unittest.TestCase):
         obj2 = ParametricSingleton1(depends_on=lambda x, *y, **z: "key1")
         self.assertIsNotNone(obj2)
         self.assertNotEquals(id(obj1), id(obj2))
-        # create a new key2 and check
+        # create a new key2 and check
         obj3 = ParametricSingleton1(depends_on=lambda x, *y, **z: "key2")
         self.assertIsNotNone(obj3)
         self.assertEquals(id(obj1), id(obj3))
