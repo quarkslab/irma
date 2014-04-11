@@ -55,8 +55,7 @@ class CheckNoSQLDatabase(NoSQLDatabaseTestCase):
         self.assertIsNotNone(db.db_instance().host)
         db._connect()
         db._disconnect()
-        self.assertIsInstance(db.db_instance(), Connection)
-        self.assertIsNone(db.db_instance().host)
+        self.assertIsNone(db.db_instance())
         db._disconnect()
         db._db_conn = None
         db._disconnect()

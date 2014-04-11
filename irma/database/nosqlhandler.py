@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 # TODO: Create an abstract class so we can use multiple databases,
-# not only mongodb
+# not only mongodb (see Singleton)
 class NoSQLDatabase(Singleton):
     """Internal database.
 
@@ -57,10 +57,18 @@ class NoSQLDatabase(Singleton):
             return
         try:
             self._db_conn.disconnect()
+            self._db_conn = None
+            self._db_cache = dict()
+            self._coll_cache = dict()
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
     def _database(self, db_name):
+        # implicit connect on call public functions because of the singleton
+        # thing and _disconnect()
+        if not self._is_connected():
+            self._connect()
+
         if db_name not in self._db_cache:
             try:
                 self._db_cache[db_name] = self._db_conn[db_name]
@@ -78,6 +86,9 @@ class NoSQLDatabase(Singleton):
             except Exception as e:
                 raise IrmaDatabaseError("{0}".format(e))
         return self._coll_cache[coll_name]
+
+    def _is_connected(self):
+        return self._db_conn is not None
 
     ##########################################################################
     # Public methods
