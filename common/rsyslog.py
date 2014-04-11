@@ -235,7 +235,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
                         self.retryPeriod = self.retryMax
                 self.retryTime = now + self.retryPeriod
 
-    def send(self, s):
+    def send(self, msg):
         """
         This function allows for partial sends which can happen when the
         network is busy.
@@ -250,28 +250,29 @@ class SysLogHandler(logging.handlers.SysLogHandler):
             try:
                 if hasattr(self.socket, "sendall"):
                     try:
-                        self.socket.sendall(s)
+                        self.socket.sendall(msg)
                     except socket.error:
                         self.closeSocket()
                         self.createSocket()
-                        self.socket.sendall(s)
+                        self.socket.sendall(msg)
                 else:
                     sentsofar = 0
-                    left = len(s)
+                    left = len(msg)
                     while left > 0:
                         sent = 0
                         try:
+                            _msg = msg[sentsofar:]
                             if self.unixsocket:
-                                sent = self.socket.send(s[sentsofar:])
+                                sent = self.socket.send(_msg)
                             elif self.socktype == socket.SOCK_DGRAM:
-                                sent = self.socket.sendto(msg, self.address)
+                                sent = self.socket.sendto(_msg, self.address)
                         except:
                             self.closeSocket()
                             self.createSocket()
                             if self.unixsocket:
-                                sent = self.socket.send(msg)
+                                sent = self.socket.send(_msg)
                             elif self.socktype == socket.SOCK_DGRAM:
-                                sent = self.socket.sendto(msg, self.address)
+                                sent = self.socket.sendto(_msg, self.address)
                         sentsofar = sentsofar + sent
                         left = left - sent
             except socket.error:
