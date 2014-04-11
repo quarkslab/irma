@@ -50,6 +50,8 @@ class DbTestCase(unittest.TestCase):
         # check that unittest database is empty before testing
         try:
             db = NoSQLDatabase(test_db_name, test_db_uri)
+            if db.db_instance() is None:
+                db._connect()
             dbh = db.db_instance()
             database = dbh[test_db_collection]
             database2 = dbh[test_db_collection_files]
