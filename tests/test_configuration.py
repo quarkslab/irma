@@ -1,6 +1,5 @@
 import logging
 import unittest
-import xmlrunner
 import os
 import copy
 from irma.configuration.config import ConfigurationSection
@@ -137,5 +136,4 @@ class TestTemplatedConfiguration(unittest.TestCase):
 
 if __name__ == '__main__':
     enable_logging()
-    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
-    unittest.main(testRunner=xmlr)
+    unittest.main()

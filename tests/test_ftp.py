@@ -1,7 +1,6 @@
 import logging
 import hashlib
 import unittest
-import xmlrunner
 import tempfile
 import os
 from irma.ftp.handler import FtpTls
@@ -195,5 +194,4 @@ class TestFtpHandler(FtpTestCase):
 
 if __name__ == '__main__':
     enable_logging()
-    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
-    unittest.main(testRunner=xmlr)
+    unittest.main()

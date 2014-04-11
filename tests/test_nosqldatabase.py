@@ -1,7 +1,7 @@
 import logging
 import unittest
-import xmlrunner
-from irma.common.exceptions import IrmaDatabaseError, IrmaLockError
+from irma.common.exceptions import IrmaDatabaseError, IrmaLockError, \
+    IrmaValueError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
@@ -65,24 +65,16 @@ def enable_logging(level=logging.INFO,
 ##############################################################################
 class DbTestCase(unittest.TestCase):
     def setUp(self):
-        # check database is ready for test
-        self.database_running_and_empty()
+        self.db = NoSQLDatabase(test_db_name, test_db_uri)
+        dbh = self.db.db_instance()
+        database = dbh[test_db_name]
+        self.collection = database[test_db_collection]
+        self.collection.remove()
 
     def tearDown(self):
-        # do the teardown
-        pass
-
-    def database_running_and_empty(self):
-        # check that unittest database is empty before testing
-        try:
-            db = NoSQLDatabase(test_db_name, test_db_uri)
-            dbh = db.db_instance()
-            database = dbh[test_db_collection]
-            collection = database[test_db_collection]
-            assert collection.count() <= 10
-        except IrmaDatabaseError as e:
-            print "TestDatabase Error: {0}".format(e)
-            self.skipTest(DbTestCase)
+        self.db._disconnect()
+        del self.collection
+        del self.db
 
 
 class CheckSingleton(DbTestCase):
@@ -94,55 +86,38 @@ class CheckSingleton(DbTestCase):
 
 class TestNoSQLDatabaseObject(DbTestCase):
 
-    def test_add_testobject(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-        collection.remove()
+    def test_constructor(self):
+        with self.assertRaises(IrmaValueError):
+            NoSQLDatabaseObject()
+        t1 = TestObject(mode=IrmaLockMode.write)
+        with self.assertRaises(IrmaValueError):
+            t2 = TestObject(mode='a')
 
+    def test_add_testobject(self):
         t1 = TestObject()
         self.assertIsNotNone(t1.id)
-        self.assertEqual(collection.count(), 1)
+        self.assertEqual(self.collection.count(), 1)
 
     def test_id_type_testobject(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-        collection.remove()
-
         t1 = TestObject()
         self.assertEqual(type(t1._id), ObjectId)
         self.assertEqual(type(t1.id), str)
 
     def test_add_two_testobjects(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-        collection.remove()
-
         t1 = TestObject()
         t2 = TestObject()
         self.assertNotEquals(t1.id, t2.id)
-        self.assertEqual(collection.count(), 2)
+        self.assertEqual(self.collection.count(), 2)
 
     def test_check_type(self):
-        db = NoSQLDatabase(test_db_name, test_db_uri)
-        dbh = db.db_instance()
-        database = dbh[test_db_name]
-        collection = database[test_db_collection]
-        collection.remove()
         t1 = TestObject()
         t2 = TestObject(id=t1.id)
-        self.assertEqual(collection.count(), 1)
+        self.assertEqual(self.collection.count(), 1)
         self.assertEqual(type(t2.id), str)
         self.assertEqual(type(t2.list), list)
         self.assertEqual(type(t2.dict), dict)
         self.assertEqual(type(t2.user), unicode)
         self.assertEqual(type(t2.date), datetime)
-        collection.remove()
 
     def test_check_invalid_id(self):
         with self.assertRaises(IrmaDatabaseError):
@@ -194,6 +169,36 @@ class TestNoSQLDatabaseObject(DbTestCase):
         t1 = TestObject(id=t.id)
         self.assertEqual(t1.user, "bla")
 
+    def test_remove(self):
+        t1 = TestObject()
+        self.assertEqual(self.collection.count(), 1)
+        t1.remove()
+        self.assertEqual(self.collection.count(), 0)
+
+    def test_get_temp_instance(self):
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.get_temp_instance(0)
+
+        t1 = TestObject()
+        temp_id = t1.id
+        self.assertIsNotNone(TestObject.get_temp_instance(temp_id))
+        t1.remove()
+        with self.assertRaises(IrmaDatabaseError):
+            TestObject.get_temp_instance(temp_id)
+
+    def test_find(self):
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.find()
+
+        self.assertEqual(TestObject.find().count(), 0)
+        t1 = TestObject()
+        self.assertEqual(TestObject.find().count(), 1)
+
+    def test_instance_to_str(self):
+        t1 = TestObject()
+        self.assertIsInstance(t1.__repr__(), str)
+        self.assertIsInstance(t1.__str__(), str)
+
 
 class TestLockObject(DbTestCase):
     def test_is_lock_free(self):
@@ -202,6 +207,9 @@ class TestLockObject(DbTestCase):
         t.take()
         self.assertFalse(TestObject.is_lock_free(t.id))
 
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.is_lock_free(0)
+
     def test_has_lock_timed_out(self):
         t = TestObject()
         t.take()
@@ -209,6 +217,9 @@ class TestLockObject(DbTestCase):
         t._lock_time = 0
         t.update()
         self.assertTrue(TestObject.has_lock_timed_out(t.id))
+
+        with self.assertRaises(NotImplementedError):
+            NoSQLDatabaseObject.has_lock_timed_out(0)
 
     def test_has_state_changed(self):
         t = TestObject()
@@ -231,8 +242,9 @@ class TestLockObject(DbTestCase):
             t.take()
         t.release()
         self.assertEqual(t._lock, IrmaLock.free)
+        with self.assertRaises(IrmaValueError):
+            t.take(mode='a')
 
 if __name__ == '__main__':
     enable_logging()
-    xmlr = xmlrunner.XMLTestRunner(output='test-reports')
-    unittest.main(testRunner=xmlr)
+    unittest.main()
