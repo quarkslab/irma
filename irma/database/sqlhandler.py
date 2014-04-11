@@ -15,9 +15,10 @@ class SQLDatabase(object):
     functions for interacting with it.
     """
 
-    ##########################################################################
-    # Constructor and Destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and Destructor stuff
+    # ==================================
+
     def __init__(self, engine):
         self._db = sqlalchemy.create_engine(engine)
         self._db.echo = False
@@ -33,9 +34,9 @@ class SQLDatabase(object):
     def __exit__(self, type, value, tb):
         self.__del__()
 
-    ##########################################################################
-    # Private methods
-    ##########################################################################
+    # =================
+    #  Private methods
+    # =================
 
     def _connect(self):
         Session = sessionmaker(bind=self._db)
@@ -48,9 +49,10 @@ class SQLDatabase(object):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    ##########################################################################
-    # Public methods
-    ##########################################################################
+    # ================
+    #  Public methods
+    # ================
+
     def add(self, entry):
         self._session.add(entry)
 

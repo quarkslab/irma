@@ -15,9 +15,9 @@ class StoragePoolManager(ParametricSingleton):
     local or remote virtual machine manager
     """
 
-    ##########################################################################
-    # parametric singleton stuff
-    ##########################################################################
+    # ============================
+    #  parametric singleton stuff
+    # ============================
 
     @staticmethod
     def depends_on(cls, *args, **kwargs):
@@ -41,12 +41,14 @@ class StoragePoolManager(ParametricSingleton):
     # =================
     #  Available state
     # =================
+
     ACTIVE = 1
     INACTIVE = 2
 
     # ==================
     #  Available status
     # ==================
+
     POOL_INACTIVE = libvirt.VIR_STORAGE_POOL_INACTIVE
     POOL_BUILDING = libvirt.VIR_STORAGE_POOL_BUILDING
     POOL_RUNNING = libvirt.VIR_STORAGE_POOL_RUNNING
@@ -56,6 +58,7 @@ class StoragePoolManager(ParametricSingleton):
     # ========================
     #  Available delete flags
     # ========================
+
     # Delete metadata only (fast)
     DELETE_NORMAL = libvirt.VIR_STORAGE_POOL_DELETE_NORMAL
     # Clear all data to zeros (slow)
@@ -83,16 +86,16 @@ class StoragePoolManager(ParametricSingleton):
         if prefetch:
             map(lambda name: self._lookup(_lookupByName(name)), self.list())
 
-    ##########################################################################
-    # context manager stuff
-    ##########################################################################
+    # =======================
+    #  context manager stuff
+    # =======================
 
     def __enter__(self):
         return self
 
-    ##########################################################################
-    # internal helpers
-    ##########################################################################
+    # ==================
+    #  internal helpers
+    # ==================
 
     # libvirt.virConnection from connection
     def _set_drv(self, connection):
@@ -166,9 +169,9 @@ class StoragePoolManager(ParametricSingleton):
             raise StoragePoolManagerError("Pool '{0}' not found".format(name))
         return pool
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+    # ================
+    #  public methods
+    # ================
 
     def lookup(self, pool):
         handle = None
