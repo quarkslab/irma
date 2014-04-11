@@ -67,6 +67,8 @@ def enable_logging(level=logging.INFO,
 class DbTestCase(unittest.TestCase):
     def setUp(self):
         self.db = NoSQLDatabase(test_db_name, test_db_uri)
+        if self.db.db_instance() is None:
+            self.db._connect()
         dbh = self.db.db_instance()
         database = dbh[test_db_name]
         self.collection = database[test_db_collection]
@@ -74,19 +76,15 @@ class DbTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.db._disconnect()
-        del self.collection
-        del self.db
 
 
 class CheckSingleton(DbTestCase):
-
     def test_singleton(self):
         self.assertEqual(id(NoSQLDatabase(test_db_name, test_db_uri)),
                          id(NoSQLDatabase(test_db_name, test_db_uri)))
 
 
 class TestNoSQLDatabaseObject(DbTestCase):
-
     def test_constructor(self):
         with self.assertRaises(IrmaValueError):
             NoSQLDatabaseObject()
