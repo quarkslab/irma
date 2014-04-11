@@ -51,6 +51,8 @@ class NoSQLDatabaseTestCase(unittest.TestCase):
 class CheckNoSQLDatabase(NoSQLDatabaseTestCase):
     def test_init_connection_disconnection(self):
         db = NoSQLDatabase(test_db_name, test_db_uri)
+        if not db._is_connected():
+            db._connect()
         self.assertIsInstance(db.db_instance(), Connection)
         self.assertIsNotNone(db.db_instance().host)
         db._connect()
