@@ -174,7 +174,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         self.retryMax = 30.0
         self.retryFactor = 2.0
 
-    def makeSocket(self, timeout=1):
+    def makeSocket(self):
         if isinstance(self.address, basestring):
             self.unixsocket = 1
             self._connect_unixsocket(self.address)
@@ -223,7 +223,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
 
         if attempt:
             try:
-                self.makeSocket(self.timeout)
+                self.makeSocket()
                 self.retryTime = None  # next time, no delay before trying
             except socket.error:
                 # Creation failed, so set the retry time and return.
