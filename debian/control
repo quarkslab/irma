@@ -1,0 +1,32 @@
+Source: irma-frontend
+Section: python
+Priority: extra
+Maintainer: irma <irma@quarkslab.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://github.com/quarkslab/irma-frontend.git
+
+Package: irma-frontend-api
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip, mongodb-10gen, python-gridfs
+Description: Irma Frontend REST API
+ Irma Frontend Python-based REST API
+
+Package: irma-frontend-api-uwsgi
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, irma-frontend-api, uwsgi, uwsgi-plugin-python
+Description: Irma Frontend REST API uwsgi
+ Irma Frontend Python-based REST API uwsgi
+
+Package: irma-frontend-web-data
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Irma Frontend Web Interface
+ Irma Frontend AngularJS web interface
+ This package provides static HTML and JS files.
+
+Package: irma-frontend-web-nginx
+Architecture: all
+Depends: nginx, irma-frontend-api-uwsgi, irma-frontend-web-data, ${shlibs:Depends}, ${misc:Depends}
+Description: Irma Frontend nginx configuration
+ Setup the frontend interface with nginx
