@@ -15,9 +15,9 @@ class ConnectionManager(ParametricSingleton):
 
     handlers = {}
 
-    ##########################################################################
-    # parametric singleton stuff
-    ##########################################################################
+    # ============================
+    #  parametric singleton stuff
+    # ============================
 
     @staticmethod
     def depends_on(cls, *args, **kwargs):
