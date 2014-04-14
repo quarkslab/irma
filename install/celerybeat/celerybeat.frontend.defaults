@@ -9,7 +9,7 @@ CELERY_BIN="/usr/local/bin/celery"
 CELERY_APP="frontend.tasks:frontend_app"
 
 # Where to chdir at start.
-CELERYBEAT_CHDIR="/home/irma/irma/"
+CELERYBEAT_CHDIR="/opt/irma/irma-frontend/"
 
 # Extra arguments to celerybeat
 CELERYBEAT_OPTS="--schedule=/var/run/celery/celerybeat-schedule"

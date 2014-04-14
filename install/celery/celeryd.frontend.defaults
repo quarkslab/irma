@@ -16,7 +16,7 @@ CELERY_BIN="/usr/local/bin/celery"
 CELERY_APP="frontend.tasks"
 
 # Where to chdir at start.
-CELERYD_CHDIR="/home/irma/irma/"
+CELERYD_CHDIR="/opt/irma/irma-frontend/"
 
 # Extra command-line arguments to the worker
 CELERYD_OPTS="--without-gossip --without-mingle --without-heartbeat "

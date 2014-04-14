@@ -24,7 +24,6 @@ case "$1" in
 		# Celery
 		mkdir -p /var/log/celery
 		adduser --system --no-create-home --group irma
-		adduser irma irma-certs
 		update-rc.d celeryd defaults
 		invoke-rc.d celeryd restart
     ;;
