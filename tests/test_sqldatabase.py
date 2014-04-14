@@ -96,8 +96,10 @@ class TestSqlObject(DbTestCase):
         self.db.add_all([test1, test2, test3, test4])
 
         self.assertEqual(len(self.db.find_by(TestObject, size=10)), 3)
-        self.assertEqual([i.name for i in self.db.find_by(TestObject, size=10)],
-                         ["test1", "test2", "test4"])
+        self.assertEqual(
+            [i.name for i in self.db.find_by(TestObject, size=10)],
+            ["test1", "test2", "test4"]
+        )
 
     def test_delete(self):
         test1 = TestObject(name="test1", size=10, date=datetime.now())
