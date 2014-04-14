@@ -1,3 +1,7 @@
+"""Defines common Object Oriented Patterns
+
+One should re-use these instead of defining their owns.
+"""
 
 
 # ==========================
@@ -17,11 +21,11 @@ class SingletonMetaClass(type):
 
     _instances = {}
 
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = \
-                super(SingletonMetaClass, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+    def __call__(mcs, *args, **kwargs):
+        if mcs not in mcs._instances:
+            mcs._instances[mcs] = \
+                super(SingletonMetaClass, mcs).__call__(*args, **kwargs)
+        return mcs._instances[mcs]
 
 # Metaclass compatible with python 2 and 3. Inherit from this for singletons
 Singleton = SingletonMetaClass('Singleton', (object,), {})
@@ -64,37 +68,37 @@ class ParametricSingletonMetaClass(type):
 
     _instances = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(mcs, *args, **kwargs):
         # check for "depends_on" attribute
-        if "depends_on" not in kwargs and not hasattr(cls, "depends_on"):
+        if "depends_on" not in kwargs and not hasattr(mcs, "depends_on"):
             raise TypeError("argument or attribute 'depends_on' not defined")
         # check for unbound methods
         if "depends_on" in kwargs and \
            (not kwargs["depends_on"] or not callable(kwargs["depends_on"])):
             raise TypeError("function in parameter 'depends_on' is not bound")
-        elif hasattr(cls, "depends_on") and \
-            (not getattr(cls, "depends_on") or
-             not callable(getattr(cls, "depends_on"))):
+        elif hasattr(mcs, "depends_on") and \
+            (not getattr(mcs, "depends_on") or
+             not callable(getattr(mcs, "depends_on"))):
             raise TypeError("function in attribute 'depends_on' is not bound")
 
         # call depends_on to get the key
         if "depends_on" in kwargs:
-            key = kwargs["depends_on"](cls, args, kwargs)
+            key = kwargs["depends_on"](mcs, args, kwargs)
             del kwargs["depends_on"]
         else:
-            key = getattr(cls, "depends_on")(cls, args, kwargs)
+            key = getattr(mcs, "depends_on")(mcs, args, kwargs)
 
         # check for instance
-        if cls not in cls._instances:
-            cls._instances[cls] = {}
-        if key not in cls._instances[cls]:
-            cls._instances[cls][key] = \
-                super(ParametricSingletonMetaClass, cls).\
+        if mcs not in mcs._instances:
+            mcs._instances[mcs] = {}
+        if key not in mcs._instances[mcs]:
+            mcs._instances[mcs][key] = \
+                super(ParametricSingletonMetaClass, mcs).\
                 __call__(*args, **kwargs)
-        return cls._instances[cls][key]
+        return mcs._instances[mcs][key]
 
-    def update_key(cls, old_key, new_key):
-        cls._instances[cls][new_key] = cls._instances[cls].pop(old_key)
+    def update_key(mcs, old_key, new_key):
+        mcs._instances[mcs][new_key] = mcs._instances[mcs].pop(old_key)
 
 # Metaclass compatible with python 2 and 3.
 # Inherit from this for parametric singletons
@@ -142,22 +146,22 @@ class PluginMetaClass(type):
     # ===================
     #  class constructor
     # ===================
-    def __init__(cls, name, bases, attrs):
+    def __init__(mcs, name, bases, attrs):
         # small hack to skip Plugin base class when initializing
         if not len(attrs):
             return
         # Begin to register all classes that derives from Plugin base class
-        if not hasattr(cls, '_plugins'):
+        if not hasattr(mcs, '_plugins'):
             # This branch only executes when processing the mount point itself.
             # So, since this is a new plugin type, not an implementation, this
             # class shouldn't be registered as a plugin. Instead, it sets up a
             # list where plugins can be registered later.
-            cls._plugins = []
+            mcs._plugins = []
         else:
             # This must be a plugin implementation, which should be registered.
             # Simply appending it to the list is all that's needed to keep
             # track of it later.
-            cls._plugins.append(cls)
+            mcs._plugins.append(mcs)
 
     # =================
     #  Plugin metadata
@@ -173,36 +177,36 @@ class PluginMetaClass(type):
     # =====================
 
     @property
-    def plugin_name(cls):
-        return cls._plugin_name
+    def plugin_name(mcs):
+        return mcs._plugin_name
 
     @property
-    def plugin_version(cls):
-        return cls._plugin_version
+    def plugin_version(mcs):
+        return mcs._plugin_version
 
     @property
-    def plugin_description(cls):
-        return cls._plugin_description
+    def plugin_description(mcs):
+        return mcs._plugin_description
 
     @property
-    def plugin_dependencies(cls):
-        return cls._plugin_dependencies
+    def plugin_dependencies(mcs):
+        return mcs._plugin_dependencies
 
     @property
-    def plugins(cls):
-        return cls._plugins
+    def plugins(mcs):
+        return mcs._plugins
 
     # =================
     #  Utility methods
     # =================
 
-    def get_plugins(cls, *args, **kwargs):
+    def get_plugins(mcs, *args, **kwargs):
         """return instances of plugins"""
-        return [plugin(*args, **kwargs) for plugin in cls._plugins]
+        return [plugin(*args, **kwargs) for plugin in mcs._plugins]
 
-    def get_plugin(cls, name, *args, **kwargs):
+    def get_plugin(mcs, name, *args, **kwargs):
         """return instance of a named plugin"""
-        plugin = filter(lambda x: x.plugin_name == name, cls._plugins)
+        plugin = filter(lambda x: x.plugin_name == name, mcs._plugins)
         return plugin[0] if plugin else None
 
 # Metaclass compatible with python 2 and 3. Inherit from this for Plugins

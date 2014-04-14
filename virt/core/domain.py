@@ -50,9 +50,9 @@ class DomainManager(ParametricSingleton):
             raise DomainManagerError(reason)
         return uri
 
-    ##########################################################################
-    # constants
-    ##########################################################################
+    # ===========
+    #  constants
+    # ===========
 
     # Available state
     ACTIVE = 1
@@ -71,6 +71,7 @@ class DomainManager(ParametricSingleton):
     # =============
     #  Start flags
     # =============
+
     # Launch guest in paused state
     START_PAUSED = libvirt.VIR_DOMAIN_START_PAUSED
     # Automatically kill guest when virConnectPtr is closed
@@ -97,6 +98,7 @@ class DomainManager(ParametricSingleton):
     # ==============
     #  Reboot flags
     # ==============
+
     # Send ACPI event
     REBOOT_ACPI = libvirt.VIR_DOMAIN_REBOOT_ACPI_POWER_BTN
     # Use guest agent
@@ -105,6 +107,7 @@ class DomainManager(ParametricSingleton):
     # ================
     #  Coredump flags
     # ================
+
     # crash after dump
     DUMP_CRASH = libvirt.VIR_DUMP_CRASH
     # live dump
@@ -117,14 +120,15 @@ class DomainManager(ParametricSingleton):
     # ===============
     #  Memdump flags
     # ===============
+
     # addresses are virtual addresses
     MEMORY_VIRTUAL = libvirt.VIR_MEMORY_VIRTUAL
     # addresses are physical addresses
     MEMORY_PHYSICAL = libvirt.VIR_MEMORY_PHYSICAL
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  constructor and destructor stuff
+    # ==================================
 
     def __init__(self, connection, prefetch=False):
         """Instantiate a domain manager for specified connection

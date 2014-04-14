@@ -15,9 +15,9 @@ class ConnectionManager(ParametricSingleton):
 
     handlers = {}
 
-    ##########################################################################
-    # parametric singleton stuff
-    ##########################################################################
+    # ============================
+    #  parametric singleton stuff
+    # ============================
 
     @staticmethod
     def depends_on(cls, *args, **kwargs):
@@ -25,9 +25,9 @@ class ConnectionManager(ParametricSingleton):
         (uri,) = args[0]
         return uri
 
-    ##########################################################################
-    # constants
-    ##########################################################################
+    # ===========
+    #  constants
+    # ===========
 
     # Available drivers
     REMOTE = "remote"
@@ -60,9 +60,9 @@ class ConnectionManager(ParametricSingleton):
     TCP = "tcp"
     LIBSSH = "libssh2"
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  constructor and destructor stuff
+    # ==================================
 
     def __init__(self, uri):
         """
@@ -90,16 +90,16 @@ class ConnectionManager(ParametricSingleton):
         if self._drv:
             self._disconnect()
 
-    ##########################################################################
-    # context manager stuff
-    ##########################################################################
+    # =======================
+    #  context manager stuff
+    # =======================
 
     def __enter__(self):
         return self
 
-    ##########################################################################
-    # internal helpers
-    ##########################################################################
+    # ==================
+    #  internal helpers
+    # ==================
 
     def _connect(self):
         if self._drv:
@@ -125,9 +125,9 @@ class ConnectionManager(ParametricSingleton):
                 if handler:
                     del handler
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+    # ================
+    #  public methods
+    # ================
 
     def reconnect(self):
         """In case the connection drops, can be used to reconnect"""

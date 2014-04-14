@@ -17,17 +17,17 @@ class MachineManager(object):
 class VirtualMachineManager(MachineManager):
     """abstract class for a virtual machine manager"""
 
-    ##########################################################################
-    # constants
-    ##########################################################################
+    # ===========
+    #  constants
+    # ===========
 
     # Available state
     ACTIVE = DomainManager.ACTIVE
     INACTIVE = DomainManager.INACTIVE
 
-    ##########################################################################
-    # public interface
-    ##########################################################################
+    # ==================
+    #  public interface
+    # ==================
 
     def list(self, filter=ACTIVE | INACTIVE):
         """List machines.

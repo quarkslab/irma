@@ -19,9 +19,9 @@ class StorageVolumeManager(ParametricSingleton):
     local or remote storage pool manager
     """
 
-    ##########################################################################
-    # parametric singleton stuff
-    ##########################################################################
+    # ============================
+    #  parametric singleton stuff
+    # ============================
 
     @staticmethod
     def depends_on(cls, *args, **kwargs):
@@ -50,9 +50,9 @@ class StorageVolumeManager(ParametricSingleton):
         # return keys for parametric singleton
         return (uri, pool_name)
 
-    ##########################################################################
-    # constants
-    ##########################################################################
+    # ===========
+    #  constants
+    # ===========
 
     # maximum allocation
     # (determined empirically)
@@ -66,6 +66,7 @@ class StorageVolumeManager(ParametricSingleton):
     # ==============
     #  resize flags
     # ==============
+
     # force allocation of new size
     RESIZE_ALLOCATE = libvirt.VIR_STORAGE_VOL_RESIZE_ALLOCATE
     # size is relative to current
@@ -127,16 +128,16 @@ connection is required. Set to ``False`` by default
             self._pool.refresh(flags=0)
             map(lambda name: self._lookupByName(name), self.list())
 
-    ##########################################################################
-    # context manager stuff
-    ##########################################################################
+    # =======================
+    #  context manager stuff
+    # =======================
 
     def __enter__(self):
         return self
 
-    ##########################################################################
-    # internal helpers
-    ##########################################################################
+    # ==================
+    #  internal helpers
+    # ==================
 
     # TODO: update when new cache pattern will be implemented
     def _cache_handle(self, cache, entry, where):
@@ -238,9 +239,9 @@ connection is required. Set to ``False`` by default
             raise StorageVolumeManagerError(e)
         return volume
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+    # ================
+    #  public methods
+    # ================
 
     pool = property(None, _update_pool)
 

@@ -174,7 +174,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         self.retryMax = 30.0
         self.retryFactor = 2.0
 
-    def makeSocket(self, timeout=1):
+    def makeSocket(self):
         if isinstance(self.address, basestring):
             self.unixsocket = 1
             self._connect_unixsocket(self.address)
@@ -223,7 +223,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
 
         if attempt:
             try:
-                self.makeSocket(self.timeout)
+                self.makeSocket()
                 self.retryTime = None  # next time, no delay before trying
             except socket.error:
                 # Creation failed, so set the retry time and return.
@@ -235,7 +235,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
                         self.retryPeriod = self.retryMax
                 self.retryTime = now + self.retryPeriod
 
-    def send(self, s):
+    def send(self, msg):
         """
         This function allows for partial sends which can happen when the
         network is busy.
@@ -250,28 +250,29 @@ class SysLogHandler(logging.handlers.SysLogHandler):
             try:
                 if hasattr(self.socket, "sendall"):
                     try:
-                        self.socket.sendall(s)
+                        self.socket.sendall(msg)
                     except socket.error:
                         self.closeSocket()
                         self.createSocket()
-                        self.socket.sendall(s)
+                        self.socket.sendall(msg)
                 else:
                     sentsofar = 0
-                    left = len(s)
+                    left = len(msg)
                     while left > 0:
                         sent = 0
                         try:
+                            _msg = msg[sentsofar:]
                             if self.unixsocket:
-                                sent = self.socket.send(s[sentsofar:])
+                                sent = self.socket.send(_msg)
                             elif self.socktype == socket.SOCK_DGRAM:
-                                sent = self.socket.sendto(msg, self.address)
+                                sent = self.socket.sendto(_msg, self.address)
                         except:
                             self.closeSocket()
                             self.createSocket()
                             if self.unixsocket:
-                                sent = self.socket.send(msg)
+                                sent = self.socket.send(_msg)
                             elif self.socktype == socket.SOCK_DGRAM:
-                                sent = self.socket.sendto(msg, self.address)
+                                sent = self.socket.sendto(_msg, self.address)
                         sentsofar = sentsofar + sent
                         left = left - sent
             except socket.error:

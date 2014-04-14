@@ -21,9 +21,9 @@ log = logging.getLogger(__name__)
 class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
     """Machine manager based on libvirt"""
 
-    ##########################################################################
-    # parametric singleton stuff
-    ##########################################################################
+    # ============================
+    #  parametric singleton stuff
+    # ============================
 
     @staticmethod
     def depends_on(cls, *args, **kwargs):
@@ -45,9 +45,9 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
             raise DomainManagerError(reason)
         return uri
 
-    ##########################################################################
-    # Constructor and destructor stuffs
-    ##########################################################################
+    # ===================================
+    #  Constructor and destructor stuffs
+    # ===================================
 
     def __init__(self, connection):
 
@@ -57,16 +57,16 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
 
         super(LibVirtMachineManager, self).__init__()
 
-    ##########################################################################
-    # context manager stuff
-    ##########################################################################
+    # =======================
+    #  context manager stuff
+    # =======================
 
     def __enter__(self):
         return self
 
-    ##########################################################################
-    # Private methods
-    ##########################################################################
+    # =================
+    #  Private methods
+    # =================
 
     def _wait(self, label, state, timeout=0):
         """ wait for a vm status to be set.
@@ -89,9 +89,9 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
             seconds += 1
             current, desc = self._domain.state(label)
 
-    ##########################################################################
-    # public methods
-    ##########################################################################
+    # ================
+    #  public methods
+    # ================
 
     ACTIVE = VirtualMachineManager.ACTIVE
     INACTIVE = VirtualMachineManager.INACTIVE

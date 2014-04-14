@@ -48,9 +48,9 @@ class NoSQLDatabase(Singleton):
     functions for interacting with it.
     """
 
-    ##########################################################################
-    # Constructor and Destructor stuff
-    ##########################################################################
+    # ==================================
+    #  Constructor and Destructor stuff
+    # ==================================
     def __init__(self, db_name, db_uri):
         # TODO: Get defaults from configuration file
         self._db_name = db_name
@@ -70,9 +70,9 @@ class NoSQLDatabase(Singleton):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__del__()
 
-    ##########################################################################
-    # Private methods
-    ##########################################################################
+    # =================
+    #  Private methods
+    # =================
 
     def _connect(self):
         if self._db_conn:
@@ -115,9 +115,9 @@ class NoSQLDatabase(Singleton):
     def _is_connected(self):
         return self._db_conn is not None
 
-    ##########################################################################
-    # Public methods
-    ##########################################################################
+    # ================
+    #  Public methods
+    # ================
 
     def db_instance(self):
         return self._db_conn
