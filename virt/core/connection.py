@@ -1,6 +1,7 @@
 import logging
 import libvirt
 
+from time import sleep
 from common.oopatterns import ParametricSingleton
 from virt.core.exceptions import ConnectionManagerError
 
@@ -97,6 +98,9 @@ class ConnectionManager(ParametricSingleton):
     def __enter__(self):
         return self
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.__del__()
+
     # ==================
     #  internal helpers
     # ==================
@@ -121,21 +125,47 @@ class ConnectionManager(ParametricSingleton):
                 raise ConnectionManagerError("{0}".format(e))
             finally:
                 self._drv = None
-                handler = ConnectionManagerError.handlers.pop(self._uri, None)
+                handler = ConnectionManager.handlers.pop(self._uri, None)
                 if handler:
                     del handler
+
+    def retry_connect(max_retries, delay):
+        """function to try to reconnect"""
+
+        def _retry_connect(func):
+            """Outer function to try to reconnect"""
+
+            def wrapper(self, *args, **kwargs):
+                """Inner function to try to reconnect"""
+                i = max_retries
+                while not self._drv:
+                    try:
+                        self._reconnect()
+                    except ConnectionManagerError as e:
+                        if not i:
+                            raise e
+                        else:
+                            i -= 1
+                            time.sleep(delay)
+                return func(self, *args, **kwargs)
+
+            return wrapper
+
+        return _retry_connect
+
+    def _reconnect(self):
+        """In case the connection drops, can be used to reconnect"""
+        self._drv = None
+        if self._uri in ConnectionManager.handlers:
+            ConnectionManager.handlers.pop(self._uri)
+        self._connect()
 
     # ================
     #  public methods
     # ================
 
-    def reconnect(self):
-        """In case the connection drops, can be used to reconnect"""
-        self._drv = None
-        ConnectionManager.handlers.set(self._uri, None)
-        self._connect()
-
     @property
+    @retry_connect(10, 10)
     def connection(self):
         """returns the libvirt connection handle"""
         return self._drv
@@ -168,14 +198,20 @@ class ConnectionManager(ParametricSingleton):
             valid = True
         return valid
 
+    @property
+    @retry_connect(10, 10)
     def version(self):
         """get the libvirt version
 
         :returns: (major, minor, release) tuple
         """
-        version = self._drv.getLibVersion()
-        # version has the format major * 1,000,000 + minor * 1,000 + release.
-        major = (version / 1000000)
-        minor = (version % 1000000) / 1000
-        release = version % 1000
+        major, minor, release = None, None, None
+        connection = self._drv
+        if connection:
+            version = connection.getLibVersion()
+            # returned version is using the following format:
+            # major * 1,000,000 + minor * 1,000 + release.
+            major = (version / 1000000)
+            minor = (version % 1000000) / 1000
+            release = version % 1000
         return (major, minor, release)
