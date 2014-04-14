@@ -24,6 +24,9 @@ case "$1" in
 		# Celery
 		mkdir -p /var/log/celery
 		adduser --system --no-create-home --group irma
+		if ! [ -f /opt/irma/irma-frontend/config/frontend.ini.sample ]; then
+                        cp /opt/irma/irma-frontend/config/frontend.ini.sample /opt/irma/irma-frontend/config/frontend.ini
+                fi
 		update-rc.d celeryd defaults
 		invoke-rc.d celeryd restart
     ;;

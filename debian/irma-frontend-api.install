@@ -1,8 +1,7 @@
 config opt/irma/irma-frontend/
-config/frontend.ini.sample opt/irma/irma-frontend/config/frontend.ini
 frontend opt/irma/irma-frontend/
 install/requirements.txt opt/irma/irma-frontend/
 lib opt/irma/irma-frontend/
 tests opt/irma/irma-frontend/
-install/celery/celeryd /etc/init.d
-install/celery/celeryd.frontend.defaults /etc/defaults/celeryd
+install/celery/init.d/celeryd /etc/init.d
+install/celery/default/celeryd /etc/default/
