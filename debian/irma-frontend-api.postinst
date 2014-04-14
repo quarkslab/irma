@@ -21,9 +21,6 @@ set -e
 case "$1" in
     configure)
 		pip install --upgrade -r /opt/irma/irma-frontend/requirements.txt
-		chown root:www-data /var/cache/irma
-		chmod 0770 /var/cache/irma
-
 		# Celery
 		mkdir -p /var/log/celery
 		adduser --system --no-create-home --group irma
