@@ -2,7 +2,7 @@ server {
 	listen 80 default_server;
 	listen [::]:80 default_server ipv6only=on;
 
-	root /opt/irma/irma-frontend/web/dist;
+	root /opt/irma/irma-frontend/web;
 	index index.html;
 
 	server_name localhost;

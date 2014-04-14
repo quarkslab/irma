@@ -1,4 +1,5 @@
 config opt/irma/irma-frontend/
+config/frontend.ini.sample opt/irma/irma-frontend/config/frontend.ini
 frontend opt/irma/irma-frontend/
 install/requirements.txt opt/irma/irma-frontend/
 lib opt/irma/irma-frontend/
