@@ -35,16 +35,16 @@
         <script path="vif-bridge"/>
       </interface>
       <disk type="file">
-        <source file="/root/fv0"/>
+        <source file="/dev/cdrom"/>
         <target dev="hda"/>
       </disk>
       <disk type="file" device="cdrom">
-        <source file="/root/fc5-x86_64-boot.iso"/>
+        <source file="/dev/cdrom"/>
         <target dev="hdc"/>
         <readonly/>
       </disk>
       <disk type="file" device="floppy">
-        <source file="/root/fd.img"/>
+        <source file="/dev/cdrom"/>
         <target dev="fda"/>
       </disk>
       <graphics type="vnc" port="5904"/>
@@ -52,7 +52,7 @@
   </domain>
   <domain type="test">
     <name>fc4</name>
-    <uuid>EF86180145B911CB88E3AFBFE5370493</uuid>
+    <uuid>4E57708AD8A14031B86C2822C4D006A3</uuid>
     <os>
       <type>xen</type>
       <kernel>/boot/vmlinuz-2.6.15-1.43_FC5guest</kernel>
@@ -88,7 +88,7 @@
   </network>
   <network>
     <name>default</name>
-    <uuid>004b96e12d78c30f5aa5f03c87d21e69</uuid>
+    <uuid>014b96e12d78c30f5aa5f03c87d21e69</uuid>
     <bridge name="brdefault"/>
     <forward dev="eth0"/>
     <ip address="192.168.122.1" netmask="255.255.255.0">
