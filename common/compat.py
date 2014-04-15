@@ -3,7 +3,20 @@
 This file should be imported in all modules
 """
 
+import sys
 import time
+
+
+if sys.version_info >= (3,):
+    str = str
+    unicode = str
+    bytes = bytes
+    basestring = (str, bytes)
+else:
+    str = str
+    unicode = unicode
+    bytes = str
+    basestring = basestring
 
 
 def timestamp():

@@ -4,6 +4,7 @@ import xmltodict
 import tempfile
 import mimetypes
 import os
+import binascii
 
 from common import compat
 from common.utils import UUID, MAC
@@ -33,7 +34,7 @@ class DomainManager(ParametricSingleton):
     @staticmethod
     def depends_on(cls, *args, **kwargs):
         # singleton is based on the uri, extracted from the libvirt handler
-        (handler,) = args[0]
+        handler = args[0][0]
         if isinstance(handler, basestring):
             handler = ConnectionManager(handler)
         if isinstance(handler, ConnectionManager):
@@ -84,6 +85,7 @@ class DomainManager(ParametricSingleton):
     # =========================
     #  Stop (not forced) flags
     # =========================
+
     # Send ACPI event
     STOP_ACPI = libvirt.VIR_DOMAIN_SHUTDOWN_ACPI_POWER_BTN
     # Use guest agent
@@ -92,6 +94,7 @@ class DomainManager(ParametricSingleton):
     # =====================
     #  Stop (forced) flags
     # =====================
+
     # only SIGTERM, no SIGKILL
     STOP_FORCE_GRACEFUL = libvirt.VIR_DOMAIN_DESTROY_GRACEFUL
 
@@ -130,35 +133,27 @@ class DomainManager(ParametricSingleton):
     #  constructor and destructor stuff
     # ==================================
 
-    def __init__(self, connection, prefetch=False):
+    def __init__(self, connection):
         """Instantiate a domain manager for specified connection
 
         :param connection: either an instance of a ``ConnectionManager``
         or directly a libvirt connection handler
-        :param prefetch: set to True if prefetching
-        domain handlers for this connection is required
         :raises: DomainManagerError if ``connection``
         is not an expected type or None
         """
+        if isinstance(connection, libvirt.virConnect):
+            connection = connection.getURI()
         if isinstance(connection, basestring):
             connection = ConnectionManager(connection)
 
-        self._cache = {'name': {}, 'uuid': {}, 'id': {}}
-
-        self._drv = connection
-        if isinstance(self._drv, ConnectionManager):
-            self._drv = self._drv.connection
-
         try:
-            self._uri = self._drv.getURI()
-        except libvirt.libvirtError:
-            reason = "unable to get domain uri from connection handle"
-            raise DomainManagerError(reason)
+            self._drv = connection
+            self._uri = self._drv.uri
+        except ConnectionManagerError as e:
+            raise e
 
-        if prefetch:
-            domains = self.list()
-            for domain in domains:
-                self.lookup(domain)
+    def __del__(self):
+        DomainManager.remove_key(self._drv.uri)
 
     # =======================
     #  Context manager stuff
@@ -167,6 +162,9 @@ class DomainManager(ParametricSingleton):
     def __enter__(self):
         return self
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.__del__()
+
     # ==================
     #  Internal helpers
     # ==================
@@ -174,9 +172,10 @@ class DomainManager(ParametricSingleton):
     def _list_active(self):
         labels = list()
         try:
-            ids = self._drv.listDomainsID()
-            for i in ids:
-                labels.append(self._drv.lookupByID(i).name())
+            connection = self._drv.connection
+            ids = connection.listDomainsID()
+            for id in ids:
+                labels.append(connection.lookupByID(id).name())
         except libvirt.libvirtError as e:
             raise DomainManagerError("{0}".format(e))
         return tuple(labels)
@@ -184,18 +183,11 @@ class DomainManager(ParametricSingleton):
     def _list_inactive(self):
         labels = list()
         try:
-            labels.extend(self._drv.listDefinedDomains())
+            connection = self._drv.connection
+            labels.extend(connection.listDefinedDomains())
         except libvirt.libvirtError as e:
             raise DomainManagerError("{0}".format(e))
         return tuple(labels)
-
-    def _cache_handle(self, cache, entry, where=None):
-        if not isinstance(cache, dict):
-            raise ValueError("'cache' fields must be a dict")
-        if where and entry:
-            for key, value in where.items():
-                if key in cache:
-                    cache[key][value] = entry
 
     def _lookupByID(self, id):
         # type checking
@@ -204,21 +196,11 @@ class DomainManager(ParametricSingleton):
             raise DomainManagerError(reason)
 
         handle = None
-        # check if domain has already been cached
-        if id in self._cache['id']:
-            handle = self._cache['id'][id]
-        # domain not in cache, retrieve and cache it
-        else:
-            try:
-                handle = self._drv.lookupByID(id)
-                name = handle.name()
-                uuid = handle.UUIDString()
-                where = {'name': name, 'uuid': uuid}
-                if handle.isActive():
-                    where['id'] = id
-                self._cache_handle(self._cache, handle, where)
-            except libvirt.libvirtError as e:
-                log.error('{0}'.format(e))
+        try:
+            connection = self._drv.connection
+            handle = connection.lookupByID(id)
+        except libvirt.libvirtError as e:
+            log.warning('{0}'.format(e))
         return handle
 
     def _lookupByName(self, name):
@@ -228,21 +210,11 @@ class DomainManager(ParametricSingleton):
             raise DomainManagerError(reason)
 
         handle = None
-        # check if domain has already been cached
-        if name in self._cache['name']:
-            handle = self._cache['name'][name]
-        # domain not in cache, retrieve and cache it
-        else:
-            try:
-                handle = self._drv.lookupByName(name)
-                uuid = handle.UUIDString()
-                where = {'name': name, 'uuid': uuid}
-                # if handle is not active, id is not available
-                if handle.isActive():
-                    where['id'] = handle.ID()
-                self._cache_handle(self._cache, handle, where)
-            except libvirt.libvirtError as e:
-                log.error('{0}'.format(e))
+        try:
+            connection = self._drv.connection
+            handle = connection.lookupByName(name)
+        except libvirt.libvirtError as e:
+            log.warning('{0}'.format(e))
         return handle
 
     def _lookupByUUID(self, uuid):
@@ -252,25 +224,18 @@ class DomainManager(ParametricSingleton):
             raise DomainManagerError(reason)
 
         handle = None
-        # check if domain has already been cached
-        if uuid in self._cache['uuid']:
-            handle = self._cache['uuid'][uuid]
-        # domain not in cache, retrieve and cache it
-        else:
-            try:
-                handle = self._drv.lookupByUUID(uuid)
-                name = handle.name()
-                where = {'name': name, 'uuid': uuid}
-                # if handle is not active, id is not available
-                if handle.isActive():
-                    where['id'] = res.ID()
-                self._cache_handle(self._cache, handle, where)
-            except libvirt.libvirtError as e:
-                log.error('{0}'.format(e))
+        try:
+            connection = self._drv.connection
+            # NOTE: lookup by UUID takes raw bytes, not hexbytes
+            uuid = binascii.unhexlify(uuid.replace('-', ''))
+            handle = connection.lookupByUUID(uuid)
+        except libvirt.libvirtError as e:
+            log.warning('{0}'.format(e))
         return handle
 
     def _lib_version(self):
-        version = self._drv.getLibVersion()
+        connection = self._drv.connection
+        version = connection.getLibVersion()
         # version has the format major * 1,000,000 + minor * 1,000 + release.
         major = (version / 1000000)
         minor = (version % 1000000) / 1000
@@ -292,12 +257,13 @@ class DomainManager(ParametricSingleton):
             handle = self._lookupByID(domain)
         elif isinstance(domain, basestring):
             handle = self._lookupByName(domain)
-            if not handle and UUID.validate(domain):
+            if not handle and UUID.validate(domain.lower()):
                 handle = self._lookupByUUID(domain)
             if not handle and domain.isdigit():
                 handle = self._lookupByID(int(domain))
             if not handle:
-                log.warn("Unable to find domain {0} on {1}", domain, self._uri)
+                log.warn("Unable to find domain {0} on {1}".format(domain,
+                         self._uri))
         return handle
 
     def list(self, filter=ACTIVE | INACTIVE):
@@ -619,7 +585,7 @@ class DomainManager(ParametricSingleton):
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
-                    stream = self._drv.newStream(flags=0)
+                    stream = self._drv.connection.newStream(flags=0)
                     # extra flags; not used yet,
                     # so callers should always pass 0
                     mime = domains.screenshot(stream, screen, flags=0)
@@ -767,27 +733,26 @@ class DomainManager(ParametricSingleton):
                         uuid = UUID.generate()
                         if not self.lookup(uuid):
                             break
-                    clone_dict['name'] = clone
-                    clone_dict['uuid'] = uuid
+                    clone_dict['domain']['name'] = name
+                    clone_dict['domain']['uuid'] = uuid
                     # change devices
-                    for type, device in clone_dict['devices'].items():
+                    for type, dev in clone_dict['domain']['devices'].items():
                         if type == 'interface':
-                            if isinstance(device, list):
-                                interfaces = device
+                            if isinstance(dev, list):
+                                interfaces = dev
                             else:
-                                interfaces = [device]
+                                interfaces = [dev]
                             for interface in interfaces:
                                 interface['mac']['@address'] = MAC.generate()
                         elif type == 'disk':
-                            if isinstance(device, list):
-                                disks = device
+                            if isinstance(dev, list):
+                                disks = dev
                             else:
-                                disks = [device]
+                                disks = [dev]
                             for disk in disks:
                                 disk_path = disk['source']['@file']
-                                volman = StorageVolumeManager(self._connection,
-                                                              None)
-                                poolman = StoragePoolManager(self._connection)
+                                volman = StorageVolumeManager(self._drv, None)
+                                poolman = StoragePoolManager(self._drv)
                                 vol = volman.lookup(disk_path)
                                 volman.pool = poolman.lookupByVolume(vol)
                                 # TODO: handle case when pool is not defined
@@ -795,8 +760,8 @@ class DomainManager(ParametricSingleton):
                                 volume = volman.info(disk_path)
                                 vol_type = volume.target['format']['@type']
                                 new_name = '.'.join([clone, vol_type])
-                                new_vol = volman.clone(orig_dict['name'],
-                                                       new_name)
+                                old_name = orig_dict['domain']['name']
+                                new_vol = volman.clone(old_name, new_name)
                                 disk['source']['@file'] = new_vol.path()
                     self.create(clone_dict)
             except libvirt.libvirtError as e:
@@ -841,20 +806,16 @@ class DomainManager(ParametricSingleton):
             # Destroy volumes
             orig_xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
             orig_dict = xmltodict.parse(orig_xml)
-            for type, device in orig_dict['domain']['devices'].items():
+            for type, dev in orig_dict['domain']['devices'].items():
                 if not type == 'disk':
                     continue
-                disks = device if isinstance(device, list) else [device]
+                disks = dev if isinstance(dev, list) else [dev]
                 for disk in disks:
+                    connection = self._drv.connection
                     path = disk['source']['@file']
-                    orig_vol = self._drv.storageVolLookupByPath(path)
+                    orig_vol = connection.storageVolLookupByPath(path)
                     orig_vol.delete(flags)
 
-            # remove from cache (remove from id when shutting down)
-            if machine.name() in self._cache['name']:
-                del self._cache['name'][machine.name()]
-            if machine.UUIDString() in self._cache['uuid']:
-                del self._cache['uuid'][machine.UUIDString()]
             # undefine
             machine.undefine()
         except libvirt.libvirtError as e:
@@ -875,6 +836,6 @@ class DomainManager(ParametricSingleton):
         # TODO: need refactoring, temporary
         try:
             xml = domain.unparse()
-            self._drv.defineXML(xml)
+            self._drv.connection.defineXML(xml)
         except libvirt.libvirtError as e:
             raise DomainManagerError(e)

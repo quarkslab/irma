@@ -100,6 +100,11 @@ class ParametricSingletonMetaClass(type):
     def update_key(mcs, old_key, new_key):
         mcs._instances[mcs][new_key] = mcs._instances[mcs].pop(old_key)
 
+    def remove_key(mcs, key):
+        if key in mcs._instances:
+            del mcs._instances[mcs][key]
+
+
 # Metaclass compatible with python 2 and 3.
 # Inherit from this for parametric singletons
 ParametricSingleton = ParametricSingletonMetaClass('ParametricSingleton',
