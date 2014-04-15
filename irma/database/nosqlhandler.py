@@ -10,22 +10,41 @@ from irma.common.exceptions import IrmaDatabaseError, IrmaValueError
 log = logging.getLogger(__name__)
 
 
+def retry_connect(func):
+    """Decorator for NoSQLDatabase to retry connecting automatically
+    """
+    def wrapper(instance, *args, **kwargs):
+        if isinstance(instance, NoSQLDatabase):
+            if not instance._is_connected():
+                try:
+                    instance._connect()
+                    return func(instance, *args, **kwargs)
+                except IrmaDatabaseError as e:
+                    raise e
+            return func(instance, *args, **kwargs)
+        else:
+            raise NotImplementedError()
+    return wrapper
+
+
 class RetryConnect:
     """Decorator for NoSQLDatabase to retry connecting automatically
     """
-    def __init__(self):
-        pass
+    def __init__(self, func):
+        self.func = func
 
-    def __call__(self, func):
-        def wrapper(instance, *args, **kwargs):
+    def __call__(self, *args, **kwargs):
+        decorator_instance = self
+        def wrapper(instance):
+            print type(instance)
             if isinstance(instance, NoSQLDatabase):
                 if not instance._is_connected():
                     try:
                         instance._connect()
-                        return func(instance, *args, **kwargs)
+                        return decorator_instance.func(instance, *args, **kwargs)
                     except IrmaDatabaseError as e:
                         raise e
-                return func(instance, *args, **kwargs)
+                return decorator_instance.func(instance, *args, **kwargs)
             else:
                 raise NotImplementedError()
         return wrapper
@@ -114,7 +133,7 @@ class NoSQLDatabase(Singleton):
     def db_instance(self):
         return self._db_conn
 
-    @RetryConnect
+    @retry_connect
     def load(self, db_name, collection_name, _id):
         """ load entry _id in collection"""
         collection = self._table(db_name, collection_name)
@@ -124,7 +143,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def exists(self, db_name, collection_name, _id):
         """ check if entry with _id is in collection"""
         collection = self._table(db_name, collection_name)
@@ -134,7 +153,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def save(self, db_name, collection_name, dict_object):
         """ save entry in collection"""
         collection = self._table(db_name, collection_name)
@@ -144,7 +163,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def update(self, db_name, collection_name, _id, update_dict):
         """
         Update entries in collection according to
@@ -156,7 +175,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def remove(self, db_name, collection_name, _id):
         """ Delete entry in collection according to the given id"""
         collection = self._table(db_name, collection_name)
@@ -165,7 +184,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def find(self, db_name, collection_name, *args, **kwargs):
         """ Returns elements from the collection according to the given query
 
@@ -186,7 +205,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def put_file(self, db_name, collection_name, data, name):
         """ put data into gridfs """
         fsdbh = gridfs.GridFS(self._database(db_name),
@@ -198,7 +217,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def get_file(self, db_name, collection_name, file_oid):
         """ get data from gridfs by file object-id """
         fsdbh = gridfs.GridFS(self._database(db_name),
@@ -208,7 +227,7 @@ class NoSQLDatabase(Singleton):
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
-    @RetryConnect
+    @retry_connect
     def delete_file(self, db_name, collection_name, file_oid):
         """ delete from gridfs by file object-id """
         fsdbh = gridfs.GridFS(self._database(db_name),
