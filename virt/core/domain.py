@@ -735,21 +735,20 @@ class DomainManager(ParametricSingleton):
                             break
                     clone_dict['domain']['name'] = name
                     clone_dict['domain']['uuid'] = uuid
-                    print clone_dict
                     # change devices
-                    for type, device in clone_dict['domain']['devices'].items():
+                    for type, dev in clone_dict['domain']['devices'].items():
                         if type == 'interface':
-                            if isinstance(device, list):
-                                interfaces = device
+                            if isinstance(dev, list):
+                                interfaces = dev
                             else:
-                                interfaces = [device]
+                                interfaces = [dev]
                             for interface in interfaces:
                                 interface['mac']['@address'] = MAC.generate()
                         elif type == 'disk':
-                            if isinstance(device, list):
-                                disks = device
+                            if isinstance(dev, list):
+                                disks = dev
                             else:
-                                disks = [device]
+                                disks = [dev]
                             for disk in disks:
                                 disk_path = disk['source']['@file']
                                 volman = StorageVolumeManager(self._drv, None)
@@ -761,9 +760,8 @@ class DomainManager(ParametricSingleton):
                                 volume = volman.info(disk_path)
                                 vol_type = volume.target['format']['@type']
                                 new_name = '.'.join([clone, vol_type])
-                                new_vol = volman.clone(
-                                                orig_dict['domain']['name'],
-                                                new_name)
+                                old_name = orig_dict['domain']['name']
+                                new_vol = volman.clone(old_name, new_name)
                                 disk['source']['@file'] = new_vol.path()
                     self.create(clone_dict)
             except libvirt.libvirtError as e:
@@ -808,10 +806,10 @@ class DomainManager(ParametricSingleton):
             # Destroy volumes
             orig_xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
             orig_dict = xmltodict.parse(orig_xml)
-            for type, device in orig_dict['domain']['devices'].items():
+            for type, dev in orig_dict['domain']['devices'].items():
                 if not type == 'disk':
                     continue
-                disks = device if isinstance(device, list) else [device]
+                disks = dev if isinstance(dev, list) else [dev]
                 for disk in disks:
                     connection = self._drv.connection
                     path = disk['source']['@file']

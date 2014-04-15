@@ -97,8 +97,8 @@ class CheckDomainManager(unittest.TestCase):
             self.assertIsInstance(fc4, libvirt.virDomain)
             # query by name with a list
             fv0, fc4, dummy = dm.lookup([
-                '4dea22b31d52d8f32516782e98ab3fa0', # fv0
-                '4e57708ad8a14031b86c2822c4d006a3', # fc4
+                '4dea22b31d52d8f32516782e98ab3fa0',  # fv0
+                '4e57708ad8a14031b86c2822c4d006a3',  # fc4
                 'deadbeef1d52d8f32516782e98ab3fbb'
             ])
             self.assertIsInstance(fv0, libvirt.virDomain)
@@ -107,7 +107,6 @@ class CheckDomainManager(unittest.TestCase):
 
     def test_lookup_with_id(self):
         with DomainManager(self.uri) as dm:
-            # 
             self.assertIsInstance(dm, DomainManager)
             fv0 = dm.lookup('4dea22b31d52d8f32516782e98ab3fa0')
             fc4 = dm.lookup('4E57708AD8A14031B86C2822C4D006A3')
@@ -135,7 +134,7 @@ class CheckDomainManager(unittest.TestCase):
         with DomainManager(self.uri) as dm:
             self.assertIsInstance(dm, DomainManager)
             # perform tests
-            stop  = dm.stop('4dea22b31d52d8f32516782e98ab3fa0')
+            stop = dm.stop('4dea22b31d52d8f32516782e98ab3fa0')
             # stop test machines
             start = dm.start('4dea22b31d52d8f32516782e98ab3fa0')
             self.assertTrue(start)
@@ -146,12 +145,12 @@ class CheckDomainManager(unittest.TestCase):
         with DomainManager(self.uri) as dm:
             self.assertIsInstance(dm, DomainManager)
             # stop test machines
-            stop  = dm.stop('4dea22b31d52d8f32516782e98ab3fa0')
+            stop = dm.stop('4dea22b31d52d8f32516782e98ab3fa0')
             # perform tests
             start = dm.start({
-                        'domain': '4dea22b31d52d8f32516782e98ab3fa0',
-                        'flags' : 0
-                    })
+                'domain': '4dea22b31d52d8f32516782e98ab3fa0',
+                'flags': 0
+            })
             self.assertTrue(start)
             start = dm.start('4dea22b31d52d8f32516782e98ab3fa0')
             self.assertFalse(start)
@@ -160,13 +159,13 @@ class CheckDomainManager(unittest.TestCase):
         with DomainManager(self.uri) as dm:
             self.assertIsInstance(dm, DomainManager)
             # stop test machines
-            fv0, fc4, dummy  = dm.stop([
+            fv0, fc4, dummy = dm.stop([
                 '4dea22b31d52d8f32516782e98ab3fa0',
                 '4e57708ad8a14031b86c2822c4d006a3',
                 'deadbeef1d52d8f32516782e98ab3fbb',
             ])
             # perform tests
-            fv0, fc4, dummy  = dm.start([
+            fv0, fc4, dummy = dm.start([
                 '4dea22b31d52d8f32516782e98ab3fa0',
                 '4e57708ad8a14031b86c2822c4d006a3',
                 'deadbeef1d52d8f32516782e98ab3fbb',
@@ -193,14 +192,14 @@ class CheckDomainManager(unittest.TestCase):
             dm.start('4dea22b31d52d8f32516782e98ab3fa0')
             # perform tests
             stop = dm.stop({
-                        'domain': '4dea22b31d52d8f32516782e98ab3fa0',
-                        'flags' : 0
-                    })
+                'domain': '4dea22b31d52d8f32516782e98ab3fa0',
+                'flags': 0
+            })
             self.assertTrue(stop)
             stop = dm.stop({
-                        'domain': '4dea22b31d52d8f32516782e98ab3fa0',
-                        'flags' : 0
-                    })
+                'domain': '4dea22b31d52d8f32516782e98ab3fa0',
+                'flags': 0
+            })
             self.assertFalse(stop)
 
     def test_stop_with_list(self):
@@ -210,7 +209,7 @@ class CheckDomainManager(unittest.TestCase):
             dm.start('4dea22b31d52d8f32516782e98ab3fa0')
             dm.start('4e57708ad8a14031b86c2822c4d006a3')
             # perform tests
-            fv0, fc4, dummy  = dm.stop([
+            fv0, fc4, dummy = dm.stop([
                 '4dea22b31d52d8f32516782e98ab3fa0',
                 '4e57708ad8a14031b86c2822c4d006a3',
                 'deadbeef1d52d8f32516782e98ab3fbb',
@@ -218,7 +217,7 @@ class CheckDomainManager(unittest.TestCase):
             self.assertTrue(fv0)
             self.assertTrue(fc4)
             self.assertIsNone(dummy)
-            fv0, fc4, dummy  = dm.stop([
+            fv0, fc4, dummy = dm.stop([
                 '4dea22b31d52d8f32516782e98ab3fa0',
                 '4e57708ad8a14031b86c2822c4d006a3',
                 'deadbeef1d52d8f32516782e98ab3fbb',
@@ -277,8 +276,6 @@ class CheckDomainManager(unittest.TestCase):
             stop = dm.stop('fv0')
             delete = dm.delete('fv0')
             self.assertIsTrue(delete)
-
-
 
 if __name__ == '__main__':
     # enable_logging()
