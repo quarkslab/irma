@@ -198,7 +198,7 @@ class NoSQLDatabaseObject(object):
             reason = "has_lock_timed_out must be overloaded in the subclasses"
             raise NotImplementedError(reason)
         lock_time = cls(id=id, save=False)._lock_time
-        if lock_time is None:   # The lock is being take at the first
+        if lock_time is None:   # The lock is being taken at the first
                                 # instantiation of the object
             lock_time = 0
         return IrmaLock.lock_timeout < timestamp() - lock_time
