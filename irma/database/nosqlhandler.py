@@ -34,17 +34,15 @@ class RetryConnect:
         self.func = func
 
     def __call__(self, *args, **kwargs):
-        decorator_instance = self
         def wrapper(instance):
-            print type(instance)
             if isinstance(instance, NoSQLDatabase):
                 if not instance._is_connected():
                     try:
                         instance._connect()
-                        return decorator_instance.func(instance, *args, **kwargs)
+                        return self.func(instance, *args, **kwargs)
                     except IrmaDatabaseError as e:
                         raise e
-                return decorator_instance.func(instance, *args, **kwargs)
+                return self.func(instance, *args, **kwargs)
             else:
                 raise NotImplementedError()
         return wrapper
