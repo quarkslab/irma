@@ -10,7 +10,8 @@ Package: irma-frontend-api
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip, mongodb, python-gridfs, python2.7-dev
 Description: Irma Frontend REST API
- Irma Frontend Python-based REST API
+ Irma Frontend Python-based REST API and
+ frontend celery worker code
 
 Package: irma-frontend-api-uwsgi
 Architecture: all
