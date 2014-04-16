@@ -22,9 +22,8 @@ case "$1" in
     configure)
 		pip install --upgrade -r /opt/irma/irma-frontend/requirements.txt
 		# Celery
-		mkdir -p /var/log/celery
 		adduser --system --no-create-home --group irma
-		if ! [ -f /opt/irma/irma-frontend/config/frontend.ini.sample ]; then
+		if [ ! -f /opt/irma/irma-frontend/config/frontend.ini ]; then
                         cp /opt/irma/irma-frontend/config/frontend.ini.sample /opt/irma/irma-frontend/config/frontend.ini
                 fi
 		update-rc.d celeryd defaults
