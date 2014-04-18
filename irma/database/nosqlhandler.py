@@ -27,27 +27,6 @@ def retry_connect(func):
     return wrapper
 
 
-class RetryConnect:
-    """Decorator for NoSQLDatabase to retry connecting automatically
-    """
-    def __init__(self, func):
-        self.func = func
-
-    def __call__(self, *args, **kwargs):
-        def wrapper(instance):
-            if isinstance(instance, NoSQLDatabase):
-                if not instance._is_connected():
-                    try:
-                        instance._connect()
-                        return self.func(instance, *args, **kwargs)
-                    except IrmaDatabaseError as e:
-                        raise e
-                return self.func(instance, *args, **kwargs)
-            else:
-                raise NotImplementedError()
-        return wrapper
-
-
 # TODO: Create an abstract class so we can use multiple databases,
 # not only mongodb
 class NoSQLDatabase(Singleton):
