@@ -30,6 +30,8 @@ class McAfeeVSCL(Antivirus):
                 "/NOMEM "      # do not scan memory for viruses
             )
         else:
+            # TODO: check for retcodes in WINDOWS 
+            self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x not in [0]
             self._scan_args = (
                 "--ASCII "             # display filenames as ASCII text
                 "--ANALYZE "           # turn on heuristic analysis for
