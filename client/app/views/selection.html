@@ -1,0 +1,83 @@
+<form class="selection" ng-submit="trigger()">
+  <p>&lt; Insert IRMA's description here &gt;</p>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div ng-show="scan.uploader.isHTML5">
+        <div class="drop-zone" ng-file-over="hover" ng-file-drop>
+          Drop your files in here
+        </div>
+      </div>
+      <div class="browse">
+        <input id="file-container" class="hidden" type="file" name="file" ng-file-select multiple>
+        Or choose them with this: &nbsp; <button class="btn btn-default" type="button" file-trigger>Choose file</button>
+      </div>
+    </div>
+    <div class="col-md-6 files">
+      <table class="table table-condensed table-hover" ng-show="scan.uploader.getNotUploadedItems().length">
+        <tbody>
+          <tr ng-repeat="item in scan.uploader.queue">
+            <td>{{ item.file.name }}</td>
+            <td ng-show="scan.uploader.isHTML5" nowrap>{{ item.file.size/1024/1024|number:2 }} MB</td>
+            <td nowrap>
+              <span class="glyphicon glyphicon-remove" ng-click="item.remove()"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="placeholder" ng-show="!scan.uploader.getNotUploadedItems().length">
+        Please select the files to scan for malwares
+      </div>
+    </div>
+  </div>
+
+  <div class="toggle-advanced" ng-click="settings.display = !settings.display">{{(settings.display)? 'Hide': 'Display'}} advanced settings</div>
+
+  <div class="advanced-settings" ng-if="advancedSettings">
+    <div class="force-scan">
+      <input type="checkbox" ng-model="settings.force" id="force-scan"> <label for="force-scan">Force scan</label>
+    </div>
+    <div class="select-probes" >
+      <p>The selected probes will be used to analyse the files:</p>
+      <ul class="list-inline">
+        <li ng-repeat="probe in probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
+          <span boolean-display="probe.active" color="{{(probe.active)? '#333': '#999'}}"></span> {{probe.name}}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+
+  <div class="settings row" ng-if="settings.display">
+    <div class="col-md-6 params">
+      <h3>Scan parameters</h3>
+      <p>
+        You can bypass the cached results and force a new scan for the file
+        <span class="force-scan {{(settings.force)? 'active': ''}}" ng-click="settings.force = !settings.force">
+          <span boolean-display="settings.force" color="{{(settings.force)? '#fff': '#999'}}"></span> Force scan
+        </span>
+      </p>
+      <p>You can select which probes to scan the file(s) with</p>
+      <ul class="list-inline">
+        <li ng-repeat="probe in settings.probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
+          <span boolean-display="probe.active" color="{{(probe.active)? '#fff': '#999'}}"></span> {{probe.name}}
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-6 existing">
+      <h3>Existing scan</h3>
+      <p>You can view the results of an existing scan by providing the id provided at the time</p>
+      <div class="input-group">
+        <input type="text" class="form-control">
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-arrow-right"></span></button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  
+  <p>
+    <input type="submit" class="action btn btn-lg btn-success" value="Scan for malwares" ng-disabled="!scan.uploader.getNotUploadedItems().length">
+  </p>
+</form>

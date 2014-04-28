@@ -1,0 +1,119 @@
+
+
+.selection {
+
+  .drop-zone {
+    border: 2px dashed #999999;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 0px 50px;
+
+    &.hover {
+      border-color: #333;
+    }
+  }
+
+  .browse {
+    text-align: center;
+    margin: 10px;
+  }
+
+  .placeholder {
+    padding: 40px;
+  }
+
+  .files {
+    padding-right: 65px;
+    table {
+      tbody > tr:first-child > td {
+        border: none;
+      }
+      tbody > tr > td:last-child {
+        text-align: right;
+      }
+      .glyphicon-remove {
+        color: #d9534f;
+      }
+    }
+  }
+
+  .toggle-advanced {
+    text-align: center;
+    text-decoration: underline;
+    color: #999999;
+    margin-bottom: -5px;
+    cursor: pointer;
+    margin-top: 15px;
+  }
+
+  .settings {
+
+    width: 800px;
+    background-color: #ffffff;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    margin: 10px auto 0px;
+    padding: 5px;
+
+    h3 {
+      font-size: 16px;
+      text-align: center;
+      margin: 5px;
+      font-weight: bold;
+      font-family: 'Raleway', sans-serif;
+    }
+
+    p {
+      font-size: 14px;
+      padding: 5px 20px 0px;
+    }
+
+    .existing {
+      .input-group {
+        width: 70%;
+        margin: auto;
+      }
+    }
+
+    .params {
+
+      .force-scan {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 2px 5px;
+        cursor: pointer;
+
+        &.active {
+          color: #fff;
+          background-color: #333;
+          border-color: #fff;
+        }
+      }
+
+      ul {
+        padding-left: 0;
+        list-style: none;
+        text-align: center;
+        margin: 0px;
+        margin-top: -10px;
+
+        li {
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 0px 5px;
+          cursor: pointer;
+          margin: 2px 4px;
+          color: #999;
+          line-height: 20px;
+
+          &.active {
+            color: #fff;
+            background-color: #333;
+            border-color: #fff;
+          }
+        }
+      }
+    }
+  }
+}
