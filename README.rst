@@ -107,18 +107,11 @@ for a detailed linux probe install guide see `linux`_ install.
 TODO
 ----
 
-* Handle duplicate entries and jointures
-* Move probe.py from config
-* Centralize antivirus code for debug purposes
 * Remove script folder and replace with our python script
-* Make an plugin-friendly interface for static modules
-* Add configuration file
-* Launch celery from a python script
+* Add option to disable a probe from configuration file
 * Add support for more Linux and Windows antiviruses
-* Uniformize output results (see plugin with adrien)
-* Improve NSRL code (use __getattr__ instead of __get__)
+* Improve import from NRSL database
 * Add different heuristics for antiviruses
-* Add speed parameter for antiviruses
 
 .. _windows: /install/install_win.rst
 .. _linux: /install/install_linux.rst
