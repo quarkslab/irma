@@ -70,6 +70,9 @@ launch celery
 Troubleshooting
 ===============
 
+Configuration and probes
+------------------------
+
 Probes have a "standalone" version which can be loaded from the command-line.
 This standalone version is useful to troubleshoot some installation issues or 
 to check all available probes. We assume that the file ``config/probe.ini`` 
@@ -102,6 +105,23 @@ has been detected (each probe connects to a dedicated queue).
        
      [2014-04-30 13:51:57,161: INFO/MainProcess] Connected to amqp://probe@irma-brain:5672/mqprobe
      [2014-04-30 13:51:57,333: WARNING/MainProcess] celery@probe-0479a41b-8406-46bc-a74d-1659ae8ae2e8 ready.
+
+
+Celery daemon
+-------------
+
+One can check if celery daemon run properly for probes by consultings the logs
+located at ``/var/log/celery/*.log``
+
+.. code-block:: bash
+
+    $ cat /var/log/celery/*.log
+    [...]
+    [2014-04-30 13:35:03,949: WARNING/MainProcess] worker1@irma-probe ready.
+    [...]
+    [2014-04-30 13:35:04,205: WARNING/MainProcess] worker2@irma-probe ready.
+    [...] 
+    [2014-04-30 13:35:03,949: WARNING/MainProcess] worker3@irma-probe ready.
 
 ===
 FAQ
