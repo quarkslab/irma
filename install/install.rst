@@ -117,6 +117,23 @@ launch celery
     Celery fails if the configured users and groups are not defined. Additionnally, you
     must change permission for the ``/var/run/celery`` directory in order to allow celery 
     to create a lock file.
+    
+Make all services start at boot:
+
+.. code-block:: bash
+
+    $ sudo /usr/sbin/update-rc.d celeryd.brain defaults
+    $ sudo /usr/sbin/update-rc.d celeryd.results defaults
+    
+Consult the logs at ``/var/log/celery/*.log`` to check the installation.
+
+.. code-block:: bash
+
+    $ cat /var/log/celery/*.log
+    [...]
+    [2014-04-30 13:35:03,949: WARNING/MainProcess] brain@irma-brain ready.
+    [...]
+    [2014-04-30 13:35:04,205: WARNING/MainProcess] results@irma-brain ready.
 
 **pure-ftpd**
 
