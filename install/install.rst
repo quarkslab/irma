@@ -1,6 +1,6 @@
-***********************************
- IRMA Frontend - Installation guide
-***********************************
+********************************
+ IRMA Brain - Installation guide
+********************************
 
 **Table of Contents**
 
@@ -16,13 +16,13 @@ Requirements
 
 packages:
 
-* python27
-* pip
+* python2.7
+* python-pip
 * rabbitmq-server
 * redis-server
 * pure-ftpd 
 
-python packages:
+python-pip packages (see ``install/requirements.txt`` for versions):
 
 * celery
 * redis
@@ -33,7 +33,7 @@ Configuration
 
 **redis**
 
-edit ``/etc/redis/redis.conf`` to listen on all interfaces (comments bind_ip parameter).
+edit ``/etc/redis/redis.conf`` to listen on all interfaces by commenting ``bind`` parameter.
 
 .. code-block::
 
@@ -86,8 +86,8 @@ according to your install
     CELERYD_CHDIR="/home/irma/irma/"
    
 copy both ``.defaults`` config file to ``/etc/default/celeryd``
-copy ``celeryd`` init script file to ``/etc/init.d/celeryd.brain``
-copy ``celeryd`` init script file to ``/etc/init.d/celeryd.results``
+copy ``celeryd.brain`` init script file to ``/etc/init.d/celeryd.brain``
+copy ``celeryd.results`` init script file to ``/etc/init.d/celeryd.results``
 
 
 launch celery
@@ -115,7 +115,7 @@ config pure-ftpd
     $ echo "yes" > /etc/pure-ftpd/conf/CreateHomeDir
     $ echo "no" > /etc/pure-ftpd/conf/PAMAuthentication
     $ echo "2" > /etc/pure-ftpd/conf/TLS
-    $ ln -s ../conf/PureDB /etc/pure-ftpd/auth/50puredb
+    $ ln -s /etc/pure-ftpd/conf/PureDB /etc/pure-ftpd/auth/50puredb
 
 generate certs
 
@@ -130,8 +130,9 @@ virtual user creation could be done through the provided script ``IRMA_INSTALL_D
 .. code-block:: bash
 
    $ sudo ftpd-adduser.sh <user> <virtualuser> <chroot home>
-   e.g
-   $ sudo ftpd-adduser.sh frontend1 ftpuser/home/ftpuser/frontend1
+   e.g (for multiple frontends, change user and chroot home accordingly)
+   $ sudo ftpd-adduser.sh frontend ftpuser /home/ftpuser/frontend
+   $ sudo ftpd-adduser.sh probe ftpuser /home/ftpuser/
 
 launch pure-ftpd
 
