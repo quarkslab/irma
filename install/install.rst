@@ -162,7 +162,6 @@ Requirements:
     $ cd <IRMA_INSTALL_DIR>/web
     $ npm install
     $ bower install
-    $ cd app
     $ ln -s `pwd`/bower_components `pwd`/app/bower_components
     $ grunt build
     $ ln -s `pwd`/.tmp/styles `pwd`/dist/styles
