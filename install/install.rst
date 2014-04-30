@@ -26,6 +26,7 @@ python-pip packages (see ``install/requirements.txt`` for versions):
 
 * celery
 * redis
+* sqlalchemy
 
 -------------
 Configuration
@@ -86,9 +87,19 @@ according to your install
     CELERYD_CHDIR="/home/irma/irma/"
    
 copy both ``.defaults`` config file to ``/etc/default/celeryd``
+
+.. code-block::
+    
+    $ sudo celeryd.brain.defaults /etc/default/celeryd/celeryd.brain
+    $ sudo celeryd.results.defaults /etc/default/celeryd/results.brain
+
 copy ``celeryd.brain`` init script file to ``/etc/init.d/celeryd.brain``
 copy ``celeryd.results`` init script file to ``/etc/init.d/celeryd.results``
 
+.. code-block::
+    
+    $ sudo celeryd.brain /etc/init.d/celeryd.brain
+    $ sudo celeryd.results /etc/init.d/results.brain
 
 launch celery
 
@@ -99,6 +110,13 @@ launch celery
 
     $ sudo chmod +x /etc/init.d/celeryd.results
     $ sudo service celeryd.results start
+
+.. WARNING:: 
+
+    By default ``celery`` users and groups (configured in ``.defaults``) are not created.
+    Celery fails if the configured users and groups are not defined. Additionnally, you
+    must change permission for the ``/var/run/celery`` directory in order to allow celery 
+    to create a lock file.
 
 **pure-ftpd**
 
@@ -130,6 +148,11 @@ virtual user creation could be done through the provided script ``IRMA_INSTALL_D
 .. code-block:: bash
 
    $ sudo ftpd-adduser.sh <user> <virtualuser> <chroot home>
+   
+The frontends need an account with ``/home/ftpuser/<frontend-name>`` as home directory and
+a shared account is shared between probes. The later needs to access to all frontends, thus 
+the associated home directory ``/home/ftpuser/``.
+
    e.g (for multiple frontends, change user and chroot home accordingly)
    $ sudo ftpd-adduser.sh frontend ftpuser /home/ftpuser/frontend
    $ sudo ftpd-adduser.sh probe ftpuser /home/ftpuser/
