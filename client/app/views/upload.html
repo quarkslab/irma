@@ -1,0 +1,11 @@
+<div class="upload">
+  <p>The files are being uploaded...</p>
+  <div class="progress">
+    <div class="progress-bar" role="progressbar" aria-valuenow="{{scan.uploader.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{scan.uploader.progress}}%;">
+      <span class="sr-only">{{scan.uploader.progress}}% Complete</span>
+    </div>
+  </div>
+  <p>
+    <button class="action btn btn-lg btn-warning" ng-click="cancel()">Cancel</button>
+  </p>
+</div>
