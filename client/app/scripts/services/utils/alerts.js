@@ -35,7 +35,8 @@
       'uploadStarted': {
         message: '<strong>Info:</strong> Upload has started...',
         type: 'info',
-        dismiss: 2000
+        dismiss: 2000,
+        status: 'debug'
       },
       'uploadCanceled': {
         message: '<strong>Warning:</strong> Upload was canceled',
@@ -50,12 +51,14 @@
       'uploadComplete': {
         message: '<strong>Info:</strong> The upload was successfull',
         type: 'info',
-        dismiss: 2000
+        dismiss: 2000,
+        status: 'debug'
       },
       'scanStarted': {
         message: '<strong>Info:</strong> Scan has started...',
         type: 'info',
-        dismiss: 2000
+        dismiss: 2000,
+        status: 'debug'
       },
       'scanCanceled': {
         message: '<strong>Warning:</strong> Scan was canceled',
@@ -65,12 +68,14 @@
       'scanComplete': {
         message: '<strong>Info:</strong> The scan was successfull',
         type: 'info',
-        dismiss: 2000
+        dismiss: 2000,
+        status: 'debug'
       },
       'loadingExistingResults': {
         message: '<strong>Info:</strong> Loading an existing scan',
         type: 'info',
-        dismiss: 2000
+        dismiss: 2000,
+        status: 'debug'
       },
     };
 

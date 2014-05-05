@@ -5,7 +5,7 @@
 describe('Ivy', function() {
 
   it('should redirect index.html to index.html#/dashboard', function() {
-    browser.get('/app');
+    browser.get('/appgit');
     browser.getLocationAbsUrl().then(function(url) {
       expect(url.split('#')[1]).toBe('/selection');
     });
