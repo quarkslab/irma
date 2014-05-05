@@ -19,12 +19,12 @@ Requirements
 
 **packages:**
 
-* python27
+* python2.7
 * python-pip
 * mongodb-server
 * nginx
 * uwsgi
-* uwsgi-python-plugin
+* uwsgi-plugin-python
 * ruby
 * python-gridfs
 
@@ -66,10 +66,12 @@ edit ``install/nginx/frontend`` according to your install
    
 copy ``frontend`` config file to ``/etc/nginx/sites-available``
 make a soft link into ``/etc/nginx/sites-enabled``
-launch nginx
+relaunch nginx
 
 .. code-block:: bash
 
+    $ cp install/nginx/frontend /etc/nginx/sites-available
+    $ ln -s /etc/nginx/sites-available/frontend /etc/nginx/sites-enabled/frontend
     $ sudo service nginx restart
 
 **uwsgi**
@@ -85,10 +87,12 @@ edit ``install/uwsgi/frontend-api.xml`` according to your install
    
 copy ``frontend-api.xml`` config file to ``/etc/uwsgi/apps-available/``
 make a soft link into ``/etc/uwsgi/apps-enabled/``
-launch uwsgi
+relaunch uwsgi
 
 .. code-block:: bash
 
+    $ cp install/uwsgi/frontend-api.xml /etc/uwsgi/apps-available/
+    $ ln -s /etc/uwsgi/apps-available/frontend-api.xml /etc/uwsgi/apps-enabled/frontend-api.xml
     $ sudo service uwsgi restart
     
 **celery**
@@ -106,6 +110,8 @@ launch celery
 
 .. code-block:: bash
 
+    $ sudo cp install/celery/celeryd.frontend.defaults etc/default/celeryd
+    $ sudo cp install/celery/celeryd etc/init.d/celeryd
     $ sudo chmod +x /etc/init.d/celeryd
     $ sudo service celeryd start
 
@@ -156,9 +162,9 @@ Requirements:
     $ cd <IRMA_INSTALL_DIR>/web
     $ npm install
     $ bower install
-    $ ln -s app/bower_components bower_components
+    $ ln -s `pwd`/bower_components `pwd`/app/bower_components
     $ grunt build
-    $ ln -s .tmp/styles dist/styles
+    $ ln -s `pwd`/.tmp/styles `pwd`/dist/styles
 
 --------------------
 
