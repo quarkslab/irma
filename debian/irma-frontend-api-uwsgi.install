@@ -1,0 +1,1 @@
+install/uwsgi/frontend-api.xml etc/uwsgi/apps-available/
