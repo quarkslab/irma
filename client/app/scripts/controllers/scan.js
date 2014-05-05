@@ -21,10 +21,15 @@
         this.alerts.add({standard: 'scanStarted'});
       }.bind(this));
     }.bind(this), constants.speed);
+
+    $scope.$on('scanComplete', function(event){
+      this.$location.path('/results/'+this.state.currentScan.id);
+      this.alerts.add({standard: 'scanComplete'});
+    }.bind(this));
   };
 
   Ctrl.prototype.cancelScan = function(){
-    this.state.currentScan.cancelScan().then(function(){
+    this.state.currentScan.cancelScan().finally(function(){
       this.alerts.add({standard: 'scanCanceled'});
       this.$location.path('/');
     }.bind(this));

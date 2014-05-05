@@ -8,11 +8,11 @@
     // Initialize controller
     for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
 
-    this.location = undefined;
+    this.location = 'selection';
     this.currentScan = undefined;
     this.settings = undefined;
     this.baseResults = {};
-    this.results = {}
+    this.results = {};
 
     this.initResults = function(settings){
       if(!this.currentScan) { return false;}
@@ -21,10 +21,14 @@
           if(settings.probes[i].active){ this.baseResults[settings.probes[i].name] = {result: '__loading__'}; }
         }
       }
+
+      this.currentScan.baseResults = this.baseResults;
     };
 
     this.upgradeResults = function(files){
-      for(var name in files){ files[name].results = angular.copy(this.baseResults);}
+      for(var name in files){ 
+        if(files.hasOwnProperty(name)){ files[name].results = angular.copy(this.baseResults);}
+      }
       this.results  = files;
     };
 

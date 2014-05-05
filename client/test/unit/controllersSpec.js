@@ -11,19 +11,19 @@ describe('Ivy Controllers', function() {
     });
   });
 
-  beforeEach(module('ivy'));
+  beforeEach(module('irma'));
 
-  describe('DashboardCtrl', function(){
+  describe('SelectionCtrl', function(){
     var scope, ctrl, $httpBackend;
 
     beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
       $httpBackend = _$httpBackend_;
       scope = $rootScope.$new();
-      ctrl = $controller('DashboardCtrl', {$scope: scope});
+      ctrl = $controller('SelectionCtrl', {$scope: scope});
     }));
 
     it('should create the scope', function() {
-      expect(scope.data).toEqualData('coucou');
+      expect(scope.scan).toBeDefined();
     });
   });
 });

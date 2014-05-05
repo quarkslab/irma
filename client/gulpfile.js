@@ -41,6 +41,11 @@ gulp.task('html', ['clean'], function() {
     .pipe(gulp.dest('dist/views'))
 });
 
+gulp.task('resources', ['clean'], function() {
+  return gulp.src('app/resources/**/*')
+    .pipe(gulp.dest('dist/resources'));
+});
+
 gulp.task('protractor', [], function () {
   return gulp.src(["test/e2e/*.js"])
     .pipe(protractor({ configFile: "test/protractor-conf.js"}))
@@ -78,7 +83,7 @@ gulp.task('build', ['clean', 'less', 'lint'], function () {
 });
 
 gulp.task('default', ['html', 'build']);
-gulp.task('dist', ['html', 'build']);
+gulp.task('dist', ['html', 'resources', 'build']);
 gulp.task('full', function(){
   return runSequence('dist', 'karma', 'protractor');
 });

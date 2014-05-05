@@ -1,14 +1,14 @@
 <div class="scan">
   <div>
     <p>The files are being scanned...</p>
-    <div class="row text-center scan-progress" ng-if="scanProgress.total">
-      <div class="col-md-2 col-md-offset-3"><strong>Total : </strong> {{scanProgress.total}}</div>
-      <div class="col-md-2"><strong>Successful : </strong> {{scanProgress.successful}}</div>
-      <div class="col-md-2"><strong>Finished : </strong> {{scanProgress.finished}}</div>
+    <div class="row text-center scan-progress" ng-if="scan.scanProgress.total">
+      <div class="col-md-2 col-md-offset-3"><strong>Total : </strong> {{scan.scanProgress.total}}</div>
+      <div class="col-md-2"><strong>Successful : </strong> {{scan.scanProgress.successful}}</div>
+      <div class="col-md-2"><strong>Finished : </strong> {{scan.scanProgress.finished}}</div>
     </div>
     <div class="progress">
-      <div class="progress-bar" role="progressbar" aria-valuenow="{{scan.scanProgress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{scan.scanProgress}}%;">
-        <span class="sr-only">{{scan.scanProgress}}% Complete</span>
+      <div class="progress-bar" role="progressbar" aria-valuenow="{{scan.scanProgress.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{scan.scanProgress.progress}}%;">
+        <span class="sr-only">{{scan.scanProgress.progress}}% Complete</span>
       </div>
     </div>
     <p>
@@ -16,27 +16,6 @@
     </p>
   </div>
 
-  <div>
-    <div ng-repeat="(id, file) in results" class="file-display">
-      <h3>{{file.filename}}</h3>
-      <div class="results">
-        <div class="row" ng-repeat="(toolName, toolResults) in file.results" ng-click="toolResults.displayVersion = !toolResults.displayVersion">
-          <div class="col-md-5 probe">{{toolName}} : </div>
-          <ng-switch on="toolResults.result">
-            <div class="col-md-7 result" ng-switch-when="null">
-              <span boolean-display="true"></span> The file came out as clean
-            </div>
-            <div class="col-md-7 result" ng-switch-when="__loading__">
-              <span class="glyphicon glyphicon-time" style="color: #555"></span> Probe still working...
-            </div>
-            <div class="col-md-7 result" ng-switch-default>
-              <span boolean-display="false"></span> The file came out as: <span class="virus">{{toolResults.result}}</span>
-            </div>
-          </ng-switch>
-          <div class="col-md-7 col-md-offset-5 version" ng-if="toolResults.displayVersion">{{toolResults.version || 'No version information available'}}</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div ng-include="'views/_results.html'"></div>
 
 </div>

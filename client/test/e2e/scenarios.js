@@ -5,11 +5,10 @@
 describe('Ivy', function() {
 
   it('should redirect index.html to index.html#/dashboard', function() {
-    browser.get('/dist');
+    browser.get('/app');
     browser.getLocationAbsUrl().then(function(url) {
-      expect(url.split('#')[1]).toBe('/dashboard');
+      expect(url.split('#')[1]).toBe('/selection');
     });
-    expect(element(by.binding('data')).getText()).toBe('coucou');
   });
   
 });

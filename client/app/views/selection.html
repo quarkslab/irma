@@ -68,9 +68,9 @@
       <h3>Existing scan</h3>
       <p>You can view the results of an existing scan by providing the id provided at the time</p>
       <div class="input-group">
-        <input type="text" class="form-control">
+        <input type="text" class="form-control" ng-model="existingId">
         <span class="input-group-btn">
-          <button class="btn btn-default" type="button"><span class="glyphicon glyphicon-arrow-right"></span></button>
+          <button class="btn btn-default" type="button" ng-click="goToScan(existingId)"><span class="glyphicon glyphicon-arrow-right"></span></button>
         </span>
       </div>
     </div>

@@ -12,6 +12,11 @@
     this.messages = [];
 
     this.map = {
+      'apiError': {
+        message: '<strong>Error:</strong> Unable to get response from API',
+        type: 'danger',
+        dismiss: false
+      },
       'noFilesToUpload': {
         message: '<strong>Warning:</strong> There are no files queued for upload',
         type: 'warning',
@@ -56,7 +61,17 @@
         message: '<strong>Warning:</strong> Scan was canceled',
         type: 'warning',
         dismiss: 5000
-      }
+      },
+      'scanComplete': {
+        message: '<strong>Info:</strong> The scan was successfull',
+        type: 'info',
+        dismiss: 2000
+      },
+      'loadingExistingResults': {
+        message: '<strong>Info:</strong> Loading an existing scan',
+        type: 'info',
+        dismiss: 2000
+      },
     };
 
     this.autoDismiss = function(alert){

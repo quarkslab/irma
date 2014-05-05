@@ -5,6 +5,7 @@
 /web/.*
 client/node_modules
 client/app/components
+client/dist
 *.pyc
 doc/
 irma_frontend.egg-info/

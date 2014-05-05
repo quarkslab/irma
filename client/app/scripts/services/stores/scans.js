@@ -13,8 +13,8 @@
       return bridge.get({url: '/scan/new'});
     };
 
-    this.getAddUrl = function(id){
-      return bridge.rootUrl+'/scan/add/'+id;
+    this.getAddUrl = function(){
+      return bridge.rootUrl+'/scan/add/'+this.state.currentScan.id;
     };
 
     this.launchScan = function(){
@@ -22,23 +22,29 @@
       var probes = [], hasInactive = false;
       for(var i=0; i<this.state.settings.probes.length; i++){
         if(this.state.settings.probes[i].active){
-          probes.push(this.state.settings.probes[i].name)
+          probes.push(this.state.settings.probes[i].name);
         } else {
           hasInactive = true;
         }
       }
       var params = {};
-      if(hasInactive)
-        params.probe = probes.join(',');
-      if(this.state.settings.force)
-        params.force = true;
+      if(hasInactive){ params.probe = probes.join(',');}
+      if(this.state.settings.force){ params.force = true;}
 
       return bridge.get({url: '/scan/launch/'+this.state.currentScan.id, payload: params});
     };
 
     this.cancelScan = function(){
       return bridge.get({url: '/scan/cancel/'+this.state.currentScan.id});
-    }
+    };
+
+    this.getProgress = function(){
+      return bridge.get({url: '/scan/progress/'+this.state.currentScan.id});
+    };
+
+    this.getResults = function(){
+      return bridge.get({url: '/scan/result/'+this.state.currentScan.id});
+    };
 
   };
 
