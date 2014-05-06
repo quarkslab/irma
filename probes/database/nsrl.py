@@ -1,8 +1,7 @@
-import logging
-
+from celery.utils.log import get_task_logger
 from probes.database.database import DatabaseProbe
 
-log = logging.getLogger(__name__)
+log = get_task_logger(__name__)
 
 
 class NSRLProbe(DatabaseProbe):
@@ -38,5 +37,4 @@ class NSRLProbe(DatabaseProbe):
                                 nsrl_os_db,
                                 nsrl_mfg_db)
         except Exception as e:
-            print e
             log.exception(e)

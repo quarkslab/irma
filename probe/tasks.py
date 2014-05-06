@@ -3,11 +3,10 @@ import ssl
 import tempfile
 import os
 import uuid
+import config.parser as config
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
-
-from config.probe import probe_config as config
 from lib.irma.ftp.handler import FtpTls
 
 ##############################################################################
@@ -43,39 +42,10 @@ log = get_task_logger(__name__)
 if (kombu.VERSION.major) < 3:
     kombu.disable_insecure_serializers()
 
-# build connection strings
-broker = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
-    user=config.broker_probe.username, password=config.broker_probe.password,
-    host=config.broker_probe.host, port=config.broker_probe.port,
-    vhost=config.broker_probe.vhost
-)
-
-backend = "redis://{host}:{port}/{database}".format(
-    host=config.backend_probe.host,
-    port=config.backend_probe.port,
-    database=config.backend_probe.db)
-
 # declare a new application
 app = Celery("probe.tasks")
-app.conf.update(
-    BROKER_URL=broker,
-    CELERY_RESULT_BACKEND=backend,
-    # CELERY_IGNORE_RESULT=True,
-    CELERY_ACCEPT_CONTENT=['json'],
-    CELERY_RESULT_SERIALIZER='json',
-    CELERY_TASK_SERIALIZER='json',
-    CELERY_ACKS_LATE=True
-    )
-"""
-    BROKER_USE_SSL = {
-        'ca_certs': config.broker_probe['ssl_ca'],
-        'keyfile': config.broker_probe['ssl_key'],
-        'certfile': config.broker_probe['ssl_cert'],
-        'cert_reqs': ssl.CERT_REQUIRED
-        },
-    BROKER_LOGIN_METHOD='EXTERNAL',
-    CELERY_DISABLE_RATE_LIMITS=True,
-"""
+config.conf_probe_celery(app)
+config.configure_syslog(app)
 
 # determine dynamically queues to connect to
 queues = []
@@ -83,7 +53,7 @@ probes = sum([AntivirusProbe.plugins,
               WebProbe.plugins,
               DatabaseProbe.plugins,
               InformationProbe.plugins], [])
-probes = map(lambda pb: pb(conf=config.get(pb.plugin_name, None)),
+probes = map(lambda pb: pb(conf=config.probe_config.get(pb.plugin_name, None)),
              probes)
 probes = filter(lambda pb: pb.ready(), probes)
 probes = dict((type(pb).plugin_name, pb) for pb in probes)

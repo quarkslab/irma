@@ -1,13 +1,14 @@
-import logging
 import os
 import hashlib
 
+from celery.utils.log import get_task_logger
 from lib.common.oopatterns import Plugin
 from lib.plugin_result import PluginResult
 from probes.processing import Processing
 from probes.information.system import System
 
-log = logging.getLogger(__name__)
+
+log = get_task_logger(__name__)
 
 
 class AntivirusProbe(Plugin, Processing):

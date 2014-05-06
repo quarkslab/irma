@@ -1,9 +1,8 @@
-import logging
-
+from celery.utils.log import get_task_logger
 from modules.antivirus.kaspersky import Kaspersky
 from probes.antivirus.antivirus import AntivirusProbe
 
-log = logging.getLogger(__name__)
+log = get_task_logger(__name__)
 
 
 class KasperskyProbe(AntivirusProbe):

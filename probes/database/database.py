@@ -1,11 +1,10 @@
-import logging
-
+from celery.utils.log import get_task_logger
 from lib.common.hash import sha1sum
 from lib.common.oopatterns import Plugin
 from lib.plugin_result import PluginResult
 from probes.processing import Processing
 
-log = logging.getLogger(__name__)
+log = get_task_logger(__name__)
 
 
 class DatabaseProbe(Plugin, Processing):

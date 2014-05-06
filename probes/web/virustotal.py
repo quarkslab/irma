@@ -1,9 +1,8 @@
-import logging
-
+from celery.utils.log import get_task_logger
 from modules.web.virustotal import VirusTotal
 from probes.web.web import WebProbe
 
-log = logging.getLogger(__name__)
+log = get_task_logger(__name__)
 
 
 class VirusTotalProbe(WebProbe):

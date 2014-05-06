@@ -1,10 +1,8 @@
-import logging
-
+from celery.utils.log import get_task_logger
 from modules.antivirus.clam import Clam
 from probes.antivirus.antivirus import AntivirusProbe
 
-
-log = logging.getLogger(__name__)
+log = get_task_logger(__name__)
 
 
 class ClamProbe(AntivirusProbe):

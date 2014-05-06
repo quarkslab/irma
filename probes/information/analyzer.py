@@ -1,9 +1,9 @@
-import logging
-
+from celery.utils.log import get_task_logger
 from modules.information.analyzer import StaticAnalyzer
 from probes.information.information import InformationProbe
 
-log = logging.getLogger(__name__)
+
+log = get_task_logger(__name__)
 
 
 class StaticAnalyzerProbe(InformationProbe):

@@ -1,9 +1,8 @@
-import logging
-
+from celery.utils.log import get_task_logger
 from modules.antivirus.comodo_cavl import ComodoCAVL
 from probes.antivirus.antivirus import AntivirusProbe
 
-log = logging.getLogger(__name__)
+log = get_task_logger(__name__)
 
 
 class ComodoCAVLProbe(AntivirusProbe):
