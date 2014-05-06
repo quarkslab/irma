@@ -1,13 +1,18 @@
 import uuid
 import time
-from celery import Celery
 import config.parser as config
+
+from celery import Celery
+from celery.utils.log import get_task_logger
 from datetime import datetime, timedelta
 from brain.objects import User, Scan
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
 from lib.irma.common.exceptions import IrmaTaskError, IrmaDatabaseError
 from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.ftp.handler import FtpTls
+
+# Get celery's logger
+log = get_task_logger(__name__)
 
 # Time to cache the probe list
 # to avoid asking to rabbitmq
@@ -16,15 +21,19 @@ cache_probelist = {'list': None, 'time': None}
 
 scan_app = Celery('scantasks')
 config.conf_brain_celery(scan_app)
+config.configure_syslog(scan_app)
 
 probe_app = Celery('probetasks')
 config.conf_probe_celery(probe_app)
+config.configure_syslog(probe_app)
 
 results_app = Celery('restasks')
 config.conf_results_celery(results_app)
+config.configure_syslog(results_app)
 
 frontend_app = Celery('frontendtasks')
 config.conf_frontend_celery(frontend_app)
+config.configure_syslog(frontend_app)
 
 
 # =============
@@ -128,11 +137,12 @@ def scan(scanid, scan_request):
         user = sql.one_by(User, rmqvhost=rmqvhost)
         quota = get_quota(sql, user)
         if quota is not None:
-            print("Found user {0} ".format(user.name) +
-                  "quota remaining {0}/{1}".format(quota, user.quota))
+            log.debug("Found user {0} quota remaining {1}/{2}"
+                      "".format(user.name, quota, user.quota))
         else:
-            print "Found user {0} quota disabled".format(user.name)
+            log.debug("Found user {0} quota disabled".format(user.name))
     except IrmaTaskError as e:
+        log.exception("{0}".format(e))
         return IrmaTaskReturn.error("{0}".format(e))
 
     for (filename, probelist) in scan_request:
@@ -173,11 +183,10 @@ def scan(scanid, scan_request):
                     status=IrmaScanStatus.launched,
                     user_id=user.id, date=datetime.now())
         sql.add(scan)
-    print(
-        "{0} files receives / ".format(len(scan_request)) +
-        "{0} active probe / ".format(len(available_probelist)) +
-        "{0} probe used / ".format(len(probelist)) +
-        "{0} jobs launched".format(len(jobs_list)))
+    log.debug("{0} files receives / {1} active probe / "
+              "{2} probe used / {3} jobs launched"
+              "".format(len(scan_request), len(available_probelist),
+                        len(probelist), len(jobs_list)))
     return
 
 
@@ -261,7 +270,7 @@ def scan_result(result, ftpuser, scanid, filename, probe):
     try:
         frontend_app.send_task("frontend.tasks.scan_result",
                                args=(scanid, filename, probe, result))
-        print "scanid {0} sent result {1}".format(scanid, probe)
+        log.debug("scanid {0} sent result {1}".format(scanid, probe))
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
         sql = SQLDatabase(engine + dbname)
