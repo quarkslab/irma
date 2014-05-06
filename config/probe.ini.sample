@@ -1,3 +1,6 @@
+[log]
+syslog = 1
+
 [probe]
 name=avname
 
