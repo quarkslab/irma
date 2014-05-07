@@ -109,7 +109,10 @@ TODO
 
 * Remove script folder and replace with our python script
 * Add option to disable a probe from configuration file
-* Add support for more Linux and Windows antiviruses
+* Add support for more Linux and Windows antiviruses. For command line options, see following links:
+    - http://www.shadowserver.org/wiki/pmwiki.php/AV/Viruses
+    - https://github.com/xchwarze/KIMS/tree/master/Data
+    - https://github.com/joxeankoret/multiav
 * Improve import from NRSL database
 * Add different heuristics for antiviruses
 
