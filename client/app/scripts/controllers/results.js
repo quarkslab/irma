@@ -17,7 +17,10 @@
     }
 
     // Ask for the results
-    this.state.currentScan.getResults();
+    this.state.currentScan.getResults().catch(function(){
+      this.alerts.add({standard: 'noScanFound'});
+      this.$location.path('/');
+    }.bind(this));
 
     // Link the scan to the scope
     $scope.scan = this.state.currentScan;

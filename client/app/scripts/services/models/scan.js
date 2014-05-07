@@ -102,6 +102,7 @@
 
     ScanModel.prototype.getResults = function(){
       return this.store.getResults().then(function(data){
+        console.log(data);
         this.results = this.populateResults(data.scan_results);
       }.bind(this));
     };

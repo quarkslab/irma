@@ -77,6 +77,11 @@
         dismiss: 2000,
         status: 'debug'
       },
+      'noScanFound': {
+        message: '<strong>Warning:</strong> The requested scan does not exist',
+        type: 'warning',
+        dismiss: false
+      }
     };
 
     this.autoDismiss = function(alert){
