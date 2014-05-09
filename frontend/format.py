@@ -87,14 +87,21 @@ def sanitize_dict(d):
     return new
 
 probe_formatter = {
-    'Kaspersky': format_av,
-    'Sophos': format_av,
-    'McAfeeVSCL': format_av,
+    # antivirus
     'ClamAV': format_av,
+    'ComodoCAVL': format_av,
+    'EsetNod32': format_av,
+    'FProt': format_av,
+    'Kaspersky': format_av,
+    'McAfeeVSCL': format_av,
+    'Sophos': format_av,
     'Symantec': format_av,
-    'VirusTotal': format_vt,
+    # database
+    'Nsrl': format_nsrl,
+    # information
     'StaticAnalyzer': format_static,
-    'Nsrl': format_nsrl
+    # web
+    'VirusTotal': format_vt,
     }
 
 
