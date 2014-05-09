@@ -1,4 +1,3 @@
-import sys
 import logging
 
 log = logging.getLogger(__name__)
@@ -22,7 +21,7 @@ class VirusTotal(object):
                 response = getattr(requests, method)(url, **kwargs)
             except requests.exceptions.ConnectionError as e:
                 log.exception(e)
-                sys.exit(1)
+                break
             if response.status_code != 204:
                 try:
                     jdata = response.json()

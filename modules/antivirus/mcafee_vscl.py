@@ -97,6 +97,6 @@ class McAfeeVSCL(Antivirus):
             scan_paths = os.path.normpath("C:\VSCL")
         else:
             scan_bin = "uvscan"
-            scan_paths = None
+            scan_paths = os.path.normpath("/usr/local/uvscan")
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None
