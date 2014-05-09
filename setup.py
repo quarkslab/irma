@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='irma-brain',
-    version='1.0',
+    version='1.0.1',
     author='QuarksLab',
     author_email='irma@quarkslab.com',
     packages=find_packages(),
@@ -10,5 +10,5 @@ setup(
     license='LICENSE',
     description='Brain package for IRMA',
     long_description=open('README.rst').read(),
-    scripts=['scripts/status.py'],
+    scripts=['scripts/status.py', 'scripts/update.sh'],
 )
