@@ -89,6 +89,21 @@ def _conf_celery(app, broker, backend=None, queue=None):
             # (don't survive to a server restart)
             CELERY_QUEUES=(Queue(queue, routing_key=queue),)
             )
+    return
+
+
+def conf_brain_celery(app):
+    broker = get_brain_broker_uri()
+    backend = get_brain_backend_uri()
+    queue = frontend_config.broker_brain.queue
+    _conf_celery(app, broker, backend, queue)
+
+
+def conf_frontend_celery(app):
+    broker = get_frontend_broker_uri()
+    queue = frontend_config.broker_frontend.queue
+    _conf_celery(app, broker, queue=queue)
+    # add celerybeat conf only for frontend app
     cron_cfg = frontend_config['cron_frontend']
     app.conf.update(
         CELERYBEAT_SCHEDULE={
@@ -105,22 +120,6 @@ def _conf_celery(app, broker, backend=None, queue=None):
         },
         CELERY_TIMEZONE='UTC'
     )
-
-    return
-
-
-def conf_brain_celery(app):
-    broker = get_brain_broker_uri()
-    backend = get_brain_backend_uri()
-    queue = frontend_config.broker_brain.queue
-    _conf_celery(app, broker, backend, queue)
-
-
-def conf_frontend_celery(app):
-    broker = get_frontend_broker_uri()
-    queue = frontend_config.broker_frontend.queue
-    _conf_celery(app, broker, queue=queue)
-
 
 def get_db_uri():
     host = frontend_config.mongodb.host
