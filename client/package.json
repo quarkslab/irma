@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "postinstall": "bower install",
+    "postinstall": "bower install & webdriver-manager update",
     "start": "http-server -p 8000",
     "test": "karma start test/karma.conf.js",
     "update-webdriver": "webdriver-manager update",
@@ -26,14 +26,12 @@
     "gulp-uglify": "~0.2.1",
     "gulp-htmlmin": "~0.1.2",
     "gulp-filter": "~0.4.0",
-    "gulp-useref": "~0.3.0",
+    "gulp-useref": "~0.4.3",
     "gulp-ngmin": "~0.2.0",
     "gulp-autoprefixer": "0.0.7",
     "gulp-jshint": "~1.5.3",
     "gulp-protractor": "0.0.7",
-    "gulp-karma": "0.0.4"
-  },
-  "dependencies": {
+    "gulp-karma": "0.0.4",
     "gulp-run-sequence": "~0.3.2"
   }
 }
