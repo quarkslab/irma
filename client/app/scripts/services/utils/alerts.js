@@ -32,6 +32,11 @@
         type: 'danger',
         dismiss: false
       },
+      'noSelectedProbes': {
+        message: '<strong>Warning:</strong> There are no selected probes',
+        type: 'danger',
+        dismiss: 5000
+      },
       'uploadStarted': {
         message: '<strong>Info:</strong> Upload has started...',
         type: 'info',
