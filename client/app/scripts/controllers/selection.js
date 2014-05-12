@@ -25,7 +25,7 @@
 
     this.$scope.settings = {
       display: false,
-      force: true,
+      force: false,
       probes: [],
       nbActiveProbes: 0
     };
