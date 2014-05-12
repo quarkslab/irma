@@ -33,21 +33,6 @@
 
   <div class="toggle-advanced" ng-click="settings.display = !settings.display">{{(settings.display)? 'Hide': 'Display'}} advanced settings</div>
 
-  <div class="advanced-settings" ng-if="advancedSettings">
-    <div class="force-scan">
-      <input type="checkbox" ng-model="settings.force" id="force-scan"> <label for="force-scan">Force scan</label>
-    </div>
-    <div class="select-probes" >
-      <p>The selected probes will be used to analyse the files:</p>
-      <ul class="list-inline">
-        <li ng-repeat="probe in probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
-          <span boolean-display="probe.active" color="{{(probe.active)? '#333': '#999'}}"></span> {{probe.name}}
-        </li>
-      </ul>
-    </div>
-  </div>
-
-
   <div class="settings row" ng-if="settings.display">
     <div class="col-md-6 params">
       <h3>Scan parameters</h3>
@@ -59,7 +44,7 @@
       </p>
       <p>You can select which probes to scan the file(s) with</p>
       <ul class="list-inline">
-        <li ng-repeat="probe in settings.probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
+        <li ng-repeat="probe in settings.probes" ng-click="toggleProbe(probe)" class="{{(probe.active)? 'active': ''}}">
           <span boolean-display="probe.active" color="{{(probe.active)? '#fff': '#999'}}"></span> {{probe.name}}
         </li>
       </ul>
@@ -78,6 +63,7 @@
 
   
   <p>
-    <input type="submit" class="action btn btn-lg btn-success" value="Scan for malwares" ng-disabled="!scan.uploader.getNotUploadedItems().length">
+    <input type="submit" class="action btn btn-lg btn-success" value="Scan for malwares" ng-disabled="!scan.uploader.getNotUploadedItems().length || !settings.nbActiveProbes">
   </p>
+
 </form>
