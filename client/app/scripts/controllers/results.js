@@ -24,6 +24,12 @@
 
     // Link the scan to the scope
     $scope.scan = this.state.currentScan;
+    $scope.newScan = this.newScan.bind(this);
+  };
+
+  Ctrl.prototype.newScan = function(){
+    this.state.trigger('newScan');
+    this.$location.path('/');
   };
 
 

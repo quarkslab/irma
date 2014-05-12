@@ -46,14 +46,13 @@ gulp.task('resources', ['clean'], function() {
     .pipe(gulp.dest('dist/resources'));
 });
 
-gulp.task('protractor', [], function () {
+gulp.task('e2e', [], function () {
   return gulp.src(["test/e2e/*.js"])
     .pipe(protractor({ configFile: "test/protractor-conf.js"}))
     .on('error', function(e) { throw e });
 });
 
-
-gulp.task('karma', [], function () {
+gulp.task('unit', [], function () {
   return gulp.src([
       'dist/scripts/dependencies.js',
       'app/components/angular-mocks/angular-mocks.js',
@@ -85,5 +84,5 @@ gulp.task('build', ['clean', 'less', 'lint'], function () {
 gulp.task('default', ['html', 'build']);
 gulp.task('dist', ['html', 'resources', 'build']);
 gulp.task('full', function(){
-  return runSequence('dist', 'karma', 'protractor');
+  return runSequence('dist', 'unit', 'e2e');
 });

@@ -29,6 +29,7 @@
   };
 
   Ctrl.prototype.cancelScan = function(){
+    this.state.trigger('cancelScan');
     this.state.currentScan.cancelScan().finally(function(){
       this.alerts.add({standard: 'scanCanceled'});
       this.$location.path('/');

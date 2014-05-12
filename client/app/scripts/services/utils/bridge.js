@@ -2,27 +2,28 @@
 
 (function () {
 
-  var dependencies = ['$http', '$q', 'alerts'];
-  var Bridge = function ($http, $q, alerts) {
+  var dependencies = ['$http', '$q', '$timeout', 'alerts', 'constants'];
+  var Bridge = function ($http, $q, $timeout, alerts, constants) {
 
     // Initialize controller
     for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
 
-    this.rootUrl = 'http://frontend.irma.qb/_api';
+    this.rootUrl = constants.baseApi;
 
     this.get = function(options){
       var deferred = $q.defer();
 
       $http.get(this.rootUrl+options.url, {params: options.payload}).then(function(data){
         if(data.data.code !== 0){
-          deferred.reject(data.data);
+          $timeout(function(){ deferred.reject(data.data); }, constants.fakeDelay);
         } else {
-          deferred.resolve(data.data);
+          $timeout(function(){ deferred.resolve(data.data); }, constants.fakeDelay);
         }
       },function(data){
         this.alerts.add({standard: 'apiError'});
-        deferred.reject(data.data);
-      });
+        $timeout(function(){ deferred.reject(data.data); }, constants.fakeDelay);
+      }.bind(this));
+
       return deferred.promise;
     };
 
@@ -30,10 +31,10 @@
       var deferred = $q.defer();
 
       $http.post(this.rootUrl+options.url, options.payload).then(function(data){
-        deferred.resolve(data.data);
+        $timeout(function(){ deferred.resolve(data.data); }, constants.fakeDelay);
       },function(data){
         this.alerts.add({standard: 'apiError'});
-        deferred.reject(data.data);
+        $timeout(function(){ deferred.reject(data.data); }, constants.fakeDelay);
       });
       return deferred.promise;
     };

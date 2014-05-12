@@ -5443,7 +5443,7 @@ button.close {
   left: 100%;
 }
 .carousel-inner > .prev {
-  left: -100%;
+  left: -99.99999999%;
 }
 .carousel-inner > .next.left,
 .carousel-inner > .prev.right {
@@ -5869,7 +5869,7 @@ p {
   text-align: center;
   border-bottom: 1px solid #dddddd;
   border-top: 1px solid #dddddd;
-  margin: 10px 50px;
+  margin: 10px 50px 25px;
   font-family: 'Raleway', sans-serif;
 }
 .status li {
