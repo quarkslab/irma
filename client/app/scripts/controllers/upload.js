@@ -37,6 +37,7 @@
   };
 
   Ctrl.prototype.cancelUpload = function(){
+    this.state.trigger('cancelUpload');
     this.state.currentScan.cancelUpload();
     this.alerts.add({standard: 'uploadCanceled'});
     this.$location.path('/');

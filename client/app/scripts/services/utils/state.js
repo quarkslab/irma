@@ -11,6 +11,7 @@
     this.location = 'selection';
     this.currentScan = undefined;
     this.settings = undefined;
+    this.lastAction = undefined;
     this.baseResults = {};
     this.results = {};
 
@@ -30,6 +31,21 @@
         if(files.hasOwnProperty(name)){ files[name].results = angular.copy(this.baseResults);}
       }
       this.results  = files;
+    };
+
+    this.initRequired = function(){
+      if(this.lastAction === undefined){
+        return true;
+      } else if(this.lastAction === 'newScan'){
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    this.trigger = function(action){
+      this.lastAction = action;
+      console.log(action);
     };
 
     $rootScope.state = this;

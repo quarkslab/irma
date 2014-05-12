@@ -8,11 +8,11 @@
     // Initialize controller
     for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
 
-    // Init controller
-    this.init();
-
-    // Creates new scan
-    this.state.currentScan = new Scan();
+    if(this.state.initRequired()){
+      // Init controller
+      this.init();
+      this.state.currentScan = new Scan();
+    }
 
     // Bind things to scope
     $scope.scan = this.state.currentScan;
@@ -44,6 +44,8 @@
   };
 
   Ctrl.prototype.trigger = function(){
+    this.state.trigger('startUpload');
+
     if(this.$scope.settings.nbActiveProbes < 1){
       this.alerts.add({standard: 'noSelectedProbes'});
     } else {
@@ -58,6 +60,8 @@
   };
 
   Ctrl.prototype.goToScan = function(id){
+    this.state.trigger('goToResults');
+
     this.$location.path('/results/'+id);
   };
 

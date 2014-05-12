@@ -7,9 +7,8 @@ angular.module('irma', [
   'angularFileUpload'
 ])
   .constant('constants', {
-    useMocks: true,
-    fakeDelay: 500,
-    baseApi: '/api',
+    fakeDelay: 0,
+    baseApi: 'http://frontend.irma.qb/_api',
     speed: 1000
   })
   .config(['$routeProvider', function ($routeProvider) {
