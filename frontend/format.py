@@ -25,6 +25,17 @@ def format_av(output, result):
 
 
 def format_vt(output, result):
+    """ VT AVs list
+    'Bkav', 'MicroWorld-eScan', 'nProtect', 'K7AntiVirus', 'NANO-Antivirus',
+    'F-Prot', 'Norman', 'Kaspersky', 'ByteHero', 'F-Secure', 'TrendMicro',
+    'McAfee-GW-Edition', 'Sophos', 'Jiangmin', 'ViRobot', 'Commtouch',
+    'AhnLab-V3', 'VBA32', 'Rising', 'Ikarus', 'Fortinet', 'Panda',
+    'CAT-QuickHeal', 'McAfee', 'Malwarebytes', 'K7GW', 'TheHacker',
+    'TotalDefense', 'TrendMicro-HouseCall', 'Avast', 'ClamAV', 'BitDefender',
+    'Agnitum', 'Comodo', 'DrWeb', 'VIPRE', 'AntiVir', 'Emsisoft', 'Antiy-AVL',
+    'Kingsoft', 'Microsoft', 'SUPERAntiSpyware', 'GData', 'ESET-NOD32',
+    'AVG', 'Baidu-International', 'Symantec', 'PCTools',
+    """
     if 'data' in result:
         data = result['data'].values()[0]
         if type(data) is int:
@@ -33,8 +44,9 @@ def format_vt(output, result):
             output['result'] = "file never scanned"
         if 'scans' in data:
             scan = data['scans']
-            av_res = []
-            for av in ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee', 'Sophos']:
+
+            for av in ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee',
+                       'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']:
                 if av in scan:
                     av_res.append("{0}:{1}".format(av, scan[av]['result']))
             output['result'] = " - ".join(av_res)
