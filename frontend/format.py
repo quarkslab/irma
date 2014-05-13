@@ -44,7 +44,7 @@ def format_vt(output, result):
             output['result'] = "file never scanned"
         if 'scans' in data:
             scan = data['scans']
-
+            av_res = []
             for av in ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee',
                        'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']:
                 if av in scan:
