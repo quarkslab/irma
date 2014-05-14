@@ -18,6 +18,8 @@ class ComodoCAVL(Antivirus):
         super(ComodoCAVL, self).__init__(*args, **kwargs)
         # set default antivirus information
         self._name = "Comodo Antivirus for Linux"
+        # Comodo does not use return value as infection indicator
+        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [0]
         # scan tool variables
         self._scan_args = (
             "-v ",  # verbose mode, display more detailed output

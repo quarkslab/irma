@@ -147,14 +147,13 @@ class Antivirus(object):
         self.scan_results[paths] = None
         # unpack results and uniformize return code
         retcode, stdout, stderr = results
-        if self._scan_retcodes[self.ScanResult.CLEAN](retcode):
-            retcode = self.ScanResult.CLEAN
-        elif self._scan_retcodes[self.ScanResult.INFECTED](retcode):
             retcode = self.ScanResult.INFECTED
         elif self._scan_retcodes[self.ScanResult.ERROR](retcode):
             retcode = self.ScanResult.ERROR
             log.error("command line returned {0}".format(retcode) +
                       ": {0}".format((stdout, stderr)))
+        elif self._scan_retcodes[self.ScanResult.CLEAN](retcode):
+            retcode = self.ScanResult.CLEAN
         else:
             reason = ("unhandled return code {0} ".format(retcode) +
                       "in class {0}: ".format(type(self).__name__) +
@@ -163,11 +162,17 @@ class Antivirus(object):
         # handle infected and error error codes
         if retcode in [self.ScanResult.INFECTED, self.ScanResult.ERROR]:
             if stdout:
+                is_false_positive = True
                 for pattern in self.scan_patterns:
                     matches = pattern.finditer(stdout)
                     for match in matches:
                         filename = match.group('file').lower()
-                        self.scan_results[filename] = match.group('name')
+                        if paths in filename:
+                            self.scan_results[filename] = match.group('name')
+                            is_false_positive = False
+                # handle false positive
+                if is_false_positive:
+                    retcode = self.ScanResult.CLEAN
         return retcode
 
     # =========================================================================
