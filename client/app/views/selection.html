@@ -1,5 +1,4 @@
 <form class="selection" ng-submit="trigger()">
-  <p>&lt; Insert IRMA's description here &gt;</p>
 
   <div class="row">
     <div class="col-md-6">
@@ -34,7 +33,7 @@
   <div class="toggle-advanced" ng-click="settings.display = !settings.display">{{(settings.display)? 'Hide': 'Display'}} advanced settings</div>
 
   <div class="settings row" ng-if="settings.display">
-    <div class="col-md-6 params">
+    <div class="col-md-10 col-md-offset-1 params">
       <h3>Scan parameters</h3>
       <p>
         You can bypass the cached results and force a new scan for the file
@@ -49,16 +48,7 @@
         </li>
       </ul>
     </div>
-    <div class="col-md-6 existing">
-      <h3>Existing scan</h3>
-      <p>You can view the results of an existing scan by providing the id provided at the time</p>
-      <div class="input-group">
-        <input type="text" class="form-control" ng-model="existingId">
-        <span class="input-group-btn">
-          <button class="btn btn-default" type="button" ng-click="goToScan(existingId)"><span class="glyphicon glyphicon-arrow-right"></span></button>
-        </span>
-      </div>
-    </div>
+    
   </div>
 
   
@@ -67,3 +57,15 @@
   </p>
 
 </form>
+
+
+<!-- <div class="col-md-6 existing">
+      <h3>Existing scan</h3>
+      <p>You can view the results of an existing scan by providing the id provided at the time</p>
+      <div class="input-group">
+        <input type="text" class="form-control" ng-model="existingId">
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button" ng-click="goToScan(existingId)"><span class="glyphicon glyphicon-arrow-right"></span></button>
+        </span>
+      </div>
+    </div>-->

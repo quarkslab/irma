@@ -27,10 +27,11 @@
     content: '&';
     font-size: 250px;
     font-weight: 700;
+    line-height: 190px;
     color: #dddddd;
     position: absolute;
     right: 80px;
-    top: -90px;
+    top: -10px;
     z-index: 0;
   } 
 }
@@ -52,6 +53,16 @@
     &.active {
       color: #333333;
       font-weight: 700;
+
+      a { color: #333333;}
+    }
+
+    a {
+      color: #aaaaaa;
+      &:hover {
+        text-decoration: none;
+        color: #666666;
+      }
     }
   }
 }

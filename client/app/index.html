@@ -43,7 +43,7 @@
         <li>&gt;</li>
         <li class="{{(state.location=='scan')?'active':''}}">Scan</li>
         <li>&gt;</li>
-        <li class="{{(state.location=='results')?'active':''}}">Results</li>
+        <li class="{{(state.location=='results')?'active':''}}"><a href="#/results">Results</a></li>
       </ul>
 
       <div ng-view></div>
@@ -68,6 +68,7 @@
     <script src="scripts/controllers/selection.js"></script>
     <script src="scripts/controllers/upload.js"></script>
     <script src="scripts/controllers/scan.js"></script>
+    <script src="scripts/controllers/existing.js"></script>
     <script src="scripts/controllers/results.js"></script>
     <script src="scripts/directives/alerts.js"></script>
     <script src="scripts/directives/fileTrigger.js"></script>

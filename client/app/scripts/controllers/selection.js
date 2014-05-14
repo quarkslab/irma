@@ -2,17 +2,17 @@
 
 (function () {
 
-  var dependencies = ['$scope', '$location', 'alerts', 'state', 'config', 'ScanModel'];
-  var Ctrl = function ($scope, $location, alerts, state, config, Scan) {
+  var dependencies = ['$scope', '$location', 'alerts', 'state', 'config', 'constants', 'ScanModel'];
+  var Ctrl = function ($scope, $location, alerts, state, config, constants, Scan) {
 
     // Initialize controller
     for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
 
-    if(this.state.initRequired()){
-      // Init controller
+    //if(this.state.initRequired()){
+      // Init scan
       this.init();
       this.state.currentScan = new Scan();
-    }
+    //}
 
     // Bind things to scope
     $scope.scan = this.state.currentScan;
@@ -25,17 +25,21 @@
 
     this.$scope.settings = {
       display: false,
-      force: false,
+      force: this.constants.forceScanDefault,
       probes: [],
       nbActiveProbes: 0
     };
     this.state.settings = this.$scope.settings;
 
-    this.config.getProbes().then(function(data){
-      if(!data.probe_list || data.probe_list.length === 0){ data.probe_list = ['Probe1', 'Probe2', 'Probe3'];}
+    var disabledProbes = ['VirusTotal'];
 
+    this.config.getProbes().then(function(data){
       for(var i=0; i<data.probe_list.length; i++){
-        this.$scope.settings.probes.push({name: data.probe_list[i], active: true});
+        if(disabledProbes.indexOf(data.probe_list[i]) === -1){
+          this.$scope.settings.probes.push({name: data.probe_list[i], active: true});
+        } else {
+          this.$scope.settings.probes.push({name: data.probe_list[i], active: false});
+        }
       }
       this.$scope.settings.nbActiveProbes = this.$scope.settings.probes.length;
     }.bind(this), function(){

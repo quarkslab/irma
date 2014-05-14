@@ -45,10 +45,10 @@
 
     this.trigger = function(action){
       this.lastAction = action;
-      console.log(action);
     };
 
     $rootScope.state = this;
+    this.location = $route.current.location;
     $rootScope.$on('$routeChangeSuccess', function(event, newRoute, oldRoute){
       this.location = newRoute.location;
     }.bind(this));

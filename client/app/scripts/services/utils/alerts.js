@@ -85,7 +85,7 @@
       'noScanFound': {
         message: '<strong>Warning:</strong> The requested scan does not exist',
         type: 'warning',
-        dismiss: false
+        dismiss: 5000
       }
     };
 

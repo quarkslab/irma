@@ -5443,7 +5443,7 @@ button.close {
   left: 100%;
 }
 .carousel-inner > .prev {
-  left: -99.99999999%;
+  left: -100%;
 }
 .carousel-inner > .next.left,
 .carousel-inner > .prev.right {
@@ -5858,10 +5858,11 @@ p {
   content: '&';
   font-size: 250px;
   font-weight: 700;
+  line-height: 190px;
   color: #dddddd;
   position: absolute;
   right: 80px;
-  top: -90px;
+  top: -10px;
   z-index: 0;
 }
 .status {
@@ -5881,6 +5882,16 @@ p {
 .status li.active {
   color: #333333;
   font-weight: 700;
+}
+.status li.active a {
+  color: #333333;
+}
+.status li a {
+  color: #aaaaaa;
+}
+.status li a:hover {
+  text-decoration: none;
+  color: #666666;
 }
 .selection .drop-zone {
   border: 2px dashed #999999;
@@ -5937,10 +5948,6 @@ p {
 .selection .settings p {
   font-size: 14px;
   padding: 5px 20px 0px;
-}
-.selection .settings .existing .input-group {
-  width: 70%;
-  margin: auto;
 }
 .selection .settings .params .force-scan {
   border: 1px solid #ddd;
@@ -6012,4 +6019,8 @@ p {
 }
 .upload .progress .progress-bar {
   background-color: #999;
+}
+.existing .input-group {
+  width: 70%;
+  margin: auto;
 }
