@@ -31,7 +31,7 @@ class McAfeeVSCL(Antivirus):
             )
         else:
             # TODO: check for retcodes in WINDOWS 
-            self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x not in [0]
+            self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: not x in [0]
             self._scan_args = (
                 "--ASCII "             # display filenames as ASCII text
                 "--ANALYZE "           # turn on heuristic analysis for
@@ -99,6 +99,6 @@ class McAfeeVSCL(Antivirus):
             scan_paths = os.path.normpath("C:\VSCL")
         else:
             scan_bin = "uvscan"
-            scan_paths = os.path.normpath("/usr/local/uvscan")
+            scan_paths = os.path.normpath("/usr/local/uvscan/")
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None

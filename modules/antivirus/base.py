@@ -168,9 +168,10 @@ class Antivirus(object):
                     matches = pattern.finditer(stdout)
                     for match in matches:
                         filename = match.group('file').lower()
-                        self.scan_results[filename] = match.group('name')
-                        is_false_positive = False
-                # handle false positive (detected as infected but no result)
+                        if paths in filename:
+                            self.scan_results[filename] = match.group('name')
+                            is_false_positive = False
+                # handle false positive
                 if is_false_positive:
                     retcode = self.ScanResult.CLEAN
         return retcode

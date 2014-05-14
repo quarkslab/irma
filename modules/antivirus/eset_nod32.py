@@ -25,7 +25,7 @@ class EsetNod32(Antivirus):
             "--no-log-all"        # do not log clean files
         )
         self._scan_patterns = [
-            re.compile(r'name="(?P<file>.*)", threat="(?P<name>.*), action=.*',
+            re.compile(r'name="(?P<file>.*)", threat="(?P<name>.*)", action=.*',
                        re.IGNORECASE | re.MULTILINE)
         ]
 
