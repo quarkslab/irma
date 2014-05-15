@@ -30,8 +30,6 @@ class McAfeeVSCL(Antivirus):
                 "/NOMEM "      # do not scan memory for viruses
             )
         else:
-            # TODO: check for retcodes in WINDOWS 
-            self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: not x in [0]
             self._scan_args = (
                 "--ASCII "             # display filenames as ASCII text
                 "--ANALYZE "           # turn on heuristic analysis for
@@ -42,15 +40,21 @@ class McAfeeVSCL(Antivirus):
                                        # to the specified target directory.
                 "--UNZIP "             # scan inside archive files
             )
+        # TODO: check for retcodes in WINDOWS
+        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: not x in [0]
         self._scan_patterns = [
-            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
-                       r'Found the (?P<name>.*) [a-z]+ \!\!',
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' + 
+                       r'Found the (?P<name>[^!]+)!(.+)\!{1,3}$', 
                        re.IGNORECASE),
-            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
-                       r'Found [a-z]+ or variant (?P<name>.*) \!\!',
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found the (?P<name>[^!]+) [a-z]+ \!{1,3}$',
                        re.IGNORECASE),
-            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
-                       r'Found: (?P<name>.*) NOT a virus',
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found [a-z]+ or variant (?P<name>[^!]+) \!{1,3}$',
+                       re.IGNORECASE),
+            re.compile(r'(?P<file>.*(?=\s+\.\.\.\s+Found:\s+))'
+                       r'\s+\.\.\.\s+Found:\s+'
+                       r'(?P<name>.*(?=\s+NOT\s+a\s+virus\.))',
                        re.IGNORECASE),
         ]
 
