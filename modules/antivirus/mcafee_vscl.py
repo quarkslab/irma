@@ -49,6 +49,9 @@ class McAfeeVSCL(Antivirus):
             re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
                        r'Found [a-z]+ or variant (?P<name>.*) \!\!',
                        re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
+                       r'Found: (?P<name>.*) NOT a virus',
+                       re.IGNORECASE),
         ]
 
     # ==========================================

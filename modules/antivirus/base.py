@@ -169,7 +169,7 @@ class Antivirus(object):
                     for match in matches:
                         filename = match.group('file').lower()
                         if paths in filename:
-                            self.scan_results[filename] = match.group('name')
+                            self.scan_results[paths] = match.group('name')
                             is_false_positive = False
                 # handle false positive
                 if is_false_positive:
