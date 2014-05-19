@@ -171,9 +171,15 @@ class Antivirus(object):
                             filename = match.group('file').lower()
                             if paths.lower() in filename:
                                 name = match.group('name') or None
-                                self.scan_results[paths] = name
-                                is_false_positive = False
+                                # NOTE: get first result, ignore others if 
+                                # binary is packed.
+                                if self.scan_results[paths] is None:
+                                    self.scan_results[paths] = name
+                                    is_false_positive = False
                                 break
+                        # if a match has been found, ignore other patterns
+                        if not is_false_positive:
+                            break
                 # handle false positive
                 if is_false_positive:
                     retcode = self.ScanResult.CLEAN

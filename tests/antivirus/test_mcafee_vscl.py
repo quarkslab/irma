@@ -29,7 +29,7 @@ class McAfeeVSCLEicar(GenericEicar, unittest.TestCase):
         'eicar_niveau10.zip': 'EICAR test file',
         'eicar_niveau11.zip': 'EICAR test file',
         'eicar_niveau12.zip': 'EICAR test file',
-        'eicar_niveau13.zip': 'RDN/Generic Flooder',
+        'eicar_niveau13.zip': 'EICAR test file',
         'eicar_niveau14.bin': 'RDN/Generic Flooder',
         'eicar_niveau14.jpg': 'RDN/Generic Flooder',
         'eicar_niveau1.zip': 'EICAR test file',
