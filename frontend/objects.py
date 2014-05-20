@@ -5,6 +5,7 @@ from lib.irma.common.exceptions import IrmaDatabaseError
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus
+from format import format_result
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
@@ -29,7 +30,17 @@ class ScanResults(NoSQLDatabaseObject):
         sha256 = self.hashvalue
         res[sha256] = {}
         res[sha256]['filename'] = self.name
-        res[sha256]['results'] = self.results
+        res[sha256]['results'] = {}
+        for probe in self.results.keys():
+            # old results format
+            # FIXME: remove this if db is cleaned
+            if 'probe_res' in self.results[probe]:
+                probe_res = format_result(probe,
+                                          self.results[probe]['probe_res'])
+            else:
+                probe_res = format_result(probe,
+                                          self.results[probe])
+            res[sha256]['results'][probe] = probe_res
         return res
 
     @property

@@ -13,12 +13,13 @@ def format_av(output, result):
                 output['result'] = res_list[0]
         else:
             output['result'] = "not parsed"
-        if 'name' in result and 'version' in data:
-            name = data['name']
-            version = data['version']
-            output['version'] = "{0} {1}".format(name, version)
-        elif 'name' in data:
-            output['version'] = data['name']
+        if 'name' in data:
+            if 'version' in data:
+                name = data['name']
+                version = data['version']
+                output['version'] = "{0} ({1})".format(name, version)
+            else:
+                output['version'] = data['name']
     else:
         output['result'] = "Error"
     return
@@ -49,6 +50,13 @@ def format_vt(output, result):
                        'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']:
                 if av in scan:
                     output[av] = scan[av]['result']
+            if 'positives' in data and data['positives'] > 0:
+                nb_detect = data['positives']
+                nb_total = data['total']
+                output['result'] = "detected by {0}/{1}".format(nb_detect,
+                                                                nb_total)
+            else:
+                output['result'] = None
         if 'scan_date' in data:
             output['version'] = data['scan_date']
     else:
@@ -61,18 +69,20 @@ def format_static(output, result):
     if 'data' in result:
         data = result['data'].values()[0]
         if type(data) == dict:
-            output['result'] = data
+            output['result'] = None
+            output['info'] = data
         else:
             output['result'] = "no results"
     else:
         output['result'] = "not a PE file"
+    output['version'] = None
     return
 
 
 def format_nsrl(output, _):
     output['type'] = "database"
     output['result'] = "no formatter"
-    output['version'] = "unknown"
+    output['version'] = None
     return
 
 
@@ -80,16 +90,6 @@ def format_default(output, _):
     output['result'] = "no formatter"
     output['version'] = "unknown"
     return
-
-
-def sanitize_dict(d):
-    new = {}
-    for k, v in d.iteritems():
-        if isinstance(v, dict):
-            v = sanitize_dict(v)
-        newk = k.replace('.', '_').replace('$', '')
-        new[newk] = v
-    return new
 
 probe_formatter = {
     # antivirus
@@ -110,9 +110,8 @@ probe_formatter = {
     }
 
 
-def format_result(probe, raw_result):
-    probe_result = sanitize_dict(raw_result)
+def format_result(probe, result):
     formatter = probe_formatter.get(probe, format_default)
     res = {}
-    formatter(res, probe_result)
+    formatter(res, result)
     return res
