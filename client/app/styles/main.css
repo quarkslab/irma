@@ -6022,6 +6022,7 @@ p {
   transform: rotate(-45deg);
   position: relative;
   bottom: 35px;
+  text-align: center;
 }
 .scan .progress {
   width: 700px;
