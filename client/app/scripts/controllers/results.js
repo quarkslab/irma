@@ -23,8 +23,8 @@
     }.bind(this));
 
     // Link the scan to the scope
-    $scope.scan = this.state.currentScan;
-    $scope.newScan = this.newScan.bind(this);
+    this.$scope.scan = this.state.currentScan;
+    this.$scope.newScan = this.newScan.bind(this);
   };
 
   Ctrl.prototype.newScan = function(){

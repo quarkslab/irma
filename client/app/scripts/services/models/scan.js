@@ -17,6 +17,7 @@
       this.uploader = $fileUploader.create();
       this.task = null;
       this.baseResults = null;
+      this.nbFiles = 0;
 
       this.uploader.bind('completeall', this.uploadComplete.bind(this));
     };
@@ -46,6 +47,9 @@
 
     ScanModel.prototype.uploadComplete = function(event, items){
       var allGood = true, files = {};
+
+      this.nbFiles = this.uploader.queue.length;
+
       _.each(this.uploader.queue, function(item){
         files[item.file.name] = {filename: item.file.name};
         if(!item.isSuccess){ allGood = false;}
@@ -106,8 +110,28 @@
       }.bind(this));
     };
 
+    ScanModel.prototype.getPopover = function(probe, results){
+      return {
+        title: probe,
+        content: results.result
+      };
+    };
+
     ScanModel.prototype.populateResults = function(data){
+
       if(!this.baseResults){
+
+        // Build baseResults
+        var keys = _.keys(data),
+          sample = data[keys[0]];
+
+        this.baseResults = {};
+        this.nbFiles = keys.length;
+        for(var probe in sample.results){
+          if(sample.results.hasOwnProperty(probe)){
+            this.baseResults[probe] = {result: '__loading__'};
+          }
+        }
         return data;
       }
       

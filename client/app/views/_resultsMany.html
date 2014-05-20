@@ -1,0 +1,30 @@
+<table class="table many-results text-center" ng-if="scan.results">
+  <thead>
+    <tr>
+      <th class="first-col">&nbsp;</th>
+      <th ng-repeat="(probe, useless) in scan.baseResults">
+        <div class="probe-name">{{probe}}</div>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="(id, file) in scan.results">
+      <th>
+        {{file.filename}}
+      </th>
+      <td ng-repeat="(toolName, toolResults) in file.results">
+        <ng-switch on="toolResults.result">
+          <div class="col-md-7 result" ng-switch-when="null">
+            <span boolean-display="true"></span>
+          </div>
+          <div class="col-md-7 result" ng-switch-when="__loading__">
+            <span class="glyphicon glyphicon-time" style="color: #555"></span>
+          </div>
+          <div class="col-md-7 result" ng-switch-default data-trigger="hover" bs-popover="scan.getPopover(toolName, toolResults)">
+            <span boolean-display="false"></span>
+          </div>
+        </ng-switch>
+      </td>
+    </tr>
+  </tbody>
+</table>
