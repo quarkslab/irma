@@ -36,6 +36,7 @@ def format_vt(output, result):
     'Kingsoft', 'Microsoft', 'SUPERAntiSpyware', 'GData', 'ESET-NOD32',
     'AVG', 'Baidu-International', 'Symantec', 'PCTools',
     """
+    output['type'] = "web"
     if 'data' in result:
         data = result['data'].values()[0]
         if type(data) is int:
@@ -44,12 +45,10 @@ def format_vt(output, result):
             output['result'] = "file never scanned"
         if 'scans' in data:
             scan = data['scans']
-            av_res = []
             for av in ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee',
                        'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']:
                 if av in scan:
-                    av_res.append("{0}:{1}".format(av, scan[av]['result']))
-            output['result'] = " - ".join(av_res)
+                    output[av] = scan[av]['result']
         if 'scan_date' in data:
             output['version'] = data['scan_date']
     else:
@@ -58,26 +57,20 @@ def format_vt(output, result):
 
 
 def format_static(output, result):
+    output['type'] = "information"
     if 'data' in result:
         data = result['data'].values()[0]
         if type(data) == dict:
-            res = []
-            for (k, v) in data.items():
-                if v is None:
-                    res.append("{0}:none".format(k))
-                elif type(v) == list:
-                    res.append("{0}:{1}".format(k, len(v)))
-                elif type(v) == int or type(v) == str:
-                    res.append("{0}:{1}".format(k, v))
-            output['result'] = " / ".join(res)
+            output['result'] = data
         else:
             output['result'] = "no results"
     else:
-        output['result'] = "Error"
+        output['result'] = "not a PE file"
     return
 
 
 def format_nsrl(output, _):
+    output['type'] = "database"
     output['result'] = "no formatter"
     output['version'] = "unknown"
     return
@@ -118,8 +111,8 @@ probe_formatter = {
 
 
 def format_result(probe, raw_result):
-    res = {}
-    res['probe_res'] = sanitize_dict(raw_result)
+    probe_result = sanitize_dict(raw_result)
     formatter = probe_formatter.get(probe, format_default)
-    formatter(res, raw_result)
+    res = {}
+    formatter(res, probe_result)
     return res
