@@ -14,13 +14,13 @@
       </th>
       <td ng-repeat="(toolName, toolResults) in file.results">
         <ng-switch on="toolResults.result">
-          <div class="col-md-7 result" ng-switch-when="null">
+          <div class="result" ng-switch-when="null">
             <span boolean-display="true"></span>
           </div>
-          <div class="col-md-7 result" ng-switch-when="__loading__">
+          <div class="result" ng-switch-when="__loading__">
             <span class="glyphicon glyphicon-time" style="color: #555"></span>
           </div>
-          <div class="col-md-7 result" ng-switch-default data-trigger="hover" bs-popover="scan.getPopover(toolName, toolResults)">
+          <div class="result" ng-switch-default data-trigger="hover" bs-popover="scan.getPopover(toolName, toolResults)">
             <span boolean-display="false"></span>
           </div>
         </ng-switch>
