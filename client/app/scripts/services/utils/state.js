@@ -18,6 +18,7 @@
     this.initResults = function(settings){
       if(!this.currentScan) { return false;}
       else {
+        this.baseResults = {};
         for(var i=0; i<settings.probes.length; i++){
           if(settings.probes[i].active){ this.baseResults[settings.probes[i].name] = {result: '__loading__'}; }
         }

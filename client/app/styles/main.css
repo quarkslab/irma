@@ -6006,6 +6006,24 @@ p {
 .file-display .virus {
   color: #d9534f;
 }
+.many-results {
+  table-layout: fixed;
+  margin-top: 80px;
+}
+.many-results .first-col {
+  width: 360px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.many-results .probe-name {
+  -webkit-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+  position: relative;
+  bottom: 35px;
+  text-align: center;
+}
 .scan .progress {
   width: 700px;
   margin: 5px auto 20px;

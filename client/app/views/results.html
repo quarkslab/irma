@@ -7,7 +7,8 @@
   You can link this report with the url, or with this id: <strong>{{scan.id}}</strong>
 </p>
 
-<div ng-include="'views/_results.html'"></div>
+<div ng-if="scan.nbFiles < 5" ng-include="'views/_results.html'"></div>
+<div ng-if="scan.nbFiles >= 5" ng-include="'views/_resultsMany.html'"></div>
 
 <p>
   <button class="action btn btn-lg btn-success" ng-click="newScan()">New Scan</button>

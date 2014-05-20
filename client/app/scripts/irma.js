@@ -4,7 +4,8 @@ angular.module('irma', [
   'ngResource',
   'ngSanitize',
   'ngRoute',
-  'angularFileUpload'
+  'angularFileUpload',
+  'mgcrea.ngStrap'
 ])
   .constant('constants', {
     fakeDelay: 0,
