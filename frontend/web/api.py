@@ -348,7 +348,7 @@ def file_search(sha256):
     """ lookup file by sha256
 
     :route: /file/search/<scanid>
-    :param scanid: id returned by scan_new
+    :param sha256 of the file
     :rtype: dict of 'code': int, 'msg': str
         [, optional 'scan_results': dict of [
             sha256 value: dict of
@@ -363,6 +363,34 @@ def file_search(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
     try:
         found = core.file_search(sha256)
+        return IrmaFrontendReturn.success(scan_results=found)
+    except IrmaFrontendWarning as e:
+        return IrmaFrontendReturn.warning(str(e))
+    except IrmaFrontendError as e:
+        return IrmaFrontendReturn.error(str(e))
+    except Exception as e:
+        return IrmaFrontendReturn.error(str(e))
+
+
+@route("/file/suspicious/<sha256>")
+def file_suspicious(sha256):
+    """ lookup file by sha256
+
+    :route: /file/suspicious/<sha256>
+    :param sha256 of the file
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'suspicious':boolean, 'nb_detected':int, 'nb_scan':int]
+    :return:
+        on success 'suspicious' contains boolean results
+        with details in 'nb_detected' and 'nb_scan'
+        on warning file was not found
+        on error 'msg' gives reason message
+    """
+    # Filter malformed scanid
+    if not _valid_sha256(sha256):
+        return IrmaFrontendReturn.error("not a valid sha256")
+    try:
+        found = core.file_suspicious(sha256)
         return IrmaFrontendReturn.success(scan_results=found)
     except IrmaFrontendWarning as e:
         return IrmaFrontendReturn.warning(str(e))

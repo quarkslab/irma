@@ -283,3 +283,29 @@ def file_search(sha256):
         return ref_res.get_results()
     except IrmaDatabaseError as e:
         raise IrmaFrontendWarning(str(e))
+
+def file_suspicious(sha256):
+    """ return results for file with given sha256 value
+
+    :rtype: dict of ['filename':str,
+        'results':dict of [str probename: dict [results of probe]]]
+    :return:
+        if exists returns all available scan results
+        for file with given sha256 value
+    :raise: IrmaFrontendWarning, IrmaFrontendError
+    """
+    try:
+        f = ScanFile(sha256=sha256)
+        ref_res = ScanRefResults(id=f.id)
+        results = ref_res.get_results(filter_type='antivirus')
+        nb_scan = nb_detected = 0
+        for probe_res in results.values():
+            nb_scan += 1
+            if probe_res['results'] is not None:
+                nb_detected += 1
+        suspicious = False
+        if nb_detected > 0:
+            suspicious = True
+        return {'suspicious':suspicious, 'nb_detected':nb_detected, 'nb_scan':nb_scan}
+    except IrmaDatabaseError as e:
+        raise IrmaFrontendWarning(str(e))
