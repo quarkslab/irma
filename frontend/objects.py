@@ -25,7 +25,7 @@ class ScanResults(NoSQLDatabaseObject):
         self.results = {}
         super(ScanResults, self).__init__(**kwargs)
 
-    def get_results(self):
+    def get_results(self, filter_type=None):
         res = {}
         sha256 = self.hashvalue
         res[sha256] = {}
@@ -35,11 +35,15 @@ class ScanResults(NoSQLDatabaseObject):
             # old results format
             # FIXME: remove this if db is cleaned
             if 'probe_res' in self.results[probe]:
-                probe_res = format_result(probe,
-                                          self.results[probe]['probe_res'])
+                probe_res = self.results[probe]['probe_res']
             else:
-                probe_res = format_result(probe,
-                                          self.results[probe])
+                probe_res = self.results[probe]
+            # filter by type
+            if filter_type is not None and \
+             'type' in probe_res and \
+             probe_res['type'] != filter_type:
+                continue
+            format_result(probe, probe_res)
             res[sha256]['results'][probe] = probe_res
         return res
 
@@ -85,10 +89,10 @@ class ScanInfo(NoSQLDatabaseObject):
                     return False
         return True
 
-    def get_results(self):
+    def get_results(self, filter_type=None):
         res = {}
         for scaninfo_id in self.scanfile_ids.values():
-            res.update(ScanResults(id=scaninfo_id).get_results())
+            res.update(ScanResults(id=scaninfo_id).get_results(filter_type))
         return res
 
     @classmethod

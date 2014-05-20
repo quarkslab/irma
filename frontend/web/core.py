@@ -158,7 +158,8 @@ def scan_results(scanid):
     """
     # fetch results in db
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    return scan.get_results()
+    scan_res = scan.get_results(filter_type='antivirus')
+    return scan_res
 
 
 def scan_progress(scanid):
