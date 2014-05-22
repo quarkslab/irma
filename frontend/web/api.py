@@ -199,7 +199,11 @@ def scan_result(scanid):
     if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        results = core.scan_results(scanid)
+        # handle 'filter' parameter
+        filterlist = None
+        if 'filter' in request.params:
+            filterlist = request.params['filter'].split(',')
+        results = core.scan_results(scanid, filterlist)
         return IrmaFrontendReturn.success(scan_results=results)
     except IrmaFrontendWarning as e:
         return IrmaFrontendReturn.warning(str(e))
