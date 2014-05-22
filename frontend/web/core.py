@@ -158,7 +158,7 @@ def scan_results(scanid):
     """
     # fetch results in db
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    scan_res = scan.get_results(filter_type='antivirus')
+    scan_res = scan.get_results(filter_type=['antivirus', 'web'])
     return scan_res
 
 

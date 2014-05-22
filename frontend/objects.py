@@ -12,6 +12,25 @@ cfg_dbname = config.frontend_config['mongodb'].dbname
 cfg_coll = config.frontend_config['collections']
 
 
+def format_results(res_dict, filter_type=None):
+    # filter type is list of type returned
+    res = {}
+    for probe in res_dict.keys():
+        # old results format
+        # FIXME: remove this if db is cleaned
+        if 'probe_res' in res_dict[probe]:
+            probe_res = res_dict[probe]['probe_res']
+        else:
+            probe_res = res_dict[probe]
+        format_res = format_result(probe, probe_res)
+        # filter by type
+        if filter_type is not None and \
+         'type' in format_res and \
+         format_res['type'] not in filter_type:
+            continue
+        res[probe] = format_res
+    return res
+
 class ScanResults(NoSQLDatabaseObject):
     _uri = cfg_dburi
     _dbname = cfg_dbname
@@ -30,21 +49,8 @@ class ScanResults(NoSQLDatabaseObject):
         sha256 = self.hashvalue
         res[sha256] = {}
         res[sha256]['filename'] = self.name
-        res[sha256]['results'] = {}
-        for probe in self.results.keys():
-            # old results format
-            # FIXME: remove this if db is cleaned
-            if 'probe_res' in self.results[probe]:
-                probe_res = self.results[probe]['probe_res']
-            else:
-                probe_res = self.results[probe]
-            # filter by type
-            if filter_type is not None and \
-             'type' in probe_res and \
-             probe_res['type'] != filter_type:
-                continue
-            format_result(probe, probe_res)
-            res[sha256]['results'][probe] = probe_res
+        res[sha256]['results'] = format_results(self.results,
+                                                filter_type=filter_type)
         return res
 
     @property
@@ -92,7 +98,8 @@ class ScanInfo(NoSQLDatabaseObject):
     def get_results(self, filter_type=None):
         res = {}
         for scaninfo_id in self.scanfile_ids.values():
-            res.update(ScanResults(id=scaninfo_id).get_results(filter_type))
+            scan_res = ScanResults(id=scaninfo_id)
+            res.update(scan_res.get_results(filter_type=filter_type))
         return res
 
     @classmethod
@@ -145,14 +152,15 @@ class ScanRefResults(NoSQLDatabaseObject):
     def probelist(self):
         return self.results.keys()
 
-    def get_results(self):
+    def get_results(self, filter_type=None):
         res = {}
         if self.results:
             scanfile = ScanFile(id=self.id)
             sha256 = scanfile.hashvalue
             res[sha256] = {}
             res[sha256]['filename'] = " - ".join(scanfile.alt_filenames)
-            res[sha256]['results'] = self.results
+            res[sha256]['results'] = format_results(self.results,
+                                                    filter_type=filter_type)
             res[sha256]['nb_scan'] = len(scanfile.scan_id)
             res[sha256]['date_upload'] = scanfile.date_upload
             res[sha256]['date_last_scan'] = scanfile.date_last_scan
