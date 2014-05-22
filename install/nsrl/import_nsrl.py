@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #
 # Copyright (c) 2014 QuarksLab.
 # This file is part of IRMA project.
@@ -12,8 +14,6 @@
 # No part of the project, including this file, may be copied,
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
-
-#!/usr/bin/env python
 
 import leveldb
 import sys
