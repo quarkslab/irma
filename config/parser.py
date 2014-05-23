@@ -136,6 +136,7 @@ def conf_frontend_celery(app):
         CELERY_TIMEZONE='UTC'
     )
 
+
 def get_db_uri():
     host = frontend_config.mongodb.host
     port = frontend_config.mongodb.port
