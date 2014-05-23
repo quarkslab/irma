@@ -18,7 +18,7 @@ import config.parser as config
 from frontend.objects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
 from lib.irma.common.exceptions import IrmaDatabaseError, \
- IrmaDatabaseResultNotFound
+    IrmaDatabaseResultNotFound
 
 
 # =====================
@@ -267,6 +267,7 @@ def probe_list():
     """
     return _task_probe_list()
 
+
 def file_exists(sha256):
     """ return results for file with given sha256 value
 
@@ -282,6 +283,7 @@ def file_exists(sha256):
         return False
     except IrmaDatabaseError as e:
         raise IrmaFrontendError(str(e))
+
 
 def file_result(sha256):
     """ return results for file with given sha256 value
@@ -302,6 +304,7 @@ def file_result(sha256):
     except IrmaDatabaseError as e:
         raise IrmaFrontendWarning(str(e))
 
+
 def file_infected(sha256):
     """ return antivirus score for file with given sha256 value
 
@@ -315,17 +318,19 @@ def file_infected(sha256):
     try:
         f = ScanFile(sha256=sha256)
         ref_res = ScanRefResults(id=f.id)
-        results = ref_res.get_results()
         nb_scan = nb_detected = 0
-        for probe_res in results.values():
-            if 'results' not in probe_res:
+        for (probe, res) in ref_res.results.items():
+            if probe not in ['ClamAV', 'ComodoCAVL', 'EsetNod32', 'FProt',
+                             'Kaspersky', 'McAfeeVSCL', 'Sophos', 'Symantec']:
                 continue
             nb_scan += 1
-            if probe_res['results'] is not None:
+            if res['result'] is not None:
                 nb_detected += 1
         suspicious = False
         if nb_detected > 0:
             suspicious = True
-        return {'infected':suspicious, 'nb_detected':nb_detected, 'nb_scan':nb_scan}
+        return {'infected': suspicious,
+                'nb_detected': nb_detected,
+                'nb_scan': nb_scan}
     except IrmaDatabaseError as e:
         raise IrmaFrontendWarning(str(e))

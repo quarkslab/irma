@@ -14,7 +14,6 @@
 # terms contained in the LICENSE file.
 
 
-
 def format_av(output, result):
     if 'data' in result:
         data = result['data']

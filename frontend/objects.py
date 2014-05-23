@@ -17,7 +17,7 @@ import hashlib
 import config.parser as config
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaDatabaseError, \
-IrmaDatabaseResultNotFound
+    IrmaDatabaseResultNotFound
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus

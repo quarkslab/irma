@@ -364,6 +364,7 @@ def file_exists(sha256):
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
+
 @route("/file/result/<sha256>")
 def file_result(sha256):
     """ lookup file by sha256
@@ -409,8 +410,10 @@ def file_infected(sha256):
     if not _valid_sha256(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
     try:
-        found = core.file_infected(sha256)
-        return IrmaFrontendReturn.success(found)
+        res = core.file_infected(sha256)
+        return IrmaFrontendReturn.success(infected=res['infected'],
+                                          nb_scan=res['nb_scan'],
+                                          nb_detected=res['nb_detected'])
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
