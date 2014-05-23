@@ -107,6 +107,7 @@ def scan_launch(scanid, force):
         print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=15, max_retries=10)
 
+
 def sanitize_dict(d):
     new = {}
     for k, v in d.iteritems():
@@ -115,6 +116,7 @@ def sanitize_dict(d):
         newk = k.replace('.', '_').replace('$', '')
         new[newk] = v
     return new
+
 
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
