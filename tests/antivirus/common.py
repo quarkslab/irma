@@ -74,9 +74,9 @@ class GenericAVTest():
         with open(file, 'rb') as rfd:
             # create temp file
             (fd, tmpname) = tempfile.mkstemp()
+            os.close(fd)
             with open(tmpname, 'wb') as wfd:
                 wfd.write(rfd.read())
-            os.close(fd)
         return tmpname
 
     def test_eicar(self):
@@ -87,7 +87,8 @@ class GenericAVTest():
             file = os.path.join(self.abspath, self.subfolder, file)
             tmpname = self.__class__.copy_to_tmpfile(file)
             self.scan_and_check(tmpname, result)
-            os.remove(tmpname)
+            if os.path.exists(tmpname):
+                os.remove(tmpname)
 
 
 class GenericEicar(GenericAVTest):
