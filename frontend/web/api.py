@@ -342,13 +342,35 @@ def probe_list():
 # ==========
 #  File api
 # ==========
+@route("/file/exists/<sha256>")
+def file_exists(sha256):
+    """ lookup file by sha256 and tell if it exists
 
-@route("/file/search/<sha256>")
-def file_search(sha256):
+    :route: /file/exists/<sha256>
+    :param sha256 of the file
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'exists':boolean]
+    :return:
+        on success 'exists' contains a boolean telling if
+        file exists or not
+        on error 'msg' gives reason message
+    """
+    # Filter malformed scanid
+    if not _valid_sha256(sha256):
+        return IrmaFrontendReturn.error("not a valid sha256")
+    try:
+        exists = core.file_exists(sha256)
+        return IrmaFrontendReturn.success(exists=exists)
+    except Exception as e:
+        return IrmaFrontendReturn.error(str(e))
+
+
+@route("/file/result/<sha256>")
+def file_result(sha256):
     """ lookup file by sha256
 
     :route: /file/search/<scanid>
-    :param scanid: id returned by scan_new
+    :param sha256 of the file
     :rtype: dict of 'code': int, 'msg': str
         [, optional 'scan_results': dict of [
             sha256 value: dict of
@@ -362,12 +384,36 @@ def file_search(sha256):
     if not _valid_sha256(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
     try:
-        found = core.file_search(sha256)
-        return IrmaFrontendReturn.success(scan_results=found)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
+        res = core.file_result(sha256)
+        return IrmaFrontendReturn.success(scan_results=res)
+    # handle all errors/warning as errors
+    # file existence should be tested before calling this route
+    except Exception as e:
         return IrmaFrontendReturn.error(str(e))
+
+
+@route("/file/infected/<sha256>")
+def file_infected(sha256):
+    """ lookup file by sha256 and tell if av detect it as
+        infected
+
+    :route: /file/suspicious/<sha256>
+    :param sha256 of the file
+    :rtype: dict of 'code': int, 'msg': str
+        [, optional 'infected':boolean, 'nb_detected':int, 'nb_scan':int]
+    :return:
+        on success 'infected' contains boolean results
+        with details in 'nb_detected' and 'nb_scan'
+        on error 'msg' gives reason message
+    """
+    # Filter malformed scanid
+    if not _valid_sha256(sha256):
+        return IrmaFrontendReturn.error("not a valid sha256")
+    try:
+        res = core.file_infected(sha256)
+        return IrmaFrontendReturn.success(infected=res['infected'],
+                                          nb_scan=res['nb_scan'],
+                                          nb_detected=res['nb_detected'])
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 

@@ -16,7 +16,8 @@
 import hashlib
 import config.parser as config
 from lib.common.compat import timestamp
-from lib.irma.common.exceptions import IrmaDatabaseError
+from lib.irma.common.exceptions import IrmaDatabaseError, \
+    IrmaDatabaseResultNotFound
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus
@@ -180,7 +181,7 @@ class ScanFile(NoSQLDatabaseObject):
             if sha256:
                 _oid = self._get_id_by_sha256(sha256)
                 if _oid is None:
-                    raise IrmaDatabaseError("sha256 not found")
+                    raise IrmaDatabaseResultNotFound("sha256 not found")
                 else:
                     self.load(_oid)
             else:
