@@ -21,7 +21,7 @@ from lib.irma.common.exceptions import IrmaDatabaseError, \
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus
-from format import format_result
+from frontend.format import IrmaProbeType, IrmaFormatter
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
@@ -38,7 +38,7 @@ def format_results(res_dict, filter_type):
             probe_res = res_dict[probe]['probe_res']
         else:
             probe_res = res_dict[probe]
-        format_res = format_result(probe, probe_res)
+        format_res = IrmaFormatter.format(probe, probe_res)
         # filter by type
         if filter_type is not None and \
            'type' in format_res and \
@@ -112,13 +112,14 @@ class ScanInfo(NoSQLDatabaseObject):
                     return False
         return True
 
-    def get_results(self, filter_type=None):
+    def get_results(self, filter_type=[IrmaProbeType.antivirus,
+                                       IrmaProbeType.external]):
         # When asking for result for a scan
-        # returns only antivirus results
+        # returns only antivirus/external probe results
         res = {}
         for scaninfo_id in self.scanfile_ids.values():
             scan_res = ScanResults(id=scaninfo_id)
-            res.update(scan_res.get_results(filter_type='antivirus'))
+            res.update(scan_res.get_results(filter_type=filter_type))
         return res
 
     @classmethod
