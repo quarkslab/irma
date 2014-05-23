@@ -24,49 +24,31 @@ class IrmaProbeType:
              information: "information",
              external:    "external",
              }
-
     mapping = {
         # Antivirus
-        'ClamAV':     IrmaProbeType.antivirus,
-        'ComodoCAVL': IrmaProbeType.antivirus,
-        'EsetNod32':  IrmaProbeType.antivirus,
-        'FProt':      IrmaProbeType.antivirus,
-        'Kaspersky':  IrmaProbeType.antivirus,
-        'McAfeeVSCL': IrmaProbeType.antivirus,
-        'Sophos':     IrmaProbeType.antivirus,
-        'Symantec':   IrmaProbeType.antivirus,
+        'ClamAV':     antivirus,
+        'ComodoCAVL': antivirus,
+        'EsetNod32':  antivirus,
+        'FProt':      antivirus,
+        'Kaspersky':  antivirus,
+        'McAfeeVSCL': antivirus,
+        'Sophos':     antivirus,
+        'Symantec':   antivirus,
         # Information
-        'StaticAnalyzer':   IrmaProbeType.information,
+        'StaticAnalyzer':   information,
         # External
-        'Nsrl':         IrmaProbeType.external,
-        'VirusTotal':   IrmaProbeType.external,
+        'Nsrl':         external,
+        'VirusTotal':   external,
         }
 
     @staticmethod
     def get_type(probe_name):
-        probe_type = IrmaProbeType.mapping.type.get(probe_name,
-                                                    IrmaProbeType.unknown)
+        probe_type = IrmaProbeType.mapping.get(probe_name,
+                                               IrmaProbeType.unknown)
         return IrmaProbeType.label[probe_type]
 
 
 class IrmaFormatter:
-    mapping = {
-        # Antivirus
-        'ClamAV':     IrmaFormatter.format_av,
-        'ComodoCAVL': IrmaFormatter.format_av,
-        'EsetNod32':  IrmaFormatter.format_av,
-        'FProt':      IrmaFormatter.format_av,
-        'Kaspersky':  IrmaFormatter.format_av,
-        'McAfeeVSCL': IrmaFormatter.format_av,
-        'Sophos':     IrmaFormatter.format_av,
-        'Symantec':   IrmaFormatter.format_av,
-        # Information
-        'Nsrl':             IrmaFormatter.format_default,
-        'StaticAnalyzer':   IrmaProbeType.format_default,
-        # External
-        'VirusTotal': IrmaProbeType.format_vt,
-        }
-
     @staticmethod
     def format(probe_name, raw_result):
         formatter = IrmaFormatter.mapping.get(probe_name,
@@ -144,3 +126,20 @@ class IrmaFormatter:
     @staticmethod
     def format_default(raw_result):
         return raw_result
+
+IrmaFormatter.mapping = {
+        # Antivirus
+        'ClamAV':     IrmaFormatter.format_av,
+        'ComodoCAVL': IrmaFormatter.format_av,
+        'EsetNod32':  IrmaFormatter.format_av,
+        'FProt':      IrmaFormatter.format_av,
+        'Kaspersky':  IrmaFormatter.format_av,
+        'McAfeeVSCL': IrmaFormatter.format_av,
+        'Sophos':     IrmaFormatter.format_av,
+        'Symantec':   IrmaFormatter.format_av,
+        # Information
+        'Nsrl':             IrmaFormatter.format_default,
+        'StaticAnalyzer':   IrmaFormatter.format_default,
+        # External
+        'VirusTotal': IrmaFormatter.format_vt,
+        }
