@@ -14,33 +14,95 @@
 # terms contained in the LICENSE file.
 
 
-def format_av(output, result):
-    if 'data' in result:
-        data = result['data']
-        if 'scan_results' in data:
-            res_list = data['scan_results'].values()
-            if len(res_list) > 1:
-                # if multiple output, filter None results
-                res = [item for item in res_list if item is not None]
-                output['result'] = " - ".join(res)
+class IrmaProbeType:
+    unknown = 0
+    antivirus = 1
+    information = 2
+    external = 3
+    label = {unknown:     "unknown",
+             antivirus:   "antivirus",
+             information: "information",
+             external:    "external",
+             }
+
+    mapping = {
+        # Antivirus
+        'ClamAV':     IrmaProbeType.antivirus,
+        'ComodoCAVL': IrmaProbeType.antivirus,
+        'EsetNod32':  IrmaProbeType.antivirus,
+        'FProt':      IrmaProbeType.antivirus,
+        'Kaspersky':  IrmaProbeType.antivirus,
+        'McAfeeVSCL': IrmaProbeType.antivirus,
+        'Sophos':     IrmaProbeType.antivirus,
+        'Symantec':   IrmaProbeType.antivirus,
+        # Information
+        'StaticAnalyzer':   IrmaProbeType.information,
+        # External
+        'Nsrl':         IrmaProbeType.external,
+        'VirusTotal':   IrmaProbeType.external,
+        }
+
+    @staticmethod
+    def get_type(probe_name):
+        probe_type = IrmaProbeType.mapping.type.get(probe_name,
+                                                    IrmaProbeType.unknown)
+        return IrmaProbeType.label[probe_type]
+
+
+class IrmaFormatter:
+    mapping = {
+        # Antivirus
+        'ClamAV':     IrmaFormatter.format_av,
+        'ComodoCAVL': IrmaFormatter.format_av,
+        'EsetNod32':  IrmaFormatter.format_av,
+        'FProt':      IrmaFormatter.format_av,
+        'Kaspersky':  IrmaFormatter.format_av,
+        'McAfeeVSCL': IrmaFormatter.format_av,
+        'Sophos':     IrmaFormatter.format_av,
+        'Symantec':   IrmaFormatter.format_av,
+        # Information
+        'Nsrl':             IrmaFormatter.format_default,
+        'StaticAnalyzer':   IrmaProbeType.format_default,
+        # External
+        'VirusTotal': IrmaProbeType.format_vt,
+        }
+
+    @staticmethod
+    def format(probe_name, raw_result):
+        formatter = IrmaFormatter.mapping.get(probe_name,
+                                              IrmaFormatter.format_default)
+        res = formatter(raw_result)
+        res['type'] = IrmaProbeType.get_type(probe_name)
+        return res
+
+    @staticmethod
+    def format_av(raw_result):
+        output = {}
+        if 'data' in raw_result:
+            data = raw_result['data']
+            if 'scan_results' in data:
+                temp_list = data['scan_results'].values()
+                if len(temp_list) > 1:
+                    # if multiple output, filter None results
+                    temp = [item for item in temp_list if item is not None]
+                    output['result'] = " - ".join(temp)
+                else:
+                    output['result'] = temp_list[0]
             else:
-                output['result'] = res_list[0]
+                output['result'] = "not parsed"
+            if 'name' in data:
+                if 'version' in data:
+                    name = data['name']
+                    version = data['version']
+                    output['version'] = "{0} ({1})".format(name, version)
+                else:
+                    output['version'] = data['name']
         else:
-            output['result'] = "not parsed"
-        if 'name' in data:
-            if 'version' in data:
-                name = data['name']
-                version = data['version']
-                output['version'] = "{0} ({1})".format(name, version)
-            else:
-                output['version'] = data['name']
-    else:
-        output['result'] = "Error"
-    return
+            output['result'] = "Error"
+        return output
 
-
-def format_vt(output, result):
-    """ VT AVs list
+    """
+    VT AVs list
     'Bkav', 'MicroWorld-eScan', 'nProtect', 'K7AntiVirus', 'NANO-Antivirus',
     'F-Prot', 'Norman', 'Kaspersky', 'ByteHero', 'F-Secure', 'TrendMicro',
     'McAfee-GW-Edition', 'Sophos', 'Jiangmin', 'ViRobot', 'Commtouch',
@@ -51,81 +113,34 @@ def format_vt(output, result):
     'Kingsoft', 'Microsoft', 'SUPERAntiSpyware', 'GData', 'ESET-NOD32',
     'AVG', 'Baidu-International', 'Symantec', 'PCTools',
     """
-    output['type'] = "web"
-    if 'data' in result:
-        data = result['data'].values()[0]
-        if type(data) is int:
-            output['result'] = "error {0}".format(data)
-        if 'response_code' in data and data['response_code'] == 0:
-            output['result'] = "file never scanned"
-        if 'scans' in data:
-            scan = data['scans']
-            for av in ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee',
-                       'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']:
-                if av in scan:
-                    output[av] = scan[av]['result']
-            if 'positives' in data and data['positives'] > 0:
-                nb_detect = data['positives']
-                nb_total = data['total']
-                output['result'] = "detected by {0}/{1}".format(nb_detect,
-                                                                nb_total)
-            else:
-                output['result'] = None
-        if 'scan_date' in data:
-            output['version'] = data['scan_date']
-    else:
-        output['result'] = "Error"
-    return
-
-
-def format_static(output, result):
-    output['type'] = "information"
-    if 'data' in result:
-        data = result['data'].values()[0]
-        if type(data) == dict:
-            output['result'] = None
-            output['info'] = data
+    @staticmethod
+    def format_vt(raw_result):
+        output = {}
+        if 'data' in raw_result:
+            data = raw_result['data'].values()[0]
+            if type(data) is int:
+                output['result'] = "error {0}".format(data)
+            if 'response_code' in data and data['response_code'] == 0:
+                output['result'] = "file never scanned"
+            if 'scans' in data:
+                scan = data['scans']
+                for av in ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee',
+                           'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']:
+                    if av in scan:
+                        output[av] = scan[av]['result']
+                if 'positives' in data and data['positives'] > 0:
+                    nb_detect = data['positives']
+                    nb_total = data['total']
+                    ratio = "{0}/{1}".format(nb_detect, nb_total)
+                    output['result'] = "detected by {0}".format(ratio)
+                else:
+                    output['result'] = None
+            if 'scan_date' in data:
+                output['version'] = data['scan_date']
         else:
-            output['result'] = "no results"
-    else:
-        output['result'] = "not a PE file"
-    output['version'] = None
-    return
+            output['result'] = "Error"
+        return output
 
-
-def format_nsrl(output, _):
-    output['type'] = "database"
-    output['result'] = "no formatter"
-    output['version'] = None
-    return
-
-
-def format_default(output, _):
-    output['result'] = "no formatter"
-    output['version'] = "unknown"
-    return
-
-probe_formatter = {
-    # antivirus
-    'ClamAV': format_av,
-    'ComodoCAVL': format_av,
-    'EsetNod32': format_av,
-    'FProt': format_av,
-    'Kaspersky': format_av,
-    'McAfeeVSCL': format_av,
-    'Sophos': format_av,
-    'Symantec': format_av,
-    # database
-    'Nsrl': format_nsrl,
-    # information
-    'StaticAnalyzer': format_static,
-    # web
-    'VirusTotal': format_vt,
-    }
-
-
-def format_result(probe, result):
-    formatter = probe_formatter.get(probe, format_default)
-    res = {}
-    formatter(res, result)
-    return res
+    @staticmethod
+    def format_default(raw_result):
+        return raw_result
