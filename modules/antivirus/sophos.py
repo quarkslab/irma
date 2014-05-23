@@ -20,20 +20,24 @@ class Sophos(Antivirus):
         super(Sophos, self).__init__(*args, **kwargs)
         # set default antivirus information
         self._name = "Sophos Anti-Virus"
-        # set constant log full path
-        self._log_path = os.path.join(tempfile.gettempdir(), "sophos.log")
         # scan tool variables
         self._scan_args = (
             "-archive "  # scan inside archives
+            "-cab " # scan microsoft cab file
+            "-loopback " # scan loopback-type file
+            "-tnef " # scan tnet file
+            "-mime " # scan file encoded with mime format
+            "-oe " # scan microsoft outlook
+            "-pua " # scan file encoded with mime format
             "-ss "  # only print errors or found viruses
             "-nc "  # do not ask remove confirmation when infected
             "-nb "  # no bell sound
-            "-p={0} ".format(self._log_path)  # log to file specified
         )
         code_infected = self.ScanResult.INFECTED
-        self._scan_retcodes[code_infected] = lambda x: x in [1, 2, 3]
+        # NOTE: on windows, 0 can be returned even if the file is infected
+        self._scan_retcodes[code_infected] = lambda x: x in [0, 1, 2, 3]
         self._scan_patterns = [
-            re.compile(r">>> Virus '(?P<name>.+)' found in file (?P<file>.*)",
+            re.compile(r">>> Virus '(?P<name>.+)' found in file (?P<file>.+)",
                        re.IGNORECASE)
         ]
 
@@ -98,32 +102,4 @@ class Sophos(Antivirus):
         # quirk to force lang in linux
         if not self._is_windows:
             os.environ['LANG'] = "C"
-        if os.path.exists(self._log_path):
-            self._last_log_time = os.path.getmtime(self._log_path)
-        else:
-            self._last_log_time = time.time()
         return super(Sophos, self).scan(paths, heuristic)
-
-    def check_scan_results(self, paths, results):
-        retcode, stdout, stderr = results[0], None, results[2]
-        if os.path.exists(self._log_path):
-            # wait for log to be updated
-            mtime = os.path.getmtime(self._log_path)
-            delay = 10
-            while (self._last_log_time != mtime and
-                   (mtime - self._last_log_time) > 0.5 and
-                   delay != 0):
-                time.sleep(1)
-                mtime = os.path.getmtime(self._log_path)
-                delay -= 1
-            lines = []
-            # look for the line corresponding to this filename
-            with open(self._log_path, 'r') as fd:
-                for line in reversed(fd.readlines()):
-                    if paths.lower() in line.lower():
-                        lines.append(line)
-            stdout = "".join(lines)
-            # force scan_result to consider it infected
-            retcode = 1 if stdout else 0
-            results = (retcode, stdout, stderr)
-        return super(Sophos, self).check_scan_results(paths, results)
