@@ -176,7 +176,9 @@ class Antivirus(object):
                                 if self.scan_results[paths] is None:
                                     self.scan_results[paths] = name
                                     is_false_positive = False
-                                break
+                                    # NOTE: break only when a concluding result
+                                    # has been found
+                                    break
                         # if a match has been found, ignore other patterns
                         if not is_false_positive:
                             break
