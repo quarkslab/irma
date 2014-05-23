@@ -171,7 +171,7 @@ class Antivirus(object):
                             filename = match.group('file').lower()
                             if paths.lower() in filename:
                                 name = match.group('name') or None
-                                # NOTE: get first result, ignore others if 
+                                # NOTE: get first result, ignore others if
                                 # binary is packed.
                                 if self.scan_results[paths] is None:
                                     self.scan_results[paths] = name

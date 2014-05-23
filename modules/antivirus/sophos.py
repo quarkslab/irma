@@ -22,16 +22,16 @@ class Sophos(Antivirus):
         self._name = "Sophos Anti-Virus"
         # scan tool variables
         self._scan_args = (
-            "-archive "  # scan inside archives
-            "-cab " # scan microsoft cab file
-            "-loopback " # scan loopback-type file
-            "-tnef " # scan tnet file
-            "-mime " # scan file encoded with mime format
-            "-oe " # scan microsoft outlook
-            "-pua " # scan file encoded with mime format
-            "-ss "  # only print errors or found viruses
-            "-nc "  # do not ask remove confirmation when infected
-            "-nb "  # no bell sound
+            "-archive "   # scan inside archives
+            "-cab "       # scan microsoft cab file
+            "-loopback "  # scan loopback-type file
+            "-tnef "      # scan tnet file
+            "-mime "      # scan file encoded with mime format
+            "-oe "        # scan microsoft outlook
+            "-pua "       # scan file encoded with mime format
+            "-ss "        # only print errors or found viruses
+            "-nc "        # do not ask remove confirmation when infected
+            "-nb "        # no bell sound
         )
         code_infected = self.ScanResult.INFECTED
         # NOTE: on windows, 0 can be returned even if the file is infected

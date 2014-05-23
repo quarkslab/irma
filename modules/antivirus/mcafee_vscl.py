@@ -41,10 +41,10 @@ class McAfeeVSCL(Antivirus):
                 "--UNZIP "             # scan inside archive files
             )
         # TODO: check for retcodes in WINDOWS
-        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: not x in [0]
+        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x not in [0]
         self._scan_patterns = [
-            re.compile(r'(?P<file>[^\s]+) \.\.\. ' + 
-                       r'Found the (?P<name>[^!]+)!(.+)\!{1,3}$', 
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found the (?P<name>[^!]+)!(.+)\!{1,3}$',
                        re.IGNORECASE),
             re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
                        r'Found the (?P<name>[^!]+) [a-z]+ \!{1,3}$',
