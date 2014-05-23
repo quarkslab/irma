@@ -1,8 +1,24 @@
+#
+# Copyright (c) 2014 QuarksLab.
+# This file is part of IRMA project.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License in the top-level directory
+# of this distribution and at:
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# No part of the project, including this file, may be copied,
+# modified, propagated, or distributed except according to the
+# terms contained in the LICENSE file.
+
 import celery
 import config.parser as config
 from frontend.objects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
-from lib.irma.common.exceptions import IrmaDatabaseError
+from lib.irma.common.exceptions import IrmaDatabaseError, \
+    IrmaDatabaseResultNotFound
 
 
 # =====================
@@ -253,19 +269,69 @@ def probe_list():
     return _task_probe_list()
 
 
-def file_search(sha256):
+def file_exists(sha256):
     """ return results for file with given sha256 value
 
-    :rtype: dict of ['filename':str,
-        'results':dict of [str probename: dict [results of probe]]]
+    :rtype: boolean
+    :return:
+        if exists returns True else False
+    :raise: IrmaFrontendError
+    """
+    try:
+        ScanFile(sha256=sha256)
+        return True
+    except IrmaDatabaseResultNotFound:
+        return False
+    except IrmaDatabaseError as e:
+        raise IrmaFrontendError(str(e))
+
+
+def file_result(sha256):
+    """ return results for file with given sha256 value
+
+    :rtype: dict of [
+            sha256 value: dict of
+                'filenames':list of filename,
+                'results': dict of [str probename: dict [results of probe]]]]
     :return:
         if exists returns all available scan results
         for file with given sha256 value
-    :raise: IrmaFrontendWarning, IrmaFrontendError
+    :raise: IrmaFrontendError
     """
     try:
         f = ScanFile(sha256=sha256)
         ref_res = ScanRefResults(id=f.id)
         return ref_res.get_results()
+    except IrmaDatabaseError as e:
+        raise IrmaFrontendWarning(str(e))
+
+
+def file_infected(sha256):
+    """ return antivirus score for file with given sha256 value
+
+    :rtype: dict of ['infected':boolean,
+        'nb_scan':int, 'nb_detected': int ]
+    :return:
+        returns detection score for
+        file with given sha256 value
+    :raise: IrmaFrontendError
+    """
+    try:
+        f = ScanFile(sha256=sha256)
+        ref_res = ScanRefResults(id=f.id)
+        nb_scan = nb_detected = 0
+        for (probe, res) in ref_res.results.items():
+            if probe not in ['ClamAV', 'ComodoCAVL', 'EsetNod32', 'FProt',
+                             'Kaspersky', 'McAfeeVSCL', 'Sophos', 'Symantec']:
+                continue
+            nb_scan += 1
+            if res['result'] is not None:
+                nb_detected += 1
+        suspicious = False
+        if nb_detected > 0:
+            suspicious = True
+        return {'infected': suspicious,
+                'nb_detected': nb_detected,
+                'nb_scan': nb_scan}
     except IrmaDatabaseError as e:
         raise IrmaFrontendWarning(str(e))

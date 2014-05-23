@@ -1,7 +1,23 @@
+#
+# Copyright (c) 2014 QuarksLab.
+# This file is part of IRMA project.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License in the top-level directory
+# of this distribution and at:
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# No part of the project, including this file, may be copied,
+# modified, propagated, or distributed except according to the
+# terms contained in the LICENSE file.
+
 import hashlib
 import config.parser as config
 from lib.common.compat import timestamp
-from lib.irma.common.exceptions import IrmaDatabaseError
+from lib.irma.common.exceptions import IrmaDatabaseError, \
+    IrmaDatabaseResultNotFound
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus
@@ -188,7 +204,7 @@ class ScanFile(NoSQLDatabaseObject):
             if sha256:
                 _oid = self._get_id_by_sha256(sha256)
                 if _oid is None:
-                    raise IrmaDatabaseError("sha256 not found")
+                    raise IrmaDatabaseResultNotFound("sha256 not found")
                 else:
                     self.load(_oid)
             else:
