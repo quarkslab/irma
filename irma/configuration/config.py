@@ -13,6 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+
 class AttributeDictionary(dict):
     """A dictionnary with object-like accessors"""
 

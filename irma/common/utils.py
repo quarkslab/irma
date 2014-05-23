@@ -14,7 +14,6 @@
 # terms contained in the LICENSE file.
 
 
-
 # ==========================
 #  Tasks response formatter
 # ==========================
