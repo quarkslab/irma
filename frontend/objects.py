@@ -113,10 +113,8 @@ class ScanInfo(NoSQLDatabaseObject):
                     return False
         return True
 
-    def get_results(self, filter_type=[IrmaProbeType.antivirus,
-                                       IrmaProbeType.external]):
-        # When asking for result for a scan
-        # returns only antivirus/external probe results
+    def get_results(self, filter_type=None):
+        # filter_type list of IrmaProbeType
         res = {}
         for scaninfo_id in self.scanfile_ids.values():
             scan_res = ScanResults(id=scaninfo_id)
