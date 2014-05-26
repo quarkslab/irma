@@ -19,6 +19,7 @@ from frontend.objects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
+from frontend.format import IrmaProbeType
 
 
 # =====================
@@ -320,10 +321,9 @@ def file_infected(sha256):
         f = ScanFile(sha256=sha256)
         ref_res = ScanRefResults(id=f.id)
         nb_scan = nb_detected = 0
-        for (probe, res) in ref_res.results.items():
-            if probe not in ['ClamAV', 'ComodoCAVL', 'EsetNod32', 'FProt',
-                             'Kaspersky', 'McAfeeVSCL', 'Sophos', 'Symantec']:
-                continue
+        av_results = ref_res.get_results(filter_type=[IrmaProbeType.antivirus])
+        probe_res = av_results[sha256]['results']
+        for res in probe_res.values():
             nb_scan += 1
             if res['result'] is not None:
                 nb_detected += 1
