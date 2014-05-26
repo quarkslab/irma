@@ -131,9 +131,9 @@ class IrmaFormatter:
     def format_default(raw_result):
         output = {}
         if 'data' in raw_result:
-            output = raw_result['data'].values()[0]
+            output['details'] = raw_result['data'].values()[0]
         else:
-            output = raw_result
+            output['details'] = raw_result
         output['result'] = None
         return output
 
