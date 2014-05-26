@@ -39,12 +39,12 @@ def format_results(res_dict, filter_type):
         else:
             probe_res = res_dict[probe]
         format_res = IrmaFormatter.format(probe, probe_res)
-        # filter by type
-        filter_str = [ IrmaProbeType.label[ft] for ft in filter_type]
-        if filter_type is not None and \
-           'type' in format_res and \
-           format_res['type'] not in filter_str:
-            continue
+        if filter_type is not None:
+            # filter by type
+            filter_str = [ IrmaProbeType.label[ft] for ft in filter_type]
+            if 'type' in format_res and \
+             format_res['type'] not in filter_str:
+                continue
         res[probe] = format_res
     return res
 
