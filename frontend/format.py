@@ -134,6 +134,7 @@ class IrmaFormatter:
             output = raw_result['data'].values()[0]
         else:
             output = raw_result
+        output['result'] = None
         return output
 
     @staticmethod
