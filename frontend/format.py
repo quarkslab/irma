@@ -125,6 +125,15 @@ class IrmaFormatter:
 
     @staticmethod
     def format_default(raw_result):
+        output = {}
+        if 'data' in raw_result:
+            output = raw_result['data'].values()[0]
+        else:
+            output = raw_result
+        return output
+
+    @staticmethod
+    def no_format(raw_result):
         return raw_result
 
 IrmaFormatter.mapping = {
@@ -138,7 +147,7 @@ IrmaFormatter.mapping = {
         'Sophos':     IrmaFormatter.format_av,
         'Symantec':   IrmaFormatter.format_av,
         # Information
-        'Nsrl':             IrmaFormatter.format_default,
+        'Nsrl':             IrmaFormatter.no_format,
         'StaticAnalyzer':   IrmaFormatter.format_default,
         # External
         'VirusTotal': IrmaFormatter.format_vt,
