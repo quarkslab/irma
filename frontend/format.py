@@ -55,6 +55,10 @@ class IrmaFormatter:
                                               IrmaFormatter.format_default)
         res = formatter(raw_result)
         res['type'] = IrmaProbeType.get_type(probe_name)
+        if 'metadata' in raw_result and 'duration' in raw_result['metadata']:
+            res['duration'] = raw_result['metadata']['duration']
+        else:
+            res['duration'] = "not available"
         return res
 
     @staticmethod
