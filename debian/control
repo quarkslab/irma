@@ -8,5 +8,5 @@ Homepage: http://github.com/quarkslab/irma-probe.git
 
 Package: irma-probe
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip, python2.7-dev
+Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip
 Description: Base install for Irma probes

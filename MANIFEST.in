@@ -1,2 +1,3 @@
 exclude .gitignore .gitmodules
 recursive-exclude lib *.gitignore *.git
+exclude config/probe.ini
