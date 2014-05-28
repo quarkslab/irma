@@ -61,16 +61,36 @@ class User(Base):
 if __name__ == "__main__":
     # create all dbs
     import config.parser as config
+    import sys
+    import os
+
+    if len(sys.argv) not in (4, 5):
+        print("usage: {0} <username> <rmqvhost> <ftpuser> [quota]\n"
+              "      with <username> a string\n"
+              "           <rmqvhost> the rmqvhost used for the frontend\n"
+              "           <ftpuser> the ftpuser used by the frontend\n"
+              "           [quota] the number of file scan quota\n"
+              "example: {0} test1 mqfrontend frontend"
+              "".format(sys.argv[0]))
+        sys.exit(1)
+
+    dirname = os.path.dirname(config.brain_config['sql_brain'].dbname)
+    if not (os.path.exists(dirname) and os.path.isdir(dirname)):
+        print("Error. Maybe have you forgotten to create directory {0} ?"
+              "".format(dirname))
+        sys.exit(1)
+
+    # quota is in number of files (0 means disabled)
+    quota = int(sys.argv) if len(sys.argv) == 5 else 0
 
     engine = config.brain_config['sql_brain'].engine
     dbname = config.brain_config['sql_brain'].dbname
     sql = SQLDatabase(engine + dbname)
     metadata = Base.metadata
     metadata.create_all(sql._db)
-    # quota is in number of files (0 means disabled)
-    user = User(name="test1",
-                rmqvhost="mqfrontend",
-                ftpuser="frontend1",
-                quota=0)
+    user = User(name=sys.argv[1],
+                rmqvhost=sys.argv[2],
+                ftpuser=sys.argv[3],
+                quota=quota)
     sql.add(user)
     sql.commit()

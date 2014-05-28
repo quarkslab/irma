@@ -137,8 +137,8 @@ def scan(scanid, scan_request):
     sql = SQLDatabase(engine + dbname)
     available_probelist = get_probelist()
     jobs_list = []
-    # FIXME: get rmq_vhost
-    rmqvhost = "mqfrontend"
+    # FIXME: get rmq_vhost dynamically
+    rmqvhost = config.brain_config['broker_frontend'].vhost
     try:
         user = sql.one_by(User, rmqvhost=rmqvhost)
         quota = get_quota(sql, user)
@@ -204,8 +204,8 @@ def scan_progress(scanid):
         sql = SQLDatabase(engine + dbname)
     except Exception as e:
         return IrmaTaskReturn.error("Brain SQL: {0}".format(e))
-    # FIXME: get rmq_vhost
-    rmqvhost = "mqfrontend"
+    # FIXME: get rmq_vhost dynamically
+    rmqvhost = config.brain_config['broker_frontend'].vhost
     try:
         user = sql.one_by(User, rmqvhost=rmqvhost)
     except Exception as e:
@@ -237,8 +237,8 @@ def scan_cancel(scanid):
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
         sql = SQLDatabase(engine + dbname)
-        # FIXME: get rmq_vhost
-        rmqvhost = "mqfrontend"
+        # FIXME: get rmq_vhost dynamically
+        rmqvhost = config.brain_config['broker_frontend'].vhost
         try:
             user = sql.one_by(User, rmqvhost=rmqvhost)
         except IrmaDatabaseError as e:
@@ -280,8 +280,8 @@ def scan_result(result, ftpuser, scanid, filename, probe):
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
         sql = SQLDatabase(engine + dbname)
-        # FIXME get rmq_vhost
-        rmqvhost = "mqfrontend"
+        # FIXME get rmq_vhost dynamically
+        rmqvhost = config.brain_config['broker_frontend'].vhost
         user = sql.one_by(User, rmqvhost=rmqvhost)
         scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
         gr = get_groupresult(scan.taskid)
