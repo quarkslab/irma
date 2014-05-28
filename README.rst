@@ -118,6 +118,9 @@ You could easily generate the user database by running:
 
 .. code-block:: bash
 
+    # NOTE: the folder where the database is going to be stored must be created
+    # beforehand. By default, create a folder ``db`` at the root of the project.
+
     $ python -m brain.objects
 
 database path is taken from the config file.
