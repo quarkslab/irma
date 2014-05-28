@@ -31,3 +31,8 @@ Architecture: all
 Depends: nginx, irma-frontend-api-uwsgi, irma-frontend-web-data, ${shlibs:Depends}, ${misc:Depends}
 Description: Irma Frontend nginx configuration
  Setup the frontend interface with nginx
+
+Package: irma-frontend
+Architecture: all
+Depends: irma-frontend-api, irma-frontend-api-uwsgi, irma-frontend-web-data, irma-frontend-web-nginx, ${shlibs:Depends}, ${misc:Depends}
+Description: Irma Frontend Meta-package
