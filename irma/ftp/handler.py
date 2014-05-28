@@ -101,17 +101,17 @@ class FtpTls(object):
     # =================
 
     def _connect(self):
-        if self._conn:
+        if self._conn is not None:
             log.warn("Already connected to ftp server")
         try:
             self._conn = FTP_TLS_Data(self._host, self._user, self._passwd)
-            # Explicitely ask for secure data channel
+            # Explicitly ask for secure data channel
             self._conn.prot_p()
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
     def _disconnect(self):
-        if not self._conn:
+        if self._conn is None:
             return
         try:
             self._conn.close()
@@ -171,7 +171,7 @@ class FtpTls(object):
             raise IrmaFtpError("{0}".format(e))
 
     def download(self, path, remotename, dstname):
-        """ Download <data> to remote <filename> into directory <path>"""
+        """ Download <remotename> found in <path> to <dstname>"""
         try:
             data = []
             with open(dstname, 'wb') as f:
@@ -179,6 +179,7 @@ class FtpTls(object):
                 self._conn.retrbinary("RETR {0}".format(dstpath),
                                       lambda x: data.append(x))
                 buf = ''.join(data)
+                # remotename is hashvalue of data
                 self._check_hash(remotename, buf)
                 f.write(buf)
         except Exception as e:
