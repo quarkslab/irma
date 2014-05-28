@@ -16,7 +16,7 @@ CELERY_APP="probe.tasks"
 #CELERY_APP="proj.tasks:app"
 
 # Where to chdir at start.
-CELERYD_CHDIR="/home/irma/irma/"
+CELERYD_CHDIR="/opt/irma/irma-probe/"
 
 # Extra command-line arguments to the worker
 CELERYD_OPTS="--without-gossip --without-mingle --without-heartbeat "
@@ -28,8 +28,8 @@ CELERYD_PID_FILE="/var/run/celery/%N.pid"
 # Workers should run as an unprivileged user.
 #   You need to create this user manually (or you can choose
 #   a user/group combination that already exists, e.g. nobody).
-CELERYD_USER="celery"
-CELERYD_GROUP="celery"
+CELERYD_USER="irma"
+CELERYD_GROUP="irma"
 
 # If enabled pid and log directories will be created if missing,
 # and owned by the userid/group configured.
