@@ -147,6 +147,7 @@ add ftpuser
 config pure-ftpd
 
 .. code-block:: bash
+
     $ echo "yes" > /etc/pure-ftpd/conf/CreateHomeDir
     $ echo "no" > /etc/pure-ftpd/conf/PAMAuthentication
     $ echo "2" > /etc/pure-ftpd/conf/TLS
