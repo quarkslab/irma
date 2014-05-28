@@ -1,0 +1,4 @@
+*.pyc
+config/brain.ini
+dist
+*.egg-info/
