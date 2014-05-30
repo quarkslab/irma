@@ -8,7 +8,6 @@ Overview
 
 This package handles the scan job for one file.
 
-
 Features
 --------
 
@@ -38,7 +37,91 @@ Database info:
 
 Others:
 
-    * Static Analyzer
+    * Static Analyzer (adapted from Cuckoo Sandbox)
+
+=======
+Install
+=======
+
+Quick Installation
+------------------
+
+The following script installs IRMA on a probe with default values. Do not
+forget to change parameter according to your setting. For a more advanced
+installation, see detailed installation section.
+
+.. code-block:: bash
+
+    #!/bin/bash
+
+    ###########################################################
+    # Parameters
+    ###########################################################
+
+    PROBE_NAME="multiprobe"
+    BRAIN_IP_ADDR="brain.irma.qb"
+
+    ###########################################################
+    # Install dependencies
+    ###########################################################
+
+    sudo apt-get install gdebi
+
+    ###########################################################
+    # Download packages
+    ###########################################################
+
+    curl -O https://github.com/quarkslab/irma-probe/releases/download/v1.0.1/irma-probe_1.0.1-1_all.deb
+
+    ###########################################################
+    # Install packages
+    ###########################################################
+
+    sudo gdebi irma-probe_1.0.1-1_all.deb
+
+    ###########################################################
+    # Configuration
+    ###########################################################
+
+    sudo sed -i "s/^name\s*=.*$/name = $PROBE_NAME/" /opt/irma/irma-probe/config/probe.ini
+    sudo sed -i "s/^host\s*=.*$/host = $BRAIN_IP_ADDR/" /opt/irma/irma-probe/config/probe.ini
+
+    ###########################################################
+    # Install probes & restart services
+    ###########################################################
+
+    sudo apt-get install clamav  # For ClamAV probe
+    sudo pip install requests    # For VirusTotal probe (need api key, see config)
+    sudo pip install pefile python-magic  # For Cuckoo's Static Analyzer
+
+    sudo /etc/init.d/celeryd restart
+
+
+Detailed Installation
+---------------------
+
+For a detailed windows probe install guide see `windows`_ install.
+
+For a detailed linux probe install guide see `linux`_ install.
+
+
+.. NOTE::
+
+    With the default installation, no probe is available. One can easily set up
+    the following probes for tests purposes:
+
+         - ClamAV (on debian, ``apt-get install clamav``
+         - VirusTotal (``pip install requests`` and add VirusTotal API key in config file)
+         - StaticAnalyzer (``pip install python-magic pefile``)
+
+    Then, one can see the detected probes with the following command from irma
+    installation directory:
+
+    .. code-block:: bash
+
+        $ cd /opt/irma/irma-probe
+        $ python -m probe/tasks
+
 
 ======
 Config
@@ -99,24 +182,12 @@ The default location of the configuration file is ``IRMA_INSTALL_DIR/config/prob
 +----------------+-------------+------------+-----------+
 
 
-**Install**
-
-for a detailed windows probe install guide see `windows`_ install.
-for a detailed linux probe install guide see `linux`_ install.
-
 TODO
 ----
 
-* Handle duplicate entries and jointures
-* Move probe.py from config
-* Centralize antivirus code for debug purposes
-* Remove script folder and replace with our python script
 * Make an plugin-friendly interface for static modules
-* Add configuration file
 * Launch celery from a python script
 * Add support for more Linux and Windows antiviruses
-* Uniformize output results (see plugin with adrien)
-* Improve NSRL code (use __getattr__ instead of __get__)
 * Add different heuristics for antiviruses
 * Add speed parameter for antiviruses
 
