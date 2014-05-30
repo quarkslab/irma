@@ -2,8 +2,15 @@
   <thead>
     <tr>
       <th class="first-col">&nbsp;</th>
-      <th ng-repeat="(probe, useless) in scan.baseResults">
-        <div class="probe-name">{{probe}}</div>
+      <th ng-repeat="(probe, probeData) in scan.baseResults">
+        <div title="{{probe}}" 
+          data-content="{{probeData.version || 'No version information available'}}" 
+          data-trigger="hover"
+          data-placement="bottom"
+          bs-popover
+        >
+          <div class="probe-name">{{probe}}</div>
+        </div>
       </th>
     </tr>
   </thead>
