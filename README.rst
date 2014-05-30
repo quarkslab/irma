@@ -60,19 +60,19 @@ installation, see detailed installation section.
     # Download packages
     ###########################################################
 
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.1/irma-brain-celery_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.1/irma-brain-ftpd_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.1/irma-brain-rabbitmq_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.1/irma-brain-redis_1.1.0-1_all.deb
+    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.2/irma-brain-celery_1.0.2-1_all.deb
+    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.2/irma-brain-ftpd_1.0.2-1_all.deb
+    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.2/irma-brain-rabbitmq_1.0.2-1_all.deb
+    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.2/irma-brain-redis_1.0.2-1_all.deb
 
     ###########################################################
     # Install packages
     ###########################################################
 
-    sudo gdebi irma-brain-redis_1.1.0-1_all.deb
-    sudo gdebi irma-brain-rabbitmq_1.1.0-1_all.deb
-    sudo gdebi irma-brain-ftpd_1.1.0-1_all.deb
-    sudo gdebi irma-brain-celery_1.1.0-1_all.deb
+    sudo gdebi irma-brain-redis_1.0.2-1_all.deb
+    sudo gdebi irma-brain-rabbitmq_1.0.2-1_all.deb
+    sudo gdebi irma-brain-ftpd_1.0.2-1_all.deb
+    sudo gdebi irma-brain-celery_1.0.2-1_all.deb
 
     ###########################################################
     # Configuration
