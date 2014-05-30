@@ -126,15 +126,19 @@ Requirements:
 * grunt
 * compass
 
+**nodejs**
+
+.. code-block:: bash
+
+    $ echo "deb http://ftp.us.debian.org/debian wheezy-backports main" >> /etc/apt/sources.list
+    $ apt-get update
+    $ apt-get install nodejs-legacy
+
 **npm**
 
 .. code-block:: bash
 
-    $ cd /tmp
-    $ wget https://raw.github.com/nicolargo/nodeautoinstall/master/nodeautoinstall.py
-    $ sudo python ./nodeautoinstall.py -d
-    $ export PATH=$PATH:/opt/node/bin
-    $ export NODE_PATH=/opt/node:/opt/node/lib/node_modules
+    $ curl --insecure https://www.npmjs.org/install.sh | bash
 
 **bower**
 

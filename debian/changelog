@@ -1,5 +1,5 @@
-irma-frontend (1.0.1-1) unstable; urgency=low
+irma-frontend (1.1.0-1) unstable; urgency=low
 
   * source package automatically created by stdeb 0.6.0+git
 
- -- Alexandre Quint <aquint@quarkslab.com>  Thu, 9 May 2014 17:10:36 +0200
+ -- Alexandre Quint <aquint@quarkslab.com>  Fri, 23 May 2014 17:10:36 +0200
