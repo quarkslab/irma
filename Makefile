@@ -3,7 +3,7 @@ DESTDIR=/
 DISTDIR=$(CURDIR)/deb_dist
 BUILDIR=$(CURDIR)/debian/irma-frontend
 PROJECT=irma-frontend
-VERSION=1.1.0
+VERSION=1.0.2
 
 all:
 	@echo "make web-dist - do magic on web files"
