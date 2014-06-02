@@ -14,11 +14,7 @@ all:
 	@echo "make clean - Get rid of scratch and byte files"
 
 web-dist:
-	@cd web/ && npm install
-	@cd web/ && bower install
-	@cd web/ && ln -sf `pwd`/bower_components `pwd`/app/bower_components
-	@cd web/ && grunt build --force
-	@cd web/ && cp -r `pwd`/.tmp/styles `pwd`/dist/styles
+	@cd web/ && grunt build
 
 source:
 	$(PYTHON) setup.py sdist $(COMPILE)
