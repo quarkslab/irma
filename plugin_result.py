@@ -59,10 +59,10 @@ class PluginResult(object):
         self._calculate_duration()
 
     def _calculate_duration(self):
-        start = self.metadata.get('start_time')
-        end = self.metadata.get('end_time')
-        if end and start:
-            delta = end - start
+        start_time = self.metadata.get('start_time')
+        end_time = self.metadata.get('end_time')
+        if end_time and start_time:
+            delta = end_time - start_time
         else:
             delta = datetime.timedelta(0)
         self.metadata['duration'] = int(delta.total_seconds())
@@ -105,14 +105,18 @@ class PluginResult(object):
         self._metadata = metadata
 
     def serialize(self):
-        start = self.metadata.get('start_time')
-        end = self.metadata.get('end_time')
+        # retrieve values
+        plugin = self.metadata.get('plugin')
+        start_time = self.metadata.get('start_time')
+        end_time = self.metadata.get('end_time')
+        duration = self.metadata.get('duration')
+        # create result dictionary
         result = {
             'metadata': {
-                'plugin': self.metadata.get('plugin'),
-                'start_time': mktime(start.timetuple()),
-                'end_time': mktime(end.timetuple()),
-                'duration': self.metadata.get('duration')
+                'plugin': plugin,
+                'start_time': mktime(start_time.timetuple()),
+                'end_time': mktime(end_time.timetuple()),
+                'duration': duration
             },
             'raw': self.raw,
             'data': self.data,
