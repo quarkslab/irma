@@ -1,3 +1,18 @@
+#
+# Copyright (c) 2013-2014 QuarksLab.
+# This file is part of IRMA project.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License in the top-level directory
+# of this distribution and at:
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# No part of the project, including this file, may be copied,
+# modified, propagated, or distributed except according to the
+# terms contained in the LICENSE file.
+
 import logging
 import re
 import os
@@ -40,12 +55,21 @@ class McAfeeVSCL(Antivirus):
                                        # to the specified target directory.
                 "--UNZIP "             # scan inside archive files
             )
+        # TODO: check for retcodes in WINDOWS
+        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x not in [0]
         self._scan_patterns = [
-            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
-                       r'Found the (?P<name>.*) [a-z]+ \!\!',
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found the (?P<name>[^!]+)!(.+)\!{1,3}$',
                        re.IGNORECASE),
-            re.compile(r'(?P<file>[^\s]*) \.\.\. ' +
-                       r'Found [a-z]+ or variant (?P<name>.*) \!\!',
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found the (?P<name>[^!]+) [a-z]+ \!{1,3}$',
+                       re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found [a-z]+ or variant (?P<name>[^!]+) \!{1,3}$',
+                       re.IGNORECASE),
+            re.compile(r'(?P<file>.*(?=\s+\.\.\.\s+Found:\s+))'
+                       r'\s+\.\.\.\s+Found:\s+'
+                       r'(?P<name>.*(?=\s+NOT\s+a\s+virus\.))',
                        re.IGNORECASE),
         ]
 
@@ -97,6 +121,6 @@ class McAfeeVSCL(Antivirus):
             scan_paths = os.path.normpath("C:\VSCL")
         else:
             scan_bin = "uvscan"
-            scan_paths = os.path.normpath("/usr/local/uvscan")
+            scan_paths = os.path.normpath("/usr/local/uvscan/")
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None
