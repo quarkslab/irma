@@ -6,6 +6,12 @@ Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://github.com/quarkslab/irma-brain.git
 
+Package: irma-rsyslog-server
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: Rsyslog configuration for IRMA
+ Rsyslog server configuration for IRMA
+
 Package: irma-brain-celery
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip
