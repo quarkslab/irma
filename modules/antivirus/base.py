@@ -1,3 +1,18 @@
+#
+# Copyright (c) 2013-2014 QuarksLab.
+# This file is part of IRMA project.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License in the top-level directory
+# of this distribution and at:
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# No part of the project, including this file, may be copied,
+# modified, propagated, or distributed except according to the
+# terms contained in the LICENSE file.
+
 import logging
 import re
 import os
@@ -147,6 +162,7 @@ class Antivirus(object):
         self.scan_results[paths] = None
         # unpack results and uniformize return code
         retcode, stdout, stderr = results
+        if self._scan_retcodes[self.ScanResult.INFECTED](retcode):
             retcode = self.ScanResult.INFECTED
         elif self._scan_retcodes[self.ScanResult.ERROR](retcode):
             retcode = self.ScanResult.ERROR
@@ -163,13 +179,24 @@ class Antivirus(object):
         if retcode in [self.ScanResult.INFECTED, self.ScanResult.ERROR]:
             if stdout:
                 is_false_positive = True
-                for pattern in self.scan_patterns:
-                    matches = pattern.finditer(stdout)
-                    for match in matches:
-                        filename = match.group('file').lower()
-                        if paths in filename:
-                            self.scan_results[filename] = match.group('name')
-                            is_false_positive = False
+                for line in stdout.splitlines():
+                    for pattern in self.scan_patterns:
+                        matches = pattern.finditer(line)
+                        for match in matches:
+                            filename = match.group('file').lower()
+                            if paths.lower() in filename:
+                                name = match.group('name') or None
+                                # NOTE: get first result, ignore others if
+                                # binary is packed.
+                                if self.scan_results[paths] is None:
+                                    self.scan_results[paths] = name
+                                    is_false_positive = False
+                                    # NOTE: break only when a concluding result
+                                    # has been found
+                                    break
+                        # if a match has been found, ignore other patterns
+                        if not is_false_positive:
+                            break
                 # handle false positive
                 if is_false_positive:
                     retcode = self.ScanResult.CLEAN
