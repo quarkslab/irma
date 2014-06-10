@@ -41,6 +41,7 @@ cwd = os.path.abspath(os.path.dirname(__file__))
 cfg_file = "{0}/{1}".format(cwd, "probe.ini")
 probe_config = TemplatedConfiguration(cfg_file, template_probe_config)
 
+
 # ================
 #  Celery helpers
 # ================
@@ -113,11 +114,13 @@ def configure_syslog(app):
         after_setup_logger.connect(setup_log)
         after_setup_task_logger.connect(setup_log)
 
+
 def setup_log(**args):
     # redirect stdout and stderr to logger
     redirect_stdouts_to_logger(args['logger'])
     # logs to local syslog
-    hl = SysLogHandler('/dev/log', facility=SysLogHandler.facility_names['syslog'])
+    hl = SysLogHandler('/dev/log',
+                       facility=SysLogHandler.facility_names['syslog'])
     # setting log level
     hl.setLevel(args['loglevel'])
     # setting log format

@@ -91,7 +91,7 @@ def probe_scan(frontend, scanid, filename):
         # retrieve queue name and the associated plugin
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
-        conf_ftp = config.ftp_brain
+        conf_ftp = config.probe_config.ftp_brain
         (fd, tmpname) = tempfile.mkstemp()
         os.close(fd)
         with FtpTls(conf_ftp.host,
