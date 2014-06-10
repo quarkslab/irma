@@ -212,6 +212,7 @@ def scan(scanid, scan_request):
 
 @scan_app.task()
 def scan_progress(scanid):
+    print ("{0}: scan progress".format(scanid))
     try:
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
