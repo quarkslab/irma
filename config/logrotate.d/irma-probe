@@ -1,4 +1,4 @@
-/var/log/ivy-collector.log
+/var/log/irma/probe/syslog.log
 {
     rotate 1
     daily
