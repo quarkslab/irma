@@ -1,0 +1,6 @@
+config opt/irma/irma-brain/
+brain opt/irma/irma-brain/
+install opt/irma/irma-brain/
+lib opt/irma/irma-brain/
+install/celery/init.d/* /etc/init.d/
+install/celery/default/* /etc/default/
