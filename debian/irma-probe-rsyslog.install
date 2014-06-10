@@ -1,0 +1,1 @@
+config/rsyslog.d/irma-client.conf /etc/rsyslog.d/

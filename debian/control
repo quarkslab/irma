@@ -10,3 +10,13 @@ Package: irma-probe
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip
 Description: Base install for Irma probes
+
+Package: irma-probe-rsyslog
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: rsyslog client for IRMA probes
+
+Package: irma-probe-logrotate
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: logrotate configuration for IRMA probes
