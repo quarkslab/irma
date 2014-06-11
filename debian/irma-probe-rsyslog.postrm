@@ -18,10 +18,12 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+RSYSLOG_CONFIG_FILE="/etc/rsyslog.d/irma-probe-client.conf"
+
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-		if [ -f /etc/rsyslog.d/irma-client.conf ]; then
-			rm /etc/rsyslog.d/irma-client.conf
+		if [ -f $RSYSLOG_CONFIG_FILE ]; then
+			rm $RSYSLOG_CONFIG_FILE
 		fi
 		invoke-rc.d rsyslogd restart
     ;;

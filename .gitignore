@@ -1,1 +1,7 @@
 *.pyc
+
+# for debian packages
+debian/*.substvars
+debian/*.log
+debian/files
+debian/rules
