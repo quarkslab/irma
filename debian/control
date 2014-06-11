@@ -32,7 +32,17 @@ Depends: nginx, irma-frontend-api-uwsgi, irma-frontend-web-data, ${shlibs:Depend
 Description: Irma Frontend nginx configuration
  Setup the frontend interface with nginx
 
+Package: irma-frontend-rsyslog
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: rsyslog client for IRMA frontend
+
+Package: irma-frontend-logrotate
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: logrotate configuration for IRMA frontend
+
 Package: irma-frontend
 Architecture: all
-Depends: irma-frontend-api, irma-frontend-api-uwsgi, irma-frontend-web-data, irma-frontend-web-nginx, ${shlibs:Depends}, ${misc:Depends}
+Depends: irma-frontend-rsyslog, irma-frontend-logrotate, irma-frontend-api, irma-frontend-api-uwsgi, irma-frontend-web-data, irma-frontend-web-nginx, ${shlibs:Depends}, ${misc:Depends}
 Description: Irma Frontend Meta-package

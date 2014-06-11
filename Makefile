@@ -40,6 +40,13 @@ builddeb: web-dist
 clean:
 	$(PYTHON) setup.py clean
 	#$(MAKE) -f $(CURDIR)/debian/rules clean
+	rm -rf $(CURDIR)/debian/irma-frontend
+	rm -rf $(CURDIR)/debian/irma-frontend-api-uwsgi
+	rm -rf $(CURDIR)/debian/irma-frontend-api
+	rm -rf $(CURDIR)/debian/irma-frontend-web-data
+	rm -rf $(CURDIR)/debian/irma-frontend-rsyslog
+	rm -rf $(CURDIR)/debian/irma-frontend-logrotate
+	rm -rf $(CURDIR)/debian/irma-frontend-web-nginx
 	rm -rf build/ MANIFEST $(DISTDIR) $(BUILDIR)
 	find . -name '*.pyc' -delete
 

@@ -15,6 +15,9 @@
 
 import celery
 import config.parser as config
+
+from celery.utils.log import get_task_logger
+
 from frontend.objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaLockError
@@ -24,11 +27,17 @@ from lib.irma.ftp.handler import FtpTls
 from format import format_result
 
 
+log = get_task_logger(__name__)
+
+# declare a new application
 frontend_app = celery.Celery('frontendtasks')
 config.conf_frontend_celery(frontend_app)
+config.configure_syslog(frontend_app)
 
+# declare a new application
 scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
+config.configure_syslog(scan_app)
 
 
 @frontend_app.task(acks_late=True)
