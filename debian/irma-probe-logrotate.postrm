@@ -18,10 +18,12 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+LOGROTATE_CONFIG_FILE="/etc/logrotate.d/irma-probe"
+
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-		if [ -f /etc/logrotate.d/irma-probe ]; then
-			rm /etc/logrotate.d/irma-probe
+		if [ -f $LOGROTATE_CONFIG_FILE ]; then
+			rm $LOGROTATE_CONFIG_FILE
 		fi
     ;;
 

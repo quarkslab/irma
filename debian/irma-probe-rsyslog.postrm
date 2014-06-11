@@ -25,7 +25,7 @@ case "$1" in
 		if [ -f $RSYSLOG_CONFIG_FILE ]; then
 			rm $RSYSLOG_CONFIG_FILE
 		fi
-		invoke-rc.d rsyslogd restart
+		invoke-rc.d rsyslog restart
     ;;
 
     *)

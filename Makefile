@@ -33,6 +33,9 @@ builddeb:
 clean:
 	$(PYTHON) setup.py clean
 	#$(MAKE) -f $(CURDIR)/debian/rules clean
+	rm -rf $(CURDIR)/debian/irma-probe
+	rm -rf $(CURDIR)/debian/irma-probe-logrotate
+	rm -rf $(CURDIR)/debian/irma-probe-rsyslog
 	rm -rf build/ MANIFEST $(DISTDIR) $(BUILDIR)
 	find . -name '*.pyc' -delete
 
