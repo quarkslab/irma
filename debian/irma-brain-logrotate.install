@@ -1,0 +1,1 @@
+config/logrotate.d/irma-brain /etc/logrotate.d/

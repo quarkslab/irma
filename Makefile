@@ -32,6 +32,14 @@ builddeb:
 clean:
 	$(PYTHON) setup.py clean
 	#$(MAKE) -f $(CURDIR)/debian/rules clean
+	rm -rf $(CURDIR)/debian/*.substvars $(CURDIR)/debian/*.log
+	rm -rf $(CURDIR)/debian/irma-rsyslog-server
+	rm -rf $(CURDIR)/debian/irma-brain-rsyslog
+	rm -rf $(CURDIR)/debian/irma-brain-celery
+	rm -rf $(CURDIR)/debian/irma-brain-logrotate
+	rm -rf $(CURDIR)/debian/irma-brain-rabbitmq
+	rm -rf $(CURDIR)/debian/irma-brain-ftpd
+	rm -rf $(CURDIR)/debian/irma-brain-redis
 	rm -rf build/ MANIFEST $(DISTDIR) $(BUILDIR)
 	find . -name '*.pyc' -delete
 

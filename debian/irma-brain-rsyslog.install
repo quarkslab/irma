@@ -1,0 +1,1 @@
+config/rsyslog.d/irma-brain-client.conf /etc/rsyslog.d/

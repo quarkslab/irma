@@ -1,0 +1,10 @@
+/var/log/irma/brain/syslog.log
+{
+    rotate 1
+    daily
+    maxage 0
+    missingok
+    postrotate
+        invoke-rc.d rsyslog rotate > /dev/null
+    endscript
+}

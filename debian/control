@@ -12,6 +12,16 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
 Description: Rsyslog configuration for IRMA
  Rsyslog server configuration for IRMA
 
+Package: irma-brain-rsyslog
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: rsyslog client for IRMA brain
+
+Package: irma-brain-logrotate
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: logrotate configuration for IRMA brain
+
 Package: irma-brain-celery
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip
@@ -39,3 +49,8 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, redis-server
 Description: Irma Brain Redis server
  Irma Brain redis server. Backend for
  celery.
+
+Package: irma-brain
+Architecture: all
+Depends: irma-brain-rsyslog, irma-brain-logrotate, irma-brain-celery, irma-brain-ftpd, irma-brain-rabbitmq, irma-brain-redis, ${shlibs:Depends}, ${misc:Depends}
+Description: Irma Frontend Meta-package
