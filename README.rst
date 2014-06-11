@@ -90,7 +90,7 @@ installation, see detailed installation section.
     # Install probes & restart services
     ###########################################################
 
-    sudo apt-get install clamav  # For ClamAV probe
+    sudo apt-get install clamav clamav-daemon  # For ClamAV probe
     sudo pip install requests    # For VirusTotal probe (need api key, see config)
     sudo pip install pefile python-magic  # For Cuckoo's Static Analyzer
 
