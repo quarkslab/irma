@@ -42,14 +42,14 @@ def scan_launch(scanid, force):
             scan.release()
             status = IrmaScanStatus.label[scan.status]
             print("{0}: Error invalid scan status:{1}".format(scanid, status))
-            return IrmaTaskReturn.error("Invalid scan status")
+            return IrmaTaskReturn.error("Frontend: Invalid scan status")
 
         # If nothing return
         if len(scan.scanfile_ids) == 0:
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             print("{0}: Error No files to scan".format(scanid))
-            return IrmaTaskReturn.success("No files to scan")
+            return IrmaTaskReturn.success("Frontend: No files to scan")
 
         filtered_file_oids = []
         for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
@@ -79,7 +79,7 @@ def scan_launch(scanid, force):
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             print("{0}: Success: Nothing to do".format(scanid))
-            return IrmaTaskReturn.success("Nothing to do")
+            return IrmaTaskReturn.success("Frontend: Nothing to do")
         scan.release()
 
         host = ftp_config.host
@@ -125,7 +125,7 @@ def scan_result(scanid, file_hash, probe, result):
         if scanfile.id not in scan.scanfile_ids:
             print("{0}: fileid (%s) not found in scan info".format(scanfile.id,
                                                                    scanid))
-            return IrmaTaskReturn.error("filename not found in scan info")
+            return IrmaTaskReturn.error("Frontend: filename not found in scan info")
 
         scanfile.take()
         if scanid not in scanfile.scan_id:
