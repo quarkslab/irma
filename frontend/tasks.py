@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 QuarksLab.
+# Copyright (c) 2013-2014 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,18 +33,22 @@ config.conf_brain_celery(scan_app)
 @frontend_app.task(acks_late=True)
 def scan_launch(scanid, force):
     try:
+        print("{0}: Launching with force={1}".format(scanid, force))
         scan = None
         ftp_config = config.frontend_config['ftp_brain']
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
         if not scan.status == IrmaScanStatus.created:
             scan.release()
-            return IrmaTaskReturn.error("Invalid scan status")
+            status = IrmaScanStatus.label[scan.status]
+            print("{0}: Error invalid scan status:{1}".format(scanid, status))
+            return IrmaTaskReturn.error("Frontend: Invalid scan status")
 
         # If nothing return
         if len(scan.scanfile_ids) == 0:
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
-            return IrmaTaskReturn.success("No files to scan")
+            print("{0}: Error No files to scan".format(scanid))
+            return IrmaTaskReturn.success("Frontend: No files to scan")
 
         filtered_file_oids = []
         for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
@@ -73,7 +77,8 @@ def scan_launch(scanid, force):
         if len(filtered_file_oids) == 0:
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
-            return IrmaTaskReturn.success("Nothing to do")
+            print("{0}: Success: Nothing to do".format(scanid))
+            return IrmaTaskReturn.success("Frontend: Nothing to do")
         scan.release()
 
         host = ftp_config.host
@@ -97,6 +102,7 @@ def scan_launch(scanid, force):
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
         scan.update_status(IrmaScanStatus.launched)
         scan.release()
+        print("{0}: Success: scan launched".format(scanid))
         return IrmaTaskReturn.success("scan launched")
     except IrmaLockError as e:
         print "IrmaLockError has occurred:{0}".format(e)
@@ -126,7 +132,9 @@ def scan_result(scanid, file_hash, probe, result):
         scanfile = ScanFile(sha256=file_hash)
         scan = ScanInfo(id=scanid)
         if scanfile.id not in scan.scanfile_ids:
-            return IrmaTaskReturn.error("filename not found in scan info")
+            print("{0}: fileid (%s) not found in scan info".format(scanfile.id,
+                                                                   scanid))
+            return IrmaTaskReturn.error("Frontend: filename not found in scan info")
 
         scanfile.take()
         if scanid not in scanfile.scan_id:
@@ -151,9 +159,9 @@ def scan_result(scanid, file_hash, probe, result):
         scan_res.results[probe] = sanitized_res
         scan_res.update()
         scan_res.release()
-        print("Scanid {0}".format(scanid) +
-              "Result from {0} ".format(probe) +
-              "probedone {0}".format(scan_res.probedone))
+        print("{0}: ".format(scanid) +
+              "results from {0} ".format(probe) +
+              "nb probedone {0} ".format(len(scan_res.probedone)))
 
         if scan.is_completed():
             scan.take()
@@ -161,7 +169,7 @@ def scan_result(scanid, file_hash, probe, result):
             scan.release()
 
     except IrmaLockError as e:
-        print "IrmaLockError has occurred:{0}".format(e)
+        print ("IrmaLockError has occurred:{0}".format(e))
         raise scan_result.retry(countdown=15, max_retries=10)
     except Exception as e:
         if scan is not None:
@@ -170,7 +178,7 @@ def scan_result(scanid, file_hash, probe, result):
             scan_res.release()
         if ref_res is not None:
             ref_res.release()
-        print "Exception has occurred:{0}".format(e)
+        print ("Exception has occurred:{0}".format(e))
         raise scan_result.retry(countdown=15, max_retries=10)
 
 

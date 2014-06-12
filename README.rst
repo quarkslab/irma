@@ -1,21 +1,18 @@
-****************
- IRMA - Frontend
-****************
+***************
+IRMA - Frontend
+***************
 
 ========
 Overview
 ========
 
-
 This package handles scan submission to the brain. Keep track of scanned files results and provides the web graphical user interface.
 
------------------------
 
 ============
 Installation
 ============
 
-------------
 Get the code
 ------------
 
@@ -39,10 +36,72 @@ For detailed instructions about setting up a local pypi server please see `brain
 
     $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
 
-------------
 Installation
 ------------
+
+Quick Installation
+------------------
+
+The following script installs IRMA's frontend with default values. Do not
+forget to change parameter according to your setting. For a more advanced
+installation, see detailed installation section.
+
+.. code-block:: bash
+
+    #!/bin/bash
+
+    ###########################################################
+    # Parameters
+    ###########################################################
+
+    BRAIN_IP_ADDR="brain.irma.qb"
+
+    ###########################################################
+    # Install dependencies
+    ###########################################################
+
+    sudo apt-get install gdebi
+
+    ###########################################################
+    # Download packages
+    ###########################################################
+
+    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-api_1.1.0-1_all.deb
+    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-api-uwsgi_1.1.0-1_all.deb
+    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-web-data_1.1.0-1_all.deb
+    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-web-nginx_1.1.0-1_all.deb
+
+    ###########################################################
+    # Install packages
+    ###########################################################
+
+    sudo gdebi irma-frontend-api_1.1.0-1_all.deb
+    sudo gdebi irma-frontend-api-uwsgi_1.1.0-1_all.deb
+    sudo gdebi irma-frontend-web-data_1.1.0-1_all.deb
+    sudo gdebi irma-frontend-web-nginx_1.1.0-1_all.deb
+
+    ###########################################################
+    # Configuration
+    ###########################################################
+
+    sudo sh -c "head -5 /opt/irma/irma-frontend/config/frontend.ini.sample > /opt/irma/irma-frontend/config/frontend.ini"
+    sed -n '5,$p'  /opt/irma/irma-frontend/config/frontend.ini.sample | sudo sed "s/^host\s*=.*$/host = $BRAIN_IP_ADDR/" >> /opt/irma/irma-frontend/config/frontend.ini
+
+    ###########################################################
+    # Restart services
+    ###########################################################
+
+    sudo /etc/init.d/mongodb restart
+    sudo /etc/init.d/uwsgi restart
+    sudo /etc/init.d/nginx restart
+    sudo /etc/init.d/celeryd restart
+
+
+Detailed Installation
+---------------------
+
 For detailed instructions, please see `install.rst`_.
+
 
 ======
 Config
