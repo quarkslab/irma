@@ -14,7 +14,7 @@ Description: Rsyslog configuration for IRMA
 
 Package: irma-brain-rsyslog
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog, rsyslog-gnutls
 Description: rsyslog client for IRMA brain
 
 Package: irma-brain-logrotate
