@@ -34,7 +34,7 @@ Description: Irma Frontend nginx configuration
 
 Package: irma-frontend-rsyslog
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog, rsyslog-gnutls
 Description: rsyslog client for IRMA frontend
 
 Package: irma-frontend-logrotate
