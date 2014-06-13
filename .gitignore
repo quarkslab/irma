@@ -1,4 +1,12 @@
+# for python
 *.pyc
+
+# for dev configuration files
+config/probe.ini
+
+# for pip packaging
+dist
+*.egg-info/
 
 # for debian packages
 debian/*.substvars
