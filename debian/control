@@ -13,7 +13,7 @@ Description: Base install for Irma probes
 
 Package: irma-probe-rsyslog
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog, rsyslog-gnutls
 Description: rsyslog client for IRMA probes
 
 Package: irma-probe-logrotate
