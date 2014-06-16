@@ -9,7 +9,7 @@ angular.module('irma', [
 ])
   .constant('constants', {
     fakeDelay: 0,
-    baseApi: 'http://frontend.irma.qb/_api',
+    baseApi: '/_api',
     speed: 1000,
     forceScanDefault: true
   })
