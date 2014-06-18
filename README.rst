@@ -71,7 +71,7 @@ installation, see detailed installation section.
     # Download packages
     ###########################################################
 
-    curl -O https://github.com/quarkslab/irma-probe/releases/download/v1.0.2/irma-probe_1.0.2-1_all.deb
+    curl -L -O https://github.com/quarkslab/irma-probe/releases/download/v1.0.2/irma-probe_1.0.2-1_all.deb
 
     ###########################################################
     # Install packages
