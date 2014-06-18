@@ -66,10 +66,10 @@ installation, see detailed installation section.
     # Download packages
     ###########################################################
 
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-api_1.0.2-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-api-uwsgi_1.0.2-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-web-data_1.0.2-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-web-nginx_1.0.2-1_all.deb
+    curl -L -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-api_1.0.2-1_all.deb
+    curl -L -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-api-uwsgi_1.0.2-1_all.deb
+    curl -L -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-web-data_1.0.2-1_all.deb
+    curl -L -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.2/irma-frontend-web-nginx_1.0.2-1_all.deb
 
     ###########################################################
     # Install packages
