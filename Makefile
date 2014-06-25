@@ -3,7 +3,7 @@ DESTDIR=/
 DISTDIR=$(CURDIR)/deb_dist
 BUILDIR=$(CURDIR)/debian/irma-brain
 PROJECT=irma-brain
-VERSION=1.1.0
+VERSION=1.0.3
 
 all:
 	@echo "make source - Create source package"

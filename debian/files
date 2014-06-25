@@ -1,4 +1,4 @@
-irma-brain-celery_1.1.0-1_all.deb python extra
-irma-brain-ftpd_1.1.0-1_all.deb python extra
-irma-brain-rabbitmq_1.1.0-1_all.deb python extra
-irma-brain-redis_1.1.0-1_all.deb python extra
+irma-brain-celery_1.0.3-1_all.deb python extra
+irma-brain-ftpd_1.0.3-1_all.deb python extra
+irma-brain-rabbitmq_1.0.3-1_all.deb python extra
+irma-brain-redis_1.0.3-1_all.deb python extra
