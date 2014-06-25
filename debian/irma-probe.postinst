@@ -31,7 +31,7 @@ case "$1" in
 			cp $PROBES_DIR/config/probe.ini.sample $PROBES_DIR/config/probe.ini
 		fi
 		update-rc.d celeryd.probe defaults
-		invoke-rc.d celeryd restart
+		invoke-rc.d celeryd.probe restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
