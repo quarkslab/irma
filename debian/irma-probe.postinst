@@ -30,7 +30,7 @@ case "$1" in
 		if [ ! -f $PROBES_DIR/config/probe.ini ]; then
 			cp $PROBES_DIR/config/probe.ini.sample $PROBES_DIR/config/probe.ini
 		fi
-		update-rc.d celeryd defaults
+		update-rc.d celeryd.probe defaults
 		invoke-rc.d celeryd restart
     ;;
 
