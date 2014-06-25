@@ -6,7 +6,7 @@ PROJECT=irma-frontend
 VERSION=1.0.3
 
 all:
-	#@echo "make web-dist - do magic on web files"
+	@echo "make web-dist - do magic on web files"
 	@echo "make source - Create source package"
 	@echo "make install - Install on local system"
 	@echo "make buildrpm - Generate a rpm package"
@@ -14,7 +14,7 @@ all:
 	@echo "make clean - Get rid of scratch and byte files"
 
 web-dist:
-	@cd client/ && gulp build
+	@cd client/ && gulp build && gulp dist
 
 source:
 	$(PYTHON) setup.py sdist $(COMPILE)
