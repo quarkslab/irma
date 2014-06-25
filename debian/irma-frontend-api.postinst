@@ -28,8 +28,8 @@ case "$1" in
 		if [ ! -f /opt/irma/irma-frontend/config/frontend.ini ]; then
 			cp /opt/irma/irma-frontend/config/frontend.ini.sample /opt/irma/irma-frontend/config/frontend.ini
 		fi
-		update-rc.d celeryd defaults
-		invoke-rc.d celeryd restart
+		update-rc.d celeryd.frontend defaults
+		invoke-rc.d celeryd.frontend restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
