@@ -4,9 +4,9 @@ Priority: extra
 Maintainer: irma <irma@quarkslab.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
-Homepage: http://github.com/quarkslab/irma-probe.git
+Homepage: http://irma.quarkslab.com
 
 Package: irma-probe
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip
+Depends: ${misc:Depends}, python, python-pip
 Description: Base install for Irma probes
