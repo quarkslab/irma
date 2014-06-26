@@ -4,17 +4,17 @@ Priority: extra
 Maintainer: irma <irma@quarkslab.com>
 Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
-Homepage: http://github.com/quarkslab/irma-brain.git
+Homepage: http://irma.quarkslab.com
 
 Package: irma-brain-celery
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, python, python-pip
+Depends: ${misc:Depends}, python, python-pip
 Description: Irma Brain Celery 
  Irma Brain celery worker code
 
 Package: irma-brain-ftpd
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, pure-ftpd, openssl
+Depends: ${misc:Depends}, pure-ftpd, openssl
 Description: Irma Brain Ftp server
  Irma Brain ftp server to route file from
  frontend to probe(s). See install dir for
@@ -22,14 +22,20 @@ Description: Irma Brain Ftp server
 
 Package: irma-brain-rabbitmq
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, rabbitmq-server
+Depends: ${misc:Depends}, rabbitmq-server
 Description: Irma Brain RabbitMQ server
  Irma Brain rabbitmq server. See install
  dir for user/frontend creation script
 
 Package: irma-brain-redis
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, redis-server
+Depends: ${misc:Depends}, redis-server
 Description: Irma Brain Redis server
  Irma Brain redis server. Backend for
  celery.
+
+Package: irma-brain
+Architecture: all
+Depends: irma-brain-celery, irma-brain-ftpd, irma-brain-rabbitmq, irma-brain-redis, ${misc:Depends}
+Description: Irma Brain Meta-package
+
