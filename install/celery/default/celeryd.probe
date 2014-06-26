@@ -1,9 +1,9 @@
 # Names of nodes to start
 #   most will only start one node:
-CELERYD_NODES="avname"
+CELERYD_NODES="probe"
 #   but you can also start multiple and configure settings
 #   for each in CELERYD_OPTS (see `celery multi --help` for examples).
-CELERYD_NODES="worker1 worker2 worker3"
+#CELERYD_NODES="worker1 worker2 worker3"
 
 # Absolute or relative path to the 'celery' command:
 CELERY_BIN="/usr/local/bin/celery"
