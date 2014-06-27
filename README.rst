@@ -33,90 +33,30 @@ Two possibilities:
 
     $ git clone --recursive https://github.com/quarkslab/irma-brain.git irma
 
-Quick Installation
-------------------
+repo install
+------------
 
-The following script installs IRMA's brain with default values. Do not
-forget to change parameter according to your setting. For a more advanced
-installation, see detailed installation section.
+Add Quarkslab public GPG key
 
 .. code-block:: bash
 
-    #!/bin/bash
+    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
 
-    ###########################################################
-    # Parameters
-    ###########################################################
 
-    BRAIN_IP_ADDR="brain.irma.qb"
+Add Quarkslab's repository source
 
-    ###########################################################
-    # Install dependencies
-    ###########################################################
 
-    sudo apt-get install gdebi
+.. code-block:: bash
 
-    ###########################################################
-    # Download packages
-    ###########################################################
+    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
 
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.3/irma-brain-celery_1.0.3-1_all.deb
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.3/irma-brain-ftpd_1.0.3-1_all.deb
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.3/irma-brain-rabbitmq_1.0.3-1_all.deb
-    curl -O https://github.com/quarkslab/irma-brain/releases/download/v1.0.3/irma-brain-redis_1.0.3-1_all.deb
+Install Meta package
 
-    ###########################################################
-    # Install packages
-    ###########################################################
+.. code-block:: bash
 
-    sudo gdebi irma-brain-redis_1.0.3-1_all.deb
-    sudo gdebi irma-brain-rabbitmq_1.0.3-1_all.deb
-    sudo gdebi irma-brain-ftpd_1.0.3-1_all.deb
-    sudo gdebi irma-brain-celery_1.0.3-1_all.deb
+    sudo apt-get update && sudo apt-get install irma-brain
 
-    ###########################################################
-    # Configuration
-    ###########################################################
-
-    # Redis configuration
-    sudo sed -i "s/^bind 127.0.0.1/# bind 127.0.0.1/g" /etc/redis/redis.conf
-
-    # RMQ configuration (see detailed configuration for explanations)
-    sudo /opt/irma/irma-brain/install/rabbitmq/rmq_adduser.sh admin admin mqadmin
-    sudo /opt/irma/irma-brain/install/rabbitmq/rmq_adduser.sh brain brain mqbrain
-    sudo /opt/irma/irma-brain/install/rabbitmq/rmq_adduser.sh frontend frontend mqfrontend
-    sudo /opt/irma/irma-brain/install/rabbitmq/rmq_adduser.sh probe probe mqprobe
-
-    # Pure-FTPd configuration
-    sudo groupadd ftpgroup
-    sudo useradd -g ftpgroup -d /dev/null -s /etc ftpuser
-    sudo sh -c 'echo "yes" > /etc/pure-ftpd/conf/CreateHomeDir'
-    sudo sh -c 'echo "no" > /etc/pure-ftpd/conf/PAMAuthentication'
-    sudo sh -c 'echo "2" > /etc/pure-ftpd/conf/TLS'
-    sudo ln -s /etc/pure-ftpd/conf/PureDB /etc/pure-ftpd/auth/50puredb
-    sudo mkdir -p /etc/ssl/private/
-    sudo openssl req -x509 -nodes -days 7300 -newkey rsa:2048 -keyout /etc/ssl/private/pure-ftpd.pem -out /etc/ssl/private/pure-ftpd.pem
-    sudo chmod 600 /etc/ssl/private/pure-ftpd.pem
-
-    # Create ftp users
-    echo -e "frontend\nfrontend\n" | sudo /opt/irma/irma-brain/install/pure-ftpd/ftpd-adduser.sh frontend ftpuser /home/ftpuser/frontend
-    echo -e "probe\nprobe\n" | sudo /opt/irma/irma-brain/install/pure-ftpd/ftpd-adduser.sh probe ftpuser /home/ftpuser
-
-    # Configure IRMA
-    sudo sed -i "s/^host\s*=.*$/host = $BRAIN_IP_ADDR/" /opt/irma/irma-brain/config/brain.ini
-    sudo mkdir /opt/irma/irma-brain/db
-    cd /opt/irma/irma-brain/ && sudo python -m brain.objects dummy-user mqfrontend frontend && cd -
-
-    ###########################################################
-    # Restart services
-    ###########################################################
-
-    sudo /etc/init.d/redis-server restart
-    sudo /etc/init.d/rabbitmq-server restart
-    sudo /etc/init.d/pure-ftpd restart
-    sudo /etc/init.d/celeryd.brain restart
-    sudo /etc/init.d/celeryd.results restart
-
+Do not forget to change parameter according to your settings.
 
 
 Detailed Installation
