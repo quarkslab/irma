@@ -10,23 +10,33 @@
     :depth: 1
     :backlinks: none
 
+
 ------------
-Requirements
+repo install
 ------------
 
-packages:
+Add Quarkslab public GPG key
 
-* python2.7
-* python-pip
-* rabbitmq-server
-* redis-server
-* pure-ftpd 
+.. code-block:: bash
 
-python-pip packages (see ``install/requirements.txt`` for versions):
+    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
 
-* celery
-* redis
-* sqlalchemy
+
+Add Quarkslab's repository source
+
+
+.. code-block:: bash
+
+    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
+
+Install Meta package
+
+.. code-block:: bash
+
+    sudo apt-get update && sudo apt-get install irma-brain
+
+Do not forget to change parameter according to your settings.
+
 
 -------------
 Configuration
@@ -52,13 +62,12 @@ create users, vhosts and add permissions for each user to corresponding vhost.
    ===========  ===========
     username       vhost 
    ===========  ===========
-      admin       mqadmin
       brain       mqbrain
      frontend    mqfrontend
       probe       mqprobe
    ===========  ===========
 
-passwords must be syncd with configuration files for admin, frontend, brain and probe modules.
+passwords must be syncd with configuration files for frontend, brain and probe modules. (config/<module_name>.ini)
 
 Users creation could be done through the provided script ``IRMA_INSTALL_DIR\install\rabbitmq\rmq_adduser.sh``
 
@@ -74,67 +83,6 @@ or manually by entering:
    $ sudo rabbitmqctl add_vhost <vhostname>
    $ sudo rabbitmqctl set_permissions -p <vhostname> <username> ".*" ".*" ".*"
    
-**celery**
-
-edit both:
- * ``install/celery/celeryd.brain.defaults``
- * ``install/celery/celeryd.results.defaults``  
-according to your install
-
-.. code-block::
-    
-    # Where to chdir at start.
-    CELERYD_CHDIR="/home/irma/irma/"
-   
-copy both ``.defaults`` config file to ``/etc/default/celeryd``
-
-.. code-block::
-    
-    $ sudo celeryd.brain.defaults /etc/default/celeryd/celeryd.brain
-    $ sudo celeryd.results.defaults /etc/default/celeryd/results.brain
-
-copy ``celeryd.brain`` init script file to ``/etc/init.d/celeryd.brain``
-copy ``celeryd.results`` init script file to ``/etc/init.d/celeryd.results``
-
-.. code-block::
-    
-    $ sudo celeryd.brain /etc/init.d/celeryd.brain
-    $ sudo celeryd.results /etc/init.d/results.brain
-
-launch celery
-
-.. code-block:: bash
-
-    $ sudo chmod +x /etc/init.d/celeryd.brain
-    $ sudo service celeryd.brain start
-
-    $ sudo chmod +x /etc/init.d/celeryd.results
-    $ sudo service celeryd.results start
-
-.. WARNING:: 
-
-    By default ``celery`` users and groups (configured in ``.defaults``) are not created.
-    Celery fails if the configured users and groups are not defined. Additionnally, you
-    must change permission for the ``/var/run/celery`` directory in order to allow celery 
-    to create a lock file.
-    
-Make all services start at boot:
-
-.. code-block:: bash
-
-    $ sudo /usr/sbin/update-rc.d celeryd.brain defaults
-    $ sudo /usr/sbin/update-rc.d celeryd.results defaults
-    
-Consult the logs at ``/var/log/celery/*.log`` to check the installation.
-
-.. code-block:: bash
-
-    $ cat /var/log/celery/*.log
-    [...]
-    [2014-04-30 13:35:03,949: WARNING/MainProcess] brain@irma-brain ready.
-    [...]
-    [2014-04-30 13:35:04,205: WARNING/MainProcess] results@irma-brain ready.
-
 **pure-ftpd**
 
 add ftpuser
@@ -260,7 +208,7 @@ FAQ
 Support
 =======
 
-Feeling lost ? need support ? irc: #irma-qb@chat.freenode.net 
+Feeling lost ? need support ? irc: #qb_irma@chat.freenode.net
 
 ----------------------
 
