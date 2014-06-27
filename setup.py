@@ -23,6 +23,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     license='LICENSE',
+    url='http://irma.quarkslab.com',
     description='Frontend package for IRMA',
     long_description=open('README.rst').read(),
     scripts=['scripts/update.sh'],
