@@ -46,55 +46,28 @@ Install
 Quick Installation
 ------------------
 
-The following script installs IRMA on a probe with default values. Do not
-forget to change parameter according to your setting. For a more advanced
-installation, see detailed installation section.
+Add Quarkslab public GPG key
 
 .. code-block:: bash
 
-    #!/bin/bash
+    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
 
-    ###########################################################
-    # Parameters
-    ###########################################################
 
-    PROBE_NAME="multiprobe"
-    BRAIN_IP_ADDR="brain.irma.qb"
+Add Quarkslab's repository source
 
-    ###########################################################
-    # Install dependencies
-    ###########################################################
 
-    sudo apt-get install gdebi
+.. code-block:: bash
 
-    ###########################################################
-    # Download packages
-    ###########################################################
+    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
 
-    curl -L -O https://github.com/quarkslab/irma-probe/releases/download/v1.0.2/irma-probe_1.0.2-1_all.deb
 
-    ###########################################################
-    # Install packages
-    ###########################################################
+Install Meta package
 
-    sudo gdebi irma-probe_1.0.2-1_all.deb
+.. code-block:: bash
 
-    ###########################################################
-    # Configuration
-    ###########################################################
+    sudo apt-get update && sudo apt-get install irma-probe
 
-    sudo sed -i "s/^name\s*=.*$/name = $PROBE_NAME/" /opt/irma/irma-probe/config/probe.ini
-    sudo sed -i "s/^host\s*=.*$/host = $BRAIN_IP_ADDR/" /opt/irma/irma-probe/config/probe.ini
-
-    ###########################################################
-    # Install probes & restart services
-    ###########################################################
-
-    sudo apt-get install clamav clamav-daemon  # For ClamAV probe
-    sudo pip install requests    # For VirusTotal probe (need api key, see config)
-    sudo pip install pefile python-magic  # For Cuckoo's Static Analyzer
-
-    sudo /etc/init.d/celeryd restart
+Do not forget to change parameters according to your settings (See ``Config`` paragraph).
 
 
 Detailed Installation
