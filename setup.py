@@ -17,12 +17,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='irma-frontend',
-    version='1.0.2',
+    version='1.0.3',
     author='QuarksLab',
     author_email='irma@quarkslab.com',
     packages=find_packages(),
     include_package_data=True,
     license='LICENSE',
+    url='http://irma.quarkslab.com',
     description='Frontend package for IRMA',
     long_description=open('README.rst').read(),
     scripts=['scripts/update.sh'],

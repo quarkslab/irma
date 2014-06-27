@@ -3,7 +3,7 @@ DESTDIR=/
 DISTDIR=$(CURDIR)/deb_dist
 BUILDIR=$(CURDIR)/debian/irma-frontend
 PROJECT=irma-frontend
-VERSION=1.0.2
+VERSION=1.0.3
 
 all:
 	@echo "make web-dist - do magic on web files"
@@ -14,7 +14,9 @@ all:
 	@echo "make clean - Get rid of scratch and byte files"
 
 web-dist:
-	@cd web/ && grunt build
+	@cd web/ && npm install
+	@cd web/ && bower install
+	@cd web/ && gulp build && gulp dist
 
 source:
 	$(PYTHON) setup.py sdist $(COMPILE)

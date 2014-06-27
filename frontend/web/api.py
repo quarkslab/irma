@@ -214,7 +214,7 @@ def scan_result(scanid):
     if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        results = core.scan_results(scanid)
+        results = core.scan_result(scanid)
         return IrmaFrontendReturn.success(scan_results=results)
     except IrmaFrontendWarning as e:
         return IrmaFrontendReturn.warning(str(e))
