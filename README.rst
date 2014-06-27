@@ -13,6 +13,32 @@ This package handles scan submission to the brain. Keep track of scanned files r
 Installation
 ============
 
+Quick install
+-------------
+
+Add Quarkslab public GPG key
+
+.. code-block:: bash
+
+    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
+
+
+Add Quarkslab's repository source
+
+
+.. code-block:: bash
+
+    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
+
+
+Install Meta package
+
+.. code-block:: bash
+
+    sudo apt-get update && sudo apt-get install irma-frontend
+
+Do not forget to change parameter according to your setting (See ``Config`` paragraph).
+
 Get the code
 ------------
 
@@ -35,66 +61,6 @@ For detailed instructions about setting up a local pypi server please see `brain
 .. code-block:: bash
 
     $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
-
-Installation
-------------
-
-Quick Installation
-------------------
-
-The following script installs IRMA's frontend with default values. Do not
-forget to change parameter according to your setting. For a more advanced
-installation, see detailed installation section.
-
-.. code-block:: bash
-
-    #!/bin/bash
-
-    ###########################################################
-    # Parameters
-    ###########################################################
-
-    BRAIN_IP_ADDR="brain.irma.qb"
-
-    ###########################################################
-    # Install dependencies
-    ###########################################################
-
-    sudo apt-get install gdebi
-
-    ###########################################################
-    # Download packages
-    ###########################################################
-
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-api_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-api-uwsgi_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-web-data_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-web-nginx_1.1.0-1_all.deb
-
-    ###########################################################
-    # Install packages
-    ###########################################################
-
-    sudo gdebi irma-frontend-api_1.1.0-1_all.deb
-    sudo gdebi irma-frontend-api-uwsgi_1.1.0-1_all.deb
-    sudo gdebi irma-frontend-web-data_1.1.0-1_all.deb
-    sudo gdebi irma-frontend-web-nginx_1.1.0-1_all.deb
-
-    ###########################################################
-    # Configuration
-    ###########################################################
-
-    sudo sh -c "head -5 /opt/irma/irma-frontend/config/frontend.ini.sample > /opt/irma/irma-frontend/config/frontend.ini"
-    sed -n '5,$p'  /opt/irma/irma-frontend/config/frontend.ini.sample | sudo sed "s/^host\s*=.*$/host = $BRAIN_IP_ADDR/" >> /opt/irma/irma-frontend/config/frontend.ini
-
-    ###########################################################
-    # Restart services
-    ###########################################################
-
-    sudo /etc/init.d/mongodb restart
-    sudo /etc/init.d/uwsgi restart
-    sudo /etc/init.d/nginx restart
-    sudo /etc/init.d/celeryd restart
 
 
 Detailed Installation
