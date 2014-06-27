@@ -14,7 +14,7 @@ all:
 	@echo "make clean - Get rid of scratch and byte files"
 
 web-dist:
-	@cd client/ && gulp build && gulp dist
+	@cd web/ && gulp build && gulp dist
 
 source:
 	$(PYTHON) setup.py sdist $(COMPILE)
