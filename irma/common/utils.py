@@ -87,13 +87,17 @@ class IrmaScanStatus:
     processed = 30
     finished = 50
     flushed = 100
+    error = 200
+    error_probe_missing = 201
     label = {created: "created",
              launched: "launched",
              cancelling: "cancelling",
              cancelled: "cancelled",
              processed: "processed",
              finished: "finished",
-             flushed: "flushed"
+             flushed: "flushed",
+             error:"error",
+             error_probe_missing:"error probe missing"
              }
 
 
