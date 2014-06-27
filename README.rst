@@ -37,7 +37,7 @@ Install Meta package
 
     sudo apt-get update && sudo apt-get install irma-frontend
 
-Do not forget to change parameter according to your setting (See ``Config`` paragraph).
+Do not forget to change parameters according to your settings (See ``Config`` paragraph).
 
 Get the code
 ------------
