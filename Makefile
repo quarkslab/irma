@@ -14,6 +14,8 @@ all:
 	@echo "make clean - Get rid of scratch and byte files"
 
 web-dist:
+	@cd web/ && npm install
+	@cd web/ && bower install
 	@cd web/ && gulp build && gulp dist
 
 source:
