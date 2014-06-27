@@ -10,7 +10,7 @@
 
 
 ### BEGIN INIT INFO
-# Provides:          celeryd
+# Provides:          celeryd.probe
 # Required-Start:    $network $local_fs $remote_fs
 # Required-Stop:     $network $local_fs $remote_fs
 # Default-Start:     2 3 4 5
