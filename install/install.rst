@@ -2,23 +2,9 @@
  IRMA Frontend - Installation guide
 ***********************************
 
---------------------
-
-
-**Table of Contents**
-
-
-.. contents::
-    :local:
-    :depth: 1
-    :backlinks: none
-
 -------------
 Configuration
 -------------
-
-With repo. quick install, you should only edit mongodb settings and configuration file as all the others settings are done trough install scripts.
-
 
 **mongodb**
 
