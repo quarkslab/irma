@@ -34,7 +34,7 @@ clone from github
 
     $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
 
-With code install see `install.rst`_ for instructions.
+With source install see `install.rst`_ for instructions.
 
 
 ======
