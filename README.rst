@@ -16,22 +16,8 @@ Installation
 Quick install
 -------------
 
-Add Quarkslab public GPG key
-
-.. code-block:: bash
-
-    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
-
-
-Add Quarkslab's repository source
-
-
-.. code-block:: bash
-
-    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
-
-
-Install Meta package
+Add Quarkslab public GPG key and stable repo. address. See `here`_ for instructions.
+Then install Meta package:
 
 .. code-block:: bash
 
@@ -42,21 +28,7 @@ Do not forget to change parameters according to your settings (See ``Config`` pa
 Get the code
 ------------
 
-Two possibilities:
-
-* if you have a pypi server of your own (1)
-* if you don't (2)
-
-**1. pip install into <path>**
-
-For detailed instructions about setting up a local pypi server please see `brain_install`_.
-
-.. code-block:: bash
-
-    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-frontend
-
-
-**2. clone from github**
+clone from github
 
 .. code-block:: bash
 
@@ -73,7 +45,7 @@ For detailed instructions, please see `install.rst`_.
 Config
 ======
 
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Be sure to create it.
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-frontend``.
 
 irma-frontend configuration file content:
 
@@ -156,11 +128,11 @@ irma-frontend configuration file content:
 Licence
 =======
 
-Please see `LICENSE`_.
+Licensed under Apache v2.0 license. Please see `LICENSE`_.
 
 ------------
 
+.. _here: http://apt.quarkslab.com/readme.txt
 .. _install.rst: /install/install.rst
-.. _brain_install: /../../../irma-brain/blob/master/install/install.rst
 .. _LICENSE: /LICENSE
 
