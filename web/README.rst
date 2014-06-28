@@ -104,6 +104,5 @@ To get a bundled and prod ready version of the interface, use the ``dist`` task,
     $ gulp dist
 
 
-------------
 
 .. _nodeJs: http://nodejs.org/

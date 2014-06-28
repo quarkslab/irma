@@ -130,7 +130,6 @@ Licence
 
 Licensed under Apache v2.0 license. Please see `LICENSE`_.
 
-------------
 
 .. _here: http://apt.quarkslab.com/readme.txt
 .. _install.rst: /install/install.rst

@@ -17,6 +17,9 @@
 Configuration
 -------------
 
+With repo. quick install, you should only edit mongodb settings and configuration file as all the others settings are done trough install scripts.
+
+
 **mongodb**
 
 edit ``/etc/mongodb.conf`` to listen only on loopback interface (add extra auth parameters).
@@ -89,7 +92,6 @@ launch celery
 FAQ
 ===
 
---------------------
 
 **install all requirements with pip**
 
@@ -98,7 +100,6 @@ FAQ
    $ pip install -r requirements.txt
 
 
---------------------
 
 **Install a custom python package with custom install path (e.g. irma packages install)**
 
@@ -106,15 +107,13 @@ FAQ
 
    $ pip install --install-option='--install-purelib=<custom path>' --install-option='--install-scripts=<scripts path>' -i http://<custom pkg server>/pypi <package-name>
 
---------------------
 
-**Detailed insttruction for manual webui generation**
+**Detailed instructions for manual webui generation**
 
 the default package is shipped with webui already generated. But if you
 want to see how it is done see `webui`_ readme.
 
 
---------------------
 
 =======
 Support
@@ -123,6 +122,5 @@ Support
 Feeling lost ? need support ? irc: #qb_irma@freenode 
 
 
-----------------------
 
 .. _webui: /web/README.rst
