@@ -32,7 +32,7 @@ clone from github
 
 .. code-block:: bash
 
-    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
+    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma-frontend
 
 With source install see `install.rst`_ for instructions.
 
