@@ -43,25 +43,12 @@ Others:
 Install
 =======
 
-Quick Installation
-------------------
 
-Add Quarkslab public GPG key
+Quick install
+-------------
 
-.. code-block:: bash
-
-    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
-
-
-Add Quarkslab's repository source
-
-
-.. code-block:: bash
-
-    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
-
-
-Install Meta package
+Add Quarkslab public GPG key and stable repo. address. See `here`_ for instructions.
+Then install Meta package:
 
 .. code-block:: bash
 
@@ -100,6 +87,8 @@ For a detailed linux probe install guide see `linux`_ install.
 Config
 ======
 
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/probe.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-probe``.
+
 irma-probe configuration file:
 
 +----------------+-------------+------------+-----------+
@@ -131,8 +120,6 @@ irma-probe configuration file:
 |                +-------------+------------+-----------+
 |                |   password  | ``string`` |           |
 +----------------+-------------+------------+-----------+
-
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/probe.ini``
 
 **optional configuration parameters**
 
@@ -170,6 +157,7 @@ TODO
 * Add support for more Linux and Windows antiviruses
 * Add different heuristics for antiviruses
 
+.. _here: http://apt.quarkslab.com/readme.txt
 .. _windows: /install/install_win.rst
 .. _linux: /install/install_linux.rst
 
