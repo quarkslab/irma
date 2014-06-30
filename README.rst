@@ -6,7 +6,7 @@ IRMA - Brain
 Overview
 ========
 
-This package handles the dispatch of the meta scan job to the probes. Deals with accounting and collecting results to send them back to frontend
+This package handles the dispatch of the meta scan job to the probes. Deals with accounting and collecting results to send them back to frontend.
 
 
 ============
@@ -46,7 +46,7 @@ For post-install instructions see `install.rst`_ for:
 Config
 ======
 
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``. Be sure to create it.
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-brain``.
 
 irma-brain configuration file:
 
