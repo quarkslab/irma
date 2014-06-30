@@ -13,56 +13,34 @@ This package handles the dispatch of the meta scan job to the probes. Deals with
 Installation
 ============
 
-Get the code
-------------
 
-Two possibilities:
+Quick install
+-------------
 
-* if you have a pypi server of your own (1)
-* if you don't (2)
-
-**1. pip install into <path>**
-
-.. code-block:: bash
-
-    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-admin
-
-**2. clone from github**
-
-.. code-block:: bash
-
-    $ git clone --recursive https://github.com/quarkslab/irma-brain.git irma
-
-repo install
-------------
-
-Add Quarkslab public GPG key
-
-.. code-block:: bash
-
-    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
-
-
-Add Quarkslab's repository source
-
-
-.. code-block:: bash
-
-    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
-
-Install Meta package
+Add Quarkslab public GPG key and stable repo. address. See `here`_ for instructions.
+Then install Meta package:
 
 .. code-block:: bash
 
     sudo apt-get update && sudo apt-get install irma-brain
 
-Do not forget to change parameter according to your settings.
+Do not forget to change parameters according to your settings (See ``Config`` paragraph).
 
+Get the code
+------------
 
-Detailed Installation
----------------------
+clone from github
 
-For detailed instructions, please see `install.rst`_.
+.. code-block:: bash
+
+    $ git clone --recursive https://github.com/quarkslab/irma-brain.git irma-brain
+
+For post-install instructions see `install.rst`_ for:
+
+     * ftps accounts
+     * rabbitmq accounts
+     * redis config
+     * sqlite user db creation
 
 ======
 Config
@@ -136,25 +114,14 @@ irma-brain configuration file:
 |                |   password  | ``string`` |           |
 +----------------+-------------+------------+-----------+
 
-You could easily generate the user database by running:
-
-.. code-block:: bash
-
-    # NOTE: the folder where the database is going to be stored must be created
-    # beforehand. By default, create a folder ``db`` at the root of the project.
-
-    $ python -m brain.objects
-
-database path is taken from the config file.
-
 =======
 Licence
 =======
 
-Please see `LICENSE`_.
+Licensed under Apache v2.0 license. Please see `LICENSE`_.
 
-------------
 
+.. _here: http://apt.quarkslab.com/readme.txt
 .. _install.rst: /install/install.rst
 .. _LICENSE: /LICENSE
 
