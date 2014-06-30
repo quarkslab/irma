@@ -47,7 +47,7 @@ Install
 Quick install
 -------------
 
-Add Quarkslab public GPG key and stable repo. address. See `here`_ for instructions.
+Add Quarkslab stable repository address. See `here`_ for instructions.
 Then install Meta package:
 
 .. code-block:: bash
