@@ -21,11 +21,13 @@ set -e
 case "$1" in
     configure)
 		pip install --upgrade -r /opt/irma/irma-brain/install/requirements.txt
-		# Celery
-		adduser --system --no-create-home --group irma
+		# Celery - test if user irma exists
+		if ! id -u irma > /dev/null 2>&1; then
+			adduser --system --no-create-home --group irma
+		fi
 		if [ ! -f /opt/irma/irma-brain/config/brain.ini ]; then
-            		cp /opt/irma/irma-brain/config/brain.ini.sample /opt/irma/irma-brain/config/brain.ini
-        	fi
+			cp /opt/irma/irma-brain/config/brain.ini.sample /opt/irma/irma-brain/config/brain.ini
+		fi
 		update-rc.d celeryd.results defaults
 		invoke-rc.d celeryd.results restart
 		update-rc.d celeryd.brain defaults
