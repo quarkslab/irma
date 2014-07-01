@@ -10,11 +10,9 @@
     :depth: 1
     :backlinks: none
 
--------------
-Configuration
--------------
-
-**redis**
+-----
+Redis
+-----
 
 edit ``/etc/redis/redis.conf`` to listen on all interfaces by commenting ``bind`` parameter.
 
@@ -25,11 +23,9 @@ edit ``/etc/redis/redis.conf`` to listen on all interfaces by commenting ``bind`
    #
    #bind 127.0.0.1
 
-
---------------------
-
-
-**rabbitmq**
+--------
+Rabbitmq
+--------
 
 create users, vhosts and add permissions for each user to corresponding vhost.
 
@@ -59,9 +55,9 @@ or manually by entering:
    $ sudo rabbitmqctl add_vhost <vhostname>
    $ sudo rabbitmqctl set_permissions -p <vhostname> <username> ".*" ".*" ".*"
 
---------------------
-
-**pure-ftpd**
+---------
+Pure-ftpd
+---------
 
 add ftpuser
 
