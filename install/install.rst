@@ -127,9 +127,9 @@ You could easily generate the user database by running:
 
 database path is taken from the config file.
 
-========================================
+----------------------------------------
 Optional: Install a local pip pkg server
-========================================
+----------------------------------------
 
 This is an optional way of distributing irma package on local machines.
 There's a lot of custom pypi server, we used simplepipy.
@@ -145,9 +145,9 @@ launch server (default configuration localhost:8000)
 .. code-block:: bash
     $ sudo simplepypi
 
-===
+---
 FAQ
-===
+---
 
 **install all requirements with pip**
 
