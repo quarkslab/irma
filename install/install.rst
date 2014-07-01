@@ -98,8 +98,19 @@ a shared account is shared between probes. The later needs to access to all fron
 the associated home directory ``/home/ftpuser/``.
 
    e.g (for multiple frontends, change user and chroot home accordingly)
+
+.. code-block:: bash
+
    $ sudo ftpd-adduser.sh frontend ftpuser /home/ftpuser/frontend
    $ sudo ftpd-adduser.sh probe ftpuser /home/ftpuser/
+
+Test your config. Listing your users should output something like this:
+
+.. code-block:: bash
+
+    $ sudo pure-pw list
+    frontend            /home/ftpuser/frontend/./
+    probe               /home/ftpuser/./
 
 launch pure-ftpd
 
