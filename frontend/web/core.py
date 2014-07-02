@@ -81,6 +81,16 @@ def _task_scan_cancel(scanid):
         raise IrmaFrontendError("Celery timeout - scan progress")
 
 
+def _task_scan_launch(scanid, force):
+    """ send a task to the brain to launch the scan """
+    try:
+        frontend_app.send_task("frontend.tasks.scan_launch",
+                               args=(scanid, force))
+        return
+    except:
+        raise IrmaFrontendError("Celery error - scan launch")
+
+
 # ==================
 #  Public functions
 # ==================
@@ -159,7 +169,7 @@ def scan_launch(scanid, force, probelist):
     scan.release()
 
     # launch scan via frontend task
-    frontend_app.send_task("frontend.tasks.scan_launch", args=(scan.id, force))
+    _task_scan_launch(scanid, force)
     return scan.probelist
 
 
