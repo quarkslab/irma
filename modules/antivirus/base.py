@@ -20,9 +20,8 @@ import sys
 import glob
 import locale
 
-from lib.common.hash import sha256sum
 from subprocess import Popen, PIPE
-
+from lib.common.hash import sha256sum
 
 log = logging.getLogger(__name__)
 

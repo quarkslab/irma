@@ -18,27 +18,14 @@ import logging
 import os
 import pefile
 import peutils
+
 from lib.common.mimetypes import Magic
 
 log = logging.getLogger(__name__)
 
 
-# FIXME: missing import
-def convert_to_printable(s):
-    return s
-
-
 # code partially taken from cuckoo
 class PE(object):
-
-    def __init__(self, filepath=None, data=None, sigs=None):
-        self.filepath = filepath
-        self.data = data
-        self.pe = None
-        if sigs:
-            self.sigs = peutils.SignatureDatabase(sigs)
-        else:
-            self.sigs = None
 
     def _get_filetype(self, data):
         try:
@@ -109,7 +96,7 @@ class PE(object):
             try:
                 section = {}
                 name = entry.Name.strip("\x00")
-                section["name"] = convert_to_printable(name)
+                section["name"] = name
                 va = entry.VirtualAddress
                 section["virtual_address"] = "0x{0:08x}".format(va)
                 vsize = entry.Misc_VirtualSize
@@ -185,24 +172,31 @@ class PE(object):
                     for st_entry in entry.StringTable:
                         for str_entry in st_entry.entries.items():
                             entry = {}
-                            entry["name"] = convert_to_printable(str_entry[0])
-                            entry["value"] = convert_to_printable(str_entry[1])
+                            entry["name"] = str_entry[0]
+                            entry["value"] = str_entry[1]
                             infos.append(entry)
                 elif hasattr(entry, "Var"):
                     for var_entry in entry.Var:
                         if hasattr(var_entry, "entry"):
                             entry = {}
                             name = var_entry.entry.keys()[0]
-                            entry["name"] = convert_to_printable(name)
+                            entry["name"] = name
                             value = var_entry.entry.values()[0]
-                            entry["value"] = convert_to_printable(value)
+                            entry["value"] = value
                             infos.append(entry)
             except:
                 continue
 
         return infos
 
-    def analyze(self):
+    def analyze(self, filepath=None, data=None, sigs=None):
+        self.filepath = filepath
+        self.data = data
+        self.pe = None
+        if sigs:
+            self.sigs = peutils.SignatureDatabase(sigs)
+        else:
+            self.sigs = None
         if (self.filepath and self.data is not None) or \
            (self.filepath is None and self.data is None):
             log.error("either filepath ({0}) ".format(self.filepath) +

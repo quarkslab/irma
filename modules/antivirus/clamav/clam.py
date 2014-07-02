@@ -16,7 +16,7 @@
 import logging
 import re
 
-from modules.antivirus.base import Antivirus
+from ..base import Antivirus
 
 log = logging.getLogger(__name__)
 

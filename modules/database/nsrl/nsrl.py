@@ -19,8 +19,8 @@ import os
 import pprint
 
 from abc import ABCMeta
+from leveldict import LevelDictSerialized
 from lib.common.oopatterns import ParametricSingletonMetaClass
-from lib.leveldict.leveldict import LevelDictSerialized
 
 log = logging.getLogger(__name__)
 
