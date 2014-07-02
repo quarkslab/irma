@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.symantec import Symantec
+from modules.antivirus.symantec.symantec import Symantec
 
 
 # ============

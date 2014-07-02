@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.kaspersky import Kaspersky
+from modules.antivirus.kaspersky.kaspersky import Kaspersky
 
 
 # ============
