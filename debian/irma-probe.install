@@ -6,5 +6,5 @@ probe opt/irma/irma-probe/
 probes opt/irma/irma-probe/
 scripts opt/irma/irma-probe/
 tests opt/irma/irma-probe/
-install/celery/init.d/celeryd etc/init.d/
-install/celery/default/celeryd etc/default/
+install/celery/init.d/celeryd.probe etc/init.d/
+install/celery/default/celeryd.probe etc/default/

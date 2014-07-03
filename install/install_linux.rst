@@ -182,7 +182,7 @@ FAQ
 Support
 =======
 
-Feeling lost ? need support ? irc: #irma-qb@chat.freenode.net 
+Feeling lost ? need support ? irc: #qb_irma@freenode
 
 ----------------------
 

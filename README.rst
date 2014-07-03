@@ -43,58 +43,18 @@ Others:
 Install
 =======
 
-Quick Installation
-------------------
 
-The following script installs IRMA on a probe with default values. Do not
-forget to change parameter according to your setting. For a more advanced
-installation, see detailed installation section.
+Quick install
+-------------
+
+Add Quarkslab stable repository address. See `here`_ for instructions.
+Then install Meta package:
 
 .. code-block:: bash
 
-    #!/bin/bash
+    sudo apt-get update && sudo apt-get install irma-probe
 
-    ###########################################################
-    # Parameters
-    ###########################################################
-
-    PROBE_NAME="multiprobe"
-    BRAIN_IP_ADDR="brain.irma.qb"
-
-    ###########################################################
-    # Install dependencies
-    ###########################################################
-
-    sudo apt-get install gdebi
-
-    ###########################################################
-    # Download packages
-    ###########################################################
-
-    curl -O https://github.com/quarkslab/irma-probe/releases/download/v1.0.2/irma-probe_1.0.2-1_all.deb
-
-    ###########################################################
-    # Install packages
-    ###########################################################
-
-    sudo gdebi irma-probe_1.0.2-1_all.deb
-
-    ###########################################################
-    # Configuration
-    ###########################################################
-
-    sudo sed -i "s/^name\s*=.*$/name = $PROBE_NAME/" /opt/irma/irma-probe/config/probe.ini
-    sudo sed -i "s/^host\s*=.*$/host = $BRAIN_IP_ADDR/" /opt/irma/irma-probe/config/probe.ini
-
-    ###########################################################
-    # Install probes & restart services
-    ###########################################################
-
-    sudo apt-get install clamav  # For ClamAV probe
-    sudo pip install requests    # For VirusTotal probe (need api key, see config)
-    sudo pip install pefile python-magic  # For Cuckoo's Static Analyzer
-
-    sudo /etc/init.d/celeryd restart
+Do not forget to change parameters according to your settings (See ``Config`` paragraph).
 
 
 Detailed Installation
@@ -127,6 +87,8 @@ For a detailed linux probe install guide see `linux`_ install.
 Config
 ======
 
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/probe.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-probe``.
+
 irma-probe configuration file:
 
 +----------------+-------------+------------+-----------+
@@ -158,8 +120,6 @@ irma-probe configuration file:
 |                +-------------+------------+-----------+
 |                |   password  | ``string`` |           |
 +----------------+-------------+------------+-----------+
-
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/probe.ini``
 
 **optional configuration parameters**
 
@@ -197,6 +157,7 @@ TODO
 * Add support for more Linux and Windows antiviruses
 * Add different heuristics for antiviruses
 
+.. _here: http://apt.quarkslab.com/readme.txt
 .. _windows: /install/install_win.rst
 .. _linux: /install/install_linux.rst
 
