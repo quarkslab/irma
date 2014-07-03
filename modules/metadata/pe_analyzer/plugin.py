@@ -47,8 +47,7 @@ class PEAnalyzerPlugin(PluginBase):
         ),
         ModuleDependency(
             'lib.common.mimetypes'
-        )
-
+        ),
     ]
 
 

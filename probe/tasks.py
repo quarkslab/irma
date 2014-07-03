@@ -17,35 +17,55 @@ import kombu
 import ssl
 import tempfile
 import os
+import sys
 import uuid
 import config.parser as config
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
 from lib.irma.ftp.handler import FtpTls
+from lib.plugins import PluginManager
 
 ##############################################################################
 # statically import plugins
 ##############################################################################
 
-from probes.antivirus.antivirus import AntivirusProbe
-from probes.antivirus.clam import ClamProbe
-from probes.antivirus.comodo_cavl import ComodoCAVLProbe
-from probes.antivirus.eset_nod32 import EsetNod32Probe
-from probes.antivirus.fprot import FProtProbe
-from probes.antivirus.mcafee_vscl import McAfeeVSCLProbe
-from probes.antivirus.sophos import SophosProbe
-from probes.antivirus.kaspersky import KasperskyProbe
-from probes.antivirus.symantec import SymantecProbe
+## from probes.antivirus.antivirus import AntivirusProbe
+## from probes.antivirus.clam import ClamProbe
+## from probes.antivirus.comodo_cavl import ComodoCAVLProbe
+## from probes.antivirus.eset_nod32 import EsetNod32Probe
+## from probes.antivirus.fprot import FProtProbe
+## from probes.antivirus.mcafee_vscl import McAfeeVSCLProbe
+## from probes.antivirus.sophos import SophosProbe
+## from probes.antivirus.kaspersky import KasperskyProbe
+## from probes.antivirus.symantec import SymantecProbe
+## 
+## from probes.web.web import WebProbe
+## from probes.web.virustotal import VirusTotalProbe
+## 
+## from probes.information.information import InformationProbe
+## from probes.information.analyzer import StaticAnalyzerProbe
+## 
+## from probes.database.database import DatabaseProbe
+## from probes.database.nsrl import NSRLProbe
 
-from probes.web.web import WebProbe
-from probes.web.virustotal import VirusTotalProbe
-
-from probes.information.information import InformationProbe
-from probes.information.analyzer import StaticAnalyzerProbe
-
-from probes.database.database import DatabaseProbe
-from probes.database.nsrl import NSRLProbe
+## from modules.antivirus.clamav.plugin import ClamAntivirusPlugin
+## from modules.antivirus.comodo.plugin import ComodoCAVLPlugin
+## from modules.antivirus.eset.plugin import EsetNod32Plugin
+## from modules.antivirus.fprot.plugin import FProtPlugin
+## from modules.antivirus.kaspersky.plugin import KasperskyPlugin
+## from modules.antivirus.mcafee.plugin import McAfeeVSCLPlugin
+## from modules.antivirus.sophos.plugin import SophosPlugin
+## from modules.antivirus.symantec.plugin import SymantecPlugin
+## 
+## try:
+##     from modules.database.nsrl.plugin import NSRLPlugin
+## except:
+##     pass
+## 
+## from modules.metadata.pe_analyzer.plugin import PEAnalyzerPlugin
+## 
+## from modules.external.virustotal.plugin import VirusTotalPlugin
 
 ##############################################################################
 # celery application configuration
@@ -62,16 +82,23 @@ app = Celery("probe.tasks")
 config.conf_probe_celery(app)
 config.configure_syslog(app)
 
-# determine dynamically queues to connect to
+# discover plugins located at specified path
+plugin_path = os.path.abspath("modules")
+if not os.path.exists(plugin_path):
+    log.error("path {0} is invalid, cannot load probes".format(plugin_path))
+    sys.exit(1)
+manager = PluginManager()
+manager.discover(plugin_path)
+
+# determine dynamically queues to connect to using plugin names
+probes = PluginManager().get_all_plugins()
+if not probes:
+    log.error("No probe found, exiting application")
+    sys.exit(1)
+
+# instanciation of probes and queue creation
+probes = dict((probe.plugin_name, probe()) for probe in probes)
 queues = []
-probes = sum([AntivirusProbe.plugins,
-              WebProbe.plugins,
-              DatabaseProbe.plugins,
-              InformationProbe.plugins], [])
-probes = map(lambda pb: pb(conf=config.probe_config.get(pb.plugin_name, None)),
-             probes)
-probes = filter(lambda pb: pb.ready(), probes)
-probes = dict((type(pb).plugin_name, pb) for pb in probes)
 for probe in probes.keys():
     queues.append(kombu.Queue(probe, routing_key=probe))
 
@@ -80,10 +107,10 @@ app.conf.update(
     CELERY_QUEUES=tuple(queues),
 )
 
+
 ##############################################################################
 # declare celery tasks
 ##############################################################################
-
 
 @app.task(acks_late=True)
 def probe_scan(frontend, scanid, filename):
