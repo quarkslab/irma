@@ -207,9 +207,9 @@ class PE(object):
             return None
 
         try:
-            if self.filepath is None:
+            if self.filepath is not None:
                 self.pe = pefile.PE(self.filepath)
-            elif self.data is None:
+            elif self.data is not None:
                 self.pe = pefile.PE(data=self.data)
         except pefile.PEFormatError:
             return None
