@@ -35,11 +35,11 @@ class PEAnalyzerPlugin(PluginBase):
     _plugin_description_ = "Plugin to analyze PE files"
     _plugin_dependencies_ = [
         ModuleDependency(
-            'pefile', 
+            'pefile',
             help='See requirements.txt for needed dependencies'
         ),
         ModuleDependency(
-            'peutils', 
+            'peutils',
             help='See requirements.txt for needed dependencies'
         ),
         ModuleDependency(
@@ -49,7 +49,6 @@ class PEAnalyzerPlugin(PluginBase):
             'lib.common.mimetypes'
         ),
     ]
-
 
     ##########################################################################
     # constructor and destructor stuff

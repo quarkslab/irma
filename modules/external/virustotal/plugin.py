@@ -37,14 +37,13 @@ class VirusTotalPlugin(PluginBase):
     _plugin_description_ = "Plugin to query VirusTotal API"
     _plugin_dependencies_ = [
         ModuleDependency(
-            'virus_total_apis', 
+            'virus_total_apis',
             help='See requirements.txt for needed dependencies'
         ),
         FileDependency(
             os.path.join(os.path.dirname(__file__), 'config.ini')
         )
     ]
-
 
     ##########################################################################
     # constructor

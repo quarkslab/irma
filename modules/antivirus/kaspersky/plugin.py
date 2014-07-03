@@ -47,7 +47,6 @@ class KasperskyPlugin(PluginBase, Kaspersky, AntivirusPluginInterface):
         del module
         return verified
 
-
     ##########################################################################
     # constructor
     ##########################################################################

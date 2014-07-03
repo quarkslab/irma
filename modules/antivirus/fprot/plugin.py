@@ -36,7 +36,6 @@ class FProtPlugin(PluginBase, FProt, AntivirusPluginInterface):
         BinaryDependency("/usr/local/f-prot/fpscan")
     ]
 
-
     ##########################################################################
     # constructor
     ##########################################################################

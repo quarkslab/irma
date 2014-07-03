@@ -47,7 +47,6 @@ class SymantecPlugin(PluginBase, Symantec, AntivirusPluginInterface):
         del module
         return verified
 
-
     ##########################################################################
     # constructor
     ##########################################################################

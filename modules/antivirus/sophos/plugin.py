@@ -47,7 +47,6 @@ class SophosPlugin(PluginBase, Sophos, AntivirusPluginInterface):
         del module
         return verified
 
-
     ##########################################################################
     # constructor
     ##########################################################################

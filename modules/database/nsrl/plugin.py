@@ -34,10 +34,11 @@ class NSRLPlugin(PluginBase):
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = "database"
-    _plugin_description_ = "Information plugin to query hashes on NRSL database"
+    _plugin_description_ = "Information plugin to query hashes on " \
+                           "NRSL database"
     _plugin_dependencies_ = [
         ModuleDependency(
-            'leveldict', 
+            'leveldict',
             help='See requirements.txt for needed dependencies'
         ),
         ModuleDependency(
@@ -53,17 +54,15 @@ class NSRLPlugin(PluginBase):
         # load default configuration file
         config = SafeConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
-        
+
         # check for configured database path
-        results = map(os.path.exists, [ 
-                        config.get('NSRL', 'nsrl_os_db'), 
-                        config.get('NSRL', 'nsrl_mfg_db'),
-                        config.get('NSRL', 'nsrl_file_db'),
-                        config.get('NSRL', 'nsrl_prod_db'),
-                  ])
+        results = map(os.path.exists, [
+                      config.get('NSRL', 'nsrl_os_db'),
+                      config.get('NSRL', 'nsrl_mfg_db'),
+                      config.get('NSRL', 'nsrl_file_db'),
+                      config.get('NSRL', 'nsrl_prod_db')
+                      ])
         return reduce(lambda x, y: x or y, results, False)
-        
-                                    
 
     ##########################################################################
     # constructor and destructor stuff
@@ -83,7 +82,7 @@ class NSRLPlugin(PluginBase):
         # lookup module
         module = sys.modules['modules.database.nsrl.nsrl'].NSRL
 
-        self.module = module(nsrl_file_db, nsrl_prod_db, 
+        self.module = module(nsrl_file_db, nsrl_prod_db,
                              nsrl_os_db, nsrl_mfg_db)
 
     ##########################################################################

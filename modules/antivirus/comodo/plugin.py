@@ -36,7 +36,6 @@ class ComodoCAVLPlugin(PluginBase, ComodoCAVL, AntivirusPluginInterface):
         BinaryDependency('/opt/COMODO/cmdscan',)
     ]
 
-
     ##########################################################################
     # constructor
     ##########################################################################

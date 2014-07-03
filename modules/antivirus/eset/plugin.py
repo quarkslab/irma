@@ -37,7 +37,6 @@ class EsetNod32Plugin(PluginBase, EsetNod32, AntivirusPluginInterface):
         BinaryDependency('/opt/eset/esets/sbin/esets_scan')
     ]
 
-
     ##########################################################################
     # constructor
     ##########################################################################

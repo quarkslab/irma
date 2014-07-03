@@ -18,6 +18,7 @@ import hashlib
 
 from lib.plugin_result import PluginResult
 
+
 class AntivirusPluginInterface(object):
     """Antivirus Plugin"""
 
