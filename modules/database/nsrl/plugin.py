@@ -21,6 +21,7 @@ from ConfigParser import SafeConfigParser
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
+from lib.common.hash import sha1sum
 
 
 class NSRLPlugin(PluginBase):
@@ -99,8 +100,4 @@ class NSRLPlugin(PluginBase):
         plugin_results.end_time = None
         # allocate memory for data, and fill with data
         plugin_results.data = {paths: results}
-        # append dependency data
-        if type(self).plugin_dependencies:
-            for dependency in type(self).plugin_dependencies:
-                plugin_results.add_dependency_data(dependency().run())
         return plugin_results.serialize()

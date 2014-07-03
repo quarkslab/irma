@@ -19,7 +19,14 @@ import os
 import pprint
 
 from abc import ABCMeta
-from leveldict import LevelDictSerialized
+
+# HACK: to avoid an error on import if leveldict is not installed
+try:
+    from leveldict import LevelDictSerialized
+except ImportError as e:
+    # use type and not metaclass because of the singleton
+    LevelDictSerialized = type
+
 from lib.common.oopatterns import ParametricSingletonMetaClass
 
 log = logging.getLogger(__name__)

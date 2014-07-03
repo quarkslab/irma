@@ -16,8 +16,6 @@
 # Partially taken from cuckoo
 import logging
 import os
-import pefile
-import peutils
 
 from lib.common.mimetypes import Magic
 
@@ -26,6 +24,13 @@ log = logging.getLogger(__name__)
 
 # code partially taken from cuckoo
 class PE(object):
+
+    def __init__(self):
+        global pefile
+        import pefile
+
+        global peutils
+        import peutils
 
     def _get_filetype(self, data):
         try:

@@ -13,6 +13,8 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import os
+
 from .symantec import Symantec
 from ..interface import AntivirusPluginInterface
 
@@ -34,6 +36,16 @@ class SymantecPlugin(PluginBase, Symantec, AntivirusPluginInterface):
     _plugin_dependencies_ = [
         PlatformDependency('win32')
     ]
+
+    @classmethod
+    def verify(cls):
+        # check if Kaspersky has been found
+        verified = False
+        module = Symantec()
+        if module.scan_path and os.path.exists(module.scan_path):
+            verified = True
+        del module
+        return verified
 
 
     ##########################################################################
