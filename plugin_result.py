@@ -13,7 +13,9 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import sys
 import pprint
+
 from time import mktime
 from datetime import datetime
 
@@ -30,9 +32,7 @@ class PluginResult(object):
         }
 
         # parsed data & result code
-        self._raw = None
         self._data = None
-        self._dependencies_data = None
         self._result_code = 0
 
     @property
@@ -68,11 +68,6 @@ class PluginResult(object):
         delta = end - start
         self.metadata['duration'] = delta
 
-    def add_dependency_data(self, result):
-        if not self._dependencies_data:
-            self._dependencies_data = []
-        self._dependencies_data.append(result)
-
     @property
     def data(self):
         return self._data
@@ -80,14 +75,6 @@ class PluginResult(object):
     @data.setter
     def data(self, data):
         self._data = data
-
-    @property
-    def raw(self):
-        return self._raw
-
-    @raw.setter
-    def raw(self, raw):
-        self._raw = raw
 
     @property
     def result_code(self):
@@ -113,12 +100,11 @@ class PluginResult(object):
                 'plugin': self.metadata.get('plugin'),
                 'start_time': self.metadata.get('start_time'),
                 'end_time': self.metadata.get('end_time'),
-                'duration': self.metadata.get('duration')
+                'duration': self.metadata.get('duration'),
+                'platform': sys.platform
             },
-            'raw': self.raw,
             'data': self.data,
             'result_code': self.result_code,
-            'dependencies_data': self._dependencies_data,
         }
         return result
 
