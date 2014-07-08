@@ -117,3 +117,23 @@ def humanize_time_str(amount, units):
     for (value, unit) in humanize_time(amount, units):
         res.append("{0} {1}".format(value, unit))
     return ", ".join(res)
+
+
+import collections
+
+def to_unicode(data):
+    if isinstance(data, basestring):
+        encodings = ('ascii', 'utf8', 'latin1')
+        for enc in encodings:
+            try:
+                data = data.decode(enc)
+                break
+            except UnicodeDecodeError:
+                pass
+        return data
+    elif isinstance(data, collections.Mapping):
+        return dict(map(to_unicode, data.iteritems()))
+    elif isinstance(data, collections.Iterable):
+        return type(data)(map(to_unicode, data))
+    else:
+        return data
