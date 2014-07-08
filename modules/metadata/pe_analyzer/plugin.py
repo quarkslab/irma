@@ -16,6 +16,7 @@
 import re
 import os
 import sys
+import logging
 
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency
@@ -73,7 +74,7 @@ class PEAnalyzerPlugin(PluginBase):
         if mimetype and re.match('PE32', mimetype):
             result = self.module.analyze(filename)
         else:
-            log.warning("{0} not yet handled".format(mimetype))
+            logging.warning("{0} not yet handled".format(mimetype))
         return result
 
     def run(self, paths):
