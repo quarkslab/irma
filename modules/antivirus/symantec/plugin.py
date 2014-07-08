@@ -24,9 +24,9 @@ from lib.plugins import BinaryDependency, PlatformDependency
 
 class SymantecPlugin(PluginBase, Symantec, AntivirusPluginInterface):
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  plugin metadata
+    # =================
 
     _plugin_name_ = "Symantec"
     _plugin_author_ = "IRMA (c) Quarkslab"
@@ -47,9 +47,9 @@ class SymantecPlugin(PluginBase, Symantec, AntivirusPluginInterface):
         del module
         return verified
 
-    ##########################################################################
-    # constructor
-    ##########################################################################
+    # =============
+    #  constructor
+    # =============
 
     def __init__(self):
         # load default configuration file

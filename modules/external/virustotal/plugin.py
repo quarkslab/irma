@@ -26,9 +26,9 @@ from lib.plugin_result import PluginResult
 
 class VirusTotalPlugin(PluginBase):
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  plugin metadata
+    # =================
 
     _plugin_name_ = "VirusTotal"
     _plugin_author_ = "IRMA (c) Quarkslab"
@@ -45,9 +45,9 @@ class VirusTotalPlugin(PluginBase):
         )
     ]
 
-    ##########################################################################
-    # constructor
-    ##########################################################################
+    # =============
+    #  constructor
+    # =============
 
     def __init__(self, apikey=None, private=None):
         # load default configuration file
@@ -76,9 +76,9 @@ class VirusTotalPlugin(PluginBase):
         digest = hashlib.md5(filename).hexdigest()
         return self.module.get_file_report(digest)
 
-    ##########################################################################
-    # probe interfaces
-    ##########################################################################
+    # ==================
+    #  probe interfaces
+    # ==================
 
     def run(self, paths):
         # allocate plugin results place-holders

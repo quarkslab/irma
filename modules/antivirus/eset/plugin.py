@@ -22,9 +22,9 @@ from lib.plugins import BinaryDependency, PlatformDependency
 
 class EsetNod32Plugin(PluginBase, EsetNod32, AntivirusPluginInterface):
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  plugin metadata
+    # =================
 
     _plugin_name_ = "EsetNod32"
     _plugin_author_ = "IRMA (c) Quarkslab"
@@ -37,9 +37,9 @@ class EsetNod32Plugin(PluginBase, EsetNod32, AntivirusPluginInterface):
         BinaryDependency('/opt/eset/esets/sbin/esets_scan')
     ]
 
-    ##########################################################################
-    # constructor
-    ##########################################################################
+    # =============
+    #  constructor
+    # =============
 
     def __init__(self):
         # load default configuration file

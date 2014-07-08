@@ -22,9 +22,9 @@ from lib.plugins import BinaryDependency, PlatformDependency
 
 class ComodoCAVLPlugin(PluginBase, ComodoCAVL, AntivirusPluginInterface):
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  plugin metadata
+    # =================
 
     _plugin_name_ = "ComodoCAVL"
     _plugin_author_ = "IRMA (c) Quarkslab"
@@ -36,9 +36,9 @@ class ComodoCAVLPlugin(PluginBase, ComodoCAVL, AntivirusPluginInterface):
         BinaryDependency('/opt/COMODO/cmdscan',)
     ]
 
-    ##########################################################################
-    # constructor
-    ##########################################################################
+    # =============
+    #  constructor
+    # =============
 
     def __init__(self):
         # load default configuration file

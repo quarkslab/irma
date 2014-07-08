@@ -22,9 +22,9 @@ from lib.plugins import BinaryDependency, PlatformDependency
 
 class ClamAntivirusPlugin(PluginBase, Clam, AntivirusPluginInterface):
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  plugin metadata
+    # =================
 
     _plugin_name_ = "ClamAV"
     _plugin_author_ = "IRMA (c) Quarkslab"
@@ -39,9 +39,9 @@ class ClamAntivirusPlugin(PluginBase, Clam, AntivirusPluginInterface):
         ),
     ]
 
-    ##########################################################################
-    # constructor
-    ##########################################################################
+    # =============
+    #  constructor
+    # =============
 
     def __init__(self):
         # load default configuration file

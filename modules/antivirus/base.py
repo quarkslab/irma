@@ -271,15 +271,15 @@ class Antivirus(object):
         """return the scan arguments"""
         return None
 
-##############################################################################
-# CLI for debug purposes
-##############################################################################
+# ========================
+#  CLI for debug purposes
+# ========================
 
 if __name__ == '__main__':
 
-    ##########################################################################
-    # imports
-    ##########################################################################
+    # =========
+    #  imports
+    # =========
 
     import argparse
     from modules.antivirus.clam import Clam
@@ -291,9 +291,9 @@ if __name__ == '__main__':
     from modules.antivirus.kaspersky import Kaspersky
     from modules.antivirus.symantec import Symantec
 
-    ##########################################################################
-    # helpers
-    ##########################################################################
+    # =========
+    #  helpers
+    # =========
 
     antivirus_mapping = {
         'clam':        Clam,
@@ -326,9 +326,9 @@ if __name__ == '__main__':
                       antivirus.scan_results.items())
         print("\n".join(results))
 
-    ##########################################################################
-    # command line program
-    ##########################################################################
+    # ======================
+    #  Command line program
+    # ======================
 
     # define command line arguments
     parser = argparse.ArgumentParser(description='Antivirus CLI mode')

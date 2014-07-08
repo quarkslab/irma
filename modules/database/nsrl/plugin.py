@@ -26,9 +26,9 @@ from lib.common.hash import sha1sum
 
 class NSRLPlugin(PluginBase):
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  plugin metadata
+    # =================
 
     _plugin_name_ = "NSRL"
     _plugin_author_ = "IRMA (c) Quarkslab"
@@ -64,9 +64,9 @@ class NSRLPlugin(PluginBase):
                       ])
         return reduce(lambda x, y: x or y, results, False)
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  constructor and destructor stuff
+    # ==================================
 
     def __init__(self):
         # load default configuration file
@@ -85,9 +85,9 @@ class NSRLPlugin(PluginBase):
         self.module = module(nsrl_file_db, nsrl_prod_db,
                              nsrl_os_db, nsrl_mfg_db)
 
-    ##########################################################################
-    # probe interfaces
-    ##########################################################################
+    # ==================
+    #  probe interfaces
+    # ==================
 
     def run(self, paths):
         # allocate plugin results place-holders

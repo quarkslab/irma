@@ -24,9 +24,9 @@ from lib.plugin_result import PluginResult
 
 class PEAnalyzerPlugin(PluginBase):
 
-    ##########################################################################
-    # plugin metadata
-    ##########################################################################
+    # =================
+    #  plugin metadata
+    # =================
 
     _plugin_name_ = "StaticAnalyzer"
     _plugin_author_ = "IRMA (c) Quarkslab"
@@ -50,9 +50,9 @@ class PEAnalyzerPlugin(PluginBase):
         ),
     ]
 
-    ##########################################################################
-    # constructor and destructor stuff
-    ##########################################################################
+    # ==================================
+    #  constructor and destructor stuff
+    # ==================================
 
     def __init__(self):
         module = sys.modules['modules.metadata.pe_analyzer.pe'].PE
