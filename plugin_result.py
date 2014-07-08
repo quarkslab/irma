@@ -46,7 +46,9 @@ class PluginResult(object):
     @start_time.setter
     def start_time(self, value):
         # ignore passed value
-        self.metadata['start_time'] = datetime.utcnow()
+        now = datetime.utcnow()
+        self.metadata['start_time'] = mktime(now.timetuple()) +
+                                      now.microsecond / 1000000.0
 
     @property
     def end_time(self):
@@ -55,17 +57,16 @@ class PluginResult(object):
     @end_time.setter
     def end_time(self, value):
         # ignore passed value
-        self.metadata['end_time'] = datetime.utcnow()
+        now = datetime.utcnow()
+        self.metadata['end_time'] = mktime(now.timetuple()) +
+                                    now.microsecond / 1000000.0
         self._calculate_duration()
 
     def _calculate_duration(self):
         start = self.metadata.get('start_time')
         end = self.metadata.get('end_time')
-        if end and start:
-            delta = end - start
-        else:
-            delta = datetime.timedelta(0)
-        self.metadata['duration'] = int(delta.total_seconds())
+        delta = end - start
+        self.metadata['duration'] = delta
 
     def add_dependency_data(self, result):
         if not self._dependencies_data:
@@ -110,8 +111,8 @@ class PluginResult(object):
         result = {
             'metadata': {
                 'plugin': self.metadata.get('plugin'),
-                'start_time': mktime(start.timetuple()),
-                'end_time': mktime(end.timetuple()),
+                'start_time': self.metadata.get('start_time'),
+                'end_time': self.metadata.get('end_time'),
                 'duration': self.metadata.get('duration')
             },
             'raw': self.raw,
