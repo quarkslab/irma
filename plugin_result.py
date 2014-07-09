@@ -18,6 +18,7 @@ import pprint
 
 from time import mktime
 from datetime import datetime
+from lib.common.utils import to_unicode
 
 
 class PluginResult(object):
@@ -47,7 +48,7 @@ class PluginResult(object):
     def start_time(self, value):
         # ignore passed value
         now = datetime.utcnow()
-        self.metadata['start_time'] = mktime(now.timetuple()) +
+        self.metadata['start_time'] = mktime(now.timetuple()) + \
                                       now.microsecond / 1000000.0
 
     @property
@@ -58,7 +59,7 @@ class PluginResult(object):
     def end_time(self, value):
         # ignore passed value
         now = datetime.utcnow()
-        self.metadata['end_time'] = mktime(now.timetuple()) +
+        self.metadata['end_time'] = mktime(now.timetuple()) + \
                                     now.microsecond / 1000000.0
         self._calculate_duration()
 
@@ -106,6 +107,7 @@ class PluginResult(object):
             'data': self.data,
             'result_code': self.result_code,
         }
+        result = to_unicode(result)
         return result
 
     def __repr__(self):
