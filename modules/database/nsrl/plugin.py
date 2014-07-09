@@ -20,6 +20,7 @@ from ConfigParser import SafeConfigParser
 
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
+from lib.plugins import PluginLoadError
 from lib.plugin_result import PluginResult
 from lib.common.hash import sha1sum
 
@@ -55,14 +56,26 @@ class NSRLPlugin(PluginBase):
         config = SafeConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
+        os_db = config.get('NSRL', 'nsrl_os_db')
+        mfg_db = config.get('NSRL', 'nsrl_mfg_db')
+        file_db = config.get('NSRL', 'nsrl_file_db')
+        prod_db = config.get('NSRL', 'nsrl_prod_db')
+        databases = [os_db, mfg_db, file_db, prod_db]
+
         # check for configured database path
-        results = map(os.path.exists, [
-                      config.get('NSRL', 'nsrl_os_db'),
-                      config.get('NSRL', 'nsrl_mfg_db'),
-                      config.get('NSRL', 'nsrl_file_db'),
-                      config.get('NSRL', 'nsrl_prod_db')
-                      ])
-        return reduce(lambda x, y: x or y, results, False)
+        results = map(os.path.exists, databases)
+        dbs_available = reduce(lambda x, y: x or y, results, False)
+        if not dbs_available:
+            raise PluginLoadError("database are not available")
+
+        # check for LOCK file and remove it
+        dbs_locks = map(lambda x: os.path.join(x, "LOCK"), databases)
+        for lock in dbs_locks:
+            try:
+                if os.path.exists(lock):
+                    os.unlink(lock)
+            except:
+                raise PluginLoadError("unable to remove lock {0}".format(lock))
 
     # ==================================
     #  constructor and destructor stuff
