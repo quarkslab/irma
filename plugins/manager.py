@@ -81,10 +81,12 @@ class PluginManager(Singleton):
                       ''.format(name=plugin.plugin_name))
         # if required, run additionnal verifications on the plugin
         if hasattr(plugin, 'verify'):
-            if not plugin.verify():
-                logging.warn("Conditions not met for plugin {name}"
+            try:
+                plugin.verify()
+            except Exception as error:
+                logging.warn("Load error for plugin {name}"
                              "".format(name=plugin.__name__))
-                raise PluginLoadError('Conditions not verified')
+                raise PluginLoadError(error)
         # check for dependencies
         for dependency in plugin.plugin_dependencies:
             try:
