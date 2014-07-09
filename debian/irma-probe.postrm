@@ -20,15 +20,21 @@ set -e
 
 PROBES_DIR=/opt/irma/irma-probe/
 
+
 case "$1" in
-    purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-		if [ -f /etc/default/celeryd ]; then
-			rm /etc/default/celeryd
+    upgrade|failed-upgrade|abort-upgrade)
+		if [ -f /etc/init.d/celeryd.probe ]; then
+			invoke-rc.d celeryd.probe restart
 		fi
-		if [ -f /etc/init.d/celeryd ]; then
-			invoke-rc.d celeryd stop
-			update-rc.d -f celeryd remove
-			rm /etc/init.d/celeryd
+    ;;
+    purge|remove|abort-install|disappear)
+		if [ -f /etc/default/celeryd.probe ]; then
+			rm /etc/default/celeryd.probe
+		fi
+		if [ -f /etc/init.d/celeryd.probe ]; then
+			invoke-rc.d celeryd.probe stop
+			update-rc.d -f celeryd.probe remove
+			rm /etc/init.d/celeryd.probe
 		fi
 		if [ -d $PROBES_DIR ]; then
         	rm -r $PROBES_DIR
