@@ -37,7 +37,8 @@ case "$1" in
 			rm /etc/init.d/celeryd.probe
 		fi
 		if [ -d $PROBES_DIR ]; then
-        	rm -r $PROBES_DIR
+            echo "Removing installation directory"
+       	    rm -r $PROBES_DIR
 		fi
     ;;
 

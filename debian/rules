@@ -20,6 +20,9 @@ export DH_OPTIONS
 %:
 	dh $@ 
 
+override_dh_auto_install:
+	dh_install
+
 override_dh_clean:
 	dh_clean
 	find . -type f -name "*.pyc" -exec rm '{}' \;

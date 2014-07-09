@@ -28,6 +28,7 @@ case "$1" in
 			adduser --system --no-create-home --group irma
 		fi
 		if [ ! -f $PROBES_DIR/config/probe.ini ]; then
+			echo "probe.ini not found, creating it from skeleton"
 			cp $PROBES_DIR/config/probe.ini.sample $PROBES_DIR/config/probe.ini
 		fi
 		update-rc.d celeryd.probe defaults
