@@ -128,7 +128,7 @@ def to_unicode(data):
             try:
                 data = data.decode(enc)
                 break
-            except UnicodeDecodeError:
+            except (UnicodeDecodeError, UnicodeEncodeError):
                 pass
         return data
     elif isinstance(data, collections.Mapping):
