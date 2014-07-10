@@ -15,7 +15,7 @@
 
 import celery
 import config.parser as config
-from frontend.objects import ScanInfo, ScanFile, ScanRefResults
+from frontend.nosqlobjects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound

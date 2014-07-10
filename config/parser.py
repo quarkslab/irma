@@ -27,7 +27,7 @@ template_frontend_config = {
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 27017),
         ('dbname', TemplatedConfiguration.string, None),
-        ],
+    ],
     'collections': [
         ('scan_info', TemplatedConfiguration.string, None),
         ('scan_results', TemplatedConfiguration.string, None),
@@ -35,13 +35,21 @@ template_frontend_config = {
         ('scan_files', TemplatedConfiguration.string, None),
         ('scan_filedata', TemplatedConfiguration.string, None),
         ('scan_file_fs', TemplatedConfiguration.string, None),
-        ],
+    ],
+    'sqldb': [
+        ('dbms', TemplatedConfiguration.string, None),
+        ('dialect', TemplatedConfiguration.string, None),
+        ('username', TemplatedConfiguration.string, None),
+        ('passwd', TemplatedConfiguration.string, None),
+        ('host', TemplatedConfiguration.string, None),
+        ('dbname', TemplatedConfiguration.string, None),
+    ],
     'celery_brain': [
         ('timeout', TemplatedConfiguration.integer, 10),
-        ],
+    ],
     'celery_frontend': [
         ('timeout', TemplatedConfiguration.integer, 10),
-        ],
+    ],
     'broker_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 5672),
@@ -49,7 +57,7 @@ template_frontend_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
         ('queue', TemplatedConfiguration.string, None),
-        ],
+    ],
     'broker_frontend': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 5672),
@@ -57,25 +65,25 @@ template_frontend_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
         ('queue', TemplatedConfiguration.string, None),
-        ],
+    ],
     'backend_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 6379),
         ('db', TemplatedConfiguration.integer, None),
-        ],
+    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 21),
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
-        ],
+    ],
     'cron_frontend': [
         ('clean_db_scan_info_max_age', TemplatedConfiguration.integer, 100),
         ('clean_db_scan_file_max_age', TemplatedConfiguration.integer, 2),
         ('clean_db_cron_hour', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),
-        ],
+    ],
 }
 
 cwd = os.path.abspath(os.path.dirname(__file__))
@@ -141,6 +149,17 @@ def get_db_uri():
     host = frontend_config.mongodb.host
     port = frontend_config.mongodb.port
     return "mongodb://{host}:{port}/".format(host=host, port=port)
+
+
+def get_sql_db_uri_params():
+    return (
+        frontend_config.sqldb.dbms,
+        frontend_config.sqldb.dialect,
+        frontend_config.sqldb.username,
+        frontend_config.sqldb.passwd,
+        frontend_config.sqldb.host,
+        frontend_config.sqldb.dbname,
+    )
 
 
 def get_brain_celery_timeout():

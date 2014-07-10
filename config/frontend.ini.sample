@@ -11,6 +11,14 @@ scan_files = scan_files
 scan_filedata = scan_filedata
 scan_file_fs = fs
 
+[sqldb]
+dbms = postgresql
+dialect = psycopg2
+username = postgres
+passwd = postgres
+host = localhost
+dbname = test
+
 [broker_brain]
 host = 127.0.0.1
 vhost = mqbrain
