@@ -13,101 +13,35 @@ This package handles scan submission to the brain. Keep track of scanned files r
 Installation
 ============
 
+Quick install
+-------------
+
+Add Quarkslab repository address. See `here`_ for instructions.
+Then install Meta package:
+
+.. code-block:: bash
+
+    sudo apt-get update && sudo apt-get install irma-frontend
+
+Do not forget to change parameters according to your settings (See ``Config`` paragraph).
+
 Get the code
 ------------
 
-Two possibilities:
-
-* if you have a pypi server of your own (1)
-* if you don't (2)
-
-**1. pip install into <path>**
-
-For detailed instructions about setting up a local pypi server please see `brain_install`_.
+clone from github
 
 .. code-block:: bash
 
-    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-frontend
+    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma-frontend
 
-
-**2. clone from github**
-
-.. code-block:: bash
-
-    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
-
-Installation
-------------
-
-Quick Installation
-------------------
-
-The following script installs IRMA's frontend with default values. Do not
-forget to change parameter according to your setting. For a more advanced
-installation, see detailed installation section.
-
-.. code-block:: bash
-
-    #!/bin/bash
-
-    ###########################################################
-    # Parameters
-    ###########################################################
-
-    BRAIN_IP_ADDR="brain.irma.qb"
-
-    ###########################################################
-    # Install dependencies
-    ###########################################################
-
-    sudo apt-get install gdebi
-
-    ###########################################################
-    # Download packages
-    ###########################################################
-
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-api_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-api-uwsgi_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-web-data_1.1.0-1_all.deb
-    curl -O https://github.com/quarkslab/irma-frontend/releases/download/v1.0.1/irma-frontend-web-nginx_1.1.0-1_all.deb
-
-    ###########################################################
-    # Install packages
-    ###########################################################
-
-    sudo gdebi irma-frontend-api_1.1.0-1_all.deb
-    sudo gdebi irma-frontend-api-uwsgi_1.1.0-1_all.deb
-    sudo gdebi irma-frontend-web-data_1.1.0-1_all.deb
-    sudo gdebi irma-frontend-web-nginx_1.1.0-1_all.deb
-
-    ###########################################################
-    # Configuration
-    ###########################################################
-
-    sudo sh -c "head -5 /opt/irma/irma-frontend/config/frontend.ini.sample > /opt/irma/irma-frontend/config/frontend.ini"
-    sed -n '5,$p'  /opt/irma/irma-frontend/config/frontend.ini.sample | sudo sed "s/^host\s*=.*$/host = $BRAIN_IP_ADDR/" >> /opt/irma/irma-frontend/config/frontend.ini
-
-    ###########################################################
-    # Restart services
-    ###########################################################
-
-    sudo /etc/init.d/mongodb restart
-    sudo /etc/init.d/uwsgi restart
-    sudo /etc/init.d/nginx restart
-    sudo /etc/init.d/celeryd restart
-
-
-Detailed Installation
----------------------
-
-For detailed instructions, please see `install.rst`_.
+With source install see `install.rst`_ for instructions.
 
 
 ======
 Config
 ======
 
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Be sure to create it.
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-frontend``.
 
 irma-frontend configuration file content:
 
@@ -190,11 +124,10 @@ irma-frontend configuration file content:
 Licence
 =======
 
-Please see `LICENSE`_.
+Licensed under Apache v2.0 license. Please see `LICENSE`_.
 
-------------
 
+.. _here: http://apt.quarkslab.com/readme.txt
 .. _install.rst: /install/install.rst
-.. _brain_install: /../../../irma-brain/blob/master/install/install.rst
 .. _LICENSE: /LICENSE
 
