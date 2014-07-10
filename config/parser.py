@@ -43,6 +43,7 @@ template_frontend_config = {
         ('passwd', TemplatedConfiguration.string, None),
         ('host', TemplatedConfiguration.string, None),
         ('dbname', TemplatedConfiguration.string, None),
+        ('tables_prefix', TemplatedConfiguration.string, None),
     ],
     'celery_brain': [
         ('timeout', TemplatedConfiguration.integer, 10),
@@ -160,6 +161,10 @@ def get_sql_db_uri_params():
         frontend_config.sqldb.host,
         frontend_config.sqldb.dbname,
     )
+
+
+def get_sql_db_tables_prefix():
+    return frontend_config.sqldb.tables_prefix
 
 
 def get_brain_celery_timeout():

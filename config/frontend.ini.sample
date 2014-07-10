@@ -18,6 +18,7 @@ username = postgres
 passwd = postgres
 host = localhost
 dbname = test
+tables_prefix = irma
 
 [broker_brain]
 host = 127.0.0.1
