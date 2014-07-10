@@ -23,6 +23,11 @@ class IrmaDatabaseError(Exception):
     pass
 
 
+class IrmaDatabaseResultNotFound(Exception):
+    """Nothing corresponding to the request has been found in the database."""
+    pass
+
+
 class IrmaConfigurationError(Exception):
     """Error wrong configuration."""
     pass

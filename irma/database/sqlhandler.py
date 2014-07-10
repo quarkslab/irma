@@ -1,111 +1,77 @@
-import logging
-import sqlalchemy
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+#
+# Copyright (c) 2014 QuarksLab.
+# This file is part of IRMA project.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License in the top-level directory
+# of this distribution and at:
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# No part of the project, including this file, may be copied,
+# modified, propagated, or distributed except according to the
+# terms contained in the LICENSE file.
 
+import logging
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 from irma.common.exceptions import IrmaDatabaseError
 
-log = logging.getLogger(__name__)
+DEBUG = False
+
+if DEBUG:
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+else:
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
 
 
 class SQLDatabase(object):
     """Internal database.
-
-    This class handles the creation of the internal database and provides some
-    functions for interacting with it.
+    This class handles the creation of the internal database.
     """
 
-    # ==================================
-    #  Constructor and Destructor stuff
-    # ==================================
+    __engine = None
+    __Session = None
 
-    def __init__(self, engine):
-        self._db = sqlalchemy.create_engine(engine)
-        self._db.echo = False
-        self._session = None
-        self._connect()
+    def __init__(self):
+        raise Exception('This class must not be instantiated')
 
-    def __del__(self):
-        self._disconnect()
+    @classmethod
+    def connect(cls, dbms, dialect, username, passwd, host, dbname):
+        """Create a connexion to the db
+        :param dbms: the database management system (ex: postgresql)
+        :param dialect: the dialect to use (ex: psycopg2 (for postgre))
+        :param username: the username for the connexion
+        :param passwd: the password for the connexion
+        :param host: the host (ex: localhost or localhost:port)
+        :param dbname: the name of the database (has to exist)
+        """
+        if cls.__engine is not None:
+            raise IrmaDatabaseError('the engine already exist')
+        url = "{0}+{1}://{2}:{3}@{4}/{5}".format(dbms, dialect, username,
+                                                 passwd, host, dbname)
+        cls.__engine = create_engine(url, echo=True)
 
-    def __enter__(self):
-        return self
+        session_factory = sessionmaker(bind=cls.__engine)
+        cls.__Session = scoped_session(session_factory)
 
-    def __exit__(self, type, value, tb):
-        self.__del__()
+    @classmethod
+    def get_engine(cls):
+        """Return the engine
+        :rtype: engine
+        :raise IrmaDatabaseError: if the engine is None
+        """
+        if cls.__engine is None:
+            raise IrmaDatabaseError('the engine has to be connected first')
+        return cls.__engine
 
-    # =================
-    #  Private methods
-    # =================
-
-    def _connect(self):
-        Session = sessionmaker(bind=self._db)
-        self._session = Session()
-
-    def _disconnect(self):
-        try:
-            self._session.commit()
-            # we do not close the session to keep objects persistent
-        except Exception as e:
-            raise IrmaDatabaseError("{0}".format(e))
-
-    # ================
-    #  Public methods
-    # ================
-
-    def add(self, entry):
-        self._session.add(entry)
-
-    def add_all(self, entries):
-        self._session.add_all(entries)
-
-    def commit(self):
-        self._session.commit()
-
-    def rollback(self):
-        self._session.rollback()
-
-    def all(self, classname):
-        return self._session.query(classname).all()
-
-    def one_by(self, classname, **kwargs):
-        try:
-            return self._session.query(classname).filter_by(**kwargs).one()
-        except NoResultFound:
-            raise IrmaDatabaseError("No result found instead of one")
-        except MultipleResultsFound:
-            raise IrmaDatabaseError("Multiple results found instead of one")
-
-    def one(self, classname, filter_expr):
-        try:
-            return self._session.query(classname).filter(filter_expr).one()
-        except NoResultFound:
-            raise IrmaDatabaseError("No result found instead of one")
-        except MultipleResultsFound:
-            raise IrmaDatabaseError("Multiple results found instead of one")
-
-    def find_by(self, classname, **kwargs):
-        return self._session.query(classname).filter_by(**kwargs).all()
-
-    def find(self, classname, filter_expr):
-        return self._session.query(classname).filter(filter_expr).all()
-
-    def count(self, classname):
-        return self._session.query(classname).count()
-
-    def delete(self, obj):
-        return self._session.delete(obj)
-
-    def _sum(self, elts):
-        res = 0
-        for e in elts:
-            res += e[0]
-        return res
-
-    def sum_by(self, field, **kwargs):
-        t = self.find_by(field, **kwargs)
-        return self._sum(t)
-
-    def sum(self, field, filter_expr):
-        t = self.find(field, filter_expr)
-        return self._sum(t)
+    @classmethod
+    def get_session(cls):
+        """Return a session
+        :rtype: scoped_session
+        :raise IrmaDatabaseError: if the engine is None
+        """
+        if cls.__engine is None:
+            raise IrmaDatabaseError('the engine has to be connected first')
+        return cls.__Session()
