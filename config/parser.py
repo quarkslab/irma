@@ -116,8 +116,9 @@ def conf_frontend_celery(app):
 
 def conf_results_celery(app):
     broker = get_probe_broker_uri()
+    backend = get_probe_backend_uri()
     queue = brain_config.broker_probe.queue
-    _conf_celery(app, broker, queue=queue)
+    _conf_celery(app, broker, backend=backend, queue=queue)
 
 
 # =================

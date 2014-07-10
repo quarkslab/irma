@@ -16,6 +16,7 @@
 import uuid
 import time
 from celery import Celery
+from celery.result import AsyncResult
 import config.parser as config
 from datetime import datetime, timedelta
 from brain.objects import User, Scan
@@ -180,14 +181,20 @@ def scan(scanid, scan_request):
                 break
             if quota:
                 quota -= 1
-            callback_signature = route(
+            # celery signature for success callback
+            success_cb_s = route(
                 results_app.signature("brain.tasks.scan_result",
+                                      (user.ftpuser, scanid, filename, probe)))
+            # celery signature for error callback
+            error_cb_s = route(
+                results_app.signature("brain.tasks.scan_error",
                                       (user.ftpuser, scanid, filename, probe)))
             jobs_list.append(
                 probe_app.send_task("probe.tasks.probe_scan",
                                     args=(user.ftpuser, scanid, filename),
                                     queue=probe,
-                                    link=callback_signature))
+                                    link=success_cb_s,
+                                    link_error=error_cb_s))
 
     if len(jobs_list) != 0:
         # Build a result set with all job AsyncResult
@@ -301,6 +308,41 @@ def scan_result(result, ftpuser, scanid, filename, probe):
         frontend_app.send_task("frontend.tasks.scan_result",
                                args=(scanid, filename, probe, result))
         print "{0} sent result {1}".format(scanid, probe)
+        engine = config.brain_config['sql_brain'].engine
+        dbname = config.brain_config['sql_brain'].dbname
+        sql = SQLDatabase(engine + dbname)
+        # FIXME get rmq_vhost dynamically
+        rmqvhost = config.brain_config['broker_frontend'].vhost
+        user = sql.one_by(User, rmqvhost=rmqvhost)
+        scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
+        gr = get_groupresult(scan.taskid)
+        nbtotal = len(gr)
+        nbcompleted = nbsuccessful = 0
+        for j in gr:
+            if j.ready():
+                nbcompleted += 1
+            if j.successful():
+                nbsuccessful += 1
+        if nbtotal == nbcompleted:
+            scan.status = IrmaScanStatus.processed
+            flush_dir(ftpuser, scanid)
+            # delete groupresult
+            gr.delete()
+            print "{0} complete deleting files".format(scanid)
+    except IrmaTaskError as e:
+        return IrmaTaskReturn.error("{0}".format(e))
+
+
+@results_app.task()
+def scan_error(uuid, ftpuser, scanid, filename, probe):
+    try:
+        result = AsyncResult(uuid)
+        traceback = result.traceback
+        reason = 'raised exception: {0!r}'.format(traceback)
+        frontend_app.send_task("frontend.tasks.scan_result_error",
+                               args=(scanid, filename, probe, str(traceback)))
+        print "Uuid ", uuid
+        print "{0}-{1} sent error {2}".format(scanid, probe, reason)
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
         sql = SQLDatabase(engine + dbname)
