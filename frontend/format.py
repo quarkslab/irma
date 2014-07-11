@@ -51,6 +51,8 @@ class IrmaProbeType:
 class IrmaFormatter:
     @staticmethod
     def format(probe_name, raw_result):
+        if not raw_result['success']:
+            return {'error': raw_result['reason']}
         formatter = IrmaFormatter.mapping.get(probe_name,
                                               IrmaFormatter.format_default)
         res = formatter(raw_result)
