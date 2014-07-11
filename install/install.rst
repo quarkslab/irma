@@ -10,39 +10,9 @@
     :depth: 1
     :backlinks: none
 
-
-------------
-repo install
-------------
-
-Add Quarkslab public GPG key
-
-.. code-block:: bash
-
-    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
-
-
-Add Quarkslab's repository source
-
-
-.. code-block:: bash
-
-    echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
-
-Install Meta package
-
-.. code-block:: bash
-
-    sudo apt-get update && sudo apt-get install irma-brain
-
-Do not forget to change parameter according to your settings.
-
-
--------------
-Configuration
--------------
-
-**redis**
+-----
+Redis
+-----
 
 edit ``/etc/redis/redis.conf`` to listen on all interfaces by commenting ``bind`` parameter.
 
@@ -53,7 +23,9 @@ edit ``/etc/redis/redis.conf`` to listen on all interfaces by commenting ``bind`
    #
    #bind 127.0.0.1
 
-**rabbitmq**
+--------
+Rabbitmq
+--------
 
 create users, vhosts and add permissions for each user to corresponding vhost.
 
@@ -82,8 +54,10 @@ or manually by entering:
    $ sudo rabbitmqctl add_user <username> <password>
    $ sudo rabbitmqctl add_vhost <vhostname>
    $ sudo rabbitmqctl set_permissions -p <vhostname> <username> ".*" ".*" ".*"
-   
-**pure-ftpd**
+
+---------
+Pure-ftpd
+---------
 
 add ftpuser
 
@@ -120,8 +94,19 @@ a shared account is shared between probes. The later needs to access to all fron
 the associated home directory ``/home/ftpuser/``.
 
    e.g (for multiple frontends, change user and chroot home accordingly)
+
+.. code-block:: bash
+
    $ sudo ftpd-adduser.sh frontend ftpuser /home/ftpuser/frontend
    $ sudo ftpd-adduser.sh probe ftpuser /home/ftpuser/
+
+Test your config. Listing your users should output something like this:
+
+.. code-block:: bash
+
+    $ sudo pure-pw list
+    frontend            /home/ftpuser/frontend/./
+    probe               /home/ftpuser/./
 
 launch pure-ftpd
 
@@ -131,9 +116,20 @@ launch pure-ftpd
 
 --------------------
 
-==============================
-Install a local pip pkg server
-==============================
+You could easily generate the user database by running:
+
+.. code-block:: bash
+
+    # NOTE: the folder where the database is going to be stored must be created
+    # beforehand. By default, create a folder ``db`` at the root of the project.
+
+    $ python -m brain.objects
+
+database path is taken from the config file.
+
+----------------------------------------
+Optional: Install a local pip pkg server
+----------------------------------------
 
 This is an optional way of distributing irma package on local machines.
 There's a lot of custom pypi server, we used simplepipy.
@@ -149,33 +145,9 @@ launch server (default configuration localhost:8000)
 .. code-block:: bash
     $ sudo simplepypi
 
-===
+---
 FAQ
-===
-
-**Install a python package with pip**
-
-.. code-block:: bash
-  
-   $ pip install <package-name>
-
---------------------
-
-**Update a python package with pip**
-
-.. code-block:: bash
-
-   $ pip install --upgrade <package-name>
-
---------------------
-
-**Install a specific version of a python package with pip**
-
-.. code-block:: bash
-
-   $ pip install <package-name>==<version>
-
---------------------
+---
 
 **install all requirements with pip**
 
