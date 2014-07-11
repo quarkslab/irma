@@ -41,9 +41,9 @@ def format_results(res_dict, filter_type):
         format_res = IrmaFormatter.format(probe, probe_res)
         if filter_type is not None:
             # filter by type
-            filter_str = [ IrmaProbeType.label[ft] for ft in filter_type]
+            filter_str = [IrmaProbeType.label[ft] for ft in filter_type]
             if 'type' in format_res and \
-             format_res['type'] not in filter_str:
+               format_res['type'] not in filter_str:
                 continue
         res[probe] = format_res
     return res
@@ -242,7 +242,7 @@ class ScanFile(NoSQLDatabaseObject):
             self.load(_id)
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
-            if self.file_oid is None:   # if deleted, save again
+            if self.file_oid is None:  # if deleted, save again
                 file_data = ScanFileData()
                 file_data.save(data, self.filename)
                 self.file_oid = file_data.id

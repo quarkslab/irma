@@ -134,7 +134,8 @@ def scan_result(scanid, file_hash, probe, result):
         if scanfile.id not in scan.scanfile_ids:
             print("{0}: fileid (%s) not found in scan info".format(scanfile.id,
                                                                    scanid))
-            return IrmaTaskReturn.error("Frontend: filename not found in scan info")
+            reason = "Frontend: filename not found in scan info"
+            return IrmaTaskReturn.error(reason)
 
         scanfile.take()
         if scanid not in scanfile.scan_id:
