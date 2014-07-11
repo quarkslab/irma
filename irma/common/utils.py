@@ -96,8 +96,8 @@ class IrmaScanStatus:
              processed: "processed",
              finished: "finished",
              flushed: "flushed",
-             error:"error",
-             error_probe_missing:"error probe missing"
+             error: "error",
+             error_probe_missing: "error probe missing"
              }
 
 
