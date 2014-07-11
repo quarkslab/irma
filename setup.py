@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 QuarksLab.
+# Copyright (c) 2013-2014 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,13 @@ from setuptools import setup, find_packages
 
 setup(
     name='irma-frontend',
-    version='1.0.1',
+    version='1.0.3',
     author='QuarksLab',
     author_email='irma@quarkslab.com',
     packages=find_packages(),
     include_package_data=True,
     license='LICENSE',
+    url='http://irma.quarkslab.com',
     description='Frontend package for IRMA',
     long_description=open('README.rst').read(),
     scripts=['scripts/update.sh'],

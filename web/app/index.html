@@ -2,51 +2,86 @@
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" ng-app="irma"> <!--<![endif]-->
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>IRMA</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-    <link rel="icon" type="image/png" href="ball.png" />
+    <link rel="icon" type="image/png" href="resources/ball.png" />
 
-    <!-- build:css styles/main.css -->
-    <link href='http://fonts.googleapis.com/css?family=Raleway:900,700,500,300' rel='stylesheet' type='text/css'>
+    <!-- build:css styles/combined.css -->
     <link rel="stylesheet" href="styles/main.css">
     <!-- endbuild -->
-
-    <script src="bower_components/es5-shim/es5-shim.js"></script>
-</head>
-  <body ng-app="irma">
+  </head>
+  <body konami>
     <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
+    
     <!--[if lt IE 9]>
-      <script src="bower_components/es5-shim/es5-shim.js"></script>
-      <script src="bower_components/json3/lib/json3.min.js"></script>
+    <!-- build:js scripts/ie.js -->
+      <script src="components/es5-shim/es5-shim.min.js"></script>
+      <script src="components/json3/lib/json3.min.js"></script>
+    <!-- endbuild -->
     <![endif]-->
+    
 
-    <div ng-view=""></div>
+    <div class="container">
+
+      <div class="head">
+        <h1>IRMA</h1>
+        <h2>Incident Response<br />Malware Analysis</h2>
+      </div>
+
+      <ul class="list-inline status">
+        <li class="{{(state.location=='selection')?'active':''}}"><a href="#/selection">Selection</a></li>
+        <li>&gt;</li>
+        <li class="{{(state.location=='upload')?'active':''}}">Upload</li>
+        <li>&gt;</li>
+        <li class="{{(state.location=='scan')?'active':''}}">Scan</li>
+        <li>&gt;</li>
+        <li class="{{(state.location=='results')?'active':''}}"><a href="#/results">Results</a></li>
+      </ul>
+
+      <div ng-view></div>
+
+    </div>
     <alerts></alerts>
 
-    <!-- build:js scripts/modules.js -->
-    <script src="bower_components/jquery/jquery.js"></script>
-    <script src="bower_components/underscore/underscore.js"></script>
-    <script src="bower_components/angular/angular.js"></script>
-    <script src="bower_components/angular-resource/angular-resource.js"></script>
-    <script src="bower_components/angular-cookies/angular-cookies.js"></script>
-    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
-    <script src="bower_components/angular-route/angular-route.js"></script>
-    <script src="bower_components/angular-file-upload/angular-file-upload.js"></script>
+    <!-- build:js scripts/dependencies.js -->
+    <!-- Dependencies -->
+    <script src="components/lodash/dist/lodash.min.js"></script>
+    <script src="components/jquery/dist/jquery.min.js"></script>
+    <script src="components/angular/angular.min.js"></script>
+    <script src="components/angular-resource/angular-resource.min.js"></script>
+    <script src="components/angular-sanitize/angular-sanitize.min.js"></script>
+    <script src="components/angular-route/angular-route.min.js"></script>
+    <script src="components/angular-file-upload/angular-file-upload.min.js"></script>
+    <script src="components/angular-strap/dist/angular-strap.min.js"></script>
+    <script src="components/angular-strap/dist/angular-strap.tpl.min.js"></script>
     <!-- endbuild -->
 
-    <!-- build:js({.tmp,app}) scripts/scripts.js -->
-    <script src="scripts/app.js"></script>
-    <script src="scripts/controllers/main.js"></script>
-    <script src="scripts/directives/utilities.js"></script>
-    <script src="scripts/services/alerts.js"></script>
+    <!-- build:js scripts/combined.js -->
+    <!-- Scripts -->
+    <script src="scripts/irma.js"></script>
+    <script src="scripts/controllers/selection.js"></script>
+    <script src="scripts/controllers/upload.js"></script>
+    <script src="scripts/controllers/scan.js"></script>
+    <script src="scripts/controllers/existing.js"></script>
+    <script src="scripts/controllers/results.js"></script>
+    <script src="scripts/directives/alerts.js"></script>
+    <script src="scripts/directives/fileTrigger.js"></script>
+    <script src="scripts/directives/booleanDisplay.js"></script>
+    <script src="scripts/directives/konami-ponies.js"></script>
+    <script src="scripts/services/models/scan.js"></script>
+    <script src="scripts/services/stores/scans.js"></script>
+    <script src="scripts/services/utils/bridge.js"></script>
+    <script src="scripts/services/utils/state.js"></script>
+    <script src="scripts/services/utils/alerts.js"></script>
+    <script src="scripts/services/utils/config.js"></script>
     <!-- endbuild -->
-</body>
+  </body>
 </html>

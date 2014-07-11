@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 QuarksLab.
+# Copyright (c) 2013-2014 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -214,7 +214,7 @@ def scan_result(scanid):
     if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        results = core.scan_results(scanid)
+        results = core.scan_result(scanid)
         return IrmaFrontendReturn.success(scan_results=results)
     except IrmaFrontendWarning as e:
         return IrmaFrontendReturn.warning(str(e))

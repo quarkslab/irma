@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 QuarksLab.
+# Copyright (c) 2013-2014 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ from frontend.nosqlobjects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
+from frontend.format import IrmaProbeType
 
 
 # =====================
@@ -162,8 +163,8 @@ def scan_launch(scanid, force, probelist):
     return scan.probelist
 
 
-def scan_results(scanid):
-    """ get all results from files of specified scan
+def scan_result(scanid):
+    """ get results from files of specified scan
 
     :param scanid: id returned by scan_new
     :rtype: dict of sha256 value: dict of ['filename':str,
@@ -174,7 +175,8 @@ def scan_results(scanid):
     """
     # fetch results in db
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    return scan.get_results()
+    scan_res = scan.get_results()
+    return scan_res
 
 
 def scan_progress(scanid):
@@ -319,10 +321,9 @@ def file_infected(sha256):
         f = ScanFile(sha256=sha256)
         ref_res = ScanRefResults(id=f.id)
         nb_scan = nb_detected = 0
-        for (probe, res) in ref_res.results.items():
-            if probe not in ['ClamAV', 'ComodoCAVL', 'EsetNod32', 'FProt',
-                             'Kaspersky', 'McAfeeVSCL', 'Sophos', 'Symantec']:
-                continue
+        av_results = ref_res.get_results(filter_type=[IrmaProbeType.antivirus])
+        probe_res = av_results[sha256]['results']
+        for res in probe_res.values():
             nb_scan += 1
             if res['result'] is not None:
                 nb_detected += 1
