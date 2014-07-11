@@ -23,7 +23,7 @@ from lib.irma.database.sqlobjects import SQLDatabaseObject
 
 
 uri_params = config.get_sql_db_uri_params()
-#TODO args* style argument
+# TODO args* style argument
 SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
                     uri_params[3], uri_params[4], uri_params[5])
 
