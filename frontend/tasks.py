@@ -106,12 +106,12 @@ def scan_launch(scanid, force):
         return IrmaTaskReturn.success("scan launched")
     except IrmaLockError as e:
         print "IrmaLockError has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=15, max_retries=10)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
         if scan is not None:
             scan.release()
         print "Exception has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=15, max_retries=10)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
 
 
 def sanitize_dict(d):
@@ -157,6 +157,7 @@ def scan_result(scanid, file_hash, probe, result):
         # keep scan results into scanresults objects
         scanres_id = scan.scanfile_ids[scanfile.id]
         scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
+        sanitized_res['success'] = True
         scan_res.results[probe] = sanitized_res
         scan_res.update()
         scan_res.release()
@@ -171,7 +172,7 @@ def scan_result(scanid, file_hash, probe, result):
 
     except IrmaLockError as e:
         print ("IrmaLockError has occurred:{0}".format(e))
-        raise scan_result.retry(countdown=15, max_retries=10)
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
         if scan is not None:
             scan.release()
@@ -180,7 +181,52 @@ def scan_result(scanid, file_hash, probe, result):
         if ref_res is not None:
             ref_res.release()
         print ("Exception has occurred:{0}".format(e))
-        raise scan_result.retry(countdown=15, max_retries=10)
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
+
+
+@frontend_app.task(acks_late=True)
+def scan_result_error(scanid, file_hash, probe, exc):
+    try:
+        scan = scan_res = ref_res = None
+
+        scanfile = ScanFile(sha256=file_hash)
+        scan = ScanInfo(id=scanid)
+        if scanfile.id not in scan.scanfile_ids:
+            print("{0}: fileid (%s) not found in scan info".format(scanfile.id,
+                                                                   scanid))
+            reason = "Frontend: filename not found in scan info"
+            return IrmaTaskReturn.error(reason)
+
+        # keep scan results into scanresults objects
+        scanres_id = scan.scanfile_ids[scanfile.id]
+        scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
+        results = {}
+        results['success'] = False
+        results['reason'] = exc
+        scan_res.results[probe] = results
+        scan_res.update()
+        scan_res.release()
+        print("{0}: ".format(scanid) +
+              "error from {0} ".format(probe) +
+              "nb probedone {0} ".format(len(scan_res.probedone)))
+
+        if scan.is_completed():
+            scan.take()
+            scan.update_status(IrmaScanStatus.finished)
+            scan.release()
+
+    except IrmaLockError as e:
+        print ("IrmaLockError has occurred:{0}".format(e))
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
+    except Exception as e:
+        if scan is not None:
+            scan.release()
+        if scan_res is not None:
+            scan_res.release()
+        if ref_res is not None:
+            ref_res.release()
+        print ("Exception has occurred:{0}".format(e))
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
 
 
 @frontend_app.task()
@@ -204,4 +250,4 @@ def clean_db():
         return (nb_scaninfo, nb_scanfile)
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
-        raise clean_db.retry(countdown=15, max_retries=10)
+        raise clean_db.retry(countdown=2, max_retries=3, exc=e)
