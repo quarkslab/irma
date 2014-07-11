@@ -292,6 +292,8 @@ def scan_cancel(scanid):
                     nbcancelled += 1
             scan.status = IrmaScanStatus.cancelled
             flush_dir(user.ftpuser, scanid)
+            # delete groupresult
+            gr.delete()
             return IrmaTaskReturn.success({"total": len(gr),
                                            "finished": nbcompleted,
                                            "cancelled": nbcancelled})
@@ -315,20 +317,23 @@ def scan_result(result, ftpuser, scanid, filename, probe):
         rmqvhost = config.brain_config['broker_frontend'].vhost
         user = sql.one_by(User, rmqvhost=rmqvhost)
         scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
-        gr = get_groupresult(scan.taskid)
-        nbtotal = len(gr)
-        nbcompleted = nbsuccessful = 0
-        for j in gr:
-            if j.ready():
-                nbcompleted += 1
-            if j.successful():
-                nbsuccessful += 1
-        if nbtotal == nbcompleted:
-            scan.status = IrmaScanStatus.processed
-            flush_dir(ftpuser, scanid)
-            # delete groupresult
-            gr.delete()
-            print "{0} complete deleting files".format(scanid)
+        if scan.status == IrmaScanStatus.launched:
+            gr = get_groupresult(scan.taskid)
+            nbtotal = len(gr)
+            nbcompleted = nbsuccessful = 0
+            for j in gr:
+                if j.ready():
+                    nbcompleted += 1
+                if j.successful():
+                    nbsuccessful += 1
+            if nbtotal == nbcompleted:
+                scan.status = IrmaScanStatus.processed
+                # commit as soon as possible to avoid deleting twice
+                sql.commit()
+                flush_dir(ftpuser, scanid)
+                # delete groupresult
+                gr.delete()
+                print "{0} complete deleting files".format(scanid)
     except IrmaTaskError as e:
         return IrmaTaskReturn.error("{0}".format(e))
 
@@ -350,19 +355,22 @@ def scan_error(uuid, ftpuser, scanid, filename, probe):
         rmqvhost = config.brain_config['broker_frontend'].vhost
         user = sql.one_by(User, rmqvhost=rmqvhost)
         scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
-        gr = get_groupresult(scan.taskid)
-        nbtotal = len(gr)
-        nbcompleted = nbsuccessful = 0
-        for j in gr:
-            if j.ready():
-                nbcompleted += 1
-            if j.successful():
-                nbsuccessful += 1
-        if nbtotal == nbcompleted:
-            scan.status = IrmaScanStatus.processed
-            flush_dir(ftpuser, scanid)
-            # delete groupresult
-            gr.delete()
-            print "{0} complete deleting files".format(scanid)
+        if scan.status == IrmaScanStatus.launched:
+            gr = get_groupresult(scan.taskid)
+            nbtotal = len(gr)
+            nbcompleted = nbsuccessful = 0
+            for j in gr:
+                if j.ready():
+                    nbcompleted += 1
+                if j.successful():
+                    nbsuccessful += 1
+            if nbtotal == nbcompleted:
+                scan.status = IrmaScanStatus.processed
+                # commit as soon as possible to avoid deleting twice
+                sql.commit()
+                flush_dir(ftpuser, scanid)
+                # delete groupresult
+                gr.delete()
+                print "{0} complete deleting files".format(scanid)
     except IrmaTaskError as e:
         return IrmaTaskReturn.error("{0}".format(e))
