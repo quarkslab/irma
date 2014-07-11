@@ -144,18 +144,18 @@ class IrmaFormatter:
         return raw_result
 
 IrmaFormatter.mapping = {
-        # Antivirus
-        'ClamAV':     IrmaFormatter.format_av,
-        'ComodoCAVL': IrmaFormatter.format_av,
-        'EsetNod32':  IrmaFormatter.format_av,
-        'FProt':      IrmaFormatter.format_av,
-        'Kaspersky':  IrmaFormatter.format_av,
-        'McAfeeVSCL': IrmaFormatter.format_av,
-        'Sophos':     IrmaFormatter.format_av,
-        'Symantec':   IrmaFormatter.format_av,
-        # Information
-        'Nsrl':             IrmaFormatter.no_format,
-        'StaticAnalyzer':   IrmaFormatter.format_default,
-        # External
-        'VirusTotal': IrmaFormatter.format_vt,
-        }
+    # Antivirus
+    'ClamAV':     IrmaFormatter.format_av,
+    'ComodoCAVL': IrmaFormatter.format_av,
+    'EsetNod32':  IrmaFormatter.format_av,
+    'FProt':      IrmaFormatter.format_av,
+    'Kaspersky':  IrmaFormatter.format_av,
+    'McAfeeVSCL': IrmaFormatter.format_av,
+    'Sophos':     IrmaFormatter.format_av,
+    'Symantec':   IrmaFormatter.format_av,
+    # Information
+    'Nsrl':             IrmaFormatter.no_format,
+    'StaticAnalyzer':   IrmaFormatter.format_default,
+    # External
+    'VirusTotal': IrmaFormatter.format_vt,
+    }
