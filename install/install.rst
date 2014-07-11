@@ -10,29 +10,9 @@
     :depth: 1
     :backlinks: none
 
-------------
-Requirements
-------------
-
-packages:
-
-* python2.7
-* python-pip
-* rabbitmq-server
-* redis-server
-* pure-ftpd 
-
-python-pip packages (see ``install/requirements.txt`` for versions):
-
-* celery
-* redis
-* sqlalchemy
-
--------------
-Configuration
--------------
-
-**redis**
+-----
+Redis
+-----
 
 edit ``/etc/redis/redis.conf`` to listen on all interfaces by commenting ``bind`` parameter.
 
@@ -43,7 +23,9 @@ edit ``/etc/redis/redis.conf`` to listen on all interfaces by commenting ``bind`
    #
    #bind 127.0.0.1
 
-**rabbitmq**
+--------
+Rabbitmq
+--------
 
 create users, vhosts and add permissions for each user to corresponding vhost.
 
@@ -52,13 +34,12 @@ create users, vhosts and add permissions for each user to corresponding vhost.
    ===========  ===========
     username       vhost 
    ===========  ===========
-      admin       mqadmin
       brain       mqbrain
      frontend    mqfrontend
       probe       mqprobe
    ===========  ===========
 
-passwords must be syncd with configuration files for admin, frontend, brain and probe modules.
+passwords must be syncd with configuration files for frontend, brain and probe modules. (config/<module_name>.ini)
 
 Users creation could be done through the provided script ``IRMA_INSTALL_DIR\install\rabbitmq\rmq_adduser.sh``
 
@@ -73,69 +54,10 @@ or manually by entering:
    $ sudo rabbitmqctl add_user <username> <password>
    $ sudo rabbitmqctl add_vhost <vhostname>
    $ sudo rabbitmqctl set_permissions -p <vhostname> <username> ".*" ".*" ".*"
-   
-**celery**
 
-edit both:
- * ``install/celery/celeryd.brain.defaults``
- * ``install/celery/celeryd.results.defaults``  
-according to your install
-
-.. code-block::
-    
-    # Where to chdir at start.
-    CELERYD_CHDIR="/home/irma/irma/"
-   
-copy both ``.defaults`` config file to ``/etc/default/celeryd``
-
-.. code-block::
-    
-    $ sudo celeryd.brain.defaults /etc/default/celeryd/celeryd.brain
-    $ sudo celeryd.results.defaults /etc/default/celeryd/results.brain
-
-copy ``celeryd.brain`` init script file to ``/etc/init.d/celeryd.brain``
-copy ``celeryd.results`` init script file to ``/etc/init.d/celeryd.results``
-
-.. code-block::
-    
-    $ sudo celeryd.brain /etc/init.d/celeryd.brain
-    $ sudo celeryd.results /etc/init.d/results.brain
-
-launch celery
-
-.. code-block:: bash
-
-    $ sudo chmod +x /etc/init.d/celeryd.brain
-    $ sudo service celeryd.brain start
-
-    $ sudo chmod +x /etc/init.d/celeryd.results
-    $ sudo service celeryd.results start
-
-.. WARNING:: 
-
-    By default ``celery`` users and groups (configured in ``.defaults``) are not created.
-    Celery fails if the configured users and groups are not defined. Additionnally, you
-    must change permission for the ``/var/run/celery`` directory in order to allow celery 
-    to create a lock file.
-    
-Make all services start at boot:
-
-.. code-block:: bash
-
-    $ sudo /usr/sbin/update-rc.d celeryd.brain defaults
-    $ sudo /usr/sbin/update-rc.d celeryd.results defaults
-    
-Consult the logs at ``/var/log/celery/*.log`` to check the installation.
-
-.. code-block:: bash
-
-    $ cat /var/log/celery/*.log
-    [...]
-    [2014-04-30 13:35:03,949: WARNING/MainProcess] brain@irma-brain ready.
-    [...]
-    [2014-04-30 13:35:04,205: WARNING/MainProcess] results@irma-brain ready.
-
-**pure-ftpd**
+---------
+Pure-ftpd
+---------
 
 add ftpuser
 
@@ -172,8 +94,19 @@ a shared account is shared between probes. The later needs to access to all fron
 the associated home directory ``/home/ftpuser/``.
 
    e.g (for multiple frontends, change user and chroot home accordingly)
+
+.. code-block:: bash
+
    $ sudo ftpd-adduser.sh frontend ftpuser /home/ftpuser/frontend
    $ sudo ftpd-adduser.sh probe ftpuser /home/ftpuser/
+
+Test your config. Listing your users should output something like this:
+
+.. code-block:: bash
+
+    $ sudo pure-pw list
+    frontend            /home/ftpuser/frontend/./
+    probe               /home/ftpuser/./
 
 launch pure-ftpd
 
@@ -183,9 +116,20 @@ launch pure-ftpd
 
 --------------------
 
-==============================
-Install a local pip pkg server
-==============================
+You could easily generate the user database by running:
+
+.. code-block:: bash
+
+    # NOTE: the folder where the database is going to be stored must be created
+    # beforehand. By default, create a folder ``db`` at the root of the project.
+
+    $ python -m brain.objects
+
+database path is taken from the config file.
+
+----------------------------------------
+Optional: Install a local pip pkg server
+----------------------------------------
 
 This is an optional way of distributing irma package on local machines.
 There's a lot of custom pypi server, we used simplepipy.
@@ -201,33 +145,9 @@ launch server (default configuration localhost:8000)
 .. code-block:: bash
     $ sudo simplepypi
 
-===
+---
 FAQ
-===
-
-**Install a python package with pip**
-
-.. code-block:: bash
-  
-   $ pip install <package-name>
-
---------------------
-
-**Update a python package with pip**
-
-.. code-block:: bash
-
-   $ pip install --upgrade <package-name>
-
---------------------
-
-**Install a specific version of a python package with pip**
-
-.. code-block:: bash
-
-   $ pip install <package-name>==<version>
-
---------------------
+---
 
 **install all requirements with pip**
 
@@ -260,7 +180,7 @@ FAQ
 Support
 =======
 
-Feeling lost ? need support ? irc: #irma-qb@chat.freenode.net 
+Feeling lost ? need support ? irc: #qb_irma@chat.freenode.net
 
 ----------------------
 

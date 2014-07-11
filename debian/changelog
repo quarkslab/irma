@@ -1,5 +1,5 @@
-irma-brain (1.0.2-1) unstable; urgency=low
+irma-brain (1.0.3-2) unstable; urgency=low
 
-  * source package automatically created by stdeb 0.6.0+git
+  * fix celery postinstall script
 
  -- Alexandre Quint <aquint@quarkslab.com>  Fri, 23 May 2014 17:10:36 +0200
