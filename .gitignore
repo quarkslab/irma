@@ -24,3 +24,5 @@ debian/rules
 # other
 doc/
 .idea/*
+
+.gitmodules
