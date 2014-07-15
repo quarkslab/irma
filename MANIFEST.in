@@ -1,0 +1,8 @@
+include AUTHORS
+include config/*
+exclude config/frontend.ini
+include install/*
+include LICENSE
+include README.rst
+include scripts
+include web/*
