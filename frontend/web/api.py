@@ -17,7 +17,11 @@ import re
 import os
 import bottle
 import importlib
-from bottle import route, request, default_app, run
+import json
+import sys
+import logging
+
+from bottle import route, request, default_app, run, abort
 
 """
     IRMA FRONTEND API
@@ -417,6 +421,83 @@ def file_infected(sha256):
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
+# ==========
+#  Agent api
+# ==========
+@route("/agent/submit", method='POST')
+def agent_submit():
+    """ collect hash sent by local agent to raise futur alarms
+
+    :route: /agent/submit
+    :param posted json file
+    :rtype: dict of 'code': int, 'msg': str
+    :return:
+        on error 'msg' gives reason message
+    """
+    try:
+        data = request.json
+        if not data:
+            data = json.load(request.body)
+        if not data:
+	    abort(404, "malformed request")
+        source = data['source']
+        ip = data['ip'].encode('utf8')
+        hostid = data['hostid']
+        logging.info("received {0} hashe(s) from {1} [{2}] {3}"
+                     "".format(len(data['hash']), source, ip, hostid))
+        for h in data['hash']:
+            h_val = h['sha256']
+            h_path = h['fullpath']
+            logging.info("\t[{0}]:{1}".format(h_val, h_path))
+        return IrmaFrontendReturn.success("{0} hashes added".format(len(data['hash'])))
+    except KeyError as e:
+        reason = "Malformed input json: missing key {0}".format(e)
+        return IrmaFrontendReturn.error(reason)
+    except Exception as e:
+        return IrmaFrontendReturn.error(str(e))
+
+@route("/agent/command", method='POST')
+def agent_command():
+    # HACK: simple ugly-temporary-hack to test the agent with online configuration
+    id = request.forms.get('hostid')
+    if id is None:
+        abort(404, "Sorry, nothing here.")
+    id = id.strip()
+    if id != r"litiere\wisk":
+        abort(403, "Sorry, forbidden.")
+    commands = {
+        "global": {
+            "reconnect_time": 300,
+            "sleep_time": 30,
+            "probe_time": 60,
+            "probes": ["ClamAV", "EsetNod32", "ComodoCAVL", "FProt", "McAfeeVSCL"],
+            "file_to_send": ["c74838f5bdb0ada571c407fd022e90b12e14aa853301635713116ae2c6ebe4f9"]
+        },
+        "scan": [
+            {
+                "path": "#USB_STORAGE#",
+                "scanned_extensions": [ ".com", ".exe", ".bat", ".cmd", ".dll", ".pif", ".scr", ".pdf", ".doc", ".docx", ".vbs", ".js", ".jse", ".wsf", ".wsh", ".msc", ".vir" ],
+                "file_size_limit": 10000000,
+                "action": "rename",
+                "notify": True
+            },
+            {
+                "path": "%USERPROFILE%\\Projects\\data",
+                "scanned_extensions": [ "*" ],
+                "file_size_limit": 10000000,
+                "action": "rename",
+                "notify": True
+            },
+            {
+                "path": "C:\\windows\\system32\\drivers",
+                "scanned_extensions": [ ".sys", ".dll" ],
+                "file_size_limit": 10000000,
+                "action": None,
+                "notify": True
+            }
+        ]
+    }
+    return IrmaFrontendReturn.success(json.dumps(commands))
 
 # ======
 #  Main
