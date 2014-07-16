@@ -93,7 +93,7 @@ def probe_scan(frontend, scanid, filename):
         return results
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))
-        raise probe_scan.retry(countdown=10, max_retries=5)
+        raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
 
 ##############################################################################
 # command line launcher, only for debug purposes

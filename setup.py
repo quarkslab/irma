@@ -53,7 +53,6 @@ setup(
     author='QuarksLab',
     author_email='irma@quarkslab.com',
     packages=find_packages(),
-    include_package_data=True,
     license='LICENSE',
     description='Probe package for IRMA',
     long_description='',
