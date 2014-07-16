@@ -23,6 +23,7 @@ import config.parser as config
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
+
 from lib.irma.ftp.handler import FtpTls
 from lib.plugins import PluginManager
 
