@@ -26,4 +26,4 @@ def timestamp():
     :rtype: int
     :return: the current timestamp
     """
-    return int(str(time.time()).split('.')[0])
+    return int(time.time())

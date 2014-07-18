@@ -1,3 +1,17 @@
+#
+# Copyright (c) 2014 QuarksLab.
+# This file is part of IRMA project.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License in the top-level directory
+# of this distribution and at:
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# No part of the project, including this file, may be copied,
+# modified, propagated, or distributed except according to the
+# terms contained in the LICENSE file.
 
 
 # ==========================
@@ -5,6 +19,9 @@
 # ==========================
 
 class IrmaTaskReturn:
+    def __init__(self):
+        pass
+
     @staticmethod
     def success(msg):
         return (IrmaReturnCode.success, msg)
@@ -23,6 +40,9 @@ class IrmaTaskReturn:
 # =============================
 
 class IrmaFrontendReturn:
+    def __init__(self):
+        pass
+
     @staticmethod
     def response(code, msg, **kwargs):
         ret = {'code': code, 'msg': msg}
@@ -60,6 +80,9 @@ class IrmaReturnCode:
              warning: "warning",
              error: "error"}
 
+    def __init__(self):
+        pass
+
 
 # ==============================
 #  Scan status (Brain/Frontend)
@@ -79,32 +102,49 @@ class IrmaScanStatus:
              cancelled: "cancelled",
              processed: "processed",
              finished: "finished",
-             flushed: "flushed"
-             }
+             flushed: "flushed"}
+
+    def __init__(self):
+        pass
 
 
-# ==========================================================
-#  Lock values for NoSQLDatabaseObjects (internal use only)
-# ==========================================================
+# ====================
+#  ScanResults states
+# ====================
 
-class IrmaLock:
-    free = 0
-    locked = 5
+class IrmaProbeResultsStates:
+    created = 0
+    running = 10
+    cancelled = 20
+    finished = 30
+    error = 40
     label = {
-        free: 'free',
-        locked: 'locked'
+        created: "created",
+        running: "running",
+        cancelled: "cancelled",
+        finished: "finished",
+        error: "error"
     }
-    lock_timeout = 60   # in seconds (delta between timestamps)
+
+    def __init__(self):
+        pass
 
 
-# =========================================================================
-#  Lock values for NoSQLDatabaseObjects (FOR THE CALL TO THE CONSTRUCTORS)
-# =========================================================================
+# =============
+#  ScanResults
+# =============
 
-class IrmaLockMode:
-    read = 'r'
-    write = 'w'
+class IrmaScanResults:
+    notDoneYet = 0
+    isMalicious = 10
+    isNotMalicious = 20
+    doNotKnow = 30
     label = {
-        read: 'read',
-        write: 'write'
+        notDoneYet: "notDoneYet",
+        isMalicious: "isMalicious",
+        isNotMalicious: "isNotMalicious",
+        doNotKnow: "doNotKnow"
     }
+
+    def __init__(self):
+        pass

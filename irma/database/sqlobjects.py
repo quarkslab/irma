@@ -13,9 +13,12 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+
 from sqlalchemy import update
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from irma.common.exceptions import IrmaValueError, IrmaDatabaseResultNotFound
 from irma.database.sqlhandler import SQLDatabase
+from irma.common.exceptions import IrmaDatabaseError
 
 
 def session_maker(func):
@@ -48,6 +51,12 @@ class SQLDatabaseObject(object):
     _idname = None
 
     # Fields
+    # In the subclasses, the variables names must be the same has fields
+    # names without the suffix except for the foreign keys and PFKs
+    # Ex for a PK or field : var name: some_field
+    #                        field name: some_field_suffix
+    # Ex for a FK or PFK : var name: some_key
+    #                      key name: some_key
     id = None
 
     def __init__(self):
@@ -89,7 +98,7 @@ class SQLDatabaseObject(object):
         return res
 
     @session_maker
-    def update(self, update_dict={}, session=None):
+    def update(self, update_dict=[], session=None):
         """Save the new state of the current object in the database
         :param update_dict: the fields to update (all fields are being
             updated if not provided)
@@ -144,15 +153,16 @@ class SQLDatabaseObject(object):
         :param session: the session to use (automatically provided if None)
         :rtype: cls
         :return: the object that corresponds to the id
-        :raise Exception: if the object doesn't exist or has several
-            occurrences
+        :raise IrmaDatabaseResultNotFound, IrmaDatabaseError
         """
         try:
             return session.query(cls).filter(
                 cls.id == id
             ).one()
-        except Exception as e:
-            raise e
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+        except MultipleResultsFound as e:
+            raise IrmaDatabaseError(e)
 
     def __repr__(self):
         return str(self.to_dict())

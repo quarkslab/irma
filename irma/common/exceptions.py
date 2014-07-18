@@ -28,6 +28,11 @@ class IrmaDatabaseResultNotFound(Exception):
     pass
 
 
+class IrmaFileSystemError(Exception):
+    """Nothing corresponding to the request has been found in the database."""
+    pass
+
+
 class IrmaConfigurationError(Exception):
     """Error wrong configuration."""
     pass
@@ -40,16 +45,6 @@ class IrmaFtpError(Exception):
 
 class IrmaTaskError(Exception):
     """Error while processing celery tasks."""
-    pass
-
-
-class IrmaLockError(Exception):
-    """Error for the locks on db content (already taken)"""
-    pass
-
-
-class IrmaLockModeError(Exception):
-    """Error for the mode of the locks (doesn't exist)"""
     pass
 
 

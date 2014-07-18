@@ -19,7 +19,6 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from irma.common.exceptions import IrmaDatabaseError
 
 DEBUG = False
-
 if DEBUG:
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 else:

@@ -28,17 +28,10 @@ class NoSQLDatabaseObject(object):
         '_is_instance_transient'
     ]
 
-    def __init__(self, id=None, mode=IrmaLockMode.read, save=True):
+    def __init__(self, id=None, save=True):
         """ Constructor. Note: the object is being saved
         during the creation process.
         :param id: the id of the object to load
-        :param mode: the mode for the lock on the object,
-            use IrmaLockMode.read to be able read the object
-            (the object might be locked in write mode somewhere elsewhere)
-            or IrmaLockMode.write
-            to block write operations on the current object from other threads
-            (read operations remain
-            possible)
         :param save: if the object has to be saved, use only for temporary
             objects (you'll not be able to save it after the instantiation)
         :raise: IrmaDatabaseError, IrmaLockError, IrmaValueError
@@ -65,24 +58,6 @@ class NoSQLDatabaseObject(object):
                 raise IrmaDatabaseError("{0}".format(e))
         elif save:
                 self._save()
-
-        if mode == IrmaLockMode.read:
-            # if an id is provided there is nothing to do
-            if not id:
-                self._lock = IrmaLock.free
-                self._lock_time = 0
-                if save:
-                    self.update({'_lock': self._lock,
-                                 '_lock_time': self._lock_time})
-        elif mode == IrmaLockMode.write:
-            if not id:
-                self._lock = IrmaLock.locked
-                self._lock_time = timestamp()
-            if save or id:
-                self.take(mode)
-        else:
-            reason = 'The lock mode {0} is not available'.format(mode)
-            raise IrmaValueError(reason)
 
     # TODO: Add support for both args and kwargs
     def from_dict(self, dict_object):
@@ -148,92 +123,6 @@ class NoSQLDatabaseObject(object):
         db = NoSQLDatabase(self._dbname, self._uri)
         db.remove(self._dbname, self._collection, self._id)
         return
-
-    def _update_lock(self, lock):
-        self._lock = lock
-        self._lock_time = timestamp()
-        self.update({'_lock': self._lock, '_lock_time': self._lock_time})
-
-    def release(self):
-        """ Release the lock on the current instance.
-        Note: it is possible to release a lock even
-        if it hasn't been locked by the current thread.
-        """
-        if self._lock != IrmaLock.free:
-            self._update_lock(IrmaLock.free)
-
-    def take(self, mode=IrmaLockMode.write):
-        """ Take the lock on the current instance
-
-        :param mode: The mode of the lock.
-        Note: only the w (write) mode is available for the moment
-        :rtype: Boolean
-        :return: True if the object stored in db is different
-        from the corresponding instance in the program,
-                False otherwise
-        :raise: IrmaLockError, IrmaLockModeError
-        """
-        ret = self.has_state_changed()
-
-        if mode == IrmaLockMode.write:
-            cls = self.__class__
-            if cls.is_lock_free(self.id) or cls.has_lock_timed_out(self.id):
-                self._update_lock(IrmaLock.locked)
-                return ret
-            reason = ("The lock on {0} ".format(cls.__name__) +
-                      "n{0} has already been taken".format(self.id))
-            raise IrmaLockError(reason)
-        raise IrmaValueError('The lock mode {0} is not available'.format(mode))
-
-    @classmethod
-    def has_lock_timed_out(cls, id):
-        """Check if the lock on the object with the current id
-        has timed out or not
-        :param id: the id of the object in the db
-        :rtype: Boolean
-        :return: True is the lock has timed out, False otherwise
-        :raise: NotImplementedError if called from the mother class
-        """
-        if cls is NoSQLDatabaseObject:
-            reason = "has_lock_timed_out must be overloaded in the subclasses"
-            raise NotImplementedError(reason)
-        lock_time = cls(id=id, save=False)._lock_time
-        if lock_time is None:   # The lock is being taken at the first
-                                # instantiation of the object
-            lock_time = 0
-        return IrmaLock.lock_timeout < timestamp() - lock_time
-
-    @classmethod
-    def is_lock_free(cls, id):
-        """Check if the lock for the given id has been taken or not
-        :param id: the id of the object in the db
-        :rtype: Boolean
-        :return: True is the lock is free, False otherwise
-        :raise: NotImplementedError if called from the mother class
-        """
-        if cls is NoSQLDatabaseObject:
-            reason = "has_lock_timed_out must be overloaded in the subclasses"
-            raise NotImplementedError(reason)
-        return cls(id=id, save=False)._lock == IrmaLock.free
-
-    def has_state_changed(self):
-        """Check if the state of the object has changed between two locks
-        (does not take the lock into account)
-        :param id: the id of the object to test
-        :rtype: Boolean
-        :return: True if the objects are different, False otherwise
-        """
-        from_db = self.__class__(id=self.id, save=False).to_dict()
-        if '_lock' in from_db:
-            del from_db['_lock']
-        if '_lock_time' in from_db:
-            del from_db['_lock_time']
-
-        from_instance = self.to_dict()
-        del from_instance['_lock']
-        del from_instance['_lock_time']
-
-        return from_instance != from_db
 
     @classmethod
     def get_temp_instance(cls, id):
