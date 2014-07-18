@@ -12,14 +12,18 @@
 # No part of the project, including this file, may be copied,
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
+import os
 
 import celery
 import config.parser as config
-from frontend.nosqlobjects import ScanFile, ScanInfo, ScanRefResults, ScanResults
+from frontend.nosqlobjects import ProbeRealResult
+from frontend.sqlobjects import Scan, File
+from lib.common import compat
 from lib.common.compat import timestamp
-from lib.irma.common.exceptions import IrmaLockError
-from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
+from lib.irma.common.exceptions import IrmaFileSystemError
+from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaProbeResultsStates
 from lib.common.utils import humanize_time_str
+from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.ftp.handler import FtpTls
 from format import format_result
 
@@ -34,48 +38,47 @@ config.conf_brain_celery(scan_app)
 @frontend_app.task(acks_late=True)
 def scan_launch(scanid, force):
     try:
-        scan = None
+        session = SQLDatabase.get_session()
+
         ftp_config = config.frontend_config['ftp_brain']
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
+        scan = Scan.load_from_ext_id(scanid, session=session)
         if not scan.status == IrmaScanStatus.created:
-            scan.release()
             return IrmaTaskReturn.error("Invalid scan status")
 
         # If nothing return
-        if len(scan.scanfile_ids) == 0:
-            scan.update_status(IrmaScanStatus.finished)
-            scan.release()
+        if len(scan.files_web) == 0:
+            scan.status = IrmaScanStatus.finished
+            scan.update(['status'], session=session)
+            session.commit()
             return IrmaTaskReturn.success("No files to scan")
 
-        filtered_file_oids = []
-        for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
-            if not force:
-                scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
-                # fetch results already present in base
-                ref_res = ScanRefResults.init_id(scanfile_id)
-                for (probe, results) in ref_res.results.items():
-                    if probe not in scan.probelist:
-                        continue
-                    scan_res.results[probe] = results
-                scan_res.update()
-                scan_res.release()
-            scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.read)
-            probetodo = []
-            # Compute remaining list
-            for probe in scan.probelist:
-                if probe not in scan_res.probedone:
-                    probetodo.append(probe)
-            if len(probetodo) != 0:
-                scan_req = (scanfile_id, scan_res.name, probetodo)
-                filtered_file_oids.append(scan_req)
-        scan.update()
+        files_web_todo = []
+        for fw in scan.files_web:
+            probes_to_do = []
+            for name in fw.probe_results.probe_name:
+                probes_to_do.append(name)
 
-        # If nothing left, return
-        if len(filtered_file_oids) == 0:
-            scan.update_status(IrmaScanStatus.finished)
-            scan.release()
+            if not force:
+                # Fetch the ref results for the file
+                for rr in fw.file.ref_results:
+                    if rr.probe_name not in probes_to_do:
+                        continue
+                    # Scan already done
+                    probes_to_do.remove(rr.probe_name)
+                    fw.probe_results.append(rr)
+                fw.update(session=session)
+
+            if len(probes_to_do) > 0:
+                files_web_todo.append(
+                    (fw, probes_to_do)
+                )
+
+        # Nothing to do
+        if len(files_web_todo) == 0:
+            scan.status = IrmaScanStatus.finished
+            scan.update(['status'], session=session)
+            session.commit()
             return IrmaTaskReturn.success("Nothing to do")
-        scan.release()
 
         host = ftp_config.host
         port = ftp_config.port
@@ -84,48 +87,61 @@ def scan_launch(scanid, force):
         with FtpTls(host, port, user, pwd) as ftps:
             scan_request = []
             ftps.mkdir(scanid)
-            for (scanfile_id, filename, probelist) in filtered_file_oids:
-                f = ScanFile(id=scanfile_id)
+            for (fw, probes_to_do) in files_web_todo:
+                #for (scanfile_id, filename, probelist) in files_web_todo:
+                f = fw.file
+                file_data = ''
+                chunk_size = 32
+                path = os.path.abspath(
+                    '{0}{1}'.format(config.get_samples_storage_path(), f.path)
+                )
+                try:
+                    h = open(path, "rb")
+                    chunk = h.read(chunk_size)
+                    while chunk != "":
+                        file_data += chunk
+                        chunk = h.read(chunk_size)
+                except IOError as e:
+                    raise IrmaFileSystemError(e)
+                finally:
+                    h.close()
+
                 # our ftp handler store file under with its sha256 name
-                hashname = ftps.upload_data(scanid, f.data)
+                hashname = ftps.upload_data(scanid, file_data)
                 if hashname != f.hashvalue:
                     reason = "Ftp Error: integrity failure while uploading \
-                    file {0} for scanid {1}".format(scanid, filename)
+                    file {0} for scanid {1}".format(scanid, fw.name)
                     return IrmaTaskReturn.error(reason)
-                scan_request.append((hashname, probelist))
+                scan_request.append((hashname, probes_to_do))
                 # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.launched)
-        scan.release()
+
+        scan.status = IrmaScanStatus.launched
+        scan.update(['status'], session=session)
+        session.commit()
         return IrmaTaskReturn.success("scan launched")
-    except IrmaLockError as e:
-        print "IrmaLockError has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=15, max_retries=10)
     except Exception as e:
-        if scan is not None:
-            scan.release()
         print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=15, max_retries=10)
 
 
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
+    session = SQLDatabase.get_session()
+
     try:
-        scan = scan_res = ref_res = None
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        fw = None
 
-        scanfile = ScanFile(sha256=file_hash)
-        scan = ScanInfo(id=scanid)
-        if scanfile.id not in scan.scanfile_ids:
-            return IrmaTaskReturn.error("filename not found in scan info")
+        for file_web in scan.files_web:
+            if file_hash == file_web.file.sha256:
+                fw = file_web
+                break
+        if fw is None:
+            return IrmaTaskReturn.error("filename not found in scan")
 
-        scanfile.take()
-        if scanid not in scanfile.scan_id:
-            # update scanid list if not alreadypresent
-            scanfile.scan_id.append(scanid)
-        scanfile.date_last_scan = timestamp()
-        scanfile.update()
-        scanfile.release()
+        scan.timestamp_last_scan = compat.timestamp()
+        scan.update(['timestamp_last_scan'], session=session)
 
         try:
             formatted_res = format_result(probe, result)
@@ -133,37 +149,46 @@ def scan_result(scanid, file_hash, probe, result):
             formatted_res = {'result': "parsing error", 'version': None}
 
         # Update main reference results with fresh results
-        ref_res = ScanRefResults.init_id(scanfile.id, mode=IrmaLockMode.write)
-        # keep uptodate results for this file in scanrefresults
-        ref_res.results[probe] = formatted_res
-        ref_res.update()
-        ref_res.release()
+        pr = None
+        ref_res_names = [rr.probe_name for rr in fw.file.ref_results]
+        for probe_result in fw.probe_results:
+            if probe_result.probe_name == probe:
+                pr = probe_result
+                if probe_result.probe_name not in ref_res_names:
+                    fw.file.ref_results.append(probe_result)
+                else:
+                    for rr in fw.file.ref_results:
+                        if probe_result.probe_name == rr.probe_name:
+                            fw.file.ref_results.remove(rr)
+                            fw.file.ref_results.append(probe_result)
+                            break
+                break
+        fw.file.update(session=session)
 
-        # keep scan results into scanresults objects
-        scanres_id = scan.scanfile_ids[scanfile.id]
-        scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
-        scan_res.results[probe] = formatted_res
-        scan_res.update()
-        scan_res.release()
+        # save the results
+        #TODO add remaining parameters
+        prr = ProbeRealResult(
+            probe_name=pr.probe_name,
+            probe_type=None,
+            status=IrmaProbeResultsStates.finished,
+            duration=None,
+            result=None,
+            results=formatted_res
+        )
+        pr.no_sql_id = prr.id
+        pr.update(['no_sql_id'], session=session)
+
         print("Scanid {0}".format(scanid) +
               "Result from {0} ".format(probe) +
-              "probedone {0}".format(scan_res.probedone))
+              "probedone {0}".format([pr.name for pr in fw.probe_results]))
 
-        if scan.is_completed():
-            scan.take()
-            scan.update_status(IrmaScanStatus.finished)
-            scan.release()
+        if scan.is_over():
+            scan.status = IrmaScanStatus.finished
+            scan.update(['status'], session=session)
 
-    except IrmaLockError as e:
-        print "IrmaLockError has occurred:{0}".format(e)
-        raise scan_result.retry(countdown=15, max_retries=10)
+        session.commit()
+
     except Exception as e:
-        if scan is not None:
-            scan.release()
-        if scan_res is not None:
-            scan_res.release()
-        if ref_res is not None:
-            ref_res.release()
         print "Exception has occurred:{0}".format(e)
         raise scan_result.retry(countdown=15, max_retries=10)
 
@@ -172,21 +197,17 @@ def scan_result(scanid, file_hash, probe, result):
 def clean_db():
     try:
         cron_cfg = config.frontend_config['cron_frontend']
-        max_age_scaninfo = cron_cfg['clean_db_scan_info_max_age']
+
+        max_age_file = cron_cfg['clean_db_file_max_age']
         # days to seconds
-        max_age_scaninfo *= 24 * 60 * 60
-        max_age_scanfile = cron_cfg['clean_db_scan_file_max_age']
-        # days to seconds
-        max_age_scanfile *= 24 * 60 * 60
-        nb_scaninfo = ScanInfo.remove_old_instances(max_age_scaninfo)
-        nb_scanfile = ScanFile.remove_old_instances(max_age_scanfile)
-        hage_scaninfo = humanize_time_str(max_age_scaninfo, 'seconds')
-        hage_scanfile = humanize_time_str(max_age_scanfile, 'seconds')
-        print("removed {0} scan info ".format(nb_scaninfo) +
-              "(older than {0})".format(hage_scaninfo))
-        print("removed {0} scan files ".format(nb_scanfile) +
-              "(older than {0}) ".format(hage_scanfile))
-        return (nb_scaninfo, nb_scanfile)
+        max_age_file *= 24 * 60 * 60
+        nb_files = File.remove_old_files(max_age_file)
+        hage_file = humanize_time_str(max_age_file, 'seconds')
+
+        print("removed {0} files ".format(nb_files) +
+              "(older than {0})".format(hage_file))
+
+        return nb_files, 0
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
         raise clean_db.retry(countdown=15, max_retries=10)

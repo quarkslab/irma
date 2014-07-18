@@ -12,11 +12,15 @@
 # No part of the project, including this file, may be copied,
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
+import hashlib
 
 import celery
 import config.parser as config
-from frontend.nosqlobjects import ScanInfo, ScanFile, ScanRefResults
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
+from frontend.nosqlobjects import ProbeRealResult
+from frontend.sqlobjects import Scan, File, FileWeb, ProbeResult
+from lib.common import compat
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
+    IrmaProbeResultsStates, IrmaScanResults
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 
@@ -24,6 +28,8 @@ from lib.irma.common.exceptions import IrmaDatabaseError, \
 # =====================
 #  Frontend Exceptions
 # =====================
+from lib.irma.database.sqlhandler import SQLDatabase
+
 
 class IrmaFrontendWarning(Exception):
     pass
@@ -91,8 +97,10 @@ def scan_new():
     :return: scan id
     :raise: IrmaDataBaseError
     """
-    scan = ScanInfo()
-    return scan.id
+    #TODO get the ip
+    scan = Scan(IrmaScanStatus.created, compat.timestamp(), None)
+    scan.save()
+    return scan.external_id
 
 
 def scan_add(scanid, files):
@@ -102,20 +110,31 @@ def scan_add(scanid, files):
     :param files: dict of 'filename':str, 'data':str
     :rtype: int
     :return: int - total number of files for the scan
-    :raise: IrmaDataBaseError
+    :raise: IrmaFrontendWarning If the scan has already been started
     """
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+    session = SQLDatabase.get_session()
+
+    scan = Scan.load_from_ext_id(scanid, session)
     if scan.status != IrmaScanStatus.created:
-        # Can not add file to scan launched
+        # Cannot add file to a launched scan
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
-    scan.take()
     for (name, data) in files.items():
-        fobj = ScanFile()
-        fobj.save(data, name)
-        scan.add_file(fobj.id, name, fobj.hashvalue)
-    scan.update()
-    scan.release()
-    return len(scan.scanfile_ids)
+        try:
+            # The file exists
+            file = File.load_from_sha256(hashlib.sha256(data).hexdigest(), session)
+        except IrmaDatabaseResultNotFound:
+            # It doesn't
+            time = compat.timestamp()
+            file = File(time, time)
+            file.save(session)
+            file.save_file_to_fs(data)
+            file.update(session=session)
+
+        file_web = FileWeb(file, name, scan)
+        file_web.save(session)
+
+    session.commit()
+    return len(scan.files_web)
 
 
 def scan_launch(scanid, force, probelist):
@@ -128,18 +147,18 @@ def scan_launch(scanid, force, probelist):
         on error 'msg' gives reason message
     :raise: IrmaDataBaseError, IrmaFrontendError
     """
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+    session = SQLDatabase.get_session()
+
+    scan = Scan.load_from_ext_id(scanid, session)
     if scan.status != IrmaScanStatus.created:
-        # Can not launch scan with other status
+        # Cannot launch scan with other status
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
     all_probe_list = _task_probe_list()
     if len(all_probe_list) == 0:
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.finished)
-        scan.release()
+        scan.status = IrmaScanStatus.finished
+        scan.update(['status'], session=session)
+        session.commit()
         raise IrmaFrontendError("No probe available")
-
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
     if probelist is not None:
         unknown_probes = []
         for p in probelist:
@@ -147,19 +166,32 @@ def scan_launch(scanid, force, probelist):
                 unknown_probes.append(p)
         if len(unknown_probes) != 0:
             reason = "Probe {0} unknown".format(", ".join(unknown_probes))
-            scan.update_status(IrmaScanStatus.cancelled)
-            scan.release()
+            scan.status = IrmaScanStatus.cancelled
+            scan.update(['status'], session=session)
+            session.commit()
             raise IrmaFrontendError(reason)
-        scan.probelist = probelist
     else:
-        # all available probe
-        scan.probelist = all_probe_list
-    scan.update()
-    scan.release()
+        # all available probes
+        probelist = all_probe_list
+
+    for fw in scan.files_web:
+        for p in probelist:
+            #TODO probe types
+            scan_result = ProbeResult(
+                None,
+                p,
+                None,
+                IrmaProbeResultsStates.created,
+                IrmaScanStatus.created,
+                file_web=fw
+            )
+            scan_result.save(session=session)
+
+    session.commit()
 
     # launch scan via frontend task
     frontend_app.send_task("frontend.tasks.scan_launch", args=(scan.id, force))
-    return scan.probelist
+    return probelist
 
 
 def scan_results(scanid):
@@ -167,14 +199,33 @@ def scan_results(scanid):
 
     :param scanid: id returned by scan_new
     :rtype: dict of sha256 value: dict of ['filename':str,
-        'results':dict of [str probename: dict [results of probe]]]
+        'results':dict of [str probename: dict of [probe_type: str,
+        status: int [, optional duration: int, optional result: int,
+        optional results of probe]]]]
     :return:
         dict of results for each hash value
-    :raise: IrmaDatabaseError
+    :raise: IrmaDataBaseError
     """
-    # fetch results in db
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    return scan.get_results()
+    scan = Scan.load_from_ext_id(scanid)
+    res = {}
+    for fw in scan.files_web:
+        probe_results = {}
+        for pr in fw.probe_results:
+            if pr.no_sql_id is None:  # An error occurred in the process
+                probe_results[pr.probe_name] = {
+                    'probe_type': pr.probe_type,
+                    'status': pr.status
+                }
+            else:
+                probe_results[pr.probe_name] = ProbeRealResult(
+                    id=pr.no_sql_id
+                ).get_results()
+        res[fw.file.sha256] = {
+            'filename': fw.name,
+            'results': probe_results
+        }
+
+    return res
 
 
 def scan_progress(scanid):
@@ -186,7 +237,9 @@ def scan_progress(scanid):
         dict with total/finished/succesful jobs submitted by irma-brain
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+    session = SQLDatabase.get_session()
+
+    scan = Scan.load_from_ext_id(scanid, session=session)
     if scan.status != IrmaScanStatus.launched:
         # If not launched answer directly
         # Else ask brain for job status
@@ -199,9 +252,9 @@ def scan_progress(scanid):
         # it means all probes jobs are completed
         # we are just waiting for results
         if res == IrmaScanStatus.processed:
-            scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-            scan.update_status(IrmaScanStatus.processed)
-            scan.release()
+            scan.status(IrmaScanStatus.processed)
+            scan.update(['status'], session=session)
+            session.commit()
         raise IrmaFrontendWarning(IrmaScanStatus.label[res])
     else:
         raise IrmaFrontendError(res)
@@ -217,28 +270,30 @@ def scan_cancel(scanid):
         informations about number of cancelled jobs by irma-brain
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+    session = SQLDatabase.get_session()
+
+    scan = Scan.load_from_ext_id(scanid, session=session)
     if scan.status != IrmaScanStatus.launched:
         # If not launched answer directly
         # Else ask brain for job status
-        scan.take()
-        scan.update_status(IrmaScanStatus.cancelled)
-        scan.release()
+        scan.status = IrmaScanStatus.cancelled
+        scan.update(['status'], session=session)
+        session.commit()
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
 
     (status, res) = _task_scan_cancel(scanid)
     if status == IrmaReturnCode.success:
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.cancelled)
-        scan.release()
+        scan.status = IrmaScanStatus.cancelled
+        scan.update(['status'], session=session)
+        session.commit()
         return res
     elif status == IrmaReturnCode.warning:
         # if scan is finished for the brain
         # it means we are just waiting for results
         if res == IrmaScanStatus.processed:
-            scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-            scan.update_status(IrmaScanStatus.processed)
-            scan.release()
+            scan.status = IrmaScanStatus.processed
+            scan.update(['status'], session=session)
+            session.commit()
         raise IrmaFrontendWarning(IrmaScanStatus.label[res])
     else:
         raise IrmaFrontendError(res)
@@ -253,7 +308,7 @@ def scan_finished(scanid):
         False otherwise
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+    scan = Scan.load_from_ext_id(scanid)
     return scan.status == IrmaScanStatus.finished
 
 
@@ -277,7 +332,7 @@ def file_exists(sha256):
     :raise: IrmaFrontendError
     """
     try:
-        ScanFile(sha256=sha256)
+        File.load_from_sha256(sha256=sha256)
         return True
     except IrmaDatabaseResultNotFound:
         return False
@@ -288,20 +343,29 @@ def file_exists(sha256):
 def file_result(sha256):
     """ return results for file with given sha256 value
 
-    :rtype: dict of [
-            sha256 value: dict of
-                'filenames':list of filename,
-                'results': dict of [str probename: dict [results of probe]]]]
+    :rtype: dict of sha256 value: dict of ['filename':str,
+        'results':dict of [str probename: dict of [probe_type: str,
+        status: int , duration: int, result: int, results of probe]]]]
     :return:
         if exists returns all available scan results
         for file with given sha256 value
     :raise: IrmaFrontendError
     """
     try:
-        f = ScanFile(sha256=sha256)
-        ref_res = ScanRefResults(id=f.id)
-        return ref_res.get_results()
-    except IrmaDatabaseError as e:
+        f = File.load_from_sha256(sha256=sha256)
+        ref_res = {}
+        probe_results = {}
+        for rr in f.ref_results:
+            probe_results[rr.probe_name] = ProbeRealResult(
+                id=rr.no_sql_id
+            ).get_results()
+        ref_res[f.sha256] = {
+            'filename': f.get_file_names(),
+            'results': probe_results
+        }
+
+        return ref_res
+    except Exception as e:
         raise IrmaFrontendWarning(str(e))
 
 
@@ -316,20 +380,19 @@ def file_infected(sha256):
     :raise: IrmaFrontendError
     """
     try:
-        f = ScanFile(sha256=sha256)
-        ref_res = ScanRefResults(id=f.id)
+        f = File.load_from_sha256(sha256)
         nb_scan = nb_detected = 0
-        for (probe, res) in ref_res.results.items():
-            if probe not in ['ClamAV', 'ComodoCAVL', 'EsetNod32', 'FProt',
-                             'Kaspersky', 'McAfeeVSCL', 'Sophos', 'Symantec']:
+        for rr in f.ref_results:
+            #TODO use probe_type instead of probe_name and a hard coded list
+            if rr.probe_name not in ['ClamAV', 'ComodoCAVL', 'EsetNod32',
+                                     'FProt', 'Kaspersky', 'McAfeeVSCL',
+                                     'Sophos', 'Symantec']:
                 continue
             nb_scan += 1
-            if res['result'] is not None:
+            if rr.result == IrmaScanResults.isMalicious:
                 nb_detected += 1
-        suspicious = False
-        if nb_detected > 0:
-            suspicious = True
-        return {'infected': suspicious,
+
+        return {'infected': (nb_detected > 0),
                 'nb_detected': nb_detected,
                 'nb_scan': nb_scan}
     except IrmaDatabaseError as e:

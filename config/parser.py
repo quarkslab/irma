@@ -27,6 +27,7 @@ template_frontend_config = {
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 27017),
         ('dbname', TemplatedConfiguration.string, None),
+        ('collections_prefix', TemplatedConfiguration.string, None),
     ],
     'collections': [
         ('scan_info', TemplatedConfiguration.string, None),
@@ -44,6 +45,9 @@ template_frontend_config = {
         ('host', TemplatedConfiguration.string, None),
         ('dbname', TemplatedConfiguration.string, None),
         ('tables_prefix', TemplatedConfiguration.string, None),
+    ],
+    'samples_storage': [
+        ('path', TemplatedConfiguration.string, None)
     ],
     'celery_brain': [
         ('timeout', TemplatedConfiguration.integer, 10),
@@ -79,8 +83,7 @@ template_frontend_config = {
         ('password', TemplatedConfiguration.string, None),
     ],
     'cron_frontend': [
-        ('clean_db_scan_info_max_age', TemplatedConfiguration.integer, 100),
-        ('clean_db_scan_file_max_age', TemplatedConfiguration.integer, 2),
+        ('clean_db_file_max_age', TemplatedConfiguration.integer, 2),
         ('clean_db_cron_hour', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),
@@ -146,27 +149,6 @@ def conf_frontend_celery(app):
     )
 
 
-def get_db_uri():
-    host = frontend_config.mongodb.host
-    port = frontend_config.mongodb.port
-    return "mongodb://{host}:{port}/".format(host=host, port=port)
-
-
-def get_sql_db_uri_params():
-    return (
-        frontend_config.sqldb.dbms,
-        frontend_config.sqldb.dialect,
-        frontend_config.sqldb.username,
-        frontend_config.sqldb.passwd,
-        frontend_config.sqldb.host,
-        frontend_config.sqldb.dbname,
-    )
-
-
-def get_sql_db_tables_prefix():
-    return frontend_config.sqldb.tables_prefix
-
-
 def get_brain_celery_timeout():
     return frontend_config.celery_brain.timeout
 
@@ -215,3 +197,36 @@ def get_brain_broker_uri():
 
 def get_frontend_broker_uri():
     return _get_broker_uri(frontend_config.broker_frontend)
+
+
+# ==================
+#  Database helpers
+# ==================
+
+def get_db_uri():
+    host = frontend_config.mongodb.host
+    port = frontend_config.mongodb.port
+    return "mongodb://{host}:{port}/".format(host=host, port=port)
+
+
+def get_nosql_db_collections_prefix():
+    return frontend_config.mongodb.collections_prefix
+
+
+def get_sql_db_uri_params():
+    return (
+        frontend_config.sqldb.dbms,
+        frontend_config.sqldb.dialect,
+        frontend_config.sqldb.username,
+        frontend_config.sqldb.passwd,
+        frontend_config.sqldb.host,
+        frontend_config.sqldb.dbname,
+    )
+
+
+def get_sql_db_tables_prefix():
+    return frontend_config.sqldb.tables_prefix
+
+
+def get_samples_storage_path():
+    return frontend_config.samples_storage.path

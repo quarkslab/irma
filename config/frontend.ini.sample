@@ -2,6 +2,7 @@
 host = 127.0.0.1
 port = 27017
 dbname = irma
+collections_prefix = irma
 
 [collections]
 scan_info = scan_info
@@ -19,6 +20,9 @@ passwd = postgres
 host = localhost
 dbname = test
 tables_prefix = irma
+
+[samples_storage]
+path = ~/irma_samples/
 
 [broker_brain]
 host = 127.0.0.1
@@ -44,8 +48,7 @@ username = frontend
 password = frontend
 
 [cron_frontend]
-clean_db_scan_info_max_age = 100
-clean_db_scan_file_max_age = 2
+clean_db_file_max_age = 2
 clean_db_cron_hour = 0
 clean_db_cron_minute = 0
 clean_db_cron_day_of_week = *
