@@ -48,8 +48,16 @@ class SQLDatabase(object):
         """
         if cls.__engine is not None:
             raise IrmaDatabaseError('the engine already exist')
-        url = "{0}+{1}://{2}:{3}@{4}/{5}".format(dbms, dialect, username,
-                                                 passwd, host, dbname)
+
+        if dialect:
+            dbms = "{0}+{1}".format(dbms, dialect)
+        host_and_id = ''
+        if host and username:
+            if passwd:
+                host_and_id = "{0}:{1}@{2}".format(username, passwd, host)
+            else:
+                host_and_id = "{0}@{1}".format(username, host)
+        url = "{0}://{1}/{2}".format(dbms, host_and_id, dbname)
         cls.__engine = create_engine(url, echo=True)
 
         session_factory = sessionmaker(bind=cls.__engine)
