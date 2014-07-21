@@ -19,7 +19,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from irma.common.exceptions import IrmaDatabaseError
 
 DEBUG = False
-logging.basicConfig(filename='sqlalchemy.log')
+logging.basicConfig(filename='/var/log/irma/sqlalchemy.log')
 if DEBUG:
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 else:
@@ -61,6 +61,7 @@ class SQLDatabase(object):
 
             session_factory = sessionmaker(bind=cls.__engine)
             cls.__Session = scoped_session(session_factory)
+            logging.info('engine connected')
         else:
             logging.info('engine already connected, nothing to do')
 
