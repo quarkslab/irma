@@ -193,11 +193,10 @@ class File(Base, SQLDatabaseObject):
         self.tags = tags
 
     @classmethod
-    @session_maker
-    def load_from_sha256(cls, sha256, session=None):
+    def load_from_sha256(cls, sha256, session):
         """Find the object in the database
         :param sha256: the sha256 to look for
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         :rtype: cls
         :return: the object that corresponds to the sha256
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
@@ -247,8 +246,7 @@ class File(Base, SQLDatabaseObject):
             raise IrmaFileSystemError(e)
 
     @classmethod
-    @session_maker
-    def remove_old_files(cls, max_age, session=None):
+    def remove_old_files(cls, max_age, session):
         """Remove the files that are older than timestamp() - max_age
         from the file system
         :param max_age: the files older than timestamp() - max_age
@@ -387,11 +385,10 @@ class Scan(Base, SQLDatabaseObject):
         self.ip = ip
 
     @classmethod
-    @session_maker
-    def load_from_ext_id(cls, external_id, session=None):
+    def load_from_ext_id(cls, external_id, session):
         """Find the object in the database
         :param external_id: the id to look for
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         :rtype: cls
         :return: the object that corresponds to the external_id
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
@@ -568,11 +565,10 @@ class Submission(Base, SQLDatabaseObject):
         self.date = date
 
     @classmethod
-    @session_maker
-    def load_from_ext_id(cls, external_id, session=None):
+    def load_from_ext_id(cls, external_id, session):
         """Find the object in the database
         :param external_id: the id to look for
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         :rtype: cls
         :return: the object that corresponds to the external_id
         :raise IrmaDatabaseResultNotFound, IrmaDatabaseError

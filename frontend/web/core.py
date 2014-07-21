@@ -239,7 +239,9 @@ def scan_result(scanid):
         dict of results for each hash value
     :raise: IrmaDataBaseError
     """
-    scan = Scan.load_from_ext_id(scanid)
+    session = SQLDatabase.get_session()
+
+    scan = Scan.load_from_ext_id(scanid, session=session)
     res = {}
     for fw in scan.files_web:
         probe_results = {}
@@ -344,7 +346,9 @@ def scan_finished(scanid):
         False otherwise
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
-    scan = Scan.load_from_ext_id(scanid)
+    session = SQLDatabase.get_session()
+
+    scan = Scan.load_from_ext_id(scanid, session=session)
     return scan.status == IrmaScanStatus.finished
 
 

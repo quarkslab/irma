@@ -267,12 +267,14 @@ def scan_result_error(scanid, file_hash, probe, exc):
 @db_connector
 def clean_db():
     try:
+        session = SQLDatabase.get_session()
+
         cron_cfg = config.frontend_config['cron_frontend']
 
         max_age_file = cron_cfg['clean_db_file_max_age']
         # days to seconds
         max_age_file *= 24 * 60 * 60
-        nb_files = File.remove_old_files(max_age_file)
+        nb_files = File.remove_old_files(max_age_file, session=session)
         hage_file = humanize_time_str(max_age_file, 'seconds')
 
         print("removed {0} files ".format(nb_files) +
