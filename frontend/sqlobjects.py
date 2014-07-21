@@ -15,14 +15,15 @@
 import hashlib
 import os
 
-from sqlalchemy import Table, Column, Integer, ForeignKey, String
+from sqlalchemy import Table, Column, Integer, ForeignKey, String,\
+    ForeignKeyConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
-from sqlalchemy.sql.schema import ForeignKeyConstraint
 
 import config.parser as config
-from irma.common.exceptions import IrmaDatabaseResultNotFound, IrmaDatabaseError
+from irma.common.exceptions import IrmaDatabaseResultNotFound,\
+    IrmaDatabaseError
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
