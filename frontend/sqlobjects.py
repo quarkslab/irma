@@ -36,12 +36,10 @@ from lib.irma.database.sqlobjects import SQLDatabaseObject, session_maker
 def sql_db_connect():
     """Connection to DB
     """
-    logging.warning('bbb')
     uri_params = config.get_sql_db_uri_params()
     # TODO args* style argument
     SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
                         uri_params[3], uri_params[4], uri_params[5])
-    logging.warning('ccc')
 
 
 def db_connector(func):

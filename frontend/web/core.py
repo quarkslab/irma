@@ -19,7 +19,6 @@ import celery
 import config.parser as config
 from frontend.nosqlobjects import ProbeRealResult
 from frontend.sqlobjects import Scan, File, FileWeb, ProbeResult, db_connector
-from lib.irma.database.sqlhandler import SQLDatabase
 from lib.common import compat
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
     IrmaProbeResultsStates, IrmaScanResults
@@ -118,6 +117,7 @@ def format_results(res_dict, filter_type):
 # ==================
 #  Public functions
 # ==================
+@db_connector
 def scan_new():
     """ Create new scan
 
@@ -125,13 +125,10 @@ def scan_new():
     :return: scan id
     :raise: IrmaDataBaseError
     """
-    uri_params = config.get_sql_db_uri_params()
-    # TODO args* style argument
-    SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
-                        uri_params[3], uri_params[4], uri_params[5])
+    session = SQLDatabase.get_session()
     #TODO get the ip
     scan = Scan(IrmaScanStatus.created, compat.timestamp(), None)
-    scan.save()
+    scan.save(session=session)
     logging.warning('aaa')
     return scan.external_id
 
