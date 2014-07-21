@@ -16,6 +16,7 @@ import hashlib
 
 import celery
 import config.parser as config
+from frontend import sqlobjects
 from frontend.nosqlobjects import ProbeRealResult
 from frontend.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common import compat
@@ -25,6 +26,8 @@ from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 from frontend.format import IrmaProbeType, IrmaFormatter
 
+
+sqlobjects.connect()
 
 # =====================
 #  Frontend Exceptions

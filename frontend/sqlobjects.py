@@ -32,10 +32,15 @@ from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.database.sqlobjects import SQLDatabaseObject, session_maker
 
 
-uri_params = config.get_sql_db_uri_params()
-# TODO args* style argument
-SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
-                    uri_params[3], uri_params[4], uri_params[5])
+def connect():
+    """Connection to the DB
+    """
+    uri_params = config.get_sql_db_uri_params()
+    # TODO args* style argument
+    SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
+                        uri_params[3], uri_params[4], uri_params[5])
+
+connect()
 
 Base = declarative_base()
 

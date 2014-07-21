@@ -16,6 +16,7 @@ import os
 
 import celery
 import config.parser as config
+from frontend import sqlobjects
 from frontend.nosqlobjects import ProbeRealResult
 from frontend.sqlobjects import Scan, File
 from lib.common import compat
@@ -31,6 +32,8 @@ config.conf_frontend_celery(frontend_app)
 
 scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
+
+sqlobjects.connect()
 
 
 @frontend_app.task(acks_late=True)
