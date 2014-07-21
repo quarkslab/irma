@@ -17,21 +17,15 @@ import hashlib
 import celery
 import config.parser as config
 from frontend.nosqlobjects import ProbeRealResult
-from frontend.sqlobjects import Scan, File, FileWeb, ProbeResult
+from frontend.sqlobjects import Scan, File, FileWeb, ProbeResult, db_connector
 from lib.common import compat
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
     IrmaProbeResultsStates, IrmaScanResults
-from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 
 from frontend.format import IrmaProbeType, IrmaFormatter
 
-
-uri_params = config.get_sql_db_uri_params()
-# TODO args* style argument
-SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
-                    uri_params[3], uri_params[4], uri_params[5])
 
 # =====================
 #  Frontend Exceptions
@@ -123,6 +117,7 @@ def format_results(res_dict, filter_type):
 #  Public functions
 # ==================
 
+@db_connector
 def scan_new():
     """ Create new scan
 
@@ -136,6 +131,7 @@ def scan_new():
     return scan.external_id
 
 
+@db_connector
 def scan_add(scanid, files):
     """ add file(s) to the specified scan
 
@@ -170,6 +166,7 @@ def scan_add(scanid, files):
     return len(scan.files_web)
 
 
+@db_connector
 def scan_launch(scanid, force, probelist):
     """ launch specified scan
 
@@ -227,6 +224,7 @@ def scan_launch(scanid, force, probelist):
     return probelist
 
 
+@db_connector
 def scan_result(scanid):
     """ get results from files of specified scan
 
@@ -261,6 +259,7 @@ def scan_result(scanid):
     return res
 
 
+@db_connector
 def scan_progress(scanid):
     """ get scan progress for specified scan
 
@@ -293,6 +292,7 @@ def scan_progress(scanid):
         raise IrmaFrontendError(res)
 
 
+@db_connector
 def scan_cancel(scanid):
     """ cancel all remaining jobs for specified scan
 
@@ -332,6 +332,7 @@ def scan_cancel(scanid):
         raise IrmaFrontendError(res)
 
 
+@db_connector
 def scan_finished(scanid):
     """ return a boolean  indicating if scan is finished
     :param scanid: id returned by scan_new

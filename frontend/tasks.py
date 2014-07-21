@@ -17,7 +17,7 @@ import os
 import celery
 import config.parser as config
 from frontend.nosqlobjects import ProbeRealResult
-from frontend.sqlobjects import Scan, File
+from frontend.sqlobjects import Scan, File, db_connector
 from lib.common import compat
 from lib.irma.common.exceptions import IrmaFileSystemError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaProbeResultsStates
@@ -32,13 +32,9 @@ config.conf_frontend_celery(frontend_app)
 scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
 
-uri_params = config.get_sql_db_uri_params()
-# TODO args* style argument
-SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
-                    uri_params[3], uri_params[4], uri_params[5])
-
 
 @frontend_app.task(acks_late=True)
+@db_connector
 def scan_launch(scanid, force):
     try:
         session = SQLDatabase.get_session()
@@ -138,10 +134,11 @@ def sanitize_dict(d):
 
 
 @frontend_app.task(acks_late=True)
+@db_connector
 def scan_result(scanid, file_hash, probe, result):
-    session = SQLDatabase.get_session()
-
     try:
+        session = SQLDatabase.get_session()
+
         scan = Scan.load_from_ext_id(scanid, session=session)
         fw = None
 
@@ -203,6 +200,7 @@ def scan_result(scanid, file_hash, probe, result):
 
 
 @frontend_app.task(acks_late=True)
+@db_connector
 def scan_result_error(scanid, file_hash, probe, exc):
     try:
         session = SQLDatabase.get_session()
@@ -266,6 +264,7 @@ def scan_result_error(scanid, file_hash, probe, exc):
 
 
 @frontend_app.task()
+@db_connector
 def clean_db():
     try:
         cron_cfg = config.frontend_config['cron_frontend']
