@@ -1,10 +1,7 @@
-from common.compat import timestamp
-from irma.common.utils import IrmaLock, IrmaLockMode
+from irma.common.exceptions import IrmaValueError, IrmaDatabaseError
 from nosqlhandler import NoSQLDatabase
 from bson import ObjectId
 from bson.errors import InvalidId
-from irma.common.exceptions import IrmaDatabaseError, IrmaLockError, \
-    IrmaValueError
 
 
 class NoSQLDatabaseObjectList(object):
@@ -46,8 +43,6 @@ class NoSQLDatabaseObject(object):
         # raise IrmaDatabaseError on loading invalid id
         self._id = None
         self._temp_id = None
-        self._lock = None
-        self._lock_time = None
         if id:
             try:
                 self._id = ObjectId(id)
