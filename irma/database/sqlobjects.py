@@ -21,26 +21,6 @@ from irma.database.sqlhandler import SQLDatabase
 from irma.common.exceptions import IrmaDatabaseError
 
 
-def session_maker(func):
-    """Annotation that provides a session if needed
-    """
-    def wrapper(*args, **kwargs):
-        if 'session' not in kwargs.keys():
-            kwargs['session'] = SQLDatabase.get_session()
-            session_created = True
-        else:
-            session_created = False
-
-        func_ret = func(*args, **kwargs)
-
-        if session_created:
-            kwargs['session'].commit()
-
-        return func_ret
-
-    return wrapper
-
-
 class SQLDatabaseObject(object):
     """Mother class for the SQL tables
     """
@@ -97,12 +77,11 @@ class SQLDatabaseObject(object):
                 res[key] = getattr(self, var_name)
         return res
 
-    @session_maker
     def update(self, update_dict=[], session=None):
         """Save the new state of the current object in the database
         :param update_dict: the fields to update (all fields are being
             updated if not provided)
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         """
         if not update_dict:
             update_dict = self.to_dict(include_pks=False)
@@ -112,19 +91,17 @@ class SQLDatabaseObject(object):
             ).values(update_dict)
         )
 
-    @session_maker
-    def save(self, session=None):
+    def save(self, session):
         """Save the current object in the database
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         """
         session.add(self)
 
     @classmethod
-    @session_maker
-    def load(cls, id, session=None):
+    def load(cls, id, session):
         """Load an object from the database
         :param id: the id to look for
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         :rtype: cls
         :return: the object that corresponds to the id
         :raise IrmaDatabaseResultNotFound: if the object doesn't exist
@@ -138,19 +115,17 @@ class SQLDatabaseObject(object):
                 )
             )
 
-    @session_maker
-    def remove(self, session=None):
+    def remove(self, session):
         """Remove the current object from the database
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         """
         session.delete(self)
 
     @classmethod
-    @session_maker
-    def find_by_id(cls, id, session=None):
+    def find_by_id(cls, id, session):
         """Find the object in the database
         :param id: the id to look for
-        :param session: the session to use (automatically provided if None)
+        :param session: the session to use
         :rtype: cls
         :return: the object that corresponds to the id
         :raise IrmaDatabaseResultNotFound, IrmaDatabaseError
