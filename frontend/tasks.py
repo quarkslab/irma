@@ -16,7 +16,6 @@ import os
 
 import celery
 import config.parser as config
-from frontend import sqlobjects
 from frontend.nosqlobjects import ProbeRealResult
 from frontend.sqlobjects import Scan, File
 from lib.common import compat

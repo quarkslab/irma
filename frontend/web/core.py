@@ -16,14 +16,15 @@ import hashlib
 
 import celery
 import config.parser as config
-from frontend import sqlobjects
 from frontend.nosqlobjects import ProbeRealResult
 from frontend.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common import compat
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
     IrmaProbeResultsStates, IrmaScanResults
+from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
+
 from frontend.format import IrmaProbeType, IrmaFormatter
 
 
