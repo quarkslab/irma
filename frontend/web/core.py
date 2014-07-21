@@ -117,7 +117,7 @@ def format_results(res_dict, filter_type):
 # ==================
 #  Public functions
 # ==================
-
+@db_connector
 def scan_new():
     """ Create new scan
 
