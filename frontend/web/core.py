@@ -13,6 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 import hashlib
+import logging
 
 import celery
 import config.parser as config
@@ -127,6 +128,7 @@ def scan_new():
     """
     #TODO get the ip
     scan = Scan(IrmaScanStatus.created, compat.timestamp(), None)
+    logging.warning('aaa')
     scan.save()
     return scan.external_id
 
