@@ -46,22 +46,22 @@ class SQLDatabase(object):
         :param host: the host (ex: localhost or localhost:port)
         :param dbname: the name of the database (has to exist)
         """
-        if cls.__engine is not None:
-            raise IrmaDatabaseError('the engine already exist')
+        if cls.__engine is None:
+            if dialect:
+                dbms = "{0}+{1}".format(dbms, dialect)
+            host_and_id = ''
+            if host and username:
+                if passwd:
+                    host_and_id = "{0}:{1}@{2}".format(username, passwd, host)
+                else:
+                    host_and_id = "{0}@{1}".format(username, host)
+            url = "{0}://{1}/{2}".format(dbms, host_and_id, dbname)
+            cls.__engine = create_engine(url, echo=True)
 
-        if dialect:
-            dbms = "{0}+{1}".format(dbms, dialect)
-        host_and_id = ''
-        if host and username:
-            if passwd:
-                host_and_id = "{0}:{1}@{2}".format(username, passwd, host)
-            else:
-                host_and_id = "{0}@{1}".format(username, host)
-        url = "{0}://{1}/{2}".format(dbms, host_and_id, dbname)
-        cls.__engine = create_engine(url, echo=True)
-
-        session_factory = sessionmaker(bind=cls.__engine)
-        cls.__Session = scoped_session(session_factory)
+            session_factory = sessionmaker(bind=cls.__engine)
+            cls.__Session = scoped_session(session_factory)
+        else:
+            logging.info('engine already connected, nothing to do')
 
     @classmethod
     def get_engine(cls):
