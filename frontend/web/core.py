@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 QuarksLab.
+# Copyright (c) 2013-2014 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,6 +23,7 @@ from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
     IrmaProbeResultsStates, IrmaScanResults
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
+from frontend.format import IrmaProbeType, IrmaFormatter
 
 
 # =====================
@@ -84,6 +85,31 @@ def _task_scan_cancel(scanid):
         return (status, res)
     except celery.exceptions.TimeoutError:
         raise IrmaFrontendError("Celery timeout - scan progress")
+
+# =========
+#  Helpers
+# =========
+
+
+def format_results(res_dict, filter_type):
+    # - filter type is list of type returned
+    res = {}
+    for probe in res_dict.keys():
+        # old results format
+        # FIXME: remove this if db is cleaned
+        if 'probe_res' in res_dict[probe]:
+            probe_res = res_dict[probe]['probe_res']
+        else:
+            probe_res = res_dict[probe]
+        format_res = IrmaFormatter.format(probe, probe_res)
+        if filter_type is not None:
+            # filter by type
+            filter_str = [IrmaProbeType.label[ft] for ft in filter_type]
+            if 'type' in format_res and \
+               format_res['type'] not in filter_str:
+                continue
+        res[probe] = format_res
+    return res
 
 
 # ==================
@@ -194,8 +220,8 @@ def scan_launch(scanid, force, probelist):
     return probelist
 
 
-def scan_results(scanid):
-    """ get all results from files of specified scan
+def scan_result(scanid):
+    """ get results from files of specified scan
 
     :param scanid: id returned by scan_new
     :rtype: dict of sha256 value: dict of ['filename':str,
@@ -222,7 +248,7 @@ def scan_results(scanid):
                 ).get_results()
         res[fw.file.sha256] = {
             'filename': fw.name,
-            'results': probe_results
+            'results': format_results(probe_results, None)
         }
 
     return res
@@ -340,7 +366,7 @@ def file_exists(sha256):
         raise IrmaFrontendError(str(e))
 
 
-def file_result(sha256):
+def file_result(sha256, filter_type=None):
     """ return results for file with given sha256 value
 
     :rtype: dict of sha256 value: dict of ['filename':str,
@@ -361,7 +387,7 @@ def file_result(sha256):
             ).get_results()
         ref_res[f.sha256] = {
             'filename': f.get_file_names(),
-            'results': probe_results
+            'results': format_results(probe_results, filter_type)
         }
 
         return ref_res
@@ -377,23 +403,20 @@ def file_infected(sha256):
     :return:
         returns detection score for
         file with given sha256 value
-    :raise: IrmaFrontendError
+    :raise: Exception
     """
     try:
-        f = File.load_from_sha256(sha256)
         nb_scan = nb_detected = 0
-        for rr in f.ref_results:
-            #TODO use probe_type instead of probe_name and a hard coded list
-            if rr.probe_name not in ['ClamAV', 'ComodoCAVL', 'EsetNod32',
-                                     'FProt', 'Kaspersky', 'McAfeeVSCL',
-                                     'Sophos', 'Symantec']:
-                continue
+
+        av_results = file_result(sha256, filter_type=[IrmaProbeType.antivirus])
+        probe_res = av_results[sha256]['results']
+        for res in probe_res.values():
             nb_scan += 1
-            if rr.result == IrmaScanResults.isMalicious:
+            if res['result'] == IrmaScanResults.isMalicious:
                 nb_detected += 1
 
         return {'infected': (nb_detected > 0),
                 'nb_detected': nb_detected,
                 'nb_scan': nb_scan}
-    except IrmaDatabaseError as e:
+    except Exception as e:
         raise IrmaFrontendWarning(str(e))

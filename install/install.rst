@@ -2,47 +2,6 @@
  IRMA Frontend - Installation guide
 ***********************************
 
---------------------
-
-
-**Table of Contents**
-
-
-.. contents::
-    :local:
-    :depth: 1
-    :backlinks: none
-
-------------
-Requirements
-------------
-
-**packages:**
-
-* python2.7
-* python-pip
-* mongodb-server
-* nginx
-* uwsgi
-* uwsgi-plugin-python
-* ruby
-* python-gridfs
-
-**python packages:**
-
-* celery
-* pymongo
-* redis
-* bottle
-
-**ruby packages:**
-
-* see section `Web gui generation`_
-
-**node.js packages:**
-
-* see section `Web gui generation`_
-
 -------------
 Configuration
 -------------
@@ -62,7 +21,7 @@ edit ``install/nginx/frontend`` according to your install
 
 .. code-block::
     
-   root /home/irma/irma/web/dist;
+   root <IRMA_INSTALL_DIR>/web/dist;
    
 copy ``frontend`` config file to ``/etc/nginx/sites-available``
 make a soft link into ``/etc/nginx/sites-enabled``
@@ -80,7 +39,7 @@ edit ``install/uwsgi/frontend-api.xml`` according to your install
 
 .. code-block::
     
-	<chdir>/home/irma/irma</chdir>
+	<chdir><IRMA_INSTALL_DIR></chdir>
 	<app mountpoint="/_api">
 		<script>./frontend/web/api.py</script>
 	</app>
@@ -102,7 +61,7 @@ edit ``install/celery/celeryd.frontend.defaults`` according to your install
 .. code-block::
     
     # Where to chdir at start.
-    CELERYD_CHDIR="/home/irma/irma/"
+    CELERYD_CHDIR="<IRMA_INSTALL_DIR>"
    
 copy ``celeryd.frontend.defaults`` config file to ``/etc/default/celeryd``
 copy ``celeryd`` init script file to ``/etc/init.d``
@@ -115,86 +74,10 @@ launch celery
     $ sudo chmod +x /etc/init.d/celeryd
     $ sudo service celeryd start
 
-------------------
-Web gui generation
-------------------
-
-Requirements: 
-
-* npm
-* bower
-* grunt
-* compass
-
-**npm**
-
-.. code-block:: bash
-
-    $ cd /tmp
-    $ wget https://raw.github.com/nicolargo/nodeautoinstall/master/nodeautoinstall.py
-    $ sudo python ./nodeautoinstall.py -d
-    $ export PATH=$PATH:/opt/node/bin
-    $ export NODE_PATH=/opt/node:/opt/node/lib/node_modules
-
-**bower**
-
-.. code-block:: bash
-
-    $ sudo npm install -g bower
-    
-**grunt**
-
-.. code-block:: bash
-
-    $ sudo npm install -g grunt
-    $ sudo npm install -g grunt-cli
-
-**compass**
-
-.. code-block:: bash
-
-    $ sudo gem install compass
-
-**gui generation**
-
-.. code-block:: bash
-
-    $ cd <IRMA_INSTALL_DIR>/web
-    $ npm install
-    $ bower install
-    $ ln -s `pwd`/bower_components `pwd`/app/bower_components
-    $ grunt build
-    $ ln -s `pwd`/.tmp/styles `pwd`/dist/styles
-
---------------------
-
 ===
 FAQ
 ===
 
-**Install a python package with pip**
-
-.. code-block:: bash
-  
-   $ pip install <package-name>
-
---------------------
-
-**Update a python package with pip**
-
-.. code-block:: bash
-
-   $ pip install --upgrade <package-name>
-
---------------------
-
-**Install a specific version of a python package with pip**
-
-.. code-block:: bash
-
-   $ pip install <package-name>==<version>
-
---------------------
 
 **install all requirements with pip**
 
@@ -203,7 +86,6 @@ FAQ
    $ pip install -r requirements.txt
 
 
---------------------
 
 **Install a custom python package with custom install path (e.g. irma packages install)**
 
@@ -212,25 +94,19 @@ FAQ
    $ pip install --install-option='--install-purelib=<custom path>' --install-option='--install-scripts=<scripts path>' -i http://<custom pkg server>/pypi <package-name>
 
 
---------------------
+**Detailed instructions for manual webui generation**
 
-**Start a service at boot**
+the default package is shipped with webui already generated. But if you
+want to see how it is done see `webui`_ readme.
 
-.. code-block:: bash
-
-    $ sudo /usr/sbin/update-rc.d <service-name> defaults
-
---------------------
 
 
 =======
 Support
 =======
 
-Feeling lost ? need support ? irc: #irma-qb@chat.freenode.net 
-
-----------------------
+Feeling lost ? need support ? irc: #qb_irma@freenode 
 
 
 
-   
+.. _webui: /web/README.rst

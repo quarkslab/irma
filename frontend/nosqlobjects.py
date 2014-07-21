@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 QuarksLab.
+# Copyright (c) 2013-2014 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
 cfg_coll = config.frontend_config['collections']
+
 
 cfg_coll_prefix = '{0}_'.format(config.get_nosql_db_collections_prefix())
 

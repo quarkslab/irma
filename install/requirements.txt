@@ -1,4 +1,5 @@
-celery==3.1.10
-redis==2.9.1
-pymongo==2.6.3
-bottle==0.12.5
+celery==3.1.13
+redis>=2.9.1
+pymongo>=2.6.3
+bottle>=0.12.5
+sqlalchemy>=0.9.6

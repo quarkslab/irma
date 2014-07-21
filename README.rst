@@ -1,54 +1,47 @@
-****************
- IRMA - Frontend
-****************
+***************
+IRMA - Frontend
+***************
 
 ========
 Overview
 ========
 
-
 This package handles scan submission to the brain. Keep track of scanned files results and provides the web graphical user interface.
 
------------------------
 
 ============
 Installation
 ============
 
-------------
+Quick install
+-------------
+
+Add Quarkslab repository address. See `here`_ for instructions.
+Then install Meta package:
+
+.. code-block:: bash
+
+    sudo apt-get update && sudo apt-get install irma-frontend
+
+Do not forget to change parameters according to your settings (See ``Config`` paragraph).
+
 Get the code
 ------------
 
-Two possibilities:
-
-* if you have a pypi server of your own (1)
-* if you don't (2)
-
-**1. pip install into <path>**
-
-For detailed instructions about setting up a local pypi server please see `brain_install`_.
+clone from github
 
 .. code-block:: bash
 
-    $ pip install --install-option="--install-purelib=<path>" --install-option="--install-scripts=<scriptpath>" -i http://<pypi-mirror>/pypi irma-frontend
+    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma-frontend
 
+With source install see `install.rst`_ for instructions.
 
-**2. clone from github**
-
-.. code-block:: bash
-
-    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma
-
-------------
-Installation
-------------
-For detailed instructions, please see `install.rst`_.
 
 ======
 Config
 ======
 
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Be sure to create it.
+The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-frontend``.
 
 irma-frontend configuration file content:
 
@@ -131,11 +124,10 @@ irma-frontend configuration file content:
 Licence
 =======
 
-Please see `LICENSE`_.
+Licensed under Apache v2.0 license. Please see `LICENSE`_.
 
-------------
 
+.. _here: http://apt.quarkslab.com/readme.txt
 .. _install.rst: /install/install.rst
-.. _brain_install: /../../../irma-brain/blob/master/install/install.rst
 .. _LICENSE: /LICENSE
 

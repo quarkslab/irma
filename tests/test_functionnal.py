@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2014 QuarksLab.
+# Copyright (c) 2013-2014 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,9 +20,9 @@ from frontend.cli.irma import _scan_new, _scan_add, _probe_list, \
     _scan_result, IrmaError
 import time
 
-SCAN_TIMEOUT_SEC = 20
+SCAN_TIMEOUT_SEC = 30
 BEFORE_NEXT_PROGRESS = 5
-DEBUG = False
+DEBUG = True
 EICAR_NAME = "eicar.com"
 EICAR_HASH = '275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f'
 EICAR_RESULTS = {
@@ -31,16 +31,14 @@ EICAR_RESULTS = {
         u'version': u'ClamAV 0.97.8/18526/Sat Mar  1 22:54:55 2014',
         u'result': u'Eicar-Test-Signature'},
     u'VirusTotal': {
-        u'result': u'ClamAV:Eicar-Test-Signature - Kaspersky:EICAR-Test-File -\
-         Symantec:EICAR Test String - McAfee:EICAR test file - \
-         Sophos:EICAR-AV-Test'},
+        u'result': u'detected by 36/38'},
     u'Kaspersky': {
         u'version': u'Kaspersky Anti-Virus (R) 14.0.0.4837',
         u'result': u'EICAR-Test-File'},
     u'Sophos': {u'result': u'EICAR-AV-Test'},
     u'McAfeeVSCL': {u'result': None},
     u'Symantec': {u'result': u'EICAR Test String'},
-    u'StaticAnalyzer': {u'result': u'no results'}
+    u'StaticAnalyzer': {u'result_code': 1}
     }
 
 
@@ -82,7 +80,7 @@ class FunctionnalTestCase(unittest.TestCase):
         self.assertEquals(results.keys(), [EICAR_HASH])
         ref_keys = results[EICAR_HASH]['results'].keys()
         self.assertEquals(sorted(ref_keys), sorted(probelaunched))
-        for p in probe:
+        for p in probelaunched :
             res = results[EICAR_HASH]['results'][p]['result']
             self.assertEquals(res, EICAR_RESULTS[p]['result'])
         return
@@ -180,5 +178,7 @@ class IrmaMonkeyTests(FunctionnalTestCase):
         with self.assertRaises(IrmaError):
             _scan_add(self.scanid, [self.filename], DEBUG)
         return
+
+
 if __name__ == '__main__':
     unittest.main()
