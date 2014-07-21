@@ -13,7 +13,6 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 import hashlib
-import logging
 import os
 
 from sqlalchemy import Table, Column, Integer, ForeignKey, String,\
@@ -30,7 +29,7 @@ from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
 from lib.irma.common.utils import IrmaProbeResultsStates
 from lib.irma.database.sqlhandler import SQLDatabase
-from lib.irma.database.sqlobjects import SQLDatabaseObject, session_maker
+from lib.irma.database.sqlobjects import SQLDatabaseObject
 
 
 def sql_db_connect():
