@@ -129,7 +129,7 @@ def scan_new():
     #TODO get the ip
     scan = Scan(IrmaScanStatus.created, compat.timestamp(), None)
     scan.save(session=session)
-    logging.warning('aaa')
+    session.commit()
     return scan.external_id
 
 
