@@ -18,13 +18,20 @@ import sys
 import hashlib
 
 from ConfigParser import SafeConfigParser
+from datetime import datetime
 
+from lib.common.utils import timestamp
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
 
 
 class VirusTotalPlugin(PluginBase):
+
+    class VirusTotalResult:
+        ERROR = -1
+        FOUND = 1
+        NOT_FOUND = 0
 
     # =================
     #  plugin metadata
@@ -81,13 +88,25 @@ class VirusTotalPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        # allocate plugin results place-holders
-        plugin_results = PluginResult(type(self).plugin_name)
-        # query page
-        plugin_results.start_time = None
-        results = self.get_file_report(paths)
-        plugin_results.end_time = None
+        virus_total_apis = sys.modules['virus_total_apis']
+        results = PluginResult(name=type(self).plugin_name,
+                               type=type(self).plugin_category,
+                               version=virus_total_apis.__version__)
+        # launch an scan, automatically append results
+        results.started = timestamp(datetime.utcnow())
+        response = self.get_file_report(paths)
+        results.stopped = timestamp(datetime.utcnow())
+        results.duration = results.stopped - results.started
         # update results
-        plugin_results.result_code = 0 if results else 1
-        plugin_results.data = {paths: results}
-        return plugin_results.serialize()
+        if (response['response_code'] == 204) or \
+           (response['response_code'] == 403):
+            results.status = VirusTotalResult.ERROR
+            results.error = response['results']['verbose_msg']
+        elif (response['response_code'] == 200) and \
+             (response['results']['response_code'] != 1):
+            results.status = VirusTotalResult.NOT_FOUND
+            results.results = {paths: response}
+        else:
+            results.status = VirusTotalResult.FOUND
+            results.results = {paths: response}
+        return results
