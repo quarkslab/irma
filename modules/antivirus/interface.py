@@ -16,32 +16,35 @@
 import os
 import hashlib
 
+from datetime import datetime
+from lib.common.utils import timestamp
 from lib.plugin_result import PluginResult
 
 
 class AntivirusPluginInterface(object):
     """Antivirus Plugin"""
 
-    def run(self, paths, heuristic=None):
-        # allocate plugin results place-holders
-        plugin_results = PluginResult(type(self).plugin_name)
-        # launch an antivirus scan, automatically append scan results to
-        # antivirus.results.
-        plugin_results.start_time = None
-        plugin_results.result_code = self.module.scan(paths, heuristic)
-        plugin_results.end_time = None
-        # allocate memory for data, and fill with data
-        plugin_results.data = dict()
-        plugin_results.data['name'] = self.module.name
-        plugin_results.data['version'] = self.module.version
-        plugin_results.data['database'] = dict()
-        # calculate database metadata
+    def run(self, paths):
+        results = PluginResult(name=self.module.name,
+                               type=type(self).plugin_category,
+                               version=self.module.version)
+        # add database metadata
+        results.database = None
         if self.module.database:
+            results.database = dict()
             for filename in self.module.database:
-                database = plugin_results.data['database']
-                database[filename] = self.file_metadata(filename)
-        plugin_results.data['scan_results'] = self.module.scan_results
-        return plugin_results.serialize()
+                results.database[filename] = self.file_metadata(filename)
+        # launch an antivirus scan, automatically append scan results
+        results.started = timestamp(datetime.utcnow())
+        results.status = self.module.scan(paths)
+        results.stopped = timestamp(datetime.utcnow())
+        results.duration = results.stopped - results.started
+        # add scan results or append error
+        if results.status < 0:
+            results.error = self.module.scan_results
+        else:
+            results.results = self.module.scan_results
+        return results
 
     @staticmethod
     def file_metadata(filename):

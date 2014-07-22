@@ -36,13 +36,7 @@ class Antivirus(object):
     class ScanResult:
         CLEAN = 0
         INFECTED = 1
-        ERROR = 2
-
-    class ScanHeuristic:
-        NONE = 0
-        LOW = 1
-        MEDIUM = 2
-        HIGH = 3
+        ERROR = -1
 
     # ==================================
     #  Constructor and destructor stuff
@@ -63,13 +57,9 @@ class Antivirus(object):
                 not self._scan_retcodes[self.ScanResult.CLEAN](x) and
                 not self._scan_retcodes[self.ScanResult.INFECTED](x),
         }
-        # scan options
-        # TODO: implement heuristics levels
-        self._scan_heuristic = self.ScanHeuristic.NONE
         # scan pattern-matching
         self._scan_patterns = []
-        # initialize result as an empty dictionary
-        self._scan_results = dict()
+        self._scan_results = None
         self._is_windows = sys.platform.startswith('win')
 
     # ====================
@@ -77,14 +67,12 @@ class Antivirus(object):
     # ====================
 
     # TODO: enable multiple paths
-    # TODO: enable heuristics levels
-    def scan_cmd(self, paths, heuristic=None):
+    def scan_cmd(self, paths):
         cmd = self.scan_path
         args = self.scan_args
         return self.build_cmd(cmd, args, paths)
 
-    # TODO: implement heuristic levels
-    def scan(self, paths, heuristic=None):
+    def scan(self, paths):
         # reset result to an empty dictionary
         self._scan_results = dict()
         # check if patterns are set
@@ -95,7 +83,7 @@ class Antivirus(object):
             paths = map(os.path.abspath, paths)
         else:
             paths = os.path.abspath(paths)
-        cmd = self.scan_cmd(paths, heuristic)
+        cmd = self.scan_cmd(paths)
         results = self.run_cmd(cmd)
         log.debug("Executed command line: {0}, ".format(cmd) +
                   "results {0}".format(results))
@@ -175,6 +163,8 @@ class Antivirus(object):
                       "{0}".format(results))
             raise RuntimeError(reason)
         # handle infected and error error codes
+        if retcode in [self.ScanResult.ERROR]:
+            self.scan_results = stdout if stdout else stderr
         if retcode in [self.ScanResult.INFECTED, self.ScanResult.ERROR]:
             if stdout:
                 is_false_positive = True
@@ -187,6 +177,8 @@ class Antivirus(object):
                                 name = match.group('name') or None
                                 # NOTE: get first result, ignore others if
                                 # binary is packed.
+                                if not isinstance(self.scan_results, dict):
+                                    self.scan_results = dict()
                                 if self.scan_results[paths] is None:
                                     self.scan_results[paths] = name
                                     is_false_positive = False
@@ -270,103 +262,3 @@ class Antivirus(object):
     def get_scan_args(self):
         """return the scan arguments"""
         return None
-
-# ========================
-#  CLI for debug purposes
-# ========================
-
-if __name__ == '__main__':
-
-    # =========
-    #  imports
-    # =========
-
-    import argparse
-    from modules.antivirus.clam import Clam
-    from modules.antivirus.comodo_cavl import ComodoCAVL
-    from modules.antivirus.eset_nod32 import EsetNod32
-    from modules.antivirus.fprot import FProt
-    from modules.antivirus.mcafee_vscl import McAfeeVSCL
-    from modules.antivirus.sophos import Sophos
-    from modules.antivirus.kaspersky import Kaspersky
-    from modules.antivirus.symantec import Symantec
-
-    # =========
-    #  helpers
-    # =========
-
-    antivirus_mapping = {
-        'clam':        Clam,
-        'comodo_cavl': ComodoCAVL,
-        'eset_nod32':  EsetNod32,
-        'fprot':       FProt,
-        'mcafee_vscl': McAfeeVSCL,
-        'sophos':      Sophos,
-        'kaspersky':   Kaspersky,
-        'symantec':    Symantec,
-    }
-
-    def antivirus_info(**kwargs):
-        antivirus = antivirus_mapping[kwargs['antivirus']]()
-        # build output string
-        result = "name    : {0}\n".format(antivirus.name)
-        result += "version : {0}\n".format(antivirus.version)
-        result += "database: \n"
-        if antivirus.database:
-            for file in antivirus.database:
-                result += "    {0} (sha256 = {1})\n".format(file,
-                                                            sha256sum(file))
-        print(result)
-
-    def antivirus_scan(**kwargs):
-        antivirus = antivirus_mapping[kwargs['antivirus']]()
-        for filename in kwargs['filename']:
-            antivirus.scan(filename)
-        results = map(lambda d: "{0}: {1}".format(d[0], d[1]),
-                      antivirus.scan_results.items())
-        print("\n".join(results))
-
-    # ======================
-    #  Command line program
-    # ======================
-
-    # define command line arguments
-    parser = argparse.ArgumentParser(description='Antivirus CLI mode')
-    parser.add_argument('antivirus',
-                        type=str,
-                        choices=antivirus_mapping.keys(),
-                        help='filename to scan')
-    parser.add_argument('-v',
-                        '--verbose',
-                        action='count',
-                        default=0)
-    subparsers = parser.add_subparsers(help='sub-command help')
-
-    # create the info parser
-    info_parser = subparsers.add_parser('info',
-                                        help='show antivirus information')
-    info_parser.set_defaults(func=antivirus_info)
-
-    # create the scan parser
-    scan_parser = subparsers.add_parser('scan',
-                                        help='scan given filename list')
-    scan_parser.add_argument('filename',
-                             type=str,
-                             nargs='+',
-                             help='filename to scan')
-    scan_parser.set_defaults(func=antivirus_scan)
-
-    args = parser.parse_args()
-
-    # set verbosity
-    if args.verbose == 1:
-        logging.basicConfig(level=logging.INFO)
-    elif args.verbose == 2:
-        logging.basicConfig(level=logging.DEBUG)
-
-    args = vars(parser.parse_args())
-    func = args.pop('func')
-    # with 'func' removed, args is now a kwargs
-    # with only the specific arguments
-    # for each subfunction useful for interactive mode.
-    func(**args)
