@@ -221,9 +221,9 @@ class File(Base, SQLDatabaseObject):
             h = open(full_path, 'w')
             h.write(data)
             h.close()
-        except IOError as e:
+        except IOError:
             raise IrmaFileSystemError(
-                'Cannot add the sample to the collection' + str(e)
+                'Cannot add the sample {0} to the collection'.format(sha256)
             )
 
         self.sha256 = sha256
