@@ -18,6 +18,7 @@ import os
 import bottle
 import importlib
 from bottle import route, request, default_app, run
+from lib.common.utils import UUID
 
 """
     IRMA FRONTEND API
@@ -92,8 +93,8 @@ def svr_index():
 # =====================
 
 def _valid_id(scanid):
-    """ check scanid format - should be a str(ObjectId)"""
-    return re.match(r'^[0-9a-fA-F]{24}$', scanid)
+    """ check scanid format - should be UUID"""
+    return UUID.validate(scanid)
 
 
 def _valid_sha256(sha256):
@@ -139,6 +140,7 @@ def scan_add(scanid):
         on success 'nb_files' total number of files for the scan
         on error 'msg' gives reason message
     """
+    return "aa"
     # Filter malformed scanid
     if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
