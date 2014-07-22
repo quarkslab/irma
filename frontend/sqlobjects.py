@@ -22,7 +22,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
-from irma.common.exceptions import IrmaDatabaseResultNotFound,\
+from lib.irma.common.exceptions import IrmaDatabaseResultNotFound,\
     IrmaDatabaseError
 from lib.common import compat
 from lib.common.utils import UUID
@@ -223,7 +223,7 @@ class File(Base, SQLDatabaseObject):
             h.close()
         except IOError as e:
             raise IrmaFileSystemError(
-                'Cannot add the sample to the collection' + e
+                'Cannot add the sample to the collection' + str(e)
             )
 
         self.sha256 = sha256
@@ -361,7 +361,7 @@ class Scan(Base, SQLDatabaseObject):
         name='external_id{0}'.format(_fields_suffix)
     )
     status = Column(
-        String,
+        Integer,
         nullable=False,
         name='status{0}'.format(_fields_suffix)
     )
