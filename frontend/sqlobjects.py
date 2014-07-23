@@ -16,7 +16,8 @@ import hashlib
 import os
 
 from sqlalchemy import Table, Column, Integer, ForeignKey, String,\
-    ForeignKeyConstraint
+    ForeignKeyConstraint, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -52,6 +53,15 @@ def db_connector(func):
         return func_ret
 
     return wrapper
+
+# SQLite fix for ForeignKey support
+# see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+if config.get_sql_db_uri_params()[0] == 'sqlite':
+    @event.listens_for(Engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 
 sql_db_connect()
@@ -107,6 +117,11 @@ probe_result_file_web = Table(
 class Tag(Base, SQLDatabaseObject):
     __tablename__ = '{0}tag'.format(tables_prefix)
 
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
     _fields_suffix = '_tag'
     _idname = 'id{0}'.format(_fields_suffix)
 
@@ -132,6 +147,11 @@ class Tag(Base, SQLDatabaseObject):
 
 class File(Base, SQLDatabaseObject):
     __tablename__ = '{0}file'.format(tables_prefix)
+
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_file'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -278,6 +298,11 @@ class File(Base, SQLDatabaseObject):
 class ProbeResult(Base, SQLDatabaseObject):
     __tablename__ = '{0}probeResult'.format(tables_prefix)
 
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
     _fields_suffix = '_pr'
     _idname = 'id{0}'.format(_fields_suffix)
 
@@ -342,6 +367,11 @@ class ProbeResult(Base, SQLDatabaseObject):
 
 class Scan(Base, SQLDatabaseObject):
     __tablename__ = '{0}scan'.format(tables_prefix)
+
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_scan'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -418,6 +448,11 @@ class Scan(Base, SQLDatabaseObject):
 class FileWeb(Base, SQLDatabaseObject):
     __tablename__ = '{0}fileWeb'.format(tables_prefix)
 
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
     _fields_suffix = '_fw'
     _idname = 'id{0}'.format(_fields_suffix)
 
@@ -467,6 +502,11 @@ class FileWeb(Base, SQLDatabaseObject):
 class FileAgent(Base, SQLDatabaseObject):
     __tablename__ = '{0}fileAgent'.format(tables_prefix)
 
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
     _fields_suffix = '_fa'
     _idname = 'id{0}'.format(_fields_suffix)
 
@@ -515,6 +555,11 @@ class FileAgent(Base, SQLDatabaseObject):
 
 class Submission(Base, SQLDatabaseObject):
     __tablename__ = '{0}submission'.format(tables_prefix)
+
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_s'
     _idname = 'id{0}'.format(_fields_suffix)
