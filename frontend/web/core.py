@@ -209,15 +209,15 @@ def scan_launch(scanid, force, probelist):
     for fw in scan.files_web:
         for p in probelist:
             #TODO probe types
-            scan_result = ProbeResult(
-                None,
+            probe_result = ProbeResult(
+                0,  # TODO remove this dirty fix for probe types
                 p,
                 None,
                 IrmaProbeResultsStates.created,
                 IrmaScanStatus.created,
                 file_web=fw
             )
-            scan_result.save(session=session)
+            probe_result.save(session=session)
 
     session.commit()
 

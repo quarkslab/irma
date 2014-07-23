@@ -331,7 +331,6 @@ class ProbeResult(Base, SQLDatabaseObject):
     )
     no_sql_id = Column(
         String,
-        nullable=False,
         name='no_sql_id{0}'.format(_fields_suffix)
     )
     state = Column(
