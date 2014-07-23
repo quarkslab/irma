@@ -119,8 +119,7 @@ class Tag(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_tag'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -150,8 +149,7 @@ class File(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_file'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -300,8 +298,7 @@ class ProbeResult(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_pr'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -370,8 +367,7 @@ class Scan(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_scan'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -450,8 +446,7 @@ class FileWeb(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_fw'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -504,8 +499,7 @@ class FileAgent(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_fa'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -558,8 +552,7 @@ class Submission(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
+    __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_s'
     _idname = 'id{0}'.format(_fields_suffix)
