@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2014 QuarksLab.
 # This file is part of IRMA project.
 #
@@ -93,24 +92,30 @@ probe_result_file_web = Table(
     Base.metadata,
     Column(
         'id_fw',
-        Integer
+        Integer,
+        # see FileWeb.id_file
+        ForeignKey('{0}fileWeb.id_fw'.format(tables_prefix))
     ),
-    Column(
-        'id_file',
-        Integer
-    ),
+    # Removed from FileWeb FK due to SQLite limitation, conceptually it
+    # should be a PKF in FileWeb
+    # https://groups.google.com/forum/#!topic/sqlalchemy/TxISzgW7xUg
+    # Column(
+    #     'id_file',
+    #     Integer
+    # ),
     Column(
         'id_pr',
         Integer,
         ForeignKey('{0}probeResult.id_pr'.format(tables_prefix))
     ),
-    ForeignKeyConstraint(   # Composite PFK from FileWeb
-        ['id_fw', 'id_file'],
-        [
-            '{0}fileWeb.id_fw'.format(tables_prefix),
-            '{0}fileWeb.id_file'.format(tables_prefix)
-        ]
-    )
+    # See FileWeb
+    # ForeignKeyConstraint(   # Composite PFK from FileWeb
+    #     ['id_fw', 'id_file'],
+    #     [
+    #         '{0}fileWeb.id_fw'.format(tables_prefix),
+    #         '{0}fileWeb.id_file'.format(tables_prefix)
+    #     ]
+    # )
 )
 
 
@@ -119,7 +124,8 @@ class Tag(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    __table_args__ = {'sqlite_autoincrement': True}
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_tag'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -149,7 +155,8 @@ class File(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    __table_args__ = {'sqlite_autoincrement': True}
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_file'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -298,7 +305,8 @@ class ProbeResult(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    __table_args__ = {'sqlite_autoincrement': True}
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_pr'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -367,7 +375,8 @@ class Scan(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    __table_args__ = {'sqlite_autoincrement': True}
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_scan'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -446,7 +455,8 @@ class FileWeb(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    __table_args__ = {'sqlite_autoincrement': True}
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_fw'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -464,7 +474,10 @@ class FileWeb(Base, SQLDatabaseObject):
         Integer,
         ForeignKey('{0}file.id_file'.format(tables_prefix)),
         nullable=False,
-        primary_key=True
+        # conceptually it should be a PFK, but due to limitation in sqlite,
+        # only is a FK
+        # https://groups.google.com/forum/#!topic/sqlalchemy/TxISzgW7xUg
+        # primary_key=True
     )
     file = relationship(
         "File",
@@ -499,7 +512,8 @@ class FileAgent(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    __table_args__ = {'sqlite_autoincrement': True}
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_fa'
     _idname = 'id{0}'.format(_fields_suffix)
@@ -522,7 +536,10 @@ class FileAgent(Base, SQLDatabaseObject):
         Integer,
         ForeignKey('{0}file.id_file'.format(tables_prefix)),
         nullable=False,
-        primary_key=True
+        # conceptually it should be a PFK, but due to limitation in sqlite,
+        # only is a FK
+        # https://groups.google.com/forum/#!topic/sqlalchemy/TxISzgW7xUg
+        # primary_key=True
     )
     file = relationship(
         "File",
@@ -552,7 +569,8 @@ class Submission(Base, SQLDatabaseObject):
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    __table_args__ = {'sqlite_autoincrement': True}
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     _fields_suffix = '_s'
     _idname = 'id{0}'.format(_fields_suffix)
