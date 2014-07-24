@@ -1,11 +1,6 @@
-/web/node_modules
-/web/bower_components
-/web/app/bower_components
-/web/bower_components
-/web/.*
-client/node_modules
-client/app/components
-client/dist
+web/node_modules
+web/app/components
+web/dist
 *.pyc
 doc/
 irma_frontend.egg-info/
