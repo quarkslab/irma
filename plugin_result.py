@@ -16,99 +16,48 @@
 import sys
 import pprint
 
-from time import mktime
-from datetime import datetime
-from lib.common.utils import to_unicode
 
+# TODO: Replace PluginResult by a class that perform type checking
+class PluginResult(dict):
+    """
+    The following describes the minimal format for PluginResult
 
-class PluginResult(object):
+    {
+        'name'        : str() with the name of the probe
+        'type'        : str() with the category of the probe
+        'version'     : str() with the version of the probe
+        'platform'    : str() with the platform on which the probe is executed
 
-    def __init__(self, plugin, *args, **kwargs):
-        # define plugin metadata
-        self._metadata = {
-            'plugin': plugin,
-            'start_time': None,
-            'end_time': None,
-            'duration': None,
-        }
+        'duration'    : duration in milliseconds
+        'started'     : timestamp of the date when the probe has been started
+        'stopped'     : timestamp of the date when the probe has been stopped
 
-        # parsed data & result code
-        self._data = None
-        self._result_code = 0
+        'status'      : return code (< 0 is error, 0 > is context specific)
+        'error'       : None if no error (state > 0) else str() with the error
+        'results'     : Probe results
 
-    @property
-    def plugin(self):
-        return self.metadata.get('plugin')
+        [ ... followed by plugin specific data ... ]
+    }
 
-    @property
-    def start_time(self):
-        return self.metadata.get('start_time')
+    """
 
-    @start_time.setter
-    def start_time(self, value):
-        # ignore passed value
-        now = datetime.utcnow()
-        self.metadata['start_time'] = mktime(now.timetuple()) + \
-                                      now.microsecond / 1000000.0
+    __getattr__ = lambda obj, key: obj.get(key, None)
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
-    @property
-    def end_time(self):
-        return self.metadata.get('end_time')
+    def __init__(self, **kwargs):
+        # probe identification data
+        self.name = kwargs.pop('name', None)
+        self.type = kwargs.pop('type', None)
+        self.version = kwargs.pop('version', None)
+        self.platform = kwargs.pop('platform', sys.platform)
 
-    @end_time.setter
-    def end_time(self, value):
-        # ignore passed value
-        now = datetime.utcnow()
-        self.metadata['end_time'] = mktime(now.timetuple()) + \
-                                    now.microsecond / 1000000.0
-        self._calculate_duration()
+        # probe execution data
+        self.duration = kwargs.pop('duration', None)
+        self.status = kwargs.pop('status', -1)
+        self.error = kwargs.pop('error', None)
+        self.results = kwargs.pop('results', None)
 
-    def _calculate_duration(self):
-        start = self.metadata.get('start_time')
-        end = self.metadata.get('end_time')
-        delta = end - start
-        self.metadata['duration'] = delta
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, data):
-        self._data = data
-
-    @property
-    def result_code(self):
-        return self._result_code
-
-    @result_code.setter
-    def result_code(self, result_code):
-        self._result_code = result_code
-
-    @property
-    def metadata(self):
-        return self._metadata
-
-    @metadata.setter
-    def metadata(self, metadata):
-        self._metadata = metadata
-
-    def serialize(self):
-        start = self.metadata.get('start_time')
-        end = self.metadata.get('end_time')
-        result = {
-            'metadata': {
-                'plugin': self.metadata.get('plugin'),
-                'start_time': self.metadata.get('start_time'),
-                'end_time': self.metadata.get('end_time'),
-                'duration': self.metadata.get('duration'),
-                'platform': sys.platform
-            },
-            'data': self.data,
-            'result_code': self.result_code,
-        }
-        result = to_unicode(result)
-        return result
-
-    def __repr__(self):
-        return pprint.pformat(self.serialize())
+        # get remaining values form kwargs
+        for key, value in kwargs.items():
+            setattr(self, key, value)
