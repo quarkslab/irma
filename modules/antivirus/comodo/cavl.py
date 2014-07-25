@@ -76,8 +76,8 @@ class ComodoCAVL(Antivirus):
         paths = self.locate("cmdscan", "/opt/COMODO")
         return paths[0] if paths else None
 
-    def scan(self, paths, heuristics=None):
+    def scan(self, paths):
         # override scan as comodo uses only absolute paths, we need to convert
         # provided paths to absolute paths first
         paths = os.path.abspath(paths)
-        return super(ComodoCAVL, self).scan(paths, heuristics)
+        return super(ComodoCAVL, self).scan(paths)

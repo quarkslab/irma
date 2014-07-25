@@ -82,8 +82,7 @@ class Symantec(Antivirus):
     # specific scan method
     ##########################################################################
 
-    # TODO: implement heuristic levels
-    def scan(self, paths, heuristic=None):
+    def scan(self, paths):
         # get log path and modification time
         log_path_parts = [self._pdata_path,
                           "Data\Logs\AV",
@@ -94,7 +93,7 @@ class Symantec(Antivirus):
         self._last_log_time = time.time()
         if self._log_path:
             self._last_log_time = os.path.getmtime(self._log_path)
-        return super(Symantec, self).scan(paths, heuristic)
+        return super(Symantec, self).scan(paths)
 
     def check_scan_results(self, paths, results):
         retcode, stdout, stderr = results[0], None, results[2]
