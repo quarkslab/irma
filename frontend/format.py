@@ -16,6 +16,7 @@
 import logging
 
 from lib.plugins import PluginManager
+from lib.plugin_result import PluginResult
 
 class IrmaFormatter:
 
@@ -33,47 +34,23 @@ class IrmaFormatter:
 
     @classmethod
     def format(cls, probe_name, raw_result):
-        
-        # ========
-        #  Helper 
-        # ========
-        def guess_mapping(probe_name):
-            antivirus = ['ClamAV', 'ComodoCAVL', 'EsetNod32', 'FProt', 
-                         'Kaspersky', 'McAfeeVSCL', 'Sophos', 'Symantec']
-            metadata = ['StaticAnalyzer']
-            database = ['NSRL', 'Nsrl']
-            external = ['VirusTotal']
-
-            if probe_name in antivirus:
-                return "antivirus"
-            elif probe_name in metadata:
-                return "metadata"
-            elif probe_name in database:
-                return "database"
-            elif probe_name in external:
-                return "external"
+        res = PluginResult(**raw_result)
+        try:
+            # call formatter until one declares that it can handle it
+            for formatter in cls().formatters:
+                if formatter.can_handle_results(res):
+                    res = formatter.format(res)
+                    logging.debug("Using formatter {0} for raw results: {1}"
+                                  "".format(formatter.plugin_name, res))
+                    break
+            # reduce output to hide or to overload the client unnecessarily
+            res.pop('platform', None)
+            if res.status < 0:
+                res.pop('results', None)
             else:
-                return "unknown"
-
-        # Check if an error occured
-        if not raw_result['success']:
-            return {'error': raw_result['reason']}
-
-        # get formatted results
-        res = None
-        for formatter in cls().formatters:
-            if formatter.can_handle_results(raw_result):
-                res = formatter.format(raw_result)
-                logging.info("Using formatter {0} for raw results: {1}"
-                              "".format(formatter.plugin_name, res))
-                break
-        # fallback to default formatter
-        else:
-            res = raw_result
-            # FIXME: hack to handle old result format
-            guessed_category = guess_mapping(probe_name)
-            res['category'] = raw_result['metadata'].get('category', 
-                                                         guessed_category)
-            logging.warn("No formatter found, using default formatter: {1}"
-                         "".format(formatter.plugin_name, res))
+                res.pop('error', None)
+        except Exception as e:
+            res.pop('results', None)
+            res.status = -1
+            res.error = e
         return res

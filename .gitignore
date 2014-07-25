@@ -1,3 +1,6 @@
+# configuration
+config/*.ini
+
 # for python
 *.pyc
 

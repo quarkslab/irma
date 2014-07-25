@@ -166,7 +166,6 @@ def scan_result(scanid, file_hash, probe, result):
         # keep scan results into scanresults objects
         scanres_id = scan.scanfile_ids[scanfile.id]
         scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
-        sanitized_res['success'] = True
         scan_res.results[probe] = sanitized_res
         scan_res.update()
         scan_res.release()
