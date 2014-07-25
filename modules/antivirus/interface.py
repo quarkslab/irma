@@ -28,22 +28,28 @@ class AntivirusPluginInterface(object):
         results = PluginResult(name=self.module.name,
                                type=type(self).plugin_category,
                                version=self.module.version)
-        # add database metadata
-        results.database = None
-        if self.module.database:
-            results.database = dict()
-            for filename in self.module.database:
-                results.database[filename] = self.file_metadata(filename)
-        # launch an antivirus scan, automatically append scan results
-        results.started = timestamp(datetime.utcnow())
-        results.status = self.module.scan(paths)
-        results.stopped = timestamp(datetime.utcnow())
-        results.duration = results.stopped - results.started
-        # add scan results or append error
-        if results.status < 0:
-            results.error = self.module.scan_results
-        else:
-            results.results = self.module.scan_results
+        try:
+            # add database metadata
+            results.database = None
+            if self.module.database:
+                results.database = dict()
+                for filename in self.module.database:
+                    results.database[filename] = self.file_metadata(filename)
+            # launch an antivirus scan, automatically append scan results
+            started = timestamp(datetime.utcnow())
+            results.status = self.module.scan(paths)
+            stopped = timestamp(datetime.utcnow())
+            results.duration = stopped - started
+            # add scan results or append error
+            if results.status < 0:
+                results.error = self.module.scan_results
+            else:
+                # as only one result is expected, we simply remove the filename
+                # and we return the result got
+                results.results = self.module.scan_results.values()[0]
+        except Exception as e:
+            results.status = -1
+            results.error = str(e)
         return results
 
     @staticmethod

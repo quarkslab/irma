@@ -19,7 +19,7 @@ from .kaspersky import Kaspersky
 from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase, PluginLoadError
-from lib.plugins import BinaryDependency, PlatformDependency
+from lib.plugins import PlatformDependency
 
 
 class KasperskyPlugin(PluginBase, Kaspersky, AntivirusPluginInterface):
@@ -39,11 +39,15 @@ class KasperskyPlugin(PluginBase, Kaspersky, AntivirusPluginInterface):
 
     @classmethod
     def verify(cls):
+        # create an instance
         module = Kaspersky()
-        if not module.scan_path or not os.path.exists(module.scan_path):
-            del module
-            raise PluginLoadError("Unable to find Kaspersky executable")
+        path = module.scan_path
         del module
+        # perform checks
+        if not path or not os.path.exists(path):
+            raise PluginLoadError("{0}: verify() failed because "
+                                  "Kaspersky executable was not found."
+                                  "".format(cls.__name__))
 
     # =============
     #  constructor

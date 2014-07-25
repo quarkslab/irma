@@ -13,11 +13,12 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import os
+
 from .vscl import McAfeeVSCL
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
-from lib.plugins import BinaryDependency, PlatformDependency
+from lib.plugins import PluginBase, PluginLoadError
 
 
 class McAfeeVSCLPlugin(PluginBase, McAfeeVSCL, AntivirusPluginInterface):
@@ -32,12 +33,19 @@ class McAfeeVSCLPlugin(PluginBase, McAfeeVSCL, AntivirusPluginInterface):
     _plugin_category_ = "antivirus"
     _plugin_description_ = "Plugin for McAfee VirusScan Command Line " \
                            "(VSCL) scanner"
-    _plugin_dependencies_ = [
-        BinaryDependency([
-            r'/usr/local/uvscan/uvscan',
-            r'C:\VSCL\scan.exe'
-        ])
-    ]
+    _plugin_dependencies_ = []
+
+    @classmethod
+    def verify(cls):
+        # create an instance
+        module = McAfeeVSCL()
+        path = module.scan_path
+        del module
+        # perform checks
+        if not path or not os.path.exists(path):
+            raise PluginLoadError("{0}: verify() failed because "
+                                  "McAfeeVSCL executable was not found."
+                                  "".format(cls.__name__))
 
     # =============
     #  constructor

@@ -41,10 +41,13 @@ class SophosPlugin(PluginBase, Sophos, AntivirusPluginInterface):
     def verify(cls):
         # check if sophos is available
         module = Sophos()
-        if not module.scan_path or not os.path.exists(module.scan_path):
-            del module
-            raise PluginLoadError("Unable to find Sophos executable")
+        path = module.scan_path
         del module
+        # perform checks
+        if not path or not os.path.exists(path):
+            raise PluginLoadError("{0}: verify() failed because "
+                                  "Sophos executable was not found."
+                                  "".format(cls.__name__))
 
     # =============
     #  constructor

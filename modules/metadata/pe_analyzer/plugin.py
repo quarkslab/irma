@@ -18,12 +18,19 @@ import os
 import sys
 import logging
 
+from datetime import datetime
+from lib.common.utils import timestamp
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency
 from lib.plugin_result import PluginResult
 
 
 class PEAnalyzerPlugin(PluginBase):
+
+    class StaticAnalyzerResults:
+        ERROR = -1
+        SUCCESS = 1
+        FAILURE = 0
 
     # =================
     #  plugin metadata
@@ -32,7 +39,7 @@ class PEAnalyzerPlugin(PluginBase):
     _plugin_name_ = "StaticAnalyzer"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "external"
+    _plugin_category_ = "metadata"
     _plugin_description_ = "Plugin to analyze PE files"
     _plugin_dependencies_ = [
         ModuleDependency(
@@ -62,13 +69,15 @@ class PEAnalyzerPlugin(PluginBase):
     def analyze(self, filename):
         # check parameters
         if not filename:
-            return None
+            raise RuntimeError("filename is invalid")
         # check if file exists
         mimetype = None
         if os.path.exists(filename):
             # guess mimetype for file
             magic = sys.modules['lib.common.mimetypes'].Magic
             mimetype = magic.from_file(filename)
+        else:
+            raise RuntimeError("file does not exist")
         result = None
         # look for PE mime type
         if mimetype and re.match('PE32', mimetype):
@@ -78,13 +87,23 @@ class PEAnalyzerPlugin(PluginBase):
         return result
 
     def run(self, paths):
-        # allocate plugin results place-holders
-        plugin_results = PluginResult(type(self).plugin_name)
+        results = PluginResult(name=type(self).plugin_name,
+                               type=type(self).plugin_category,
+                               version=None)
         # launch file analysis
-        plugin_results.start_time = None
-        results = self.analyze(filename=paths)
-        plugin_results.end_time = None
-        # update results
-        plugin_results.result_code = 0 if results else 1
-        plugin_results.data = {paths: results}
-        return plugin_results.serialize()
+        try:
+            started = timestamp(datetime.utcnow())
+            response = self.analyze(filename=paths)
+            stopped = timestamp(datetime.utcnow())
+            results.duration = stopped - started
+            # update results
+            if not response:
+                results.status = self.StaticAnalyzerResults.FAILURE
+                results.results = "Not a PE file"
+            else:
+                results.status = self.StaticAnalyzerResults.SUCCESS
+                results.results = response
+        except Exception as e:
+            results.status = self.StaticAnalyzerResult.ERROR
+            results.error = str(e)
+        return results

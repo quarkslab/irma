@@ -16,8 +16,10 @@
 import os
 import sys
 
+from datetime import datetime
 from ConfigParser import SafeConfigParser
 
+from lib.common.utils import timestamp
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugins import PluginLoadError
@@ -26,6 +28,11 @@ from lib.common.hash import sha1sum
 
 
 class NSRLPlugin(PluginBase):
+
+    class NSRLPluginResult:
+        ERROR = -1
+        FOUND = 1
+        NOT_FOUND = 0
 
     # =================
     #  plugin metadata
@@ -66,7 +73,9 @@ class NSRLPlugin(PluginBase):
         results = map(os.path.exists, databases)
         dbs_available = reduce(lambda x, y: x or y, results, False)
         if not dbs_available:
-            raise PluginLoadError("database are not available")
+            raise PluginLoadError("{0}: verify() failed because "
+                                  "databases are not available."
+                                  "".format(cls.__name__))
 
         # check for LOCK file and remove it
         dbs_locks = map(lambda x: os.path.join(x, "LOCK"), databases)
@@ -103,13 +112,27 @@ class NSRLPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        # allocate plugin results place-holders
-        plugin_results = PluginResult(type(self).plugin_name)
-        # launch an antivirus scan, automatically append scan results to
-        # antivirus.results.
-        plugin_results.start_time = None
-        results = self.module.lookup_by_sha1(sha1sum(paths).upper())
-        plugin_results.end_time = None
-        # allocate memory for data, and fill with data
-        plugin_results.data = {paths: results}
-        return plugin_results.serialize()
+        results = PluginResult(name="National Software Reference Library",
+                               type=type(self).plugin_category,
+                               version=None)
+        try:
+            # lookup the specified sha1
+            started = timestamp(datetime.utcnow())
+            response = self.module.lookup_by_sha1(sha1sum(paths).upper())
+            stopped = timestamp(datetime.utcnow())
+            results.duration = stopped - started
+            # check for errors
+            if isinstance(response, dict) and \
+                (not response.get('MfgCode', None) or
+                 not response.get('OpSystemCode', None) or
+                 not response.get('ProductCode', None) or
+                 not response.get('SHA-1', None)):
+                results.status = self.NSRLPluginResult.NOT_FOUND
+                response = None
+            else:
+                results.status = self.NSRLPluginResult.FOUND
+            results.results = response
+        except Exception as e:
+            results.status = self.NSRLPluginResult.ERROR
+            results.error = str(e)
+        return results
