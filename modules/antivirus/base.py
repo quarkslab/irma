@@ -59,7 +59,7 @@ class Antivirus(object):
         }
         # scan pattern-matching
         self._scan_patterns = []
-        self._scan_results = None
+        self._scan_results = dict()
         self._is_windows = sys.platform.startswith('win')
 
     # ====================
@@ -146,13 +146,14 @@ class Antivirus(object):
         log.debug("scan results for {0}: {1}".format(paths, results))
         # create clean entries for all paths
         # TODO: add more info
-        self.scan_results[paths] = None
+        self._scan_results[paths] = None
         # unpack results and uniformize return code
         retcode, stdout, stderr = results
         if self._scan_retcodes[self.ScanResult.INFECTED](retcode):
             retcode = self.ScanResult.INFECTED
         elif self._scan_retcodes[self.ScanResult.ERROR](retcode):
             retcode = self.ScanResult.ERROR
+            self._scan_results[paths] = stderr if stderr else stdout
             log.error("command line returned {0}".format(retcode) +
                       ": {0}".format((stdout, stderr)))
         elif self._scan_retcodes[self.ScanResult.CLEAN](retcode):
@@ -163,8 +164,6 @@ class Antivirus(object):
                       "{0}".format(results))
             raise RuntimeError(reason)
         # handle infected and error error codes
-        if retcode in [self.ScanResult.ERROR]:
-            self.scan_results = stdout if stdout else stderr
         if retcode in [self.ScanResult.INFECTED, self.ScanResult.ERROR]:
             if stdout:
                 is_false_positive = True
@@ -174,13 +173,11 @@ class Antivirus(object):
                         for match in matches:
                             filename = match.group('file').lower()
                             if paths.lower() in filename:
-                                name = match.group('name') or None
+                                name = match.group('name')
                                 # NOTE: get first result, ignore others if
                                 # binary is packed.
-                                if not isinstance(self.scan_results, dict):
-                                    self.scan_results = dict()
-                                if self.scan_results[paths] is None:
-                                    self.scan_results[paths] = name
+                                if name and self._scan_results[paths] is None:
+                                    self._scan_results[paths] = name
                                     is_false_positive = False
                                     # NOTE: break only when a concluding result
                                     # has been found
@@ -190,7 +187,10 @@ class Antivirus(object):
                             break
                 # handle false positive
                 if is_false_positive:
-                    retcode = self.ScanResult.CLEAN
+                    if stderr or retcode in [self.ScanResult.ERROR]:
+                        retcode = self.ScanResult.ERROR
+                    else:
+                        retcode = self.ScanResult.CLEAN
         return retcode
 
     # =========================================================================
