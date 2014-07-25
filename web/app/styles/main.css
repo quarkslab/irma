@@ -5834,15 +5834,20 @@ p {
 }
 .head {
   position: relative;
-  margin-bottom: 50px;
+  margin-top: 10px;
+  margin-bottom: 30px;
 }
 .head h1 {
   float: left;
   font-weight: 900;
   font-size: 160px;
   line-height: 155px;
-  padding-left: 70px;
+  padding-left: 40px;
   font-family: 'Raleway', sans-serif;
+  margin: 0px;
+}
+.head h1 img {
+  width: 450px;
 }
 .head h2 {
   font-weight: 200;
@@ -5850,9 +5855,10 @@ p {
   line-height: 55px;
   color: #999999;
   padding-left: 500px;
-  padding-top: 50px;
+  padding-top: 40px;
   position: relative;
   font-family: 'Raleway', sans-serif;
+  margin: 0px;
 }
 .head:before {
   content: '&';
@@ -5863,7 +5869,7 @@ p {
   position: absolute;
   right: 80px;
   top: -10px;
-  z-index: 0;
+  z-index: -1;
 }
 .status {
   clear: both;
