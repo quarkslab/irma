@@ -79,14 +79,6 @@ class PluginManager(Singleton):
     def register_plugin(cls, plugin):
         logging.debug('Found plugin {name}. Trying to register it.'
                       ''.format(name=plugin.plugin_name))
-        # if required, run additionnal verifications on the plugin
-        if hasattr(plugin, 'verify'):
-            try:
-                plugin.verify()
-            except Exception as error:
-                logging.warn("Load error for plugin {name}"
-                             "".format(name=plugin.__name__))
-                raise PluginLoadError(error)
         # check for dependencies
         for dependency in plugin.plugin_dependencies:
             try:
@@ -100,18 +92,23 @@ class PluginManager(Singleton):
                 dependency_type = dependency.__class__.__name__
                 dependency_help = dependency.help
                 # warn user and stop loading
-                warning = '{type} not satisfied: {name} -> {deps}.'
+                warning = '{name} miss dependencies: {deps} ({type}).'
                 if dependency_help is not None:
                     warning += ' {help}'
-                logging.warn(warning.format(type=dependency_type,
-                                            name=plugin_name,
-                                            deps=dependency_name,
-                                            help=dependency_help))
-                return
+                raise PluginLoadError(warning.format(type=dependency_type,
+                                                     name=plugin_name,
+                                                     deps=dependency_name,
+                                                     help=dependency_help))
+        # if required, run additionnal verifications on the plugin
+        if hasattr(plugin, 'verify'):
+            try:
+                plugin.verify()
+            except Exception as error:
+                raise PluginLoadError(error)
         # add plugin to internal list
         if plugin.plugin_canonical_name in cls.__plugins_cls:
-            logging.debug('Plugin {plugin} already registered'
-                          ''.format(plugin=plugin.plugin_name))
+            logging.debug('Plugin {name} already registered'
+                          ''.format(name=plugin.plugin_name))
         else:
             cls.__plugins_cls[plugin.plugin_canonical_name] = plugin
             # mark plugin as active
