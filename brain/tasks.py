@@ -73,7 +73,7 @@ def get_groupresult(taskid):
         raise IrmaTaskError("BrainTask: task_id not set")
     gr = probe_app.GroupResult.restore(taskid)
     if not gr:
-        raise IrmaTaskError("BrainTask: not a valid taskid")
+        raise IrmaTaskError("BrainTask: {0} not a valid taskid".format(taskid))
     return gr
 
 
@@ -153,6 +153,7 @@ def scan(scanid, scan_request):
                     status=IrmaScanStatus.created,
                     date=datetime.now())
         sql.add(scan)
+        sql.commit()
         # create an initial entry to track future errors
         user = sql.one_by(User, rmqvhost=rmqvhost)
         quota = get_quota(sql, user)
@@ -294,6 +295,7 @@ def scan_cancel(scanid):
                     j.revoke(terminate=True)
                     nbcancelled += 1
             scan.status = IrmaScanStatus.cancelled
+            sql.commit()
             flush_dir(user.ftpuser, scanid)
             return IrmaTaskReturn.success({"total": len(gr),
                                            "finished": nbcompleted,
@@ -310,7 +312,7 @@ def scan_result(result, ftpuser, scanid, filename, probe):
     try:
         frontend_app.send_task("frontend.tasks.scan_result",
                                args=(scanid, filename, probe, result))
-        log.debug"{0} sent result {1}".format(scanid, probe)
+        log.debug("{0} sent result {1}".format(scanid, probe))
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
         sql = SQLDatabase(engine + dbname)
@@ -327,10 +329,13 @@ def scan_result(result, ftpuser, scanid, filename, probe):
             if j.successful():
                 nbsuccessful += 1
         if nbtotal == nbcompleted:
+            # update scan status
             scan.status = IrmaScanStatus.processed
-            flush_dir(ftpuser, scanid)
+            sql.commit()
             # delete groupresult
             gr.delete()
+            # remove directory
+            flush_dir(ftpuser, scanid)
             log.debug("{0} complete deleting files".format(scanid))
     except IrmaTaskError as e:
         return IrmaTaskReturn.error("{0}".format(e))

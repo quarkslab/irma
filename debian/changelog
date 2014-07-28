@@ -1,3 +1,10 @@
+irma-brain (1.0.4-1) UNRELEASED; urgency=low
+
+  * Added support rsyslog 
+  * Fixed issues related to scan scheduling
+
+ -- flonesang <flonesang@quarkslab.com>  Fri, 11 Jul 2014 13:09:42 +0200
+
 irma-brain (1.0.3-2) unstable; urgency=low
 
   * fix celery postinstall script
