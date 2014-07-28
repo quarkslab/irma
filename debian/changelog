@@ -1,6 +1,14 @@
+irma-probe (1.0.4-1) unstable; urgency=low
+
+  * Fixed UTF-8 issues
+  * Modified module structures and centralized code for modules and probes
+
+ -- Fernand Lone-Sang <flonesang@quarkslab.com>  Thu, 09 July 2014 11:48:00 +0200
+
 irma-probe (1.0.3-1) unstable; urgency=low
 
   * Initial release
 
  -- Fernand Lone-Sang <flonesang@quarkslab.com>  Thu, 26 May 2014 18:02:36 +0200
+
 

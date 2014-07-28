@@ -16,32 +16,41 @@
 import os
 import hashlib
 
+from datetime import datetime
+from lib.common.utils import timestamp
 from lib.plugin_result import PluginResult
 
 
 class AntivirusPluginInterface(object):
     """Antivirus Plugin"""
 
-    def run(self, paths, heuristic=None):
-        # allocate plugin results place-holders
-        plugin_results = PluginResult(type(self).plugin_name)
-        # launch an antivirus scan, automatically append scan results to
-        # antivirus.results.
-        plugin_results.start_time = None
-        plugin_results.result_code = self.module.scan(paths, heuristic)
-        plugin_results.end_time = None
-        # allocate memory for data, and fill with data
-        plugin_results.data = dict()
-        plugin_results.data['name'] = self.module.name
-        plugin_results.data['version'] = self.module.version
-        plugin_results.data['database'] = dict()
-        # calculate database metadata
-        if self.module.database:
-            for filename in self.module.database:
-                database = plugin_results.data['database']
-                database[filename] = self.file_metadata(filename)
-        plugin_results.data['scan_results'] = self.module.scan_results
-        return plugin_results.serialize()
+    def run(self, paths):
+        results = PluginResult(name=self.module.name,
+                               type=type(self).plugin_category,
+                               version=self.module.version)
+        try:
+            # add database metadata
+            results.database = None
+            if self.module.database:
+                results.database = dict()
+                for filename in self.module.database:
+                    results.database[filename] = self.file_metadata(filename)
+            # launch an antivirus scan, automatically append scan results
+            started = timestamp(datetime.utcnow())
+            results.status = self.module.scan(paths)
+            stopped = timestamp(datetime.utcnow())
+            results.duration = stopped - started
+            # add scan results or append error
+            if results.status < 0:
+                results.error = self.module.scan_results
+            else:
+                # as only one result is expected, we simply remove the filename
+                # and we return the result got
+                results.results = self.module.scan_results.values()[0]
+        except Exception as e:
+            results.status = -1
+            results.error = str(e)
+        return results
 
     @staticmethod
     def file_metadata(filename):

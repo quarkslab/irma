@@ -49,11 +49,10 @@ elif target == target_windows:
 
 setup(
     name=name,
-    version='1.0.3',
+    version='1.0.4',
     author='QuarksLab',
     author_email='irma@quarkslab.com',
     packages=find_packages(),
-    include_package_data=True,
     license='LICENSE',
     description='Probe package for IRMA',
     long_description='',

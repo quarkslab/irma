@@ -18,13 +18,20 @@ import sys
 import hashlib
 
 from ConfigParser import SafeConfigParser
+from datetime import datetime
 
+from lib.common.utils import timestamp
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
 
 
 class VirusTotalPlugin(PluginBase):
+
+    class VirusTotalResult:
+        ERROR = -1
+        FOUND = 1
+        NOT_FOUND = 0
 
     # =================
     #  plugin metadata
@@ -73,7 +80,8 @@ class VirusTotalPlugin(PluginBase):
         self.module = module(self.apikey)
 
     def get_file_report(self, filename):
-        digest = hashlib.md5(filename).hexdigest()
+        with open(filename, 'rb') as filedesc:
+            digest = hashlib.md5(filedesc.read()).hexdigest()
         return self.module.get_file_report(digest)
 
     # ==================
@@ -81,13 +89,27 @@ class VirusTotalPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        # allocate plugin results place-holders
-        plugin_results = PluginResult(type(self).plugin_name)
-        # query page
-        plugin_results.start_time = None
-        results = self.get_file_report(paths)
-        plugin_results.end_time = None
-        # update results
-        plugin_results.result_code = 0 if results else 1
-        plugin_results.data = {paths: results}
-        return plugin_results.serialize()
+        results = PluginResult(name=type(self).plugin_name,
+                               type=type(self).plugin_category,
+                               version=None)
+        try:
+            # get the report, automatically append results
+            started = timestamp(datetime.utcnow())
+            response = self.get_file_report(paths)
+            stopped = timestamp(datetime.utcnow())
+            results.duration = stopped - started
+            # check eventually for errors
+            if (response['response_code'] == 204) or \
+               (response['response_code'] == 403):
+                results.status = self.VirusTotalResult.ERROR
+                results.error = response['results']['verbose_msg']
+            elif (response['response_code'] == 200) and \
+                 (response['results']['response_code'] != 1):
+                results.status = self.VirusTotalResult.NOT_FOUND
+            else:
+                results.status = self.VirusTotalResult.FOUND
+            results.results = response
+        except Exception as e:
+            results.status = self.VirusTotalResult.ERROR
+            results.results = str(e)
+        return results

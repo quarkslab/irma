@@ -23,6 +23,7 @@ import config.parser as config
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
+
 from lib.irma.ftp.handler import FtpTls
 from lib.plugins import PluginManager
 
@@ -93,7 +94,7 @@ def probe_scan(frontend, scanid, filename):
         return results
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))
-        raise probe_scan.retry(countdown=10, max_retries=5)
+        raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
 
 ##############################################################################
 # command line launcher, only for debug purposes

@@ -3,7 +3,7 @@ DESTDIR = /
 DISTDIR = $(CURDIR)/deb_dist
 BUILDIR = $(CURDIR)/debian/irma-probe
 PROJECT = irma-probe
-VERSION = 1.0.3
+VERSION = 1.0.4
 
 all:
 	@echo "make source - Create source package"
@@ -33,6 +33,8 @@ builddeb:
 clean:
 	$(PYTHON) setup.py clean
 	#$(MAKE) -f $(CURDIR)/debian/rules clean
+	rm -rf $(CURDIR)/debian/*.log
+	rm -rf $(CURDIR)/debian/*.substvars
 	rm -rf $(CURDIR)/debian/irma-probe
 	rm -rf $(CURDIR)/debian/irma-probe-logrotate
 	rm -rf $(CURDIR)/debian/irma-probe-rsyslog

@@ -16,15 +16,23 @@
 import os
 import sys
 
+from datetime import datetime
 from ConfigParser import SafeConfigParser
 
+from lib.common.utils import timestamp
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
+from lib.plugins import PluginLoadError
 from lib.plugin_result import PluginResult
 from lib.common.hash import sha1sum
 
 
 class NSRLPlugin(PluginBase):
+
+    class NSRLPluginResult:
+        ERROR = -1
+        FOUND = 1
+        NOT_FOUND = 0
 
     # =================
     #  plugin metadata
@@ -55,14 +63,28 @@ class NSRLPlugin(PluginBase):
         config = SafeConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
+        os_db = config.get('NSRL', 'nsrl_os_db')
+        mfg_db = config.get('NSRL', 'nsrl_mfg_db')
+        file_db = config.get('NSRL', 'nsrl_file_db')
+        prod_db = config.get('NSRL', 'nsrl_prod_db')
+        databases = [os_db, mfg_db, file_db, prod_db]
+
         # check for configured database path
-        results = map(os.path.exists, [
-                      config.get('NSRL', 'nsrl_os_db'),
-                      config.get('NSRL', 'nsrl_mfg_db'),
-                      config.get('NSRL', 'nsrl_file_db'),
-                      config.get('NSRL', 'nsrl_prod_db')
-                      ])
-        return reduce(lambda x, y: x or y, results, False)
+        results = map(os.path.exists, databases)
+        dbs_available = reduce(lambda x, y: x or y, results, False)
+        if not dbs_available:
+            raise PluginLoadError("{0}: verify() failed because "
+                                  "databases are not available."
+                                  "".format(cls.__name__))
+
+        # check for LOCK file and remove it
+        dbs_locks = map(lambda x: os.path.join(x, "LOCK"), databases)
+        for lock in dbs_locks:
+            try:
+                if os.path.exists(lock):
+                    os.unlink(lock)
+            except:
+                raise PluginLoadError("unable to remove lock {0}".format(lock))
 
     # ==================================
     #  constructor and destructor stuff
@@ -90,13 +112,27 @@ class NSRLPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        # allocate plugin results place-holders
-        plugin_results = PluginResult(type(self).plugin_name)
-        # launch an antivirus scan, automatically append scan results to
-        # antivirus.results.
-        plugin_results.start_time = None
-        results = self.module.lookup_by_sha1(sha1sum(paths).upper())
-        plugin_results.end_time = None
-        # allocate memory for data, and fill with data
-        plugin_results.data = {paths: results}
-        return plugin_results.serialize()
+        results = PluginResult(name="National Software Reference Library",
+                               type=type(self).plugin_category,
+                               version=None)
+        try:
+            # lookup the specified sha1
+            started = timestamp(datetime.utcnow())
+            response = self.module.lookup_by_sha1(sha1sum(paths).upper())
+            stopped = timestamp(datetime.utcnow())
+            results.duration = stopped - started
+            # check for errors
+            if isinstance(response, dict) and \
+                (not response.get('MfgCode', None) or
+                 not response.get('OpSystemCode', None) or
+                 not response.get('ProductCode', None) or
+                 not response.get('SHA-1', None)):
+                results.status = self.NSRLPluginResult.NOT_FOUND
+                response = None
+            else:
+                results.status = self.NSRLPluginResult.FOUND
+            results.results = response
+        except Exception as e:
+            results.status = self.NSRLPluginResult.ERROR
+            results.error = str(e)
+        return results

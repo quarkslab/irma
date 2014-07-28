@@ -18,7 +18,7 @@ import os
 from .sophos import Sophos
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
+from lib.plugins import PluginBase, PluginLoadError
 from lib.plugins import BinaryDependency, PlatformDependency
 
 
@@ -39,13 +39,15 @@ class SophosPlugin(PluginBase, Sophos, AntivirusPluginInterface):
 
     @classmethod
     def verify(cls):
-        # check if Kaspersky has been found
-        verified = False
+        # check if sophos is available
         module = Sophos()
-        if module.scan_path and os.path.exists(module.scan_path):
-            verified = True
+        path = module.scan_path
         del module
-        return verified
+        # perform checks
+        if not path or not os.path.exists(path):
+            raise PluginLoadError("{0}: verify() failed because "
+                                  "Sophos executable was not found."
+                                  "".format(cls.__name__))
 
     # =============
     #  constructor
