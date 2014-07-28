@@ -8,6 +8,9 @@ config/*.ini
 web/node_modules
 web/app/components
 web/dist
+web/.sass-cache/
+web/.tmp/
+web/app/bower_components/
 
 # for pip packaging
 dist
