@@ -13,3 +13,8 @@ debian/*.substvars
 debian/*.log
 debian/files
 debian/rules
+
+# for documentation
+docs/_build/*
+docs/doctrees/*
+docs/html/*
