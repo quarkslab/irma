@@ -18,12 +18,18 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-LOGROTATE_CONFIG_FILE="/etc/logrotate.d/irma-frontend"
+#
+# Logrotate.d configuration
+#
+
+LOGROTATED_CONF_DIR="/etc/logrotate.d"
+IRMA_LOGROTATED_FRONTEND="irma-frontend"
+IRMA_LOGROTATED_FRONTEND_INST="$LOGROTATED_CONF_DIR/$IRMA_LOGROTATED_FRONTEND"
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-		if [ -f $LOGROTATE_CONFIG_FILE ]; then
-			rm $LOGROTATE_CONFIG_FILE
+		if [ -f $IRMA_LOGROTATED_FRONTEND_INST ]; then
+			rm $IRMA_LOGROTATED_FRONTEND_INST
 		fi
     ;;
 

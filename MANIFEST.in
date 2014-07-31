@@ -14,40 +14,22 @@
 # terms contained in the LICENSE file.
 
 
-# ============
-#  Data files
-# ============
-
 include AUTHORS
 include LICENSE
 include README.rst
-graft web
-
-# =====================
-#  Configuration files
-# =====================
-
+include requirements.txt
+graft web/app
+graft web/dist
+graft web/test
+include web/*.json 
+include web/*.js 
+include web/.bowerrc 
+include web/.jshintrc
 graft config
-exclude config/frontend.ini
-
-# ======================
-#  Installation Scripts
-# ======================
-
-graft install
-include scripts
-
-# =======
-#  Tests
-# =======
-
-prune tests
+graft docs
+graft extras
+graft tests
 prune lib/tests
-
-# ===========
-#  VCS files
-# ===========
-
 global-exclude *.git
 global-exclude *.gitignore
 global-exclude *.gitmodules

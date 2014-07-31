@@ -6,30 +6,21 @@ Build-Depends: debhelper (>= 8.0.0)
 Standards-Version: 3.9.4
 Homepage: http://irma.quarkslab.com
 
-Package: irma-frontend-api
+Package: irma-frontend-app
 Architecture: all
 Depends: ${misc:Depends}, python, python-pip, mongodb, python-gridfs, python2.7-dev
-Description: Irma Frontend REST API
- Irma Frontend Python-based REST API and
- frontend celery worker code
+Description: IRMA Frontend application
 
-Package: irma-frontend-api-uwsgi
+Package: irma-frontend-uwsgi
 Architecture: all
-Depends: ${misc:Depends}, irma-frontend-api, uwsgi, uwsgi-plugin-python
-Description: Irma Frontend REST API uwsgi
- Irma Frontend Python-based REST API uwsgi
+Depends: ${misc:Depends}, irma-frontend-app, uwsgi, uwsgi-plugin-python
+Description: IRMA Frontend REST API uwsgi
+ IRMA Frontend Python-based REST API uwsgi
 
-Package: irma-frontend-web-data
+Package: irma-frontend-nginx
 Architecture: all
-Depends: ${misc:Depends}
-Description: Irma Frontend Web Interface
- Irma Frontend AngularJS web interface
- This package provides static HTML and JS files.
-
-Package: irma-frontend-web-nginx
-Architecture: all
-Depends: nginx, irma-frontend-api-uwsgi, irma-frontend-web-data, ${misc:Depends}
-Description: Irma Frontend nginx configuration
+Depends: nginx, irma-frontend-uwsgi, ${misc:Depends}
+Description: IRMA Frontend nginx configuration
  Setup the frontend interface with nginx
 
 Package: irma-frontend-rsyslog
@@ -44,5 +35,6 @@ Description: logrotate configuration for IRMA frontend
 
 Package: irma-frontend
 Architecture: all
-Depends: irma-frontend-rsyslog, irma-frontend-logrotate, irma-frontend-api, irma-frontend-api-uwsgi, irma-frontend-web-data, irma-frontend-web-nginx, ${shlibs:Depends}, ${misc:Depends}
-Description: Irma Frontend Meta-package
+Depends: irma-frontend-app, irma-frontend-uwsgi, irma-frontend-nginx, ${shlibs:Depends}, ${misc:Depends}
+Recommends: irma-frontend-rsyslog, irma-frontend-logrotate, 
+Description: IRMA Frontend Meta-package

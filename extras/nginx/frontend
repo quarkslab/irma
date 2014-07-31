@@ -19,22 +19,22 @@ server {
     #  Server Configuration
     # ======================
 
-	listen 80 default_server;
-	listen [::]:80 default_server ipv6only=on;
+    listen 80 default_server;
+    listen [::]:80 default_server ipv6only=on;
 
-	root /opt/irma/irma-frontend/web/dist;
-	index index.html;
+    root /opt/irma/irma-frontend/web/dist;
+    index index.html;
 
-	server_name localhost;
-	client_max_body_size 100m;
+    server_name localhost;
+    client_max_body_size 100m;
 
-	location /_api {
-		rewrite ^/_api/(.+) /$1 break;
-		include uwsgi_params;
-		uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
-	}
+    location /_api {
+        rewrite ^/_api/(.+) /$1 break;
+        include uwsgi_params;
+        uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
+    }
 
-	location ~ /\.ht {
-		deny all;
-	}
+    location ~ /\.ht {
+        deny all;
+    }
 }

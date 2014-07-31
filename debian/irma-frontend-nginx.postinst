@@ -17,14 +17,29 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+#
+# Frontend Nginx configuration
+#
+
+NGINX_DIR="/etc/nginx"
+NGINX_SENABLED="sites-enabled"
+NGINX_SAVAILABLE="sites-available"
+IRMA_NGINX_FRONTEND="frontend"
+
+#
+# Script
+#
 
 case "$1" in
     configure)
-		if [ -f /etc/uwsgi/apps-enabled/frontend-api.xml ]; then
-			rm /etc/uwsgi/apps-enabled/frontend-api.xml
+		if [ -f "$NGINX_DIR/$NGINX_SENABLED/$IRMA_NGINX_FRONTEND" ]; then
+			rm "$NGINX_DIR/$NGINX_SENABLED/$IRMA_NGINX_FRONTEND"
 		fi
-		ln -s /etc/uwsgi/apps-available/frontend-api.xml /etc/uwsgi/apps-enabled/
-		invoke-rc.d uwsgi restart
+		if [ -f "$NGINX_DIR/$NGINX_SENABLED/default" ]; then
+			rm "$NGINX_DIR/$NGINX_SENABLED/default"
+		fi
+		ln -s "$NGINX_DIR/$NGINX_SAVAILABLE/$IRMA_NGINX_FRONTEND" "$NGINX_DIR/$NGINX_SENABLED/"
+		invoke-rc.d nginx restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

@@ -1,1 +1,1 @@
-config/rsyslog.d/irma-frontend-client.conf /etc/rsyslog.d/
+extras/rsyslog.d/irma-frontend-client.conf /etc/rsyslog.d/

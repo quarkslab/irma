@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for irma-frontend
+# postinst script for ivy-frontend
 #
 # see: dh_installdeb(1)
 
@@ -17,19 +17,26 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+#
+# Frontend UWSGI configuration
+#
+
+UWSGI_DIR="/etc/uwsgi"
+UWSGI_SENABLED="apps-enabled"
+UWSGI_SAVAILABLE="apps-available"
+IRMA_UWSGI_FRONTEND="frontend-api.xml"
+
+#
+# Script
+#
 
 case "$1" in
     configure)
-		pip install --upgrade -r /opt/irma/irma-frontend/install/requirements.txt
-		# Celery - test if user irma exists
-		if ! id -u irma > /dev/null 2>&1; then
-			adduser --system --no-create-home --group irma
+		if [ -f "$UWSGI_DIR/$UWSGI_SENABLED/$IRMA_UWSGI_FRONTEND" ]; then
+			rm "$UWSGI_DIR/$UWSGI_SENABLED/$IRMA_UWSGI_FRONTEND"
 		fi
-		if [ ! -f /opt/irma/irma-frontend/config/frontend.ini ]; then
-			cp /opt/irma/irma-frontend/config/frontend.ini.sample /opt/irma/irma-frontend/config/frontend.ini
-		fi
-		update-rc.d celeryd.frontend defaults
-		invoke-rc.d celeryd.frontend restart
+		ln -s "$UWSGI_DIR/$UWSGI_SAVAILABLE/$IRMA_UWSGI_FRONTEND" "$UWSGI_DIR/$UWSGI_SENABLED"
+		invoke-rc.d uwsgi restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
