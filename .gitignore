@@ -1,0 +1,6 @@
+.vagrant/
+vagrant_ansible_inventory_default
+roles/Ansibles.openssh/
+roles/JasonGiedymin.nodejs/
+roles/jdauphant.nginx/
+roles/mivok0.users/

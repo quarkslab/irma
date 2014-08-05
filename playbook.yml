@@ -1,0 +1,29 @@
+---
+# file: playbook.yml
+
+- name: Provisioning tasks
+  hosts: all
+  sudo: yes
+  vars_files:
+    - vars/defaults.yml
+    - vars/{{ 'vagrant' if vagrant|default(False) == True else 'user' }}.yml
+
+  pre_tasks:
+    - name: Install Uncomplicated Firewall software
+      apt: pkg=ufw state=latest
+    - name: Close all ports for prod server
+      ufw: state=enabled policy=deny
+      when: vagrant|default(False) == False
+    - name: Open OpenSSH port
+      ufw: rule=allow port=ssh
+
+  roles:
+    - { role: mivok0.users, tags: 'users' }
+    - { role: Ansibles.openssh, tags: 'openssh' }
+    - { role: JasonGiedymin.nodejs, tags: 'nodejs' }
+    - { role: irma-frontend-provisioning, tags: 'irma-frontend-provisioning' }
+    - { role: jdauphant.nginx, tags: 'nginx' }
+
+  post_tasks:
+    - name: Open Webserver port
+      ufw: rule=allow port=80

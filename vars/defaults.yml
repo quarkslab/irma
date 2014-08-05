@@ -1,0 +1,38 @@
+---
+# file: vars/defaults
+
+users:
+  - username: www-data
+    name: www-data
+    groups: ['www-data']
+    uid: 1002
+    ssh_key:
+        # Guillaume Dedrie @Quarkslab
+      - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD7LneB8UyjfvV8Z0vGUP7HPLrfgElCmjJUKC4fHYngyVsB9eMUfMYCz5YcovFldMeHJNc4G9QbQRvNvFx8glW06x+Bm9yDu58eJK3pQ2Mh2lUS4ecmUJZJDMMDvYNahi/1PITmLyrchreohwRCy60ruWik2oH7RVuwRE7fIURnh+ZAmz/ba2kYmA3/FPvrZrqlm6I70D5x36qEqB00M0TVqG4SKos/E8t27/HxwdlF7vEd08DbNhOSp7BnUCc4UmCofwhJKRKzB44Cb+D9HmQGL/1XGdmLAHNkVfHLkgB2+CaY4YhRYDjvepPocraeLacv4y6xZfyR+iAc8OPXyyMP gdedrie@quarkslab.com"
+
+nodejs_version: "0.10.30"
+nodejs_global_packages:
+  - gulp
+  - debug
+
+nginx_configs:
+  proxy:
+    - proxy_set_header X-Real-IP $remote_addr
+    - proxy_set_header Host $http_host
+    - proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for
+    - proxy_set_header X-NginX-Proxy true
+    - proxy_redirect off
+    - proxy_http_version 1.1
+    - proxy_set_header Upgrade $http_upgrade
+    - proxy_set_header Connection "upgrade"
+
+nginx_sites:
+  irma-frontend:
+    - listen 80
+    - server_name www.{{ hostname }}
+    - error_log /var/log/nginx/{{ hostname }}.error.log
+    - access_log /var/log/nginx/{{ hostname }}.access.log
+    - location / {
+            alias /var/www/prod.project.local/current/web/;
+            index index.html;
+      }

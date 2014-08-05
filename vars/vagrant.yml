@@ -1,0 +1,4 @@
+---
+# file: vars/vagrant.yml
+
+hostname: allinone.irma.local
