@@ -1,0 +1,24 @@
+{
+    "nodes": {
+        "frontend": {
+            "ip": "172.16.1.30",
+            "hostname": "frontend.irma.local",
+            "memory": "2048",
+            "share_code": true
+        },
+        "brain": {
+            "ip": "172.16.1.31",
+            "hostname": "brain.irma.local",
+            "memory": "1024",
+            "share_code": false
+        }
+    },
+    "ansible": {
+        "user": "vagrant",
+        "vagrant": true,
+        "groups": {
+            "frontend": ["frontend"],
+            "brain": ["brain"]
+        }
+    }
+}

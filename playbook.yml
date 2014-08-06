@@ -1,12 +1,11 @@
 ---
 # file: playbook.yml
 
-- name: Provisioning tasks
+- name: Common tasks to execute on all servers
   hosts: all
   sudo: yes
   vars_files:
-    - vars/defaults.yml
-    - vars/{{ 'vagrant' if vagrant|default(False) == True else 'user' }}.yml
+    - vars/common.yml
 
   pre_tasks:
     - name: Install Uncomplicated Firewall software
@@ -20,6 +19,15 @@
   roles:
     - { role: mivok0.users, tags: 'users' }
     - { role: Ansibles.openssh, tags: 'openssh' }
+
+
+- name: Frontend provisioning
+  hosts: frontend
+  sudo: yes
+  vars_files:
+    - vars/frontend.yml
+
+  roles:
     - { role: JasonGiedymin.nodejs, tags: 'nodejs' }
     - { role: irma-frontend-provisioning, tags: 'irma-frontend-provisioning' }
     - { role: jdauphant.nginx, tags: 'nginx' }
