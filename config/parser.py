@@ -229,4 +229,4 @@ def get_sql_db_tables_prefix():
 
 
 def get_samples_storage_path():
-    return frontend_config.samples_storage.path
+    return os.path.abspath(frontend_config.samples_storage.path)

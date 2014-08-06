@@ -14,7 +14,7 @@
 import hashlib
 import os
 
-from sqlalchemy import Table, Column, Integer, ForeignKey, String,\
+from sqlalchemy import Table, Column, Integer, ForeignKey, String, \
     ForeignKeyConstraint, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -22,7 +22,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound,\
+from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError
 from lib.common import compat
 from lib.common.utils import UUID
@@ -241,9 +241,10 @@ class File(Base, SQLDatabaseObject):
         """
 
         sha256 = hashlib.sha256(data).hexdigest()
-        full_path = os.path.abspath(config.get_samples_storage_path() + sha256)
+        common_path = config.get_samples_storage_path()
+        full_path = os.path.join(common_path, sha256)
         try:
-            h = open(full_path, 'w')
+            h = open(full_path, 'wb')
             h.write(data)
             h.close()
         except IOError:
@@ -261,11 +262,12 @@ class File(Base, SQLDatabaseObject):
         """Remove the sample
         :raise: IrmaFileSystemError if there is a problem with the filesystem
         """
-        full_path = os.path.abspath(config.get_samples_storage_path() + self.sha256)
-        self.path = None
+        common_path = config.get_samples_storage_path()
+        full_path = os.path.join(common_path, self.sha256)
 
         try:
             os.remove(full_path)
+            self.path = None
         except OSError as e:
             raise IrmaFileSystemError(e)
 
