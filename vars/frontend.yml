@@ -20,12 +20,27 @@ nginx_configs:
     - proxy_set_header Connection "upgrade"
 
 nginx_sites:
-  irma-frontend:
+  itsatrap:
+    - server_name {{ ansible_eth1.ipv4.address }}
     - listen 80
+    - root /usr/share/nginx/www/
+    - index index.html
+  irma-frontend:
+    - listen 80 default_server
+    - listen [::]:80 default_server ipv6only=on
     - server_name www.{{ hostname }}
-    - error_log /var/log/nginx/{{ hostname }}.error.log
-    - access_log /var/log/nginx/{{ hostname }}.access.log
+    - client_max_body_size 100m
+    - location ~ /\.ht {
+        deny all;
+      }
+    - location /_api {
+        include uwsgi_params;
+        rewrite ^/_api/(.+) /$1 break;
+        uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
+      }
     - location / {
             alias /var/www/prod.project.local/current/web/dist/;
             index index.html;
       }
+    - error_log /var/log/nginx/{{ hostname }}.error.log
+    - access_log /var/log/nginx/{{ hostname }}.access.log
