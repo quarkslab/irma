@@ -140,7 +140,6 @@ def scan_add(scanid):
         on success 'nb_files' total number of files for the scan
         on error 'msg' gives reason message
     """
-    return "aa"
     # Filter malformed scanid
     if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")

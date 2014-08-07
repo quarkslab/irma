@@ -126,7 +126,7 @@ def scan_new():
     :raise: IrmaDataBaseError
     """
     session = SQLDatabase.get_session()
-    #TODO get the ip
+    # TODO get the ip
     scan = Scan(IrmaScanStatus.created, compat.timestamp(), None)
     scan.save(session=session)
     session.commit()
@@ -152,7 +152,8 @@ def scan_add(scanid, files):
     for (name, data) in files.items():
         try:
             # The file exists
-            file = File.load_from_sha256(hashlib.sha256(data).hexdigest(), session)
+            file_sha256 = hashlib.sha256(data).hexdigest()
+            file = File.load_from_sha256(file_sha256, session)
         except IrmaDatabaseResultNotFound:
             # It doesn't
             time = compat.timestamp()
@@ -208,7 +209,7 @@ def scan_launch(scanid, force, probelist):
 
     for fw in scan.files_web:
         for p in probelist:
-            #TODO probe types
+            # TODO probe types
             probe_result = ProbeResult(
                 0,  # TODO remove this dirty fix for probe types
                 p,
