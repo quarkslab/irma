@@ -265,7 +265,7 @@ def scan_cancel(scanid):
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str
         [, optional 'cancel_details':
-            total':int,
+            'total':int,
             'finished':int,
             'cancelled':int]
     :return:

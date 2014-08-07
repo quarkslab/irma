@@ -114,6 +114,16 @@ def format_results(res_dict, filter_type):
     return res
 
 
+def _task_scan_launch(scanid, force):
+    """ send a task to the brain to launch the scan """
+    try:
+        frontend_app.send_task("frontend.tasks.scan_launch",
+                               args=(scanid, force))
+        return
+    except:
+        raise IrmaFrontendError("Celery error - scan launch")
+
+
 # ==================
 #  Public functions
 # ==================
@@ -223,7 +233,7 @@ def scan_launch(scanid, force, probelist):
     session.commit()
 
     # launch scan via frontend task
-    frontend_app.send_task("frontend.tasks.scan_launch", args=(scan.id, force))
+    _task_scan_launch(scanid, force)
     return probelist
 
 

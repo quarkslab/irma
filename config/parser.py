@@ -90,8 +90,13 @@ template_frontend_config = {
     ],
 }
 
-cwd = os.path.abspath(os.path.dirname(__file__))
-cfg_file = "{0}/{1}".format(cwd, "frontend.ini")
+config_path = os.environ.get('IRMA_FRONTEND_CFG_PATH')
+if config_path is None:
+    # Fallback to default path that is
+    # current working directory
+    config_path = os.path.abspath(os.path.dirname(__file__))
+
+cfg_file = "{0}/{1}".format(config_path, "frontend.ini")
 frontend_config = TemplatedConfiguration(cfg_file, template_frontend_config)
 
 
