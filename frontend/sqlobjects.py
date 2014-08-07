@@ -442,13 +442,11 @@ class Scan(Base, SQLDatabaseObject):
         :rtype: boolean
         :return: True if the scan is over
         """
-        ok = True
         for fw in self.files_web:
             for pr in fw.probe_results:
                 if pr.state != IrmaProbeResultsStates.finished:
-                    ok = False
-                    break
-        return ok
+                    return False
+        return True
 
 
 class FileWeb(Base, SQLDatabaseObject):
