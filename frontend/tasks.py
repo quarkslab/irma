@@ -17,7 +17,7 @@ import os
 import celery
 import config.parser as config
 from frontend.nosqlobjects import ProbeRealResult
-from frontend.sqlobjects import Scan, File, db_connector
+from frontend.sqlobjects import Scan, File, sql_db_connect
 from lib.common import compat
 from lib.irma.common.exceptions import IrmaFileSystemError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaProbeResultsStates
@@ -34,11 +34,10 @@ config.conf_brain_celery(scan_app)
 
 
 @frontend_app.task(acks_late=True)
-@db_connector
 def scan_launch(scanid, force):
     try:
+        sql_db_connect()
         session = SQLDatabase.get_session()
-
         ftp_config = config.frontend_config['ftp_brain']
         scan = Scan.load_from_ext_id(scanid, session=session)
         if not scan.status == IrmaScanStatus.created:
@@ -86,32 +85,17 @@ def scan_launch(scanid, force):
         with FtpTls(host, port, user, pwd) as ftps:
             scan_request = []
             ftps.mkdir(scanid)
-            for (fw, probes_to_do) in files_web_todo:
-                f = fw.file
-                file_data = ''
-                chunk_size = 32
-                path = os.path.abspath(
-                    '{0}{1}'.format(config.get_samples_storage_path(), f.path)
-                )
-                try:
-                    h = open(path, "rb")
-                    chunk = h.read(chunk_size)
-                    while chunk != "":
-                        file_data += chunk
-                        chunk = h.read(chunk_size)
-                except IOError as e:
-                    raise IrmaFileSystemError(e)
-                finally:
-                    h.close()
-
-                # our ftp handler store file under with its sha256 name
-                hashname = ftps.upload_data(scanid, file_data)
-                if hashname != f.hashvalue:
-                    reason = "Ftp Error: integrity failure while uploading \
-                    file {0} for scanid {1}".format(scanid, fw.name)
-                    return IrmaTaskReturn.error(reason)
-                scan_request.append((hashname, probes_to_do))
-                # launch new celery task
+            # our ftp handler store file under with its sha256 name
+            common_path = config.get_samples_storage_path()
+            file_sha256 = fw.file.sha256
+            file_path = os.path.join(common_path, file_sha256)
+            hashname = ftps.upload_file(scanid, file_path)
+            if hashname != file_sha256:
+                reason = "Ftp Error: integrity failure while uploading \
+                file {0} for scanid {1}".format(scanid, fw.name)
+                return IrmaTaskReturn.error(reason)
+            scan_request.append((hashname, probes_to_do))
+        # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
 
         scan.status = IrmaScanStatus.launched
@@ -134,11 +118,10 @@ def sanitize_dict(d):
 
 
 @frontend_app.task(acks_late=True)
-@db_connector
 def scan_result(scanid, file_hash, probe, result):
     try:
+        sql_db_connect()
         session = SQLDatabase.get_session()
-
         scan = Scan.load_from_ext_id(scanid, session=session)
         fw = None
 
@@ -172,7 +155,7 @@ def scan_result(scanid, file_hash, probe, result):
         fw.file.update(session=session)
 
         # save the results
-        #TODO add remaining parameters
+        # TODO add remaining parameters
         prr = ProbeRealResult(
             probe_name=pr.probe_name,
             probe_type=None,
@@ -200,9 +183,9 @@ def scan_result(scanid, file_hash, probe, result):
 
 
 @frontend_app.task(acks_late=True)
-@db_connector
 def scan_result_error(scanid, file_hash, probe, exc):
     try:
+        sql_db_connect()
         session = SQLDatabase.get_session()
 
         file = File.load_from_sha256(file_hash, session=session)
@@ -264,9 +247,9 @@ def scan_result_error(scanid, file_hash, probe, exc):
 
 
 @frontend_app.task()
-@db_connector
 def clean_db():
     try:
+        sql_db_connect()
         session = SQLDatabase.get_session()
 
         cron_cfg = config.frontend_config['cron_frontend']
