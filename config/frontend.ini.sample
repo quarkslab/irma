@@ -22,7 +22,7 @@ dbname = test
 tables_prefix = irma
 
 [samples_storage]
-path = ~/irma_samples/
+path = /var/irma/samples/
 
 [broker_brain]
 host = 127.0.0.1
