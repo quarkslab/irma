@@ -267,7 +267,8 @@ needed by the application. To abort the configuration, press CTRL+D.
             ask('What is the hostname of your RabbitMQ server?',
                 answer_type=str, default=configuration['broker_probe']['host'])
         configuration['broker_probe']['vhost'] = \
-            ask('What is the vhost defined for probes on your RabbitMQ server?',
+            ask('What is the vhost defined for probes on your '
+                'RabbitMQ server?',
                 answer_type=str)
         configuration['broker_probe']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
