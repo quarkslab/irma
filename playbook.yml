@@ -29,7 +29,9 @@
 
   roles:
     - { role: JasonGiedymin.nodejs, tags: 'nodejs' }
-    - { role: irma-frontend-provisioning, tags: 'irma-frontend-provisioning' }
+    - { role: gdamjan.uwsgi, tags: 'uwsgi' }
+    - { role: Stouts.mongodb, tags: 'mongodb' }
+    - { role: irma.frontend, tags: 'frontend' }
     - { role: jdauphant.nginx, tags: 'nginx' }
 
   post_tasks:

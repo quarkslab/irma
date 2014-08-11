@@ -1,0 +1,18 @@
+---
+# file: tasks/main.yml
+
+- name: Ensure that directory /var/www has www-data rights
+  file: path=/var/www state=directory owner=www-data group=www-data
+
+- name: Install common packages
+  apt: name={{ item }} state=latest
+  with_items:
+    - git
+    - python-pip
+    - python-virtualenv
+
+- name: API | Create uWSGI directory
+  file: path={{ uwsgi_api_dir }} state=directory owner=root group=root
+
+- name: API | Install uWSGI config file
+  template: src=frontend-api.ini.j2 dest=/etc/uwsgi/vassals/{{ uwsgi_api_app_name }}.ini owner=root group=root mode=0755

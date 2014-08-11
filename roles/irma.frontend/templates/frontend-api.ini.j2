@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+
+[uwsgi]
+app-name = {{ uwsgi_api_app_name }}
+master = true
+
+pidfile = {{ uwsgi_api_dir }}/pid
+socket = {{ uwsgi_api_dir }}/socket
+logto = /var/log/uwsgi/%(app-name).log
+log-date = true
+
+processes = 4
+plugins = python
+
+base = {{ frontend_install_dir }}
+
+chdir = %(base)
+home = %(base)/venv
+pythonpath = %(base)/venv
+
+# Bottle mounts
+mount = /_api=%(base)/frontend/web/api.py

@@ -1,5 +1,0 @@
----
-# file: tasks/main.yml
-
-- name: Install Git
-  apt: name=git state=latest

@@ -2,10 +2,13 @@
 # file: vars/frontend
 
 hostname: allinone.irma.local
+frontend_install_dir: /var/www/prod.project.local/current
+
+uwsgi_api_app_name: frontend-api
+uwsgi_api_dir: /var/run/uwsgi/{{ uwsgi_api_app_name }}
 
 nodejs_version: "0.10.30"
 nodejs_global_packages:
-  - gulp
   - debug
 
 nginx_configs:
@@ -36,10 +39,10 @@ nginx_sites:
     - location /_api {
         include uwsgi_params;
         rewrite ^/_api/(.+) /$1 break;
-        uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
+        uwsgi_pass unix://{{ uwsgi_api_dir }}/socket;
       }
     - location / {
-            alias /var/www/prod.project.local/current/web/dist/;
+            alias {{ frontend_install_dir }}/web/dist/;
             index index.html;
       }
     - error_log /var/log/nginx/{{ hostname }}.error.log
