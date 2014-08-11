@@ -120,10 +120,12 @@ def humanize_time_str(amount, units):
         res.append("{0} {1}".format(value, unit))
     return ", ".join(res)
 
+
 def timestamp(date):
     return mktime(date.timetuple()) + date.microsecond / 1000000.0
 
 import collections
+
 
 def to_unicode(data):
     if isinstance(data, basestring):
