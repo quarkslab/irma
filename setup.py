@@ -263,7 +263,8 @@ needed by the application. To abort the configuration, press CTRL+D.
             ask('What is the hostname of your RabbitMQ server?',
                 answer_type=str, default=configuration['broker_brain']['host'])
         configuration['broker_brain']['vhost'] = \
-            ask('What is the vhost defined for the brain on your RabbitMQ server?',
+            ask('What is the vhost defined for the brain on your '
+                'RabbitMQ server?',
                 answer_type=str)
         configuration['broker_brain']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
@@ -273,7 +274,8 @@ needed by the application. To abort the configuration, press CTRL+D.
                 answer_type=str,
                 default=configuration['broker_brain']['password'])
         configuration['broker_probe']['vhost'] = \
-            ask('What is the vhost defined for the probes on your RabbitMQ server?',
+            ask('What is the vhost defined for the probes on your '
+                'RabbitMQ server?',
                 answer_type=str)
         configuration['broker_probe']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
@@ -282,7 +284,8 @@ needed by the application. To abort the configuration, press CTRL+D.
             ask('What is the password for this vhost on your RabbitMQ server?',
                 answer_type=str)
         configuration['broker_frontend']['vhost'] = \
-            ask('What is the vhost defined for the frontend on your RabbitMQ server?',
+            ask('What is the vhost defined for the frontend on your '
+                'RabbitMQ server?',
                 answer_type=str)
         configuration['broker_frontend']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
@@ -306,10 +309,12 @@ needed by the application. To abort the configuration, press CTRL+D.
             ask('What is the hostname of your FTPs server?',
                 answer_type=str, default=configuration['ftp_brain']['host'])
         configuration['ftp_brain']['username'] = \
-            ask('What is the username defined for the probes on your FTP server?',
+            ask('What is the username defined for the probes on your '
+                'FTP server?',
                 answer_type=str)
         configuration['ftp_brain']['password'] = \
-            ask('What is the password defined for the probes on your FTP server?',
+            ask('What is the password defined for the probes on your '
+                'FTP server?',
                 answer_type=str)
 
         # write configuration
@@ -330,7 +335,6 @@ DATA_FILES = {
         # Celery worker for linux
         ('etc/init.d/',  ['extras/init.d/celeryd.brain']),
         ('etc/default/', ['extras/default/celeryd.brain']),
-        
     ] +  # IRMA documentation generated with build_sphinx
          include_data('docs/html', base='opt/irma/irma-brain/docs/')
 }
