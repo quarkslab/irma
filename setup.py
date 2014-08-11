@@ -274,17 +274,21 @@ needed by the application. To abort the configuration, press CTRL+D.
             ask('What is the hostname of your RabbitMQ server?',
                 answer_type=str, default=configuration['broker_brain']['host'])
         configuration['broker_brain']['vhost'] = \
-            ask('What is the vhost defined for the brain on your RabbitMQ server?',
+            ask('What is the vhost defined for the brain on your '
+                'RabbitMQ server?',
                 answer_type=str)
         configuration['broker_brain']['username'] = \
-            ask('What is the username for this vhost on your RabbitMQ server?',
+            ask('What is the username for this vhost on your '
+                'RabbitMQ server?',
                 answer_type=str)
         configuration['broker_brain']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
                 answer_type=str)
-        configuration['broker_frontend']['host'] = configuration['broker_brain']['host']
+        configuration['broker_frontend']['host'] = \
+            configuration['broker_brain']['host']
         configuration['broker_frontend']['vhost'] = \
-            ask('What is the vhost defined for the frontend on your RabbitMQ server?',
+            ask('What is the vhost defined for the frontend on your '
+                'RabbitMQ server?',
                 answer_type=str)
         configuration['broker_frontend']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
@@ -305,10 +309,12 @@ needed by the application. To abort the configuration, press CTRL+D.
             ask('What is the hostname of your FTPs server?',
                 answer_type=str, default=configuration['ftp_brain']['host'])
         configuration['ftp_brain']['username'] = \
-            ask('What is the username defined for the frontend on your FTP server?',
+            ask('What is the username defined for the frontend on your '
+                'FTP server?',
                 answer_type=str)
         configuration['ftp_brain']['password'] = \
-            ask('What is the password defined for the frontend on your FTP server?',
+            ask('What is the password defined for the frontend on your '
+                'FTP server?',
                 answer_type=str)
 
         # write configuration
@@ -329,16 +335,15 @@ DATA_FILES = {
         # Celery worker for linux
         ('etc/init.d/',  ['extras/init.d/celeryd.frontend']),
         ('etc/default/', ['extras/default/celeryd.frontend']),
-        
-    ] +  # IRMA documentation generated with build_sphinx
-         include_data('docs/html', base='opt/irma/irma-frontend/docs/')
-      +  # IRMA web files 
-         include_data('web/app', base='opt/irma/irma-frontend/web/app')
-      +  include_data('web/dist', base='opt/irma/irma-frontend/web/dist')
-      +  [('web/app', [ 
-            'web/bower.json', 'web/gulpfile.js', 'web/package.json', 
-            'web/.bowerrc', 'web/.jshintrc' ]
-         )]
+
+    ]  # IRMA documentation generated with build_sphinx
+       + include_data('docs/html', base='opt/irma/irma-frontend/docs/')
+       # IRMA web files
+       + include_data('web/app', base='opt/irma/irma-frontend/web/app')
+       + include_data('web/dist', base='opt/irma/irma-frontend/web/dist')
+       + [('web/app', [
+           'web/bower.json', 'web/gulpfile.js', 'web/package.json',
+           'web/.bowerrc', 'web/.jshintrc'])]
 }
 
 

@@ -18,6 +18,7 @@ import logging
 from lib.plugins import PluginManager
 from lib.plugin_result import PluginResult
 
+
 class IrmaFormatter:
 
     _instance = None

@@ -15,6 +15,7 @@
 
 from lib.plugins import PluginBase
 
+
 class AntivirusFormatterPlugin(PluginBase):
 
     # =================
@@ -28,9 +29,8 @@ class AntivirusFormatterPlugin(PluginBase):
     _plugin_description_ = "Default Formatter for Antivirus category"
     _plugin_dependencies_ = []
 
-
     # ===========
-    #  Formatter 
+    #  Formatter
     # ===========
 
     @staticmethod

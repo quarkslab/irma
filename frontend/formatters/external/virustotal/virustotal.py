@@ -15,6 +15,7 @@
 
 from lib.plugins import PluginBase
 
+
 class VirusTotalFormatterPlugin(PluginBase):
 
     # =================
@@ -28,9 +29,8 @@ class VirusTotalFormatterPlugin(PluginBase):
     _plugin_description_ = "VirusTotal results Formatter"
     _plugin_dependencies_ = []
 
-
     # ===========
-    #  Formatter 
+    #  Formatter
     # ===========
 
     @staticmethod
@@ -38,7 +38,7 @@ class VirusTotalFormatterPlugin(PluginBase):
         expected_name = VirusTotalFormatterPlugin.plugin_name
         expected_category = VirusTotalFormatterPlugin.plugin_category
         return raw_result.get('type', None) == expected_category and \
-               raw_result.get('name', None) == expected_name
+            raw_result.get('name', None) == expected_name
 
     """
     VT AVs list
@@ -61,13 +61,15 @@ class VirusTotalFormatterPlugin(PluginBase):
             # get ratios from virustotal results
             nb_detect = av_result.get('positives', 0)
             nb_total = av_result.get('total', 0)
-            raw_result['results'] = "detected by {0}/{1}".format(nb_detect, nb_total)
+            raw_result['results'] = "detected by {0}/{1}" \
+                                    "".format(nb_detect, nb_total)
             # get antivirus results
             av_probes = ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee',
                          'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']
-            results = filter(lambda (k, v): k in av_probes, 
+            results = filter(lambda (k, v): k in av_probes,
                              av_result.get('scans', {}).items())
-            results = dict(map(lambda (k, v): (k, v.get('result', None)), results))
+            results = dict(map(lambda (k, v): (k, v.get('result', None)),
+                               results))
             raw_result.update(results)
         elif status == 0:
             raw_result['results'] = av_result.get('verbose_msg', None)
