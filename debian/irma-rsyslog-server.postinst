@@ -20,7 +20,7 @@ set -e
 
 case "$1" in
     configure)
-		invoke-rc.d rsyslog restart
+        invoke-rc.d rsyslog restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

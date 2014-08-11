@@ -1,0 +1,37 @@
+Template: irma-brain-ftpd/probe_user
+Type: string
+Default: probe
+Description: FTPs account for probes
+ Probes connect to brain by FTPs in order to download sample to be analyzed.
+ Only one account should be configured as all the probe will share only one
+ account.
+ .
+ Please specify the username that probes will use with FTPs
+ connections:
+
+Template: irma-brain-ftpd/probe_password
+Type: password
+Default: probe
+Description: FTPs account for probes
+ Probes connect to brain by FTPs in order to download sample to be analyzed.
+ Only one account should be configured as all the probe will share only one
+ account.
+ .
+ Please specify the password that probes will use with FTPs
+ connections:
+
+Template: irma-brain-ftpd/frontend_user
+Type: string
+Default: frontend
+Description: FTPs account for the frontend
+ Probes connect to brain by FTPs in order to upload the sample to be analyzed.
+ .
+ Please specify the username that the frontend will use with FTPs connections:
+
+Template: irma-brain-ftpd/frontend_password
+Type: password
+Default: frontend
+Description: FTPs account for the frontend
+ Probes connect to brain by FTPs in order to upload the sample to be analyzed.
+ .
+ Please specify the password that the frontend will use with FTPs connections:
