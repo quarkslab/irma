@@ -45,21 +45,21 @@ IRMA_DEFAULT_FRONTEND_INST="$DEFAULT_DIR/$IRMA_INITD_FRONTEND"
 
 case "$1" in
     configure)
-		# check for user
-		if ! id -u $IRMA_USER > /dev/null 2>&1; then
-			adduser --system --no-create-home --group $IRMA_USER
-		fi
+        # check for user
+        if ! id -u $IRMA_USER > /dev/null 2>&1; then
+            adduser --system --no-create-home --group $IRMA_USER
+        fi
         # fresh install
         if [ ! "$2" ] || [ "$2" = "<unknown>" ] ; then
-		    pip install --upgrade -r $IRMA_FRONTEND_INST_DIR/requirements.txt
+            pip install --upgrade -r $IRMA_FRONTEND_INST_DIR/requirements.txt
             update-rc.d $IRMA_INITD_FRONTEND defaults
         else
             # change default configuration
-            python $IRMA_PROBE_INST_DIR/setup.py configure \
-            	--install-base="$IRMA_FRONTEND_INST_DIR" \
-            	--application
+            python $IRMA_FRONTEND_INST_DIR/setup.py configure \
+                --install-base="$IRMA_FRONTEND_INST_DIR" \
+                --application
         fi
-		invoke-rc.d $IRMA_INITD_FRONTEND restart
+        invoke-rc.d $IRMA_INITD_FRONTEND restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

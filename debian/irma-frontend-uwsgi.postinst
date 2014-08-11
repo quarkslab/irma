@@ -32,11 +32,11 @@ IRMA_UWSGI_FRONTEND="frontend-api.xml"
 
 case "$1" in
     configure)
-		if [ -f "$UWSGI_DIR/$UWSGI_SENABLED/$IRMA_UWSGI_FRONTEND" ]; then
-			rm "$UWSGI_DIR/$UWSGI_SENABLED/$IRMA_UWSGI_FRONTEND"
-		fi
-		ln -s "$UWSGI_DIR/$UWSGI_SAVAILABLE/$IRMA_UWSGI_FRONTEND" "$UWSGI_DIR/$UWSGI_SENABLED"
-		invoke-rc.d uwsgi restart
+        if [ -f "$UWSGI_DIR/$UWSGI_SENABLED/$IRMA_UWSGI_FRONTEND" ]; then
+            rm "$UWSGI_DIR/$UWSGI_SENABLED/$IRMA_UWSGI_FRONTEND"
+        fi
+        ln -s "$UWSGI_DIR/$UWSGI_SAVAILABLE/$IRMA_UWSGI_FRONTEND" "$UWSGI_DIR/$UWSGI_SENABLED"
+        invoke-rc.d uwsgi restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

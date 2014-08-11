@@ -31,7 +31,7 @@ IRMA_RSYSLOGD_FRONTEND_INST="$RSYSLOGD_CONF_DIR/$IRMA_RSYSLOGD_FRONTEND"
 
 case "$1" in
     configure)
-		invoke-rc.d rsyslog restart
+        invoke-rc.d rsyslog restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

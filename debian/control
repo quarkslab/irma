@@ -10,12 +10,12 @@ Package: irma-frontend-app
 Architecture: all
 Depends: ${misc:Depends}, python, python-pip, mongodb, python-gridfs, python2.7-dev
 Description: IRMA Frontend application
+Replaces: irma-frontend-api, irma-frontend-web-data
 
 Package: irma-frontend-uwsgi
 Architecture: all
 Depends: ${misc:Depends}, irma-frontend-app, uwsgi, uwsgi-plugin-python
 Description: IRMA Frontend REST API uwsgi
- IRMA Frontend Python-based REST API uwsgi
 
 Package: irma-frontend-nginx
 Architecture: all
@@ -37,4 +37,4 @@ Package: irma-frontend
 Architecture: all
 Depends: irma-frontend-app, irma-frontend-uwsgi, irma-frontend-nginx, ${shlibs:Depends}, ${misc:Depends}
 Recommends: irma-frontend-rsyslog, irma-frontend-logrotate, 
-Description: IRMA Frontend Meta-package
+Description: IRMA Frontend meta-package

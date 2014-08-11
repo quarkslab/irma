@@ -113,7 +113,7 @@ def ask(question, answer_type=str, default=None):
     elif answer_type is int:
         answer = None
         while True:
-            if default:
+            if default is not None:
                 answer = input('> {0} [{1}] '.format(question, default))
             else:
                 answer = input('> {0} '.format(question))
@@ -146,7 +146,7 @@ class sdist(_sdist):
 
 class configure(Command):
 
-    description = "Configure IRMA's probe application and modules"
+    description = "Configure IRMA's frontend application and modules"
 
     # NOTE: user defined option must be defined with the following format:
     # tuple ('long option', 'short option', 'description')
@@ -213,23 +213,23 @@ class configure(Command):
         configuration['collections']['scan_file_fs'] = 'fs'
         configuration['broker_brain'] = OrderedDict()
         configuration['broker_brain']['host'] = 'brain.irma'
-        configuration['broker_brain']['vhost'] = 'mqbrain'
-        configuration['broker_brain']['username'] = 'brain'
-        configuration['broker_brain']['password'] = 'brain'
+        configuration['broker_brain']['vhost'] = None
+        configuration['broker_brain']['username'] = None
+        configuration['broker_brain']['password'] = None
         configuration['broker_brain']['queue'] = 'brain'
         configuration['broker_frontend'] = OrderedDict()
         configuration['broker_frontend']['host'] = 'brain.irma'
-        configuration['broker_frontend']['vhost'] = 'mqfrontend'
-        configuration['broker_frontend']['username'] = 'frontend'
-        configuration['broker_frontend']['password'] = 'frontend'
+        configuration['broker_frontend']['vhost'] = None
+        configuration['broker_frontend']['username'] = None
+        configuration['broker_frontend']['password'] = None
         configuration['broker_frontend']['queue'] = 'frontend'
         configuration['backend_brain'] = OrderedDict()
         configuration['backend_brain']['host'] = 'brain.irma'
         configuration['backend_brain']['db'] = 0
         configuration['ftp_brain'] = OrderedDict()
         configuration['ftp_brain']['host'] = 'brain.irma'
-        configuration['ftp_brain']['username'] = 'frontend'
-        configuration['ftp_brain']['password'] = 'frontend'
+        configuration['ftp_brain']['username'] = None
+        configuration['ftp_brain']['password'] = None
         configuration['cron_frontend'] = OrderedDict()
         configuration['cron_frontend']['clean_db_scan_info_max_age'] = 100
         configuration['cron_frontend']['clean_db_scan_file_max_age'] = 2
@@ -261,7 +261,7 @@ needed by the application. To abort the configuration, press CTRL+D.
         # log configuration
         configuration['log']['syslog'] = \
             int(ask('Do you want to enable syslog logging?',
-                    answer_type=bool, default=False))
+                    answer_type=bool, default=configuration['log']['syslog']))
         # mongo configration
         configuration['mongodb']['host'] = \
             ask('What is the hostname of your mongodb server?',
@@ -275,33 +275,30 @@ needed by the application. To abort the configuration, press CTRL+D.
                 answer_type=str, default=configuration['broker_brain']['host'])
         configuration['broker_brain']['vhost'] = \
             ask('What is the vhost defined for the brain on your RabbitMQ server?',
-                answer_type=str, default=configuration['broker_brain']['vhost'])
+                answer_type=str)
         configuration['broker_brain']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
-                answer_type=str,
-                default=configuration['broker_brain']['username'])
+                answer_type=str)
         configuration['broker_brain']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
-                answer_type=str,
-                default=configuration['broker_brain']['password'])
+                answer_type=str)
+        configuration['broker_frontend']['host'] = configuration['broker_brain']['host']
         configuration['broker_frontend']['vhost'] = \
             ask('What is the vhost defined for the frontend on your RabbitMQ server?',
-                answer_type=str, default=configuration['broker_frontend']['vhost'])
+                answer_type=str)
         configuration['broker_frontend']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
-                answer_type=str,
-                default=configuration['broker_frontend']['username'])
+                answer_type=str)
         configuration['broker_frontend']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
-                answer_type=str,
-                default=configuration['broker_frontend']['password'])
+                answer_type=str)
         # backend configuration
         configuration['backend_brain']['host'] = \
             ask('What is the hostname of your Redis server?',
                 answer_type=str,
                 default=configuration['backend_brain']['host'])
         configuration['backend_brain']['db'] = \
-            ask('Which database id is used for brains on your Redis server?',
+            ask('Which database id is used for brain on your Redis server?',
                 answer_type=int, default=configuration['backend_brain']['db'])
         # ftp brain configuration
         configuration['ftp_brain']['host'] = \
@@ -309,12 +306,10 @@ needed by the application. To abort the configuration, press CTRL+D.
                 answer_type=str, default=configuration['ftp_brain']['host'])
         configuration['ftp_brain']['username'] = \
             ask('What is the username defined for the frontend on your FTP server?',
-                answer_type=str,
-                default=configuration['ftp_brain']['username'])
+                answer_type=str)
         configuration['ftp_brain']['password'] = \
             ask('What is the password defined for the frontend on your FTP server?',
-                answer_type=str,
-                default=configuration['ftp_brain']['password'])
+                answer_type=str)
 
         # write configuration
         config_file = normpath(join(self.install_base, config_file))

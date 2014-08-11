@@ -32,14 +32,14 @@ IRMA_NGINX_FRONTEND="frontend"
 
 case "$1" in
     configure)
-		if [ -f "$NGINX_DIR/$NGINX_SENABLED/$IRMA_NGINX_FRONTEND" ]; then
-			rm "$NGINX_DIR/$NGINX_SENABLED/$IRMA_NGINX_FRONTEND"
-		fi
-		if [ -f "$NGINX_DIR/$NGINX_SENABLED/default" ]; then
-			rm "$NGINX_DIR/$NGINX_SENABLED/default"
-		fi
-		ln -s "$NGINX_DIR/$NGINX_SAVAILABLE/$IRMA_NGINX_FRONTEND" "$NGINX_DIR/$NGINX_SENABLED/"
-		invoke-rc.d nginx restart
+        if [ -f "$NGINX_DIR/$NGINX_SENABLED/$IRMA_NGINX_FRONTEND" ]; then
+            rm "$NGINX_DIR/$NGINX_SENABLED/$IRMA_NGINX_FRONTEND"
+        fi
+        if [ -f "$NGINX_DIR/$NGINX_SENABLED/default" ]; then
+            rm "$NGINX_DIR/$NGINX_SENABLED/default"
+        fi
+        ln -s "$NGINX_DIR/$NGINX_SAVAILABLE/$IRMA_NGINX_FRONTEND" "$NGINX_DIR/$NGINX_SENABLED/"
+        invoke-rc.d nginx restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

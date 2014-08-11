@@ -28,9 +28,9 @@ IRMA_LOGROTATED_FRONTEND_INST="$LOGROTATED_CONF_DIR/$IRMA_LOGROTATED_FRONTEND"
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
-		if [ -f $IRMA_LOGROTATED_FRONTEND_INST ]; then
-			rm $IRMA_LOGROTATED_FRONTEND_INST
-		fi
+        if [ -f $IRMA_LOGROTATED_FRONTEND_INST ]; then
+            rm $IRMA_LOGROTATED_FRONTEND_INST
+        fi
     ;;
 
     *)
