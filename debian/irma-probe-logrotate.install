@@ -1,1 +1,1 @@
-config/logrotate.d/irma-probe /etc/logrotate.d/
+extras/logrotate.d/irma-probe etc/logrotate.d/

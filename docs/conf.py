@@ -38,10 +38,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'IRMA (probe)'
-copyright = u'2014, Quarkslab'
+project = 'IRMA probe'
+copyright = '2014, Quarkslab'
 
-# The version info for the project you're documenting, acts as replacement for
+# The version info for the project yo're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
@@ -182,8 +182,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'IRMA.tex', u'IRMA (probe) Documentation',
-   u'Quarkslab', 'manual'),
+  ('index', 'IRMA.tex', 'IRMA (probe) Documentation',
+   'Quarkslab', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -212,8 +212,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'IRMA', u'IRMA (probe) Documentation',
-     [u'Quarkslab'], 1)
+    ('index', 'IRMA', 'IRMA (probe) Documentation',
+     ['Quarkslab'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -226,8 +226,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'IRMA', u'IRMA (probe) Documentation',
-   u'Quarkslab', 'IRMA', 'One line description of project.',
+  ('index', 'IRMA', 'IRMA (probe) Documentation',
+   'Quarkslab', 'IRMA', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -244,10 +244,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'IRMA'
-epub_author = u'Quarkslab'
-epub_publisher = u'Quarkslab'
-epub_copyright = u'2014, Quarkslab'
+epub_title = 'IRMA'
+epub_author = 'Quarkslab'
+epub_publisher = 'Quarkslab'
+epub_copyright = '2014, Quarkslab'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.

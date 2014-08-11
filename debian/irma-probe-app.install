@@ -1,0 +1,11 @@
+MANIFEST.in opt/irma/irma-probe/
+setup.py opt/irma/irma-probe/
+setup.cfg opt/irma/irma-probe/
+requirements.txt opt/irma/irma-probe/
+config opt/irma/irma-probe/
+docs opt/irma/irma-probe/
+lib opt/irma/irma-probe/
+modules opt/irma/irma-probe/
+probe opt/irma/irma-probe/
+extras/init.d/celeryd.probe etc/init.d/
+extras/default/celeryd.probe etc/default/

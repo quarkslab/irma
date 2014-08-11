@@ -17,6 +17,7 @@
 include AUTHORS
 include LICENSE
 include README.rst
+include requirements.txt
 graft modules
 graft config
 graft docs

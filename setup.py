@@ -16,12 +16,15 @@
 import os
 import sys
 import fnmatch
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 
 from collections import OrderedDict
-from os.path import join, normpath, exists, dirname
+from os.path import join, normpath, exists, dirname, abspath
 from setuptools import setup, find_packages, Command
-from distutils.command.install_data import install_data as _install_data
+from distutils.command.sdist import sdist as _sdist
 from distutils.errors import DistutilsOptionError
 
 
@@ -110,20 +113,19 @@ def ask(question, answer_type=str, default=None):
     elif answer_type is int:
         answer = None
         while True:
-            if default:
+            if default is not None:
                 answer = input('> {0} [{1}] '.format(question, default))
             else:
                 answer = input('> {0} '.format(question))
             answer = answer.strip()
             if not answer:
                 answer = default
-                break
             try:
                 answer = int(answer)
                 break
             except:
                 print('You must enter an integer')
-            return answer
+        return answer
     else:
         raise NotImplemented()
 
@@ -132,14 +134,14 @@ def ask(question, answer_type=str, default=None):
 #  Custom commands
 # =================
 
-class install_data(_install_data):
+
+class sdist(_sdist):
 
     def run(self):
         # call build sphinx to build docs
-        build_sphinx = self.reinitialize_command("build_sphinx")
         self.run_command("build_sphinx")
         # call parent install data
-        _install_data.run(self)
+        _sdist.run(self)
 
 
 class configure(Command):
@@ -175,10 +177,11 @@ class configure(Command):
         ),
     ]
 
-    boolean_options = ['NSRL', 'VirusTotal']
+    boolean_options = ['application', 'NSRL', 'VirusTotal']
 
     def initialize_options(self):
-        self.install_base = None
+        # install_base is set to None so we can detect if its value is set
+        self.install_base = dirname(abspath(sys.argv[0]))
         # by default, we do not force the configuration of modules.
         # NOTE: one can enable the configuration of a module with a command
         # such as the following: python setup.py configure --NSRL --VirusTotal
@@ -187,10 +190,10 @@ class configure(Command):
         self.VirusTotal = False
 
     def finalize_options(self):
-        # check for install-base
+        # check for install_base installation directory
         if self.install_base is not None:
             self.install_base = self.install_base.strip()
-        if self.install_base in [None, '']:
+        if self.install_base == '':
             raise DistutilsOptionError("install-base option not supplied")
         # as setuptools returns integers, simply cast to boolean
         self.application = bool(self.application)
@@ -207,16 +210,16 @@ class configure(Command):
             if enabled:
                 try:
                     handle()
-                except KeyboardInterrupt:
+                except EOFError:
                     pass
 
     def _configure_application(self):
         # define default configuration
         configuration = OrderedDict()
         configuration['log'] = OrderedDict()
-        configuration['log']['syslog'] = 0
+        configuration['log']['syslog'] = False
         configuration['probe'] = OrderedDict()
-        configuration['probe']['name'] = ''
+        configuration['probe']['name'] = 'irma-probe'
         configuration['broker_probe'] = OrderedDict()
         configuration['broker_probe']['host'] = 'brain.irma'
         configuration['broker_probe']['vhost'] = None
@@ -239,7 +242,7 @@ The following script will help you to create a new configuration for
 IRMA probe application.
 
 Please answer to the following questions so this script can generate the files
-needed by the application. To abort the configuration, press CTRL+C.
+needed by the application. To abort the configuration, press CTRL+D.
 
         """)
 
@@ -254,23 +257,23 @@ needed by the application. To abort the configuration, press CTRL+C.
         # log configuration
         configuration['log']['syslog'] = \
             int(ask('Do you want to enable syslog logging?',
-                    answer_type=bool, default=False))
+                    answer_type=bool, default=configuration['log']['syslog']))
         # probe configration
         configuration['probe']['name'] = \
             ask('Which name would you like to give to your probe?',
-                answer_type=str)
+                answer_type=str, default=configuration['probe']['name'])
         # broker_probe configuration
         configuration['broker_probe']['host'] = \
-            ask('What is the hostname of your AMQP server?',
+            ask('What is the hostname of your RabbitMQ server?',
                 answer_type=str, default=configuration['broker_probe']['host'])
         configuration['broker_probe']['vhost'] = \
-            ask('What is the vhost defined for probes on your AMQP server?',
+            ask('What is the vhost defined for probes on your RabbitMQ server?',
                 answer_type=str)
         configuration['broker_probe']['username'] = \
-            ask('What is the username for this vhost on your AMQP server?',
+            ask('What is the username for this vhost on your RabbitMQ server?',
                 answer_type=str)
         configuration['broker_probe']['password'] = \
-            ask('What is the password for this vhost on your AMQP server?',
+            ask('What is the password for this vhost on your RabbitMQ server?',
                 answer_type=str)
         # backend_probe configuration
         configuration['backend_probe']['host'] = \
@@ -313,7 +316,7 @@ The following script will help you to create a new configuration for
 VirusTotal module on IRMA probe application.
 
 Please answer to the following questions so this script can generate the files
-needed by the application. To abort the configuration, press CTRL+C.
+needed by the application. To abort the configuration, press CTRL+D.
 
         """)
 
@@ -327,7 +330,7 @@ needed by the application. To abort the configuration, press CTRL+C.
 
         # VirusTotal configuration
         configuration['VirusTotal']['private'] = \
-            ask('Do you want to enable syslog logging?',
+            ask('Do you want to use VirusTotal private API?',
                 answer_type=bool,
                 default=configuration['VirusTotal']['private'])
         configuration['VirusTotal']['apikey'] = \
@@ -356,7 +359,7 @@ The following script will help you to create a new configuration for
 NSRL module on IRMA probe application.
 
 Please answer to the following questions so this script can generate the files
-needed by the application. To abort the configuration, press CTRL+C.
+needed by the application. To abort the configuration, press CTRL+D.
 
         """)
 
@@ -396,15 +399,15 @@ DATA_FILES = {
     # Linux-specific data files
     'linux2': [
         # setup.py related files
-        ('', ['setup.py', 'setup.cfg', 'MANIFEST.in']),
+        ('', ['setup.py', 'setup.cfg', 'MANIFEST.in', 'requirements.txt']),
         # Celery worker for linux
-        ('etc/init.d/',  ['extras/init.d/celeryd.probe']),
-        ('etc/default/', ['extras/default/celeryd.probe']),
+        ('/etc/init.d/',  ['extras/init.d/celeryd.probe']),
+        ('/etc/default/', ['extras/default/celeryd.probe']),
     ] +  # IRMA documentation generated with build_sphinx
-         include_data('docs/html', base='usr/share/doc/irma/irma-probe/'),
+         include_data('docs/html', base='/opt/doc/irma/irma-probe/'),
     'win32': [
         # setup.py related files
-        ('', ['setup.py', 'setup.cfg', 'MANIFEST.in']),
+        ('', ['setup.py', 'setup.cfg', 'MANIFEST.in', 'requirements.txt']),
         # Celery worker for windows
         (
             normpath(join(os.environ.get('APPDATA', ''),
@@ -421,11 +424,18 @@ DATA_FILES = {
 }
 
 
+# =======
+#  Setup
+# =======
+
+# NOTE: due to many HACKS, we cannot use setup.py to declare dependencies
+# anymore. This should be fixed in the next releases.
+
 setup(
     name='irma-probe-app',
     version='1.0.4',
     url='http://irma.quarkslab.com',
-    author='QuarksLab',
+    author='Quarkslab',
     author_email='irma@quarkslab.com',
     description='Probe package application for IRMA',
     license='Apache',
@@ -433,8 +443,8 @@ setup(
     include_package_data=True,
     data_files=DATA_FILES.get(sys.platform, None),
     cmdclass={
-        # override install_data so it can call sphinx to build docs
-        "install_data": install_data,
+        # override sdist so it can call sphinx to build docs
+        "sdist": sdist,
         # setup a configure command
         "configure": configure
     },

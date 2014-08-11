@@ -18,28 +18,47 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-PROBES_DIR=/opt/irma/irma-probe/
+#
+# User
+#
+
+IRMA_USER="irma"
+
+#
+# Probe Application configuration
+#
+
+IRMA_INST_DIR="/opt/irma"
+IRMA_PROBE_DIR="irma-probe"
+IRMA_PROBE_INST_DIR="$IRMA_INST_DIR/$IRMA_PROBE_DIR/"
+
+INITD_DIR="/etc/init.d"
+IRMA_INITD_PROBE="celeryd.probe"
+IRMA_INITD_PROBE_INST="$INITD_DIR/$IRMA_INITD_PROBE"
+
+DEFAULT_DIR="/etc/default"
+IRMA_DEFAULT_PROBE="celeryd.probe"
+IRMA_DEFAULT_PROBE_INST="$DEFAULT_DIR/$IRMA_INITD_PROBE"
 
 
 case "$1" in
     upgrade|failed-upgrade|abort-upgrade)
-		if [ -f /etc/init.d/celeryd.probe ]; then
-			invoke-rc.d celeryd.probe restart
-		fi
+        if [ -f $IRMA_INITD_PROBE_INST ]; then
+            invoke-rc.d $IRMA_INITD_PROBE restart
+        fi
     ;;
     purge|remove|abort-install|disappear)
-		if [ -f /etc/default/celeryd.probe ]; then
-			rm /etc/default/celeryd.probe
-		fi
-		if [ -f /etc/init.d/celeryd.probe ]; then
-			invoke-rc.d celeryd.probe stop
-			update-rc.d -f celeryd.probe remove
-			rm /etc/init.d/celeryd.probe
-		fi
-		if [ -d $PROBES_DIR ]; then
-            echo "Removing installation directory"
-       	    rm -r $PROBES_DIR
-		fi
+        if [ -f $IRMA_INITD_PROBE_INST ]; then
+            invoke-rc.d $IRMA_INITD_PROBE stop
+            update-rc.d -f $IRMA_INITD_PROBE remove
+            rm $IRMA_INITD_PROBE_INST
+        fi
+        if [ -f $IRMA_DEFAULT_PROBE_INST ]; then
+            rm $IRMA_DEFAULT_PROBE_INST
+        fi
+        if [ -d $IRMA_PROBE_INST_DIR ]; then
+            rm -r $IRMA_PROBE_INST_DIR
+        fi
     ;;
 
     *)
