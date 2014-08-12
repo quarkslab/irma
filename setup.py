@@ -333,14 +333,14 @@ DATA_FILES = {
         # setup.py related files
         ('', ['setup.py', 'setup.cfg', 'MANIFEST.in', 'requirements.txt']),
         # Celery worker for linux
-        ('etc/init.d/',  ['extras/init.d/celeryd.frontend']),
-        ('etc/default/', ['extras/default/celeryd.frontend']),
+        ('/etc/init.d/',  ['extras/init.d/celeryd.frontend']),
+        ('/etc/default/', ['extras/default/celeryd.frontend']),
 
     ]  # IRMA documentation generated with build_sphinx
-       + include_data('docs/html', base='opt/irma/irma-frontend/docs/')
+       + include_data('docs/html', base='/opt/irma/irma-frontend/docs/')
        # IRMA web files
-       + include_data('web/app', base='opt/irma/irma-frontend/web/app')
-       + include_data('web/dist', base='opt/irma/irma-frontend/web/dist')
+       + include_data('web/app', base='/opt/irma/irma-frontend/web/app')
+       + include_data('web/dist', base='/opt/irma/irma-frontend/web/dist')
        + [('web/app', [
            'web/bower.json', 'web/gulpfile.js', 'web/package.json',
            'web/.bowerrc', 'web/.jshintrc'])]
