@@ -14,38 +14,16 @@
 # terms contained in the LICENSE file.
 
 
-# ============
-#  Data files
-# ============
-
 include AUTHORS
 include LICENSE
 include README.rst
-
-# =====================
-#  Configuration files
-# =====================
-
-graft config/*
-exclude config/brain.ini
-
-# ======================
-#  Installation Scripts
-# ======================
-
+include requirements.txt
 graft install
-
-# =======
-#  Tests
-# =======
-
-prune tests
+graft config
+graft docs
+graft extras
+graft tests
 prune lib/tests
-
-# ===========
-#  VCS files
-# ===========
-
 global-exclude *.git
 global-exclude *.gitignore
 global-exclude *.gitmodules

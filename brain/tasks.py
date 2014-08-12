@@ -279,7 +279,8 @@ def scan_cancel(scanid):
         try:
             scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
         except IrmaDatabaseError:
-            log.debug("{0}: sql no scan with this id error {1}".format(scanid, e))
+            log.debug("{0}: sql no scan with this id error {1}"
+                      "".format(scanid, e))
             return IrmaTaskReturn.warning(IrmaScanStatus.created)
         if scan.status == IrmaScanStatus.launched:
             scan.status = IrmaScanStatus.cancelling

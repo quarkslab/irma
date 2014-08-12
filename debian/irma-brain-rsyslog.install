@@ -1,1 +1,1 @@
-config/rsyslog.d/irma-brain-client.conf /etc/rsyslog.d/
+extras/rsyslog.d/irma-brain-client.conf etc/rsyslog.d/
