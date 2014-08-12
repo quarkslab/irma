@@ -1,1 +1,1 @@
-config/rsyslog.d/irma-probe-client.conf /etc/rsyslog.d/
+extras/rsyslog.d/irma-probe-client.conf etc/rsyslog.d/

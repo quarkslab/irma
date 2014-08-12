@@ -14,39 +14,16 @@
 # terms contained in the LICENSE file.
 
 
-# ============
-#  Data files
-# ============
-
 include AUTHORS
 include LICENSE
 include README.rst
+include requirements.txt
 graft modules
-
-# =====================
-#  Configuration files
-# =====================
-
 graft config
-exclude config/probe.ini
-
-# ======================
-#  Installation Scripts
-# ======================
-
-graft install
-
-# =======
-#  Tests
-# =======
-
-prune tests
+graft docs
+graft extras
+graft tests
 prune lib/tests
-
-# ===========
-#  VCS files
-# ===========
-
 global-exclude *.git
 global-exclude *.gitignore
 global-exclude *.gitmodules
