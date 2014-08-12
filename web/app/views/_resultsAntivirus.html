@@ -1,8 +1,8 @@
-<table class="table many-results text-center" ng-if="state.scan.results">
+<table class="table many-results text-center" ng-if="state.scan.antivirus">
   <thead>
     <tr>
       <th class="first-col">&nbsp;</th>
-      <th ng-repeat="(probe, data) in state.scan.base">
+      <th ng-repeat="(probe, data) in state.scan.antivirusProbes">
         <div title="{{probe}}" 
           data-content="<span>{{data.type}}</span> <br> {{data.version || 'No version information available'}}" 
           data-trigger="hover"
@@ -16,21 +16,21 @@
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="(id, file) in state.scan.results">
+    <tr ng-repeat="(id, file) in state.scan.antivirus">
       <th>
-        {{file.filename}}
+        <a href="#/results/{{state.scan.id}}/file/{{id}}">{{file.filename}}</a>
       </th>
       <td ng-repeat="(toolName, toolResults) in file.results">
         <div data-trigger="hover" bs-popover="state.scan.getPopover(toolName, toolResults)">
-          <ng-switch on="toolResults.result">
-            <div class="result" ng-switch-when="null">
+          <ng-switch on="toolResults.status">
+            <div class="result" ng-switch-when="0">
               <span boolean-display="true"></span>
             </div>
-            <div class="result" ng-switch-when="__loading__">
-              <span class="glyphicon glyphicon-time" style="color: #555"></span>
+            <div class="result" ng-switch-when="1">
+              <span boolean-display="false"></span>
             </div>
             <div class="result" ng-switch-default>
-              <span boolean-display="false"></span>
+              <span class="glyphicon glyphicon-exclamation-sign" style="color: #f0ad4e ;"></span>
             </div>
           </ng-switch>
         </div>

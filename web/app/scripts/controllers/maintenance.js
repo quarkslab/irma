@@ -8,13 +8,9 @@
     // Initialize controller
     for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
 
-    this.$scope.goToScan = this.goToScan.bind(this);
-  };
-
-  Ctrl.prototype.goToScan = function(id){
-    this.state.goTo('results', id);
+    // We can do things here
   };
 
   Ctrl.$inject = dependencies;
-  angular.module('irma').controller('ExistingCtrl', Ctrl);
+  angular.module('irma').controller('MaintenanceCtrl', Ctrl);
 }());
