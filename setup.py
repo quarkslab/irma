@@ -401,27 +401,29 @@ DATA_FILES = {
     'linux2': [
         # setup.py related files
         ('', ['setup.py', 'setup.cfg', 'MANIFEST.in', 'requirements.txt']),
-        # Celery worker for linux
-        ('/etc/init.d/',  ['extras/init.d/celeryd.probe']),
-        ('/etc/default/', ['extras/default/celeryd.probe']),
-    ] +  # IRMA documentation generated with build_sphinx
-         include_data('docs/html', base='/opt/doc/irma/irma-probe/'),
+        # Celery worker for linux (removed as cannot chmod using setuptools)
+        # ('/etc/init.d/',  ['extras/init.d/celeryd.probe']),
+        # ('/etc/default/', ['extras/default/celeryd.probe']),
+    ]  # IRMA documentation generated with build_sphinx
+       + include_data('docs/', base='')
+       # IRMA extras files
+       + include_data('extras/', base=''),
     'win32': [
         # setup.py related files
         ('', ['setup.py', 'setup.cfg', 'MANIFEST.in', 'requirements.txt']),
-        # Celery worker for windows
-        (
-            normpath(join(os.environ.get('APPDATA', ''),
-                          'irma/irma-probe/services')),
-            [
-                'extras/celery/win32service/celeryd.ini',
-                'extras/celery/win32service/service.py'
-            ]
-        )
-    ] +  # IRMA documentation generated with build_sphinx
-         include_data('docs/html',
-                      base=join(os.environ.get('PROGRAMFILES', ''),
-                                'irma/irma-probe/doc')),
+        # Celery worker for windows (removed as also removed for linux)
+        # (
+        #     normpath(join(os.environ.get('APPDATA', ''),
+        #                   'irma/irma-probe/services')),
+        #     [
+        #         'extras/celery/winsrv/celeryd.ini',
+        #         'extras/celery/winsrv/service.py'
+        #     ]
+        # )
+    ]  # IRMA documentation generated with build_sphinx
+       + include_data('docs/', base='')
+       # IRMA extras files
+       + include_data('extras/', base=''),
 }
 
 
