@@ -21,6 +21,7 @@ from ConfigParser import SafeConfigParser
 from datetime import datetime
 
 from lib.common.utils import timestamp
+from lib.common.utils import to_unicode
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
@@ -99,7 +100,10 @@ class VirusTotalPlugin(PluginBase):
             stopped = timestamp(datetime.utcnow())
             results.duration = stopped - started
             # check eventually for errors
-            if (response['response_code'] == 204) or \
+            if 'error' in response:
+                results.status = self.VirusTotalResult.ERROR
+                results.error = "Network probably unreachable"
+            elif (response['response_code'] == 204) or \
                (response['response_code'] == 403):
                 results.status = self.VirusTotalResult.ERROR
                 results.error = response['results']['verbose_msg']
@@ -108,8 +112,8 @@ class VirusTotalPlugin(PluginBase):
                 results.status = self.VirusTotalResult.NOT_FOUND
             else:
                 results.status = self.VirusTotalResult.FOUND
-            results.results = response
+            results.results = response if 'error' not in response else None
         except Exception as e:
             results.status = self.VirusTotalResult.ERROR
             results.results = str(e)
-        return results
+        return to_unicode(results)
