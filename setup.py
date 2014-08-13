@@ -199,7 +199,7 @@ class configure(Command):
         # define default configuration
         configuration = OrderedDict()
         configuration['log'] = OrderedDict()
-        configuration['log']['syslog'] = 0
+        configuration['log']['syslog'] = False
         configuration['mongodb'] = OrderedDict()
         configuration['mongodb']['host'] = '127.0.0.1'
         configuration['mongodb']['port'] = '27017'
@@ -260,7 +260,7 @@ needed by the application. To abort the configuration, press CTRL+D.
 
         # log configuration
         configuration['log']['syslog'] = \
-            int(ask('Do you want to enable syslog logging?',
+            int(ask('Do you want to enable syslog logging? (experimental)',
                     answer_type=bool, default=configuration['log']['syslog']))
         # mongo configration
         configuration['mongodb']['host'] = \
@@ -332,18 +332,20 @@ DATA_FILES = {
     'linux2': [
         # setup.py related files
         ('', ['setup.py', 'setup.cfg', 'MANIFEST.in', 'requirements.txt']),
-        # Celery worker for linux
-        ('/etc/init.d/',  ['extras/init.d/celeryd.frontend']),
-        ('/etc/default/', ['extras/default/celeryd.frontend']),
+        # Celery worker for linux (removed as cannot chmod using setuptools)
+        # ('/etc/init.d/',  ['extras/init.d/celeryd.frontend']),
+        # ('/etc/default/', ['extras/default/celeryd.frontend']),
 
     ]  # IRMA documentation generated with build_sphinx
-       + include_data('docs/html', base='/opt/irma/irma-frontend/docs/')
-       # IRMA web files
-       + include_data('web/app', base='/opt/irma/irma-frontend/web/app')
-       + include_data('web/dist', base='/opt/irma/irma-frontend/web/dist')
+       + include_data('docs/', base='')
+       # IRMA web files (skip tools to build static files)
+       + include_data('web/app', base='')
+       + include_data('web/dist', base='')
        + [('web/app', [
            'web/bower.json', 'web/gulpfile.js', 'web/package.json',
            'web/.bowerrc', 'web/.jshintrc'])]
+       # IRMA extras files
+       + include_data('extras/', base='')
 }
 
 
@@ -355,7 +357,7 @@ DATA_FILES = {
 # anymore. This should be fixed in the next releases.
 
 setup(
-    name='irma-probe-app',
+    name='irma-frontend-app',
     version='1.0.4',
     url='http://irma.quarkslab.com',
     author='Quarkslab',
