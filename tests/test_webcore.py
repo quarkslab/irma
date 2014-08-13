@@ -15,13 +15,14 @@
 
 import sys
 import os
+from lib.irma.database.sqlhandler import SQLDatabase
 
 pardir = os.path.abspath(os.path.join(__file__, os.path.pardir))
 sys.path.append(os.path.dirname(pardir))
 
 import logging
 import unittest
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
 from lib.irma.common.exceptions import IrmaConfigurationError
 from lib.common.compat import timestamp
 
@@ -31,8 +32,7 @@ os.environ['IRMA_FRONTEND_CFG_PATH'] = cwd
 
 import frontend.web.core as core
 from frontend.web.core import IrmaFrontendWarning, IrmaFrontendError
-from frontend.objects import ScanInfo, ScanResults, ScanFile, \
-ScanRefResults
+from frontend.sqlobjects import Scan, sql_db_connect
 
 # Parameter for scan test
 PROBES = ['Probe1', 'Probe2']
@@ -66,10 +66,11 @@ def mock_scan_cancel(scanid, successful=True):
 
 
 def mock_scan_launch(scanid, force, successful=True):
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
+    sql_db_connect()
+    session = SQLDatabase.get_session()
+    scan = Scan.load_from_ext_id(scanid, session)
     if scan.status == IrmaScanStatus.created:
-        scan.update_status(IrmaScanStatus.launched)
-    scan.release()
+        scan.status = IrmaScanStatus.launched
     return ['Probe1', 'Probe2']
 
 
@@ -81,10 +82,11 @@ def mock_scan_progress(scanid, successful=True):
 
 
 def mock_scan_add_result(scanid):
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
+    sql_db_connect()
+    session = SQLDatabase.get_session()
+    scan = Scan.load_from_ext_id(scanid, session)
     if scan.status != IrmaScanStatus.launched:
         raise IrmaFrontendWarning(scan.status)
-    scan.release()
 
 
 core._task_probe_list = mock_probe_list
@@ -117,19 +119,13 @@ def enable_logging(level=logging.INFO,
 # ============
 
 class WebCoreTestCase(unittest.TestCase):
-    """
     def setUp(self):
-        self.db = NoSQLDatabase(test_db_name, test_db_uri)
-        if self.db.db_instance() is None:
-            self.db._connect()
-        dbh = self.db.db_instance()
-        database = dbh[test_db_name]
-        self.collection = database[test_db_collection]
-        self.collection.remove()
+        sql_db_connect()
+        self.session = SQLDatabase.get_session()
 
     def tearDown(self):
-        self.db._disconnect()
-    """
+        pass
+
     def assertListContains(self, list1, list2):
         for l in list1:
             self.assertIn(l, list2)
@@ -155,7 +151,7 @@ def add_fake_results(scan, probe):
         scanres.release()
 
 
-class TestNoSQLDatabaseObject(WebCoreTestCase):
+class TestSQLDatabaseObject(WebCoreTestCase):
 
     def test_scan_new_id(self):
         # test we got an id
