@@ -88,8 +88,11 @@ class IrmaScanStatus:
     finished = 50
     flushed = 100
     error = 200
+    # Probes 201-209
     error_probe_missing = 201
-    error_ftp_upload = 202
+    error_probe_na = 202
+    # FTP 210-219
+    error_ftp_upload = 210
     label = {created: "created",
              launched: "launched",
              cancelling: "cancelling",
@@ -98,7 +101,8 @@ class IrmaScanStatus:
              finished: "finished",
              flushed: "flushed",
              error: "error",
-             error_probe_missing: "probe(s) missing",
+             error_probe_missing: "probelist missing",
+             error_probe_na: "probe(s) not available",
              error_ftp_upload: "ftp upload error"
              }
 
