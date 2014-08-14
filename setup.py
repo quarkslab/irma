@@ -338,10 +338,12 @@ DATA_FILES = {
 
     ]  # IRMA documentation generated with build_sphinx
        + include_data('docs/', base='')
-       # IRMA web files (skip tools to build static files)
+       # IRMA web files
+       # NOTE: we include manually folders/files to skip tools that are
+       # downloaded through bower/gulp to build static files
        + include_data('web/app', base='')
        + include_data('web/dist', base='')
-       + [('web/app', [
+       + [('web', [
            'web/bower.json', 'web/gulpfile.js', 'web/package.json',
            'web/.bowerrc', 'web/.jshintrc'])]
        # IRMA extras files
