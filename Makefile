@@ -34,6 +34,7 @@ builddeb:
 clean:
 	$(PYTHON) setup.py clean
 	#$(MAKE) -f $(CURDIR)/debian/rules clean
+	rm -rf $(CURDIR)/irma_probe_app.egg-info
 	rm -rf $(CURDIR)/debian/*.log
 	rm -rf $(CURDIR)/debian/*.substvars
 	rm -rf $(CURDIR)/debian/irma-probe
