@@ -178,7 +178,7 @@ def scan(scanid, scan_request):
         for p in probelist:
             # check if probe exists
             if p not in available_probelist:
-                scan.status = IrmaScanStatus.error_probe_missing
+                scan.status = IrmaScanStatus.error_probe_na
                 sql.commit()
                 msg = "BrainTask: Unknown probe {0}".format(p)
                 log.debug("{0}: Unknown probe {1}".format(scanid, p))
