@@ -16,8 +16,9 @@
     </p>
   </div>
 
-  <div ng-if="state.nbFiles() <= 3" ng-include="'views/_results.html'"></div>
-  <div ng-if="state.nbFiles() > 3" ng-include="'views/_resultsMany.html'"></div>
+  <!--<div ng-if="state.nbFiles() <= 3" ng-include="'views/_results.html'"></div>
+  <div ng-if="state.nbFiles() > 3" ng-include="'views/_resultsMany.html'"></div>-->
+  <div ng-include="'views/_scanAntivirus.html'"></div>
 
 </div>
 
