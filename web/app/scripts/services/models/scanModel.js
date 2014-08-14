@@ -64,6 +64,11 @@
           title: probe,
           content: 'File compromised'
         };
+      } else if(results.status === 'loading'){
+        return {
+          title: probe,
+          content: 'Waiting for response'
+        };
       } else {
         return {
           title: probe,
@@ -164,7 +169,7 @@
     ScanModel.prototype.getResults = function(){
       $log.info('Updating results');
       return this.api.scan.getResults(this).then(function(data){
-        this.results = this.populateResults(data.scan_results);
+        this.results = data.scan_results; //this.populateResults(data.scan_results);
         this.buildAntivirus();
       }.bind(this), function(data){
         $rootScope.$broadcast('errorResults', data);
@@ -186,22 +191,25 @@
       this.antivirus = {};
       this.antivirusProbes = {};
       _.forOwn(this.results, function(fileData, fileId){
-        this.antivirus[fileId] = _.omit(fileData, 'results');
-        this.antivirus[fileId].results = {};
         _.forOwn(fileData.results, function(probeData, probeName){
           if(probeData.type === 'antivirus'){
-            this.antivirus[fileId].results[probeName] = probeData;
             this.antivirusProbes[probeName] = _.pick(probeData, ['name', 'type', 'version']);
+          }
+        }, this);
+      }.bind(this), this);
+
+      _.forOwn(this.results, function(fileData, fileId){
+        this.antivirus[fileId] = _.omit(fileData, 'results');
+        this.antivirus[fileId].results = {};
+        _.forOwn(this.antivirusProbes, function(probeData, probeName){
+          if(_.has(fileData.results, probeName) && fileData.results[probeName].result !== '__loading__'){
+            this.antivirus[fileId].results[probeName] = fileData.results[probeName];
+          } else {
+            this.antivirus[fileId].results[probeName] = {status: 'loading'};
           }
         }, this);
       }, this);
     };
-
-
-
-
-
-
 
     return ScanModel;
   };
