@@ -1,0 +1,7 @@
+---
+# file: tasks/main.yml
+
+- include: install.yml
+- include: configuration.yml
+
+# vim: sw=2

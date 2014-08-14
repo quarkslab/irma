@@ -39,6 +39,8 @@ If you’re interesting in using [Vagrant](http://vagrantup.com), be sure to hav
 
 To initialize and provision the Virtualbox VM, run in the irma-ansible-provisioning directory `vagrant up`.
 
+/!\ Make sure you’ve got a `config/frontend.ini` file up to date, before provisioning. An example file is available there:
+`config/frontend.ini.sample`.
 
 Then, you’ll need to manually “deploy” the application, run `vagrant ssh` to connect to the VM, and then:
 ```
@@ -46,7 +48,6 @@ $ sudo su www-data
 $ cd /var/wwww/prod.project.local/current
 
   # API Installation
-$ cp config/frontend.ini.sample config/frontend.ini
 $ virtualenv venv
 $ venv/bin/pip install -r install/requirements.txt
 
@@ -54,7 +55,7 @@ $ venv/bin/pip install -r install/requirements.txt
 $ cd web
 $ npm install
 $ node_modules/.bin/bower install
-$ node_modules/.bin/gulp build
+$ node_modules/.bin/gulp dist
 ```
 
 Then, for proper use, update your `/etc/hosts` file and add:

@@ -1,0 +1,37 @@
+---
+# file: tasks/install.yml
+
+- name: Install Supervisor using easy_install
+  easy_install: name=supervisor
+
+- name: Ensure that Supervisor config directories are created
+  file:
+    path={{ item }}
+    state=directory
+    owner=root
+    group=root
+    mode=0755
+  with_items:
+    - /etc/supervisor
+    - /etc/supervisor/conf.d
+    - /var/log/supervisor
+
+- name: Copy default configuration file
+  copy:
+    src=supervisord.conf
+    dest=/etc/supervisor/supervisord.conf
+    force=no # no don't destroy the file if exist
+             # even if content is different
+  notify: Restart Supervisor
+
+- name: Generate init script (Debian)
+  copy:
+    src=supervisord-init.d
+    dest=/etc/init.d/supervisord
+    owner=root
+    group=root
+    mode=0755
+  # Replace init.d var
+  when: ansible_os_family == "Debian"
+
+# vim: sw=2

@@ -2,17 +2,33 @@
 # file: tasks/main.yml
 
 - name: Ensure that directory /var/www has www-data rights
-  file: path=/var/www state=directory owner=www-data group=www-data
+  file:
+    path=/var/www
+    state=directory
+    owner=www-data
+    group=www-data
 
-- name: Install common packages
+- name: Install needed packages (using apt; pip)
   apt: name={{ item }} state=latest
   with_items:
     - git
-    - python-pip
-    - python-virtualenv
 
-- name: API | Create uWSGI directory
-  file: path={{ uwsgi_api_dir }} state=directory owner=root group=root
+- pip: name={{ item }} state=present
+  with_items:
+    - virtualenv
 
 - name: API | Install uWSGI config file
-  template: src=frontend-api.ini.j2 dest=/etc/uwsgi/vassals/{{ uwsgi_api_app_name }}.ini owner=root group=root mode=0755
+  template:
+    src=frontend-api.ini.j2
+    dest=/etc/uwsgi/vassals/{{ frontend_uwsgi_api_appname }}.ini
+    owner=root
+    group=root
+    mode=0755
+
+- name: Tasks | Install Celery app for Supervisor
+  template:
+    src=supervisor-celery.conf.j2
+    dest=/etc/supervisor/conf.d/celery.conf
+    owner=root
+    group=root
+    mode=0755

@@ -1,12 +1,12 @@
 # {{ ansible_managed }}
 
 [uwsgi]
-app-name = {{ uwsgi_api_app_name }}
+app-name = {{ frontend_uwsgi_api_appname }}
 master = true
 
-pidfile = {{ uwsgi_api_dir }}/pid
-socket = {{ uwsgi_api_dir }}/socket
-logto = /var/log/uwsgi/%(app-name).log
+pidfile = {{ frontend_uwsgi_api_pidfile }}
+socket = {{ frontend_uwsgi_api_socket }}
+logto = {{ frontend_uwsgi_api_logfile }}
 log-date = true
 
 processes = 4

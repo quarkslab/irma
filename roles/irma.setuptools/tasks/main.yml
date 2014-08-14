@@ -1,0 +1,15 @@
+---
+# file: tasks/main.yml
+
+- name: Check Setuptools version installed
+  shell: "easy_install --version | cut -d' ' -f2"
+  ignore_errors: True
+  register: easy_install_installed_version
+
+- include: install.yml
+  when: easy_install_installed_version.stdout != setuptools_target_version
+
+- name: Install global packages using Easy_install
+  easy_install: name={{ item }}
+  with_items: setuptools_global_packages
+  sudo: true

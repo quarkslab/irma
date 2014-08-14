@@ -28,6 +28,7 @@ Vagrant.configure("2") do |config|
         vm_config.vm.synced_folder code_path, "/var/www/prod.project.local/current", type: "rsync", owner: 'www-data', group: 'www-data', rsync__exclude: [
             ".git/",
             "venv/",
+            "web/dist",
           ]
       end
     end

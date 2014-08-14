@@ -1,0 +1,5 @@
+---
+
+frontend_uwsgi_api_appname: frontend-api
+frontend_uwsgi_api_pidfile: /var/run/uwsgi/{{ frontend_uwsgi_api_appname }}.pid
+frontend_uwsgi_api_socket: /var/run/uwsgi/{{ frontend_uwsgi_api_appname }}.socket

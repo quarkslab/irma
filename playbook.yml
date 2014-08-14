@@ -31,6 +31,8 @@
     - { role: JasonGiedymin.nodejs, tags: 'nodejs' }
     - { role: gdamjan.uwsgi, tags: 'uwsgi' }
     - { role: Stouts.mongodb, tags: 'mongodb' }
+    - { role: irma.setuptools, tags: 'setuptools' }
+    - { role: irma.supervisor, tags: 'supervisor' }
     - { role: irma.frontend, tags: 'frontend' }
     - { role: jdauphant.nginx, tags: 'nginx' }
 

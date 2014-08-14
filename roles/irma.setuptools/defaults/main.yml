@@ -1,0 +1,5 @@
+---
+
+setuptools_target_version: "5.5"
+setuptools_global_packages:
+  - pip

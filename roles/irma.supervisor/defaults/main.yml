@@ -1,0 +1,4 @@
+---
+# file: defaults/main.yml
+
+supervisord_extra_confs: []

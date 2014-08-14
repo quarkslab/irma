@@ -1,0 +1,11 @@
+---
+# file: tasks/install.yml
+
+- name: Download Setup_tools install script
+  get_url:
+    url=https://bootstrap.pypa.io/ez_setup.py
+    dest=/tmp/ez_setup.py
+
+- name: Install Setup_tools
+  shell: python /tmp/ez_setup.py
+  sudo: true
