@@ -89,6 +89,7 @@ class IrmaScanStatus:
     flushed = 100
     error = 200
     error_probe_missing = 201
+    error_ftp_upload = 202
     label = {created: "created",
              launched: "launched",
              cancelling: "cancelling",
@@ -97,7 +98,8 @@ class IrmaScanStatus:
              finished: "finished",
              flushed: "flushed",
              error: "error",
-             error_probe_missing: "error probe missing"
+             error_probe_missing: "probe(s) missing",
+             error_ftp_upload: "ftp upload error"
              }
 
 
@@ -112,7 +114,7 @@ class IrmaLock:
         free: 'free',
         locked: 'locked'
     }
-    lock_timeout = 60   # in seconds (delta between timestamps)
+    lock_timeout = 60  # in seconds (delta between timestamps)
 
 
 # =========================================================================
