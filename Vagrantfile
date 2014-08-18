@@ -2,7 +2,6 @@
 # vi: set ft=ruby :
 
 env = ENV.has_key?('VM_ENV') ? ENV['VM_ENV'] : "allinone"
-code_path = ENV.has_key?('VM_PATH') ? ENV['VM_PATH'] : "../irma-frontend"
 
 nodes_config = (JSON.parse(File.read(File.dirname(__FILE__) + "/environments/#{env}.json")))['nodes']
 ansible_config = (JSON.parse(File.read(File.dirname(__FILE__) + "/environments/#{env}.json")))['ansible']
@@ -25,11 +24,7 @@ Vagrant.configure("2") do |config|
       end
 
       if node_values['share_code']
-        vm_config.vm.synced_folder code_path, "/var/www/prod.project.local/current", type: "rsync", owner: 'www-data', group: 'www-data', rsync__exclude: [
-            ".git/",
-            "venv/",
-            "web/dist",
-          ]
+        vm_config.vm.synced_folder node_values["share_from"], node_values["share_to"], type: "rsync", owner: 'www-data', group: 'www-data', rsync__exclude: node_values["share_exclude"]
       end
     end
 
