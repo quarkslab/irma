@@ -39,3 +39,12 @@
   post_tasks:
     - name: Open Webserver port
       ufw: rule=allow port=80
+
+- name: Brain provisioning
+  hosts: brain
+  sudo: yes
+  vars_files:
+    - vars/brain.yml
+
+  roles:
+    - { role: DavidWittman.redis, tags: 'redis' }

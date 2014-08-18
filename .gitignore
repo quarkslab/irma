@@ -1,6 +1,7 @@
 .vagrant/
 vagrant_ansible_inventory_default
 roles/Ansibles.openssh/
+roles/DavidWittman.redis/
 roles/gdamjan.uwsgi/
 roles/JasonGiedymin.nodejs/
 roles/jdauphant.nginx/
