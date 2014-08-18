@@ -19,16 +19,16 @@ import time
 import random
 import os.path
 
-from virt.core.domain import DomainManager
-from virt.core.storage_pool import StoragePoolManager
-from virt.core.storage_volume import StorageVolumeManager
-from virt.core.connection import ConnectionManager
-from virt.core.exceptions import DomainManagerError
+from ...virt.core.domain import DomainManager
+from ...virt.core.storage_pool import StoragePoolManager
+from ...virt.core.storage_volume import StorageVolumeManager
+from ...virt.core.connection import ConnectionManager
+from ...virt.core.exceptions import DomainManagerError
 
-from common.utils import UUID, MAC
-from common.oopatterns import ParametricSingleton
-from irma.common.exceptions import IrmaMachineManagerError
-from irma.machine.manager import VirtualMachineManager
+from ...common.utils import UUID, MAC
+from ...common.oopatterns import ParametricSingleton
+from ..common.exceptions import IrmaMachineManagerError
+from .manager import VirtualMachineManager
 
 log = logging.getLogger(__name__)
 

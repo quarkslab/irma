@@ -18,7 +18,7 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
-from irma.common.exceptions import IrmaDatabaseError
+from ..common.exceptions import IrmaDatabaseError
 
 log = logging.getLogger(__name__)
 

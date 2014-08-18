@@ -15,7 +15,7 @@
 
 import logging
 
-from virt.core.domain import DomainManager
+from ...virt.core.domain import DomainManager
 
 log = logging.getLogger(__name__)
 

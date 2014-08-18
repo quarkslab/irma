@@ -18,7 +18,7 @@ import sys
 import pkgutil
 import logging
 
-from lib.common.oopatterns import Singleton
+from ...common.oopatterns import Singleton
 
 ##############################################################################
 # Plugin imports

@@ -21,17 +21,16 @@ import mimetypes
 import os
 import binascii
 
-from common import compat
-from common.utils import UUID, MAC
-from common.oopatterns import ParametricSingleton
+from ...common.utils import UUID, MAC
+from ...common.oopatterns import ParametricSingleton
 
-from virt.core.mapper.domain import Domain
+from .mapper.domain import Domain
 
-from virt.core.storage_pool import StoragePoolManager
-from virt.core.storage_volume import StorageVolumeManager
+from .storage_pool import StoragePoolManager
+from .storage_volume import StorageVolumeManager
 
-from virt.core.connection import ConnectionManager
-from virt.core.exceptions import DomainManagerError
+from .connection import ConnectionManager
+from .exceptions import DomainManagerError
 
 log = logging.getLogger(__name__)
 
