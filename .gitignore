@@ -1,12 +1,29 @@
-/web/node_modules
-/web/bower_components
-/web/app/bower_components
-/web/bower_components
-/web/.*
-client/node_modules
-client/app/components
-client/dist
+# configuration
+config/*.ini
+
+# for python
 *.pyc
+
+# for web
+web/node_modules
+web/app/components
+web/dist
+web/.sass-cache/
+web/.tmp/
+web/app/bower_components/
+
+# for pip packaging
+dist
+*.egg-info/
+
+# for debian packages
+debian/*.substvars
+debian/*.log
+debian/files
+debian/rules
+
+# other
 doc/
-irma_frontend.egg-info/
 .idea/*
+
+.gitmodules

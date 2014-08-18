@@ -1,0 +1,40 @@
+server {
+
+    # ==================
+    #  GZIP Compression
+    # ==================
+
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_buffers 16 8k;
+    gzip_http_version 1.1;
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+
+    # ======================
+    #  Server Configuration
+    # ======================
+
+    listen 80 default_server;
+    listen [::]:80 default_server ipv6only=on;
+
+    root /opt/irma/irma-frontend/web/dist;
+    index index.html;
+
+    server_name localhost;
+    client_max_body_size 100m;
+
+    location /_api {
+        rewrite ^/_api/(.+) /$1 break;
+        include uwsgi_params;
+        uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}

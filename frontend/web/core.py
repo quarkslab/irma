@@ -26,12 +26,12 @@ from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 
 from frontend.format import IrmaProbeType, IrmaFormatter
-
+from lib.irma.database.sqlhandler import SQLDatabase
 
 # =====================
 #  Frontend Exceptions
 # =====================
-from lib.irma.database.sqlhandler import SQLDatabase
+
 
 
 class IrmaFrontendWarning(Exception):
@@ -159,6 +159,7 @@ def scan_add(scanid, files):
     if scan.status != IrmaScanStatus.created:
         # Cannot add file to a launched scan
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
+    scan.take()
     for (name, data) in files.items():
         try:
             # The file exists
@@ -202,6 +203,8 @@ def scan_launch(scanid, force, probelist):
         scan.update(['status'], session=session)
         session.commit()
         raise IrmaFrontendError("No probe available")
+
+    scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
     if probelist is not None:
         unknown_probes = []
         for p in probelist:
@@ -213,6 +216,7 @@ def scan_launch(scanid, force, probelist):
             scan.update(['status'], session=session)
             session.commit()
             raise IrmaFrontendError(reason)
+        scan.probelist = probelist
     else:
         # all available probes
         probelist = all_probe_list
@@ -431,6 +435,8 @@ def file_infected(sha256):
     :raise: Exception
     """
     try:
+        f = ScanFile(sha256=sha256)
+        ref_res = ScanRefResults(id=f.id)
         nb_scan = nb_detected = 0
 
         av_results = file_result(sha256, filter_type=[IrmaProbeType.antivirus])

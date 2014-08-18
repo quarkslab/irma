@@ -16,13 +16,14 @@ import os
 
 import celery
 import config.parser as config
+
+from celery.utils.log import get_task_logger
 from frontend.nosqlobjects import ProbeRealResult
 from frontend.sqlobjects import Scan, File, sql_db_connect
 from lib.common import compat
 from lib.irma.common.exceptions import IrmaFileSystemError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaProbeResultsStates
 from lib.common.utils import humanize_time_str
-from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.ftp.handler import FtpTls
 
 
@@ -102,7 +103,12 @@ def scan_launch(scanid, force):
         scan.update(['status'], session=session)
         session.commit()
         return IrmaTaskReturn.success("scan launched")
+    except IrmaLockError as e:
+        print "IrmaLockError has occurred:{0}".format(e)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
+        if scan is not None:
+            scan.release()
         print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
 
@@ -241,7 +247,16 @@ def scan_result_error(scanid, file_hash, probe, exc):
             scan.update(['status'], session=session)
         session.commit()
 
+    except IrmaLockError as e:
+        print ("IrmaLockError has occurred:{0}".format(e))
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
+        if scan is not None:
+            scan.release()
+        if scan_res is not None:
+            scan_res.release()
+        if ref_res is not None:
+            ref_res.release()
         print ("Exception has occurred:{0}".format(e))
         raise scan_result.retry(countdown=2, max_retries=3, exc=e)
 

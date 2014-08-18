@@ -2,25 +2,17 @@
 
 (function () {
 
-  var dependencies = ['$scope', '$location', 'alerts', 'state', 'config', 'ScanModel'];
-  var Ctrl = function ($scope, $location, alerts, state, config, Scan) {
+  var dependencies = ['$scope', 'state'];
+  var Ctrl = function ($scope, state) {
 
     // Initialize controller
     for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
 
-    this.state.currentScan = new Scan();
-    $scope.goToScan = this.goToScan.bind(this);
-    $scope.newScan = this.newScan.bind(this);
+    this.$scope.goToScan = this.goToScan.bind(this);
   };
 
   Ctrl.prototype.goToScan = function(id){
-    this.state.trigger('goToResults');
-    this.$location.path('/results/'+id);
-  };
-
-  Ctrl.prototype.newScan = function(){
-    this.state.trigger('newScan');
-    this.$location.path('/');
+    this.state.goTo('results', id);
   };
 
   Ctrl.$inject = dependencies;

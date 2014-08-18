@@ -32,11 +32,11 @@
     <div class="container">
 
       <div class="head">
-        <h1>IRMA</h1>
+        <h1><img src="resources/logo.jpg" alt="IRMA"></h1>
         <h2>Incident Response<br />Malware Analysis</h2>
       </div>
 
-      <ul class="list-inline status">
+      <ul class="list-inline status" ng-if="!state.settings.maintenance">
         <li class="{{(state.location=='selection')?'active':''}}"><a href="#/selection">Selection</a></li>
         <li>&gt;</li>
         <li class="{{(state.location=='upload')?'active':''}}">Upload</li>
@@ -46,7 +46,12 @@
         <li class="{{(state.location=='results')?'active':''}}"><a href="#/results">Results</a></li>
       </ul>
 
-      <div ng-view></div>
+      <div class="spinner main" ng-if="state.settings.loading">
+        <div class="bounce1"></div>
+        <div class="bounce2"></div>
+        <div class="bounce3"></div>
+      </div>
+      <div ng-view ng-if="!state.settings.loading"></div>
 
     </div>
     <alerts></alerts>
@@ -72,16 +77,17 @@
     <script src="scripts/controllers/scan.js"></script>
     <script src="scripts/controllers/existing.js"></script>
     <script src="scripts/controllers/results.js"></script>
+    <script src="scripts/controllers/details.js"></script>
+    <script src="scripts/controllers/maintenance.js"></script>
     <script src="scripts/directives/alerts.js"></script>
     <script src="scripts/directives/fileTrigger.js"></script>
     <script src="scripts/directives/booleanDisplay.js"></script>
     <script src="scripts/directives/konami-ponies.js"></script>
-    <script src="scripts/services/models/scan.js"></script>
-    <script src="scripts/services/stores/scans.js"></script>
+    <script src="scripts/services/models/scanModel.js"></script>
     <script src="scripts/services/utils/bridge.js"></script>
     <script src="scripts/services/utils/state.js"></script>
     <script src="scripts/services/utils/alerts.js"></script>
-    <script src="scripts/services/utils/config.js"></script>
+    <script src="scripts/services/utils/api.js"></script>
     <!-- endbuild -->
   </body>
 </html>
