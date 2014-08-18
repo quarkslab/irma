@@ -106,6 +106,9 @@ class IrmaScanStatus:
              error_ftp_upload: "ftp upload error"
              }
 
+    @staticmethod
+    def is_error(code):
+        return code >= IrmaScanStatus.error
 
 # ==========================================================
 #  Lock values for NoSQLDatabaseObjects (internal use only)
