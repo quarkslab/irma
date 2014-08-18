@@ -101,28 +101,37 @@ class IrmaScanStatus:
              }
 
 
-# ==========================================================
-#  Lock values for NoSQLDatabaseObjects (internal use only)
-# ==========================================================
+# ====================
+#  ScanResults states
+# ====================
 
-class IrmaLock:
-    free = 0
-    locked = 5
+class IrmaProbeResultsStates:
+    created = 0
+    running = 10
+    cancelled = 20
+    finished = 30
+    error = 40
     label = {
-        free: 'free',
-        locked: 'locked'
+        created: "created",
+        running: "running",
+        cancelled: "cancelled",
+        finished: "finished",
+        error: "error"
     }
-    lock_timeout = 60   # in seconds (delta between timestamps)
 
 
-# =========================================================================
-#  Lock values for NoSQLDatabaseObjects (FOR THE CALL TO THE CONSTRUCTORS)
-# =========================================================================
+# =============
+#  ScanResults
+# =============
 
-class IrmaLockMode:
-    read = 'r'
-    write = 'w'
+class IrmaScanResults:
+    notDoneYet = 0
+    isMalicious = 10
+    isNotMalicious = 20
+    doNotKnow = 30
     label = {
-        read: 'read',
-        write: 'write'
+        notDoneYet: "notDoneYet",
+        isMalicious: "isMalicious",
+        isNotMalicious: "isNotMalicious",
+        doNotKnow: "doNotKnow"
     }
