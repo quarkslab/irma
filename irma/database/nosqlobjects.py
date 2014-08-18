@@ -13,12 +13,12 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from common.compat import timestamp
-from irma.common.utils import IrmaLock, IrmaLockMode
+from ...common.compat import timestamp
+from ..common.utils import IrmaLock, IrmaLockMode
 from nosqlhandler import NoSQLDatabase
 from bson import ObjectId
 from bson.errors import InvalidId
-from irma.common.exceptions import IrmaDatabaseError, IrmaLockError, \
+from ..common.exceptions import IrmaDatabaseError, IrmaLockError, \
     IrmaValueError
 
 

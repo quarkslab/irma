@@ -17,8 +17,8 @@ import logging
 import libvirt
 
 from time import sleep
-from common.oopatterns import ParametricSingleton
-from virt.core.exceptions import ConnectionManagerError
+from ...common.oopatterns import ParametricSingleton
+from .exceptions import ConnectionManagerError
 
 log = logging.getLogger(__name__)
 

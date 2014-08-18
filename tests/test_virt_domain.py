@@ -17,11 +17,10 @@ import os
 import logging
 import libvirt
 import unittest
-import binascii
 
-from virt.core.connection import ConnectionManager
-from virt.core.domain import DomainManager
-from virt.core.exceptions import ConnectionManagerError, DomainManagerError
+from ..virt.core.connection import ConnectionManager
+from ..virt.core.domain import DomainManager
+from ..virt.core.exceptions import DomainManagerError
 
 
 # =================

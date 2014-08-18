@@ -16,7 +16,7 @@
 import logging
 import unittest
 
-from common.oopatterns import Singleton, ParametricSingleton, Plugin
+from ..common.oopatterns import Singleton, ParametricSingleton, Plugin
 
 
 # =================

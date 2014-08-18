@@ -16,10 +16,10 @@
 import logging
 import libvirt
 
-from common.utils import UUID
-from common.oopatterns import ParametricSingleton
-from virt.core.connection import ConnectionManager
-from virt.core.exceptions import StoragePoolManagerError
+from ...common.utils import UUID
+from ...common.oopatterns import ParametricSingleton
+from .connection import ConnectionManager
+from .exceptions import StoragePoolManagerError
 
 log = logging.getLogger(__name__)
 

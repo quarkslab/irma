@@ -18,7 +18,7 @@ import xmltodict
 
 from collections import OrderedDict
 
-from virt.core.exceptions import StoragePoolError
+from ..exceptions import StoragePoolError
 
 log = logging.getLogger(__name__)
 

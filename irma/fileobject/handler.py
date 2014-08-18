@@ -13,9 +13,9 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from irma.database.nosqlhandler import NoSQLDatabase
 from bson import ObjectId
-from irma.common.exceptions import IrmaDatabaseError
+from ..database.nosqlhandler import NoSQLDatabase
+from ..common.exceptions import IrmaDatabaseError
 
 
 class FileObject(object):

@@ -15,9 +15,9 @@
 
 import logging
 import unittest
-from irma.common.exceptions import IrmaDatabaseError
-from irma.database.nosqlhandler import NoSQLDatabase
-from irma.fileobject.handler import FileObject
+from ..irma.common.exceptions import IrmaDatabaseError
+from ..irma.database.nosqlhandler import NoSQLDatabase
+from ..irma.fileobject.handler import FileObject
 
 # test config
 test_db_uri = "mongodb://localhost"

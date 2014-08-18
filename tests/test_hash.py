@@ -19,7 +19,8 @@ import unittest
 import tempfile
 import os
 import random
-import common.hash as irma_hashlib
+from ..common.hash import md5sum, sha1sum, sha224sum, sha256sum, sha384sum, \
+    sha512sum
 
 
 # =================
@@ -59,32 +60,32 @@ class HashTestCase(unittest.TestCase):
 class TestHashsum(HashTestCase):
 
     def test_hashsum_md5(self):
-        hash1 = irma_hashlib.md5sum(self.filename)
+        hash1 = md5sum(self.filename)
         hash2 = hashlib.md5(self.data).hexdigest()
         self.assertEqual(hash1, hash2)
 
     def test_hashsum_sha1(self):
-        hash1 = irma_hashlib.sha1sum(self.filename)
+        hash1 = sha1sum(self.filename)
         hash2 = hashlib.sha1(self.data).hexdigest()
         self.assertEqual(hash1, hash2)
 
     def test_hashsum_sha224(self):
-        hash1 = irma_hashlib.sha224sum(self.filename)
+        hash1 = sha224sum(self.filename)
         hash2 = hashlib.sha224(self.data).hexdigest()
         self.assertEqual(hash1, hash2)
 
     def test_hashsum_sha256(self):
-        hash1 = irma_hashlib.sha256sum(self.filename)
+        hash1 = sha256sum(self.filename)
         hash2 = hashlib.sha256(self.data).hexdigest()
         self.assertEqual(hash1, hash2)
 
     def test_hashsum_sha384(self):
-        hash1 = irma_hashlib.sha384sum(self.filename)
+        hash1 = sha384sum(self.filename)
         hash2 = hashlib.sha384(self.data).hexdigest()
         self.assertEqual(hash1, hash2)
 
     def test_hashsum_sha512(self):
-        hash1 = irma_hashlib.sha512sum(self.filename)
+        hash1 = sha512sum(self.filename)
         hash2 = hashlib.sha512(self.data).hexdigest()
         self.assertEqual(hash1, hash2)
 
