@@ -15,7 +15,7 @@
 
 import logging
 
-from lib.plugins import PluginManager
+from lib.plugins.manager import PluginManager
 from lib.plugin_result import PluginResult
 
 
