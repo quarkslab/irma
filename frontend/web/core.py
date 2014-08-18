@@ -188,10 +188,12 @@ def scan_progress(scanid):
     :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
     """
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    if scan.status != IrmaScanStatus.launched:
+    if IrmaScanStatus.is_error(scan.status):
+        raise IrmaFrontendError(IrmaScanStatus.label[scan.status])
+    elif scan.status != IrmaScanStatus.launched:
         # If not launched answer directly
-        # Else ask brain for job status
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
+    # Else ask brain for job status
     (status, res) = _task_scan_progress(scanid)
     if status == IrmaReturnCode.success:
         return res
