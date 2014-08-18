@@ -81,6 +81,7 @@ class IrmaReturnCode:
 
 class IrmaScanStatus:
     created = 0
+    uploading = 5
     launched = 10
     cancelling = 20
     cancelled = 21
@@ -94,6 +95,7 @@ class IrmaScanStatus:
     # FTP 210-219
     error_ftp_upload = 210
     label = {created: "created",
+             uploading: "uploading",
              launched: "launched",
              cancelling: "cancelling",
              cancelled: "cancelled",
