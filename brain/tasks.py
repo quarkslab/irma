@@ -70,11 +70,45 @@ def get_quota(sql, user):
 
 def get_groupresult(taskid):
     if not taskid:
-        raise IrmaTaskError("BrainTask: task_id not set")
+        msg = "SQL: task_id not set"
+        log.debug(msg)
+        raise IrmaTaskError()
     gr = probe_app.GroupResult.restore(taskid)
     if not gr:
-        raise IrmaTaskError("BrainTask: {0} not a valid taskid".format(taskid))
+        msg = "SQL: taskid not valid"
+        log.debug(msg + " [{0}]".format(taskid))
+        raise IrmaTaskError(msg)
     return gr
+
+
+def sql_connect(engine, dbname):
+    try:
+        return SQLDatabase(engine + dbname)
+    except Exception as e:
+        msg = "SQL: can't connect"
+        log.debug(msg + " [{0}]".format(e))
+        raise IrmaTaskError(msg)
+
+
+def sql_get_user(sql, rmqvhost=None):
+    # FIXME: get rmq_vhost dynamically
+    try:
+        if rmqvhost is None:
+            rmqvhost = config.brain_config['broker_frontend'].vhost
+        return sql.one_by(User, rmqvhost=rmqvhost)
+    except Exception as e:
+        msg = "SQL: user not found"
+        log.debug(msg + " [{0}]".format(e))
+        raise IrmaTaskError(msg)
+
+
+def sql_get_scan(sql, scanid, user):
+    try:
+        return sql.one_by(Scan, scanid=scanid, user_id=user.id)
+    except Exception as e:
+        msg = "SQL: scan id not found"
+        log.debug(msg + " [{0}]".format(e))
+        raise IrmaTaskError(msg)
 
 
 # ================
@@ -141,21 +175,19 @@ def probe_list():
 
 @scan_app.task(ignore_result=True)
 def scan(scanid, scan_request):
-    engine = config.brain_config['sql_brain'].engine
-    dbname = config.brain_config['sql_brain'].dbname
-    sql = SQLDatabase(engine + dbname)
-    available_probelist = get_probelist()
-    jobs_list = []
-    # FIXME: get rmq_vhost dynamically
-    rmqvhost = config.brain_config['broker_frontend'].vhost
     try:
+        engine = config.brain_config['sql_brain'].engine
+        dbname = config.brain_config['sql_brain'].dbname
+        sql = sql_connect(engine, dbname)
+        available_probelist = get_probelist()
+        jobs_list = []
         scan = Scan(scanid=scanid,
                     status=IrmaScanStatus.created,
                     date=datetime.now())
         sql.add(scan)
         sql.commit()
         # create an initial entry to track future errors
-        user = sql.one_by(User, rmqvhost=rmqvhost)
+        user = sql_get_user(sql)
         quota = get_quota(sql, user)
         if quota is not None:
             log.debug("{0} : Found user {1} ".format(scanid, user.name) +
@@ -166,7 +198,8 @@ def scan(scanid, scan_request):
         scan.user_id = user.id
         sql.commit()
     except IrmaTaskError as e:
-        return IrmaTaskReturn.error("BrainTask: {0}".format(e))
+        msg = "Brain: scan error {0}".format(e)
+        return IrmaTaskReturn.error(msg)
 
     for (filename, probelist) in scan_request:
         if probelist is None:
@@ -224,44 +257,34 @@ def scan(scanid, scan_request):
 @scan_app.task()
 def scan_progress(scanid):
     log.debug("{0}: scan progress".format(scanid))
+    engine = config.brain_config['sql_brain'].engine
+    dbname = config.brain_config['sql_brain'].dbname
     try:
-        engine = config.brain_config['sql_brain'].engine
-        dbname = config.brain_config['sql_brain'].dbname
-        sql = SQLDatabase(engine + dbname)
-    except Exception as e:
-        log.debug("{0}: sql error {1}".format(scanid, e))
-        return IrmaTaskReturn.error("BrainTask: {0}".format(e))
-    # FIXME: get rmq_vhost dynamically
-    rmqvhost = config.brain_config['broker_frontend'].vhost
-    try:
-        user = sql.one_by(User, rmqvhost=rmqvhost)
-    except Exception as e:
-        log.debug("{0}: sql user not found {1}".format(scanid, e))
-        msg = "BrainTask: sql user not found {0}".format(e)
+        sql = sql_connect(engine, dbname)
+        user = sql_get_user(sql)
+        scan = sql_get_scan(sql, scanid, user)
+        if scan.status == IrmaScanStatus.launched:
+            if not scan.taskid:
+                log.debug("{0}: sql no task_id".format(scanid))
+                msg = "Brain: task id not set (SQL)"
+                return IrmaTaskReturn.error(msg)
+            gr = get_groupresult(scan.taskid)
+            nbcompleted = nbsuccessful = 0
+            for j in gr:
+                if j.ready():
+                    nbcompleted += 1
+                if j.successful():
+                    nbsuccessful += 1
+            return IrmaTaskReturn.success({"total": len(gr),
+                                           "finished": nbcompleted,
+                                           "successful": nbsuccessful})
+        elif IrmaScanStatus.is_error(scan.status):
+            return IrmaTaskReturn.error(scan.status)
+        else:
+            return IrmaTaskReturn.warning(scan.status)
+    except IrmaTaskError as e:
+        msg = "Brain: progress error {0}".format(e)
         return IrmaTaskReturn.error(msg)
-    try:
-        scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
-    except Exception as e:
-        log.debug("{0}: sql scanid not found {1}".format(scanid, e))
-        return IrmaTaskReturn.warning(IrmaScanStatus.created)
-    if scan.status == IrmaScanStatus.launched:
-        if not scan.taskid:
-            log.debug("{0}: sql no task_id".format(scanid))
-            return IrmaTaskReturn.error("Brain SQL: task_id not set")
-        gr = get_groupresult(scan.taskid)
-        nbcompleted = nbsuccessful = 0
-        for j in gr:
-            if j.ready():
-                nbcompleted += 1
-            if j.successful():
-                nbsuccessful += 1
-        return IrmaTaskReturn.success({"total": len(gr),
-                                       "finished": nbcompleted,
-                                       "successful": nbsuccessful})
-    elif IrmaScanStatus.is_error(scan.status):
-        return IrmaTaskReturn.error(scan.status)
-    else:
-        return IrmaTaskReturn.warning(scan.status)
 
 
 @scan_app.task()
@@ -269,21 +292,9 @@ def scan_cancel(scanid):
     try:
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
-        sql = SQLDatabase(engine + dbname)
-        # FIXME: get rmq_vhost dynamically
-        rmqvhost = config.brain_config['broker_frontend'].vhost
-        try:
-            user = sql.one_by(User, rmqvhost=rmqvhost)
-        except IrmaDatabaseError as e:
-            log.debug("{0}: sql user error {1}".format(scanid, e))
-            msg = "BrainTask: sql user not found {0}".format(e)
-            return IrmaTaskReturn.error(msg)
-        try:
-            scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
-        except IrmaDatabaseError:
-            log.debug("{0}: sql no scan with this id error {1}"
-                      "".format(scanid, e))
-            return IrmaTaskReturn.warning(IrmaScanStatus.created)
+        sql = sql_connect(engine, dbname)
+        user = sql_get_user(sql)
+        scan = sql_get_scan(sql, scanid, user)
         if scan.status == IrmaScanStatus.launched:
             scan.status = IrmaScanStatus.cancelling
             # commit as soon as possible to avoid cancelling again
@@ -306,7 +317,7 @@ def scan_cancel(scanid):
         else:
             return IrmaTaskReturn.warning(scan.status)
     except IrmaTaskError as e:
-        msg = "BrainTask: cancel error {0}".format(e)
+        msg = "Brain: cancel error {0}".format(e)
         return IrmaTaskReturn.error(msg)
 
 
@@ -318,11 +329,9 @@ def scan_result(result, ftpuser, scanid, filename, probe):
         log.debug("{0} sent result {1}".format(scanid, probe))
         engine = config.brain_config['sql_brain'].engine
         dbname = config.brain_config['sql_brain'].dbname
-        sql = SQLDatabase(engine + dbname)
-        # FIXME get rmq_vhost dynamically
-        rmqvhost = config.brain_config['broker_frontend'].vhost
-        user = sql.one_by(User, rmqvhost=rmqvhost)
-        scan = sql.one_by(Scan, scanid=scanid, user_id=user.id)
+        sql = sql_connect(engine, dbname)
+        user = sql_get_user(sql)
+        scan = sql_get_scan(sql, scanid, user)
         gr = get_groupresult(scan.taskid)
         nbtotal = len(gr)
         nbcompleted = nbsuccessful = 0
@@ -341,4 +350,5 @@ def scan_result(result, ftpuser, scanid, filename, probe):
             flush_dir(ftpuser, scanid)
             log.debug("{0} complete deleting files".format(scanid))
     except IrmaTaskError as e:
-        return IrmaTaskReturn.error("{0}".format(e))
+        msg = "Brain: result error {0}".format(e)
+        return IrmaTaskReturn.error(msg)
