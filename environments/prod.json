@@ -1,0 +1,35 @@
+{
+    "nodes": {
+        "frontend": {
+            "ip": "172.16.1.30",
+            "hostname": "frontend.irma.local",
+            "memory": "2048",
+            "share_code": true,
+            "share_from": "../irma-frontend",
+            "share_to": "/var/www/prod.project.local/current",
+            "share_exclude": [
+                ".git/",
+                "venv/",
+                "web/dist"
+            ]
+        },
+        "brain": {
+            "ip": "172.16.1.31",
+            "hostname": "brain.irma.local",
+            "memory": "2048",
+            "share_code": false,
+            "share_from": "",
+            "share_to": "",
+            "share_exclude": [
+            ]
+        }
+    },
+    "ansible": {
+        "user": "vagrant",
+        "vagrant": true,
+        "groups": {
+            "frontend": ["frontend"],
+            "brain": ["brain"]
+        }
+    }
+}
