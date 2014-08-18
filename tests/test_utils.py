@@ -15,9 +15,9 @@
 
 import logging
 import unittest
-import common.utils as common_utils
-import irma.common.utils as irma_utils
-from irma.common.utils import IrmaReturnCode
+from ..common.utils import UUID, MAC, humanize_time, humanize_time_str
+from ..irma.common.utils import IrmaFrontendReturn, IrmaTaskReturn, \
+    IrmaReturnCode
 
 
 # =================
@@ -44,42 +44,35 @@ def enable_logging(level=logging.INFO, handler=None, formatter=None):
 class TestCommonUtils(unittest.TestCase):
 
     def test_uuid(self):
-        UUID = common_utils.UUID
         uuid = UUID.generate()
         self.assertTrue(UUID.validate(uuid))
         self.assertEqual(len(uuid), 36)
         self.assertEqual(uuid.count("-"), 4)
 
     def test_uuid_generate(self):
-        UUID = common_utils.UUID
         uuid = UUID.normalize("01234567-abcd-ef01-2345-deadbeaff00d")
         self.assertTrue(UUID.validate(uuid))
         self.assertEquals(uuid, "01234567-abcd-ef01-2345-deadbeaff00d")
 
     def test_uuid_validate(self):
-        UUID = common_utils.UUID
         self.assertFalse(UUID.validate("not a uuid"))
 
     def test_mac(self):
-        MAC = common_utils.MAC
         mac = MAC.generate()
         self.assertTrue(MAC.validate(mac))
         self.assertEqual(len(mac), 17)
         self.assertEqual(mac.count(":"), 5)
 
     def test_mac_generate(self):
-        MAC = common_utils.MAC
         mac = MAC.generate(oui=[0x12, 0x34, 0x56])
         mac = MAC.normalize(mac)
         self.assertTrue(MAC.validate(mac))
         self.assertTrue(mac.startswith("12:34:56"))
 
     def test_mac_validate(self):
-        MAC = common_utils.MAC
         self.assertFalse(MAC.validate("not a mac"))
 
     def test_humanize_time(self):
-        humanize_time = common_utils.humanize_time
         self.assertEqual(humanize_time(173, 'hours'),
                          [(1, 'week'),
                           (5, 'hours')])
@@ -101,7 +94,6 @@ class TestCommonUtils(unittest.TestCase):
                           (3, 'days')])
 
     def test_humanize_time_str(self):
-        humanize_time_str = common_utils.humanize_time_str
         self.assertEqual(humanize_time_str(173, 'hours'),
                          "1 week, 5 hours")
         self.assertEqual(humanize_time_str(17313, 'seconds'),
@@ -114,7 +106,7 @@ class TestCommonUtils(unittest.TestCase):
                          "1 year, 5 months, 3 weeks, 3 days")
 
     def test_irma_taskreturn_success(self):
-        ret = irma_utils.IrmaTaskReturn.success("success")
+        ret = IrmaTaskReturn.success("success")
         self.assertEqual(ret[0],
                          IrmaReturnCode.success)
         self.assertEqual(ret[1],
@@ -127,7 +119,7 @@ class TestCommonUtils(unittest.TestCase):
                          str)
 
     def test_irma_taskreturn_warning(self):
-        ret = irma_utils.IrmaTaskReturn.warning("warning")
+        ret = IrmaTaskReturn.warning("warning")
         self.assertEqual(ret[0],
                          IrmaReturnCode.warning)
         self.assertEqual(ret[1],
@@ -140,7 +132,7 @@ class TestCommonUtils(unittest.TestCase):
                          str)
 
     def test_irma_taskreturn_error(self):
-        ret = irma_utils.IrmaTaskReturn.error("error")
+        ret = IrmaTaskReturn.error("error")
         self.assertEqual(ret[0],
                          IrmaReturnCode.error)
         self.assertEqual(ret[1],
@@ -153,7 +145,7 @@ class TestCommonUtils(unittest.TestCase):
                          str)
 
     def test_irma_frontendreturn_success(self):
-        f_success = irma_utils.IrmaFrontendReturn.success
+        f_success = IrmaFrontendReturn.success
         ret = f_success(optional={'key': 'value'})
         self.assertEqual(ret['code'],
                          IrmaReturnCode.success)
@@ -171,7 +163,7 @@ class TestCommonUtils(unittest.TestCase):
                          'value')
 
     def test_irma_frontendreturn_warning(self):
-        f_warning = irma_utils.IrmaFrontendReturn.warning
+        f_warning = IrmaFrontendReturn.warning
         ret = f_warning("warning", optional={'key': 'value'})
         self.assertEqual(ret['code'],
                          IrmaReturnCode.warning)
@@ -189,7 +181,7 @@ class TestCommonUtils(unittest.TestCase):
                          'value')
 
     def test_irma_frontendreturn_error(self):
-        f_error = irma_utils.IrmaFrontendReturn.error
+        f_error = IrmaFrontendReturn.error
         ret = f_error("error", optional={'key': 'value'})
         self.assertEqual(ret['code'],
                          IrmaReturnCode.error)

@@ -19,7 +19,7 @@ import tempfile
 import os
 
 import magic
-from common.mimetypes import Magic
+from ..common.mimetypes import Magic
 
 
 # =================
