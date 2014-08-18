@@ -258,6 +258,8 @@ def scan_progress(scanid):
         return IrmaTaskReturn.success({"total": len(gr),
                                        "finished": nbcompleted,
                                        "successful": nbsuccessful})
+    elif IrmaScanStatus.is_error(scan.status):
+        return IrmaTaskReturn.error(scan.status)
     else:
         return IrmaTaskReturn.warning(scan.status)
 
