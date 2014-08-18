@@ -5,5 +5,6 @@ roles/DavidWittman.redis/
 roles/gdamjan.uwsgi/
 roles/JasonGiedymin.nodejs/
 roles/jdauphant.nginx/
+roles/Mayeu.RabbitMQ/
 roles/mivok0.users/
 roles/Stouts.mongodb/

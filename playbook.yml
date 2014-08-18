@@ -48,3 +48,4 @@
 
   roles:
     - { role: DavidWittman.redis, tags: 'redis' }
+    - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
