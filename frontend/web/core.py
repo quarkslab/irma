@@ -207,6 +207,8 @@ def scan_progress(scanid):
             scan.release()
         raise IrmaFrontendWarning(IrmaScanStatus.label[res])
     else:
+        # else take directly error string from brain and
+        # pass it to the caller
         raise IrmaFrontendError(res)
 
 
