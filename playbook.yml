@@ -24,7 +24,6 @@
   sudo: yes
   vars_files:
     - vars/frontend.yml
-
   roles:
     - { role: JasonGiedymin.nodejs, tags: 'nodejs' }
     - { role: gdamjan.uwsgi, tags: 'uwsgi' }
@@ -33,17 +32,27 @@
     - { role: irma.supervisor, tags: 'supervisor' }
     - { role: irma.frontend, tags: 'frontend' }
     - { role: jdauphant.nginx, tags: 'nginx' }
-
   post_tasks:
     - name: Open Webserver port
       ufw: rule=allow port=80
+
 
 - name: Brain provisioning
   hosts: brain
   sudo: yes
   vars_files:
     - vars/brain.yml
-
   roles:
     - { role: DavidWittman.redis, tags: 'redis' }
     - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
+
+
+- name: Probe provisioning
+  hosts: probe
+  sudo: yes
+  vars_files:
+    - vars/probe.yml
+  roles:
+    - { role: irma.setuptools, tags: 'setuptools' }
+    - { role: irma.supervisor, tags: 'supervisor' }
+    - { role: irma.probe, tags: 'probe' }

@@ -1,0 +1,23 @@
+---
+# file: vars/probe
+
+probe_user: "{{ default_user }}"
+probe_group: "{{ default_group }}"
+
+probe_install_dir: /opt/irma/irma-probe
+probe_venv_dir: "{{ probe_install_dir }}/venv"
+probe_celery_cmd: "{{ probe_venv_dir }}/bin/celery worker -A probe.tasks --loglevel=INFO --without-gossip --without-mingle --without-heartbeat"
+probe_celery_logfile: /var/log/celery.log
+
+probe_configs:
+  - { section: "log", option: "syslog", value: "0" }
+  - { section: "probe", option: "name", value: "clamav" }
+  - { section: "broker_probe", option: "host", value: "brain.irma.qb" }
+  - { section: "broker_probe", option: "vhost", value: "mqprobe" }
+  - { section: "broker_probe", option: "username", value: "probe" }
+  - { section: "broker_probe", option: "password", value: "87jBus74UcGpUuMo" }
+  - { section: "backend_probe", option: "host", value: "brain.irma.qb" }
+  - { section: "backend_probe", option: "db", value: "1" }
+  - { section: "ftp_brain", option: "host", value: "brain.irma.qb" }
+  - { section: "ftp_brain", option: "username", value: "probe" }
+  - { section: "ftp_brain", option: "password", value: "p2EiWCNecbeczLWt" }

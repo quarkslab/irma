@@ -1,0 +1,9 @@
+---
+# file: vars/defaults.yml
+
+default_ssh_keys:
+  # Guillaume Dedrie @Quarkslab
+  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD7LneB8UyjfvV8Z0vGUP7HPLrfgElCmjJUKC4fHYngyVsB9eMUfMYCz5YcovFldMeHJNc4G9QbQRvNvFx8glW06x+Bm9yDu58eJK3pQ2Mh2lUS4ecmUJZJDMMDvYNahi/1PITmLyrchreohwRCy60ruWik2oH7RVuwRE7fIURnh+ZAmz/ba2kYmA3/FPvrZrqlm6I70D5x36qEqB00M0TVqG4SKos/E8t27/HxwdlF7vEd08DbNhOSp7BnUCc4UmCofwhJKRKzB44Cb+D9HmQGL/1XGdmLAHNkVfHLkgB2+CaY4YhRYDjvepPocraeLacv4y6xZfyR+iAc8OPXyyMP gdedrie@quarkslab.com"
+
+default_user: irma
+default_group: irma

@@ -1,0 +1,15 @@
+; {{ ansible_managed  }}
+
+[program:celery]
+command = {{ probe_celery_cmd }}
+
+directory = {{ probe_install_dir }}
+user = nobody
+numprocs = 1
+
+stdout_logfile = {{ probe_celery_logfile }}
+stderr_logfile = {{ probe_celery_logfile }}
+
+autostart = true
+stopwaitsecs = 600
+killasgroup = true

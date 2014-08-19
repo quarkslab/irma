@@ -1,0 +1,47 @@
+---
+# file: tasks/main.yml
+
+- name: Install needed packages (using apt; pip)
+  apt: name={{ item }} state=latest
+  with_items:
+    - git
+
+- pip: name={{ item }} state=present
+  with_items:
+    - virtualenv
+
+- name: Supervisor | Install Celery app
+  template:
+    src=supervisor-celery.conf.j2
+    dest=/etc/supervisor/conf.d/celery.conf
+    owner=root
+    group=root
+    mode=0755
+
+- name: Install {{ probe_install_dir }}/config/probe.ini file
+  file:
+    path="{{ probe_install_dir }}/config/probe.ini"
+    owner={{ probe_user }}
+    group={{ probe_group }}
+    state=file
+
+- name: Configure {{ probe_install_dir }}/config/probe.ini file
+  ini_file:
+    dest="{{ probe_install_dir }}/config/probe.ini"
+    section={{ item.section }}
+    option={{ item.option }}
+    value={{ item.value }}
+  with_items: probe_configs
+
+- name: ClamAV | Install package
+  apt: name=clamav-daemon state=present
+  register: clamav_install
+
+- name: ClamAV | Update freshclam
+  shell: freshclam
+  # Only when installation restart
+  sudo: true
+  when: clamav_install | changed
+
+- name: ClamAV | start daemon
+  service: name=clamav-daemon state=started
