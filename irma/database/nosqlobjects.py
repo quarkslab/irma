@@ -14,12 +14,10 @@
 # terms contained in the LICENSE file.
 
 from ...common.compat import timestamp
-from ..common.utils import IrmaLock, IrmaLockMode
 from nosqlhandler import NoSQLDatabase
 from bson import ObjectId
 from bson.errors import InvalidId
-from ..common.exceptions import IrmaDatabaseError, IrmaLockError, \
-    IrmaValueError
+from ..common.exceptions import IrmaDatabaseError, IrmaValueError
 
 
 class NoSQLDatabaseObjectList(object):

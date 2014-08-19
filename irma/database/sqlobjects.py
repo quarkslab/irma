@@ -14,11 +14,9 @@
 # terms contained in the LICENSE file.
 
 
-from sqlalchemy import update
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
-from irma.common.exceptions import IrmaValueError, IrmaDatabaseResultNotFound
-from irma.database.sqlhandler import SQLDatabase
-from irma.common.exceptions import IrmaDatabaseError
+from ..common.exceptions import IrmaValueError, IrmaDatabaseResultNotFound
+from ..common.exceptions import IrmaDatabaseError
 
 
 class SQLDatabaseObject(object):
@@ -26,8 +24,6 @@ class SQLDatabaseObject(object):
     """
 
     __tablename__ = None
-
-    _fields_suffix = None
     _idname = None
 
     # Fields
@@ -44,15 +40,17 @@ class SQLDatabaseObject(object):
             reason = "The SQLDatabaseObject class has to be overloaded"
             raise IrmaValueError(reason)
 
-    def to_dict(self, include_pks=True, include_fks=True):
+    def to_dict(self, include_pks=True, include_fks=True, columns_list=None):
         """Converts object to dict.
         :rtype: dict
         """
         res = {}
-        columns_list = []
-        for column in self.__table__.columns:
-            # table name removal (fixed length)
-            columns_list.append(str(column)[len(self.__tablename__ + '.'):])
+        if columns_list is None:
+            columns_list = []
+            for column in self.__table__.columns:
+                # table name removal (fixed length)
+                item = str(column)[len(self.__tablename__ + '.'):]
+                columns_list.append(item)
 
         pk_names_list = []
         if not include_pks:
@@ -66,30 +64,24 @@ class SQLDatabaseObject(object):
                 fk_names_list.append(fk.target_fullname.rsplit('.', 1)[1])
 
         for key in columns_list:
-            var_name_list = key.rsplit('_', 1)    # field suffix removal
-            var_name = var_name_list[0] \
-                if '_'+var_name_list[1] == self._fields_suffix else key
-
-            if getattr(self, var_name) is not None:
+            if getattr(self, key) is not None:
                 if (not include_pks and key in pk_names_list) or\
                         (not include_fks and key in fk_names_list):
                     continue
-                res[key] = getattr(self, var_name)
+                res[key] = getattr(self, key)
         return res
 
-    def update(self, update_dict=[], session=None):
+    def update(self, columns_list=None, session=None):
         """Save the new state of the current object in the database
         :param update_dict: the fields to update (all fields are being
             updated if not provided)
         :param session: the session to use
         """
-        if not update_dict:
-            update_dict = self.to_dict(include_pks=False)
-        session.execute(
-            update(self.__class__).where(
-                self.__class__.id == self.id
-            ).values(update_dict)
-        )
+        update_dict = self.to_dict(include_pks=False,
+                                   columns_list=columns_list)
+        session.query(self.__class__).\
+            filter(self.__class__.id == self.id).\
+            update(update_dict)
 
     def save(self, session):
         """Save the current object in the database
