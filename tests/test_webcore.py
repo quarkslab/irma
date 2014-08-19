@@ -16,20 +16,25 @@
 import sys
 import os
 from lib.irma.database.sqlhandler import SQLDatabase
+from lib.irma.common.exceptions import IrmaTaskError
 
 pardir = os.path.abspath(os.path.join(__file__, os.path.pardir))
 sys.path.append(os.path.dirname(pardir))
 
 import logging
 import unittest
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
-from lib.irma.common.exceptions import IrmaConfigurationError
-from lib.common.compat import timestamp
-
 # Test config
 cwd = os.path.abspath(os.path.dirname(__file__))
 os.environ['IRMA_FRONTEND_CFG_PATH'] = cwd
 
+
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
+    IrmaProbeResultsStates
+from lib.common.compat import timestamp
+
+
+from frontend.nosqlobjects import ProbeRealResult
+from frontend.sqlobjects import ProbeResult
 import frontend.web.core as core
 from frontend.web.core import IrmaFrontendWarning, IrmaFrontendError
 from frontend.sqlobjects import Scan, sql_db_connect
@@ -71,7 +76,11 @@ def mock_scan_launch(scanid, force, successful=True):
     scan = Scan.load_from_ext_id(scanid, session)
     if scan.status == IrmaScanStatus.created:
         scan.status = IrmaScanStatus.launched
-    return ['Probe1', 'Probe2']
+        scan.update(['status'], session=session)
+        session.commit()
+        return PROBES
+    else:
+        raise IrmaTaskError('Not launchable')
 
 
 def mock_scan_progress(scanid, successful=True):
@@ -124,31 +133,51 @@ class WebCoreTestCase(unittest.TestCase):
         self.session = SQLDatabase.get_session()
 
     def tearDown(self):
-        pass
+        self.session.commit()
 
     def assertListContains(self, list1, list2):
         for l in list1:
             self.assertIn(l, list2)
 
 
-def add_fake_results(scan, probe):
-    for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
-        scanfile = ScanFile(id=scanfile_id, mode=IrmaLockMode.write)
-        scanfile.date_last_scan = timestamp()
-        scanfile.update()
-        scanfile.release()
+def add_fake_results(scan, probe, session):
+    for fw in scan.files_web:
+        fw.file.timestamp_last_scan = timestamp()
+        fw.file.update(['timestamp_last_scan'], session=session)
 
         fake_res = 'FAKE-{0}'.format(timestamp())
-        scanrefres = ScanRefResults.init_id(scanfile.id)
-        scanrefres.results[probe] = {'result': fake_res}
-        scanrefres.update()
-        scanrefres.release()
-
-        scanres = ScanResults(id=scanres_id)
-        scanres.take()
-        scanres.results[probe] = {'result': fake_res}
-        scanres.update()
-        scanres.release()
+        """
+        # RefResults update
+        print "Looking for probe {0} on file {1}".format(probe, fw.file.sha256)
+        for rr in fw.file.ref_results:
+            print "Found probe {0}".format(rr.probe_name)
+        rr = filter(lambda x: x.probe_name == probe, fw.file.ref_results)
+        if len(rr) == 0:
+            pass
+        elif len(rr) == 1:
+            rr = rr[0]
+            fw.file.ref_results.remove(rr)
+        else:
+            raise IrmaTaskError("too much refresults found")
+        fw.file.ref_results.append({probe: {'result': fake_res}})
+        fw.file.update(session=session)
+        """
+        prr = ProbeRealResult(
+            probe_name=probe,
+            probe_type=None,
+            status=IrmaProbeResultsStates.finished,
+            duration=None,
+            result=None,
+            results=fake_res
+        )
+        pr = filter(lambda x: x.probe_name == probe, fw.probe_results)
+        if len(pr) != 1:
+            raise IrmaTaskError("Probe result not found")
+        pr = pr[0]
+        pr.nosql_id = prr.id
+        pr.state = IrmaProbeResultsStates.finished
+        pr.update(['nosql_id', 'state'], session=session)
+        session.commit()
 
 
 class TestSQLDatabaseObject(WebCoreTestCase):
@@ -161,75 +190,73 @@ class TestSQLDatabaseObject(WebCoreTestCase):
     def test_scan_new_status(self):
         # test we have a correct status
         scanid = core.scan_new()
-        scan = ScanInfo(id=scanid)
+        scan = Scan.load_from_ext_id(scanid, self.session)
 
         self.assertIsNotNone(scan.date)
-        self.assertEqual(type(scan.scanfile_ids), dict)
-        self.assertEqual(len(scan.scanfile_ids), 0)
-        self.assertIsNone(scan.probelist)
         self.assertEqual(scan.status, IrmaScanStatus.created)
-        # FIXME scan.is_completed with wrong status
-        # self.assertFalse(scan.is_completed())
+        # self.assertIsNotNone(scan.ip)
+        # FIXME scan.is_over with wrong status
+        # self.assertFalse(scan.is_over())
 
     def test_scan_add(self):
         scanid = core.scan_new()
-        res = core.scan_add(scanid, FILES)
+        res = core.scan_add(scanid, FILES, self.session)
         self.assertEqual(res, NB_FILES)
 
-        scan = ScanInfo(id=scanid)
+        scan = Scan.load_from_ext_id(scanid, self.session)
         self.assertIsNotNone(scan.date)
-        self.assertEqual(type(scan.scanfile_ids), dict)
-        self.assertEqual(len(scan.scanfile_ids), NB_FILES)
-        self.assertIsNone(scan.probelist)
         self.assertEqual(scan.status, IrmaScanStatus.created)
-        # FIXME scan.probelist should be init with [] instead of None
-        # to fix for loop in is_completed
-        # self.assertFalse(scan.is_completed())
+        self.assertEqual(len(scan.files_web), NB_FILES)
+        self.assertEqual(len((scan.files_web[0]).probe_results), 0)
+        self.assertFalse(scan.is_over())
 
     def test_scan_launch(self):
         scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
+        self.assertEqual(core.scan_add(scanid, FILES, self.session), len(FILES))
         self.assertEqual(core.scan_launch(scanid, True, None),
                          PROBES)
-        scan = ScanInfo(id=scanid)
+        scan = Scan.load_from_ext_id(scanid, self.session)
         self.assertIsNotNone(scan.date)
-        self.assertEqual(type(scan.scanfile_ids), dict)
-        self.assertEqual(len(scan.scanfile_ids), NB_FILES)
-        self.assertEqual(type(scan.probelist), list)
-        self.assertEqual(len(scan.probelist), len(PROBES))
         self.assertEqual(scan.status, IrmaScanStatus.launched)
-        self.assertFalse(scan.is_completed())
-        self.assertListContains(PROBES, scan.probelist)
-        self.assertFalse(scan.is_completed())
+        self.assertEqual(len(scan.files_web), NB_FILES)
+        self.assertEqual(len((scan.files_web[0]).probe_results), len(PROBES))
+        self.assertFalse(scan.is_over())
+        for fw in scan.files_web:
+            probelist = [pr.probe_name for pr in fw.probe_results]
+            self.assertListContains(PROBES, probelist)
+        self.assertFalse(scan.is_over())
 
     def test_scan_partial_results(self):
         scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
+        self.assertEqual(core.scan_add(scanid, FILES, self.session), len(FILES))
         self.assertEqual(core.scan_launch(scanid, True, None),
                          PROBES)
-        scan = ScanInfo(id=scanid)
+        scan = Scan.load_from_ext_id(scanid, self.session)
+        self.assertEqual(scan.status, IrmaScanStatus.launched)
         # add fake results to scan
-        add_fake_results(scan, PROBES[0])
-        self.assertFalse(scan.is_completed())
-        results = scan.get_results(None)
+        add_fake_results(scan, PROBES[0], self.session)
+        self.assertFalse(scan.is_over())
+        results = core.scan_result(scanid)
         self.assertEqual(type(results), dict)
         self.assertEqual(len(results.keys()), NB_FILES)
 
     def test_scan_full_results(self):
         scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
+        self.assertEqual(core.scan_add(scanid, FILES, self.session), len(FILES))
         self.assertEqual(core.scan_launch(scanid, True, None),
                          PROBES)
-        scan = ScanInfo(id=scanid)
-        # add fake results to scan
+        scan = Scan.load_from_ext_id(scanid, self.session)
+        self.assertEqual(scan.status, IrmaScanStatus.launched)
+        # add all fake results to scan
         for p in PROBES:
-            add_fake_results(scan, p)
-        self.assertTrue(scan.is_completed())
-        results = scan.get_results(None)
+            add_fake_results(scan, p, self.session)
+
+        results = core.scan_result(scanid)
         self.assertEqual(type(results), dict)
         self.assertEqual(len(results.keys()), NB_FILES)
         for (_, res_dict) in results.items():
             self.assertEqual(len(res_dict['results']), len(PROBES))
+        self.assertTrue(scan.is_over())
 
 if __name__ == '__main__':
     enable_logging()
