@@ -24,9 +24,9 @@ from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
     IrmaProbeResultsStates, IrmaScanResults
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
-
-from frontend.format import IrmaProbeType, IrmaFormatter
 from lib.irma.database.sqlhandler import SQLDatabase
+from frontend.format import IrmaFormatter
+
 
 # =====================
 #  Frontend Exceptions
@@ -159,7 +159,6 @@ def scan_add(scanid, files):
     if scan.status != IrmaScanStatus.created:
         # Cannot add file to a launched scan
         raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
-    scan.take()
     for (name, data) in files.items():
         try:
             # The file exists
@@ -204,7 +203,6 @@ def scan_launch(scanid, force, probelist):
         session.commit()
         raise IrmaFrontendError("No probe available")
 
-    scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
     if probelist is not None:
         unknown_probes = []
         for p in probelist:
@@ -261,14 +259,14 @@ def scan_result(scanid):
     for fw in scan.files_web:
         probe_results = {}
         for pr in fw.probe_results:
-            if pr.no_sql_id is None:  # An error occurred in the process
+            if pr.nosql_id is None:  # An error occurred in the process
                 probe_results[pr.probe_name] = {
                     'probe_type': pr.probe_type,
-                    'status': pr.status
+                    'status': pr.state
                 }
             else:
                 probe_results[pr.probe_name] = ProbeRealResult(
-                    id=pr.no_sql_id
+                    id=pr.nosql_id
                 ).get_results()
         res[fw.file.sha256] = {
             'filename': fw.name,
@@ -303,7 +301,7 @@ def scan_progress(scanid):
         # it means all probes jobs are completed
         # we are just waiting for results
         if res == IrmaScanStatus.processed:
-            scan.status(IrmaScanStatus.processed)
+            scan.status = IrmaScanStatus.processed
             scan.update(['status'], session=session)
             session.commit()
         raise IrmaFrontendWarning(IrmaScanStatus.label[res])
@@ -412,7 +410,7 @@ def file_result(sha256, filter_type=None):
         probe_results = {}
         for rr in f.ref_results:
             probe_results[rr.probe_name] = ProbeRealResult(
-                id=rr.no_sql_id
+                id=rr.nosql_id
             ).get_results()
         ref_res[f.sha256] = {
             'filename': f.get_file_names(),
@@ -439,7 +437,7 @@ def file_infected(sha256):
         ref_res = ScanRefResults(id=f.id)
         nb_scan = nb_detected = 0
 
-        av_results = file_result(sha256, filter_type=[IrmaProbeType.antivirus])
+        av_results = file_result(sha256, filter_type=["antivirus"])
         probe_res = av_results[sha256]['results']
         for res in probe_res.values():
             nb_scan += 1

@@ -18,13 +18,15 @@ import celery
 import config.parser as config
 
 from celery.utils.log import get_task_logger
-from frontend.nosqlobjects import ProbeRealResult
-from frontend.sqlobjects import Scan, File, sql_db_connect
+from .nosqlobjects import ProbeRealResult
+from .sqlobjects import Scan, File, sql_db_connect
 from lib.common import compat
-from lib.irma.common.exceptions import IrmaFileSystemError
-from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaProbeResultsStates
+from lib.irma.common.exceptions import IrmaFileSystemError, IrmaFtpError
+from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
+    IrmaProbeResultsStates
 from lib.common.utils import humanize_time_str
 from lib.irma.ftp.handler import FtpTls
+from lib.irma.database.sqlhandler import SQLDatabase
 
 
 frontend_app = celery.Celery('frontendtasks')
@@ -37,6 +39,7 @@ config.conf_brain_celery(scan_app)
 @frontend_app.task(acks_late=True)
 def scan_launch(scanid, force):
     try:
+        session = None
         sql_db_connect()
         session = SQLDatabase.get_session()
         ftp_config = config.frontend_config['ftp_brain']
@@ -54,8 +57,8 @@ def scan_launch(scanid, force):
         files_web_todo = []
         for fw in scan.files_web:
             probes_to_do = []
-            for name in fw.probe_results.probe_name:
-                probes_to_do.append(name)
+            for pr in fw.probe_results:
+                probes_to_do.append(pr.probe_name)
 
             if not force:
                 # Fetch the ref results for the file
@@ -86,29 +89,29 @@ def scan_launch(scanid, force):
         with FtpTls(host, port, user, pwd) as ftps:
             scan_request = []
             ftps.mkdir(scanid)
-            # our ftp handler store file under with its sha256 name
             common_path = config.get_samples_storage_path()
-            file_sha256 = fw.file.sha256
-            file_path = os.path.join(common_path, file_sha256)
-            hashname = ftps.upload_file(scanid, file_path)
-            if hashname != file_sha256:
-                reason = "Ftp Error: integrity failure while uploading \
-                file {0} for scanid {1}".format(scanid, fw.name)
-                return IrmaTaskReturn.error(reason)
-            scan_request.append((hashname, probes_to_do))
+            for fw in scan.files_web:
+                file_sha256 = fw.file.sha256
+                file_path = os.path.join(common_path, file_sha256)
+                print "Uploading file {0}".format(file_path)
+                if not os.path.exists(file_path):
+                    raise IrmaFileSystemError("File does not exist")
+                hashname = ftps.upload_file(scanid, file_path)
+                # our ftp handler store file under its sha256 name
+                if hashname != file_sha256:
+                    reason = "Ftp Error: integrity failure while uploading \
+                    file {0} for scanid {1}".format(scanid, fw.name)
+                    return IrmaTaskReturn.error(reason)
+                scan_request.append((hashname, probes_to_do))
         # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
-
         scan.status = IrmaScanStatus.launched
         scan.update(['status'], session=session)
         session.commit()
         return IrmaTaskReturn.success("scan launched")
-    except IrmaLockError as e:
-        print "IrmaLockError has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
-        if scan is not None:
-            scan.release()
+        if session is not None:
+            session.rollback()
         print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
 
@@ -138,8 +141,8 @@ def scan_result(scanid, file_hash, probe, result):
         if fw is None:
             return IrmaTaskReturn.error("filename not found in scan")
 
-        scan.timestamp_last_scan = compat.timestamp()
-        scan.update(['timestamp_last_scan'], session=session)
+        fw.file.timestamp_last_scan = compat.timestamp()
+        fw.file.update(['timestamp_last_scan'], session=session)
 
         sanitized_res = sanitize_dict(result)
 
@@ -170,12 +173,12 @@ def scan_result(scanid, file_hash, probe, result):
             result=None,
             results=sanitized_res
         )
-        pr.no_sql_id = prr.id
-        pr.update(['no_sql_id'], session=session)
-
+        pr.nosql_id = prr.id
+        pr.state = IrmaProbeResultsStates.finished
+        pr.update(['nosql_id', 'state'], session=session)
         print("Scanid {0}".format(scanid) +
               "Result from {0} ".format(probe) +
-              "probedone {0}".format([pr.name for pr in fw.probe_results]))
+              "probedone {0}".format([pr.probe_name for pr in fw.probe_results]))
 
         if scan.is_over():
             scan.status = IrmaScanStatus.finished
@@ -234,8 +237,8 @@ def scan_result_error(scanid, file_hash, probe, exc):
                 'reason': exc
             }
         )
-        pr.no_sql_id = pRR.id
-        pr.update(['no_sql_id'], session=session)
+        pr.nosql_id = pRR.id
+        pr.update(['nosql_id'], session=session)
 
         print("{0}: ".format(scanid) +
               "error from {0} ".format(probe) +
@@ -247,16 +250,7 @@ def scan_result_error(scanid, file_hash, probe, exc):
             scan.update(['status'], session=session)
         session.commit()
 
-    except IrmaLockError as e:
-        print ("IrmaLockError has occurred:{0}".format(e))
-        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
-        if scan is not None:
-            scan.release()
-        if scan_res is not None:
-            scan_res.release()
-        if ref_res is not None:
-            ref_res.release()
         print ("Exception has occurred:{0}".format(e))
         raise scan_result.retry(countdown=2, max_retries=3, exc=e)
 
