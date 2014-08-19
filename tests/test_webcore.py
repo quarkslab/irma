@@ -15,12 +15,12 @@
 
 import sys
 import os
-from lib.irma.database.sqlhandler import SQLDatabase
-from lib.irma.common.exceptions import IrmaTaskError
-
 pardir = os.path.abspath(os.path.join(__file__, os.path.pardir))
 sys.path.append(os.path.dirname(pardir))
 
+from config.parser import frontend_config
+from lib.irma.common.exceptions import IrmaTaskError
+from lib.irma.database.sqlhandler import SQLDatabase
 import logging
 import unittest
 # Test config
@@ -88,15 +88,6 @@ def mock_scan_progress(scanid, successful=True):
         return {"total": NB_FILES, "finished": 2, "successful": 2}
     else:
         raise IrmaFrontendWarning(IrmaScanStatus.created)
-
-
-def mock_scan_add_result(scanid):
-    sql_db_connect()
-    session = SQLDatabase.get_session()
-    scan = Scan.load_from_ext_id(scanid, session)
-    if scan.status != IrmaScanStatus.launched:
-        raise IrmaFrontendWarning(scan.status)
-
 
 core._task_probe_list = mock_probe_list
 core._task_scan_cancel = mock_scan_cancel
@@ -200,7 +191,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
 
     def test_scan_add(self):
         scanid = core.scan_new()
-        res = core.scan_add(scanid, FILES, self.session)
+        res = core.scan_add(scanid, FILES)
         self.assertEqual(res, NB_FILES)
 
         scan = Scan.load_from_ext_id(scanid, self.session)
@@ -212,7 +203,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
 
     def test_scan_launch(self):
         scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES, self.session), len(FILES))
+        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
         self.assertEqual(core.scan_launch(scanid, True, None),
                          PROBES)
         scan = Scan.load_from_ext_id(scanid, self.session)
@@ -228,7 +219,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
 
     def test_scan_partial_results(self):
         scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES, self.session), len(FILES))
+        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
         self.assertEqual(core.scan_launch(scanid, True, None),
                          PROBES)
         scan = Scan.load_from_ext_id(scanid, self.session)
@@ -242,7 +233,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
 
     def test_scan_full_results(self):
         scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES, self.session), len(FILES))
+        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
         self.assertEqual(core.scan_launch(scanid, True, None),
                          PROBES)
         scan = Scan.load_from_ext_id(scanid, self.session)
