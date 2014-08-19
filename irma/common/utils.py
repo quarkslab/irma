@@ -80,14 +80,15 @@ class IrmaReturnCode:
 # ==============================
 
 class IrmaScanStatus:
-    created = 0
-    uploading = 5
-    launched = 10
-    cancelling = 20
-    cancelled = 21
-    processed = 30
-    finished = 50
-    flushed = 100
+    created = 0  # New scan id asked
+    uploading = 5  # File added, being uploaded to the brain
+    launched = 10  # Scan launched on brain
+    cancelling = 20  # Cancel order received
+    cancelled = 21  # Cancel order done
+    processed = 30  # Brain subjobs completed, waiting for results on frontend
+    finished = 50  # All results present on the frontend scan finished
+    flushed = 100  # Files deleted from ftp
+
     error = 200
     # Probes 201-209
     error_probe_missing = 201
