@@ -24,7 +24,7 @@ Vagrant.configure("2") do |config|
       end
 
       if node_values['share_code']
-        vm_config.vm.synced_folder node_values["share_from"], node_values["share_to"], type: "rsync", owner: 'www-data', group: 'www-data', rsync__exclude: node_values["share_exclude"]
+        vm_config.vm.synced_folder node_values["share_from"], node_values["share_to"], type: "rsync", owner: node_values['share_user'], group: node_values['share_group'], rsync__exclude: node_values["share_exclude"]
       end
     end
 

@@ -7,6 +7,8 @@
             "share_code": true,
             "share_from": "../irma-frontend",
             "share_to": "/var/www/prod.project.local/current",
+            "share_user": "www-data",
+            "share_group": "www-data",
             "share_exclude": [
                 ".git/",
                 "venv/",
@@ -20,7 +22,23 @@
             "share_code": false,
             "share_from": "",
             "share_to": "",
+            "share_user": "",
+            "share_group": "",
             "share_exclude": [
+            ]
+        },
+        "probe": {
+            "ip": "172.16.1.32",
+            "hostname": "probe.irma.local",
+            "memory": "2048",
+            "share_code": true,
+            "share_from": "../irma-probe",
+            "share_to": "/opt/irma/irma-probe",
+            "share_user": "irma",
+            "share_group": "irma",
+            "share_exclude": [
+                ".git/",
+                "venv/"
             ]
         }
     },
@@ -29,7 +47,8 @@
         "vagrant": true,
         "groups": {
             "frontend": ["frontend"],
-            "brain": ["brain"]
+            "brain": ["brain"],
+            "probe": ["probe"]
         }
     }
 }

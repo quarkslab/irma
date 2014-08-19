@@ -6,7 +6,6 @@
   sudo: yes
   vars_files:
     - vars/common.yml
-
   pre_tasks:
     - name: Install Uncomplicated Firewall software
       apt: pkg=ufw state=latest
@@ -15,7 +14,6 @@
       when: vagrant|default(False) == False
     - name: Open OpenSSH port
       ufw: rule=allow port=ssh
-
   roles:
     - { role: mivok0.users, tags: 'users' }
     - { role: Ansibles.openssh, tags: 'openssh' }
