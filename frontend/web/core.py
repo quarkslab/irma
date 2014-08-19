@@ -210,7 +210,7 @@ def scan_launch(scanid, force, probelist):
                 unknown_probes.append(p)
         if len(unknown_probes) != 0:
             reason = "Probe {0} unknown".format(", ".join(unknown_probes))
-            scan.status = IrmaScanStatus.cancelled
+            scan.status = IrmaScanStatus.finished
             scan.update(['status'], session=session)
             session.commit()
             raise IrmaFrontendError(reason)
