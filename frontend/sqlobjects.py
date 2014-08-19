@@ -77,12 +77,12 @@ tag_file = Table(
     Column(
         'id_tag',
         Integer,
-        ForeignKey('{0}tag.id_tag'.format(tables_prefix))
+        ForeignKey('{0}tag.id'.format(tables_prefix))
     ),
     Column(
         'id_file',
         Integer,
-        ForeignKey('{0}file.id_file'.format(tables_prefix)))
+        ForeignKey('{0}file.id'.format(tables_prefix)))
 )
 
 
@@ -94,7 +94,7 @@ probe_result_file_web = Table(
         'id_fw',
         Integer,
         # see FileWeb.id_file
-        ForeignKey('{0}fileWeb.id_fw'.format(tables_prefix))
+        ForeignKey('{0}fileWeb.id'.format(tables_prefix))
     ),
     # Removed from FileWeb FK due to SQLite limitation, conceptually it
     # should be a PKF in FileWeb
@@ -106,7 +106,7 @@ probe_result_file_web = Table(
     Column(
         'id_pr',
         Integer,
-        ForeignKey('{0}probeResult.id_pr'.format(tables_prefix))
+        ForeignKey('{0}probeResult.id'.format(tables_prefix))
     ),
     # See FileWeb
     # ForeignKeyConstraint(   # Composite PFK from FileWeb
@@ -127,26 +127,22 @@ class Tag(Base, SQLDatabaseObject):
     if config.get_sql_db_uri_params()[0] == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
-    _fields_suffix = '_tag'
-    _idname = 'id{0}'.format(_fields_suffix)
-
     # Fields
     id = Column(
         Integer,
         autoincrement=True,
         nullable=False,
         primary_key=True,
-        name=_idname
+        name='id'
     )
     name = Column(
         String,
         nullable=False,
-        name='name{0}'.format(_fields_suffix)
+        name='name'
     )
 
     def __init__(self, name=''):
         super(Tag, self).__init__()
-
         self.name = name
 
 
@@ -158,49 +154,46 @@ class File(Base, SQLDatabaseObject):
     if config.get_sql_db_uri_params()[0] == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
-    _fields_suffix = '_file'
-    _idname = 'id{0}'.format(_fields_suffix)
-
     # Fields
     id = Column(
         Integer,
         autoincrement=True,
         nullable=False,
         primary_key=True,
-        name=_idname
+        name='id'
     )
     sha256 = Column(
         String(length=64),
         index=True,
-        name='sha256{0}'.format(_fields_suffix)
+        name='sha256'
     )
     sha1 = Column(
         String(length=40),
         index=True,
-        name='sha1{0}'.format(_fields_suffix)
+        name='sha1'
     )
     md5 = Column(
         String(length=32),
         index=True,
-        name='md5{0}'.format(_fields_suffix)
+        name='md5'
     )
     timestamp_first_scan = Column(
         String,
         nullable=False,
-        name='timestamp_first_scan{0}'.format(_fields_suffix)
+        name='timestamp_first_scan'
     )
     timestamp_last_scan = Column(
         String,
         nullable=False,
-        name='timestamp_last_scan{0}'.format(_fields_suffix)
+        name='timestamp_last_scan'
     )
     size = Column(
         Integer,
-        name='size{0}'.format(_fields_suffix)
+        name='size'
     )
     path = Column(
         String(length=255),
-        name='path{0}'.format(_fields_suffix)
+        name='path'
     )
     # Many to many Tag <-> File
     tags = relationship(
@@ -310,39 +303,36 @@ class ProbeResult(Base, SQLDatabaseObject):
     if config.get_sql_db_uri_params()[0] == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
-    _fields_suffix = '_pr'
-    _idname = 'id{0}'.format(_fields_suffix)
-
     # Fields
     id = Column(
         Integer,
         autoincrement=True,
         nullable=False,
         primary_key=True,
-        name=_idname
+        name='id'
     )
     probe_type = Column(
         String,
         nullable=False,
-        name='probe_type{0}'.format(_fields_suffix)
+        name='probe_type'
     )
     probe_name = Column(
         String,
         nullable=False,
-        name='probe_name{0}'.format(_fields_suffix)
+        name='probe_name'
     )
-    no_sql_id = Column(
+    nosql_id = Column(
         String,
-        name='no_sql_id{0}'.format(_fields_suffix)
+        name='nosql_id'
     )
     state = Column(
         Integer,
         nullable=False,
-        name='state{0}'.format(_fields_suffix)
+        name='state'
     )
     result = Column(
         Integer,
-        name='result{0}'.format(_fields_suffix)
+        name='result'
     )
     # Many to many ProbeResult <-> FileWeb
     files_web = relationship(
@@ -353,19 +343,19 @@ class ProbeResult(Base, SQLDatabaseObject):
     # Many to many ProbeResult <-> File
     id_file = Column(
         Integer,
-        ForeignKey('{0}file.id_file'.format(tables_prefix))
+        ForeignKey('{0}file.id'.format(tables_prefix))
     )
     file = relationship(
         "File",
         backref=backref('ref_results')
     )
 
-    def __init__(self, probe_type, probe_name, no_sql_id, state, result, file_web=None):
+    def __init__(self, probe_type, probe_name, nosql_id, state, result, file_web=None):
         super(ProbeResult, self).__init__()
 
         self.probe_type = probe_type
         self.probe_name = probe_name
-        self.no_sql_id = no_sql_id
+        self.nosql_id = nosql_id
         self.state = state
         self.result = result
         self.files_web = [file_web]
@@ -379,36 +369,33 @@ class Scan(Base, SQLDatabaseObject):
     if config.get_sql_db_uri_params()[0] == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
-    _fields_suffix = '_scan'
-    _idname = 'id{0}'.format(_fields_suffix)
-
     # Fields
     id = Column(
         Integer,
         autoincrement=True,
         nullable=False,
         primary_key=True,
-        name=_idname
+        name='id'
     )
     external_id = Column(
         String(length=36),
         index=True,
         nullable=False,
-        name='external_id{0}'.format(_fields_suffix)
+        name='external_id'
     )
     status = Column(
         Integer,
         nullable=False,
-        name='status{0}'.format(_fields_suffix)
+        name='status'
     )
     date = Column(
         Integer,
         nullable=False,
-        name='date{0}'.format(_fields_suffix)
+        name='date'
     )
     ip = Column(
         String,
-        name='ip{0}'.format(_fields_suffix)
+        name='ip'
     )
 
     def __init__(self, status, date, ip):
@@ -457,21 +444,18 @@ class FileWeb(Base, SQLDatabaseObject):
     if config.get_sql_db_uri_params()[0] == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
-    _fields_suffix = '_fw'
-    _idname = 'id{0}'.format(_fields_suffix)
-
     # Fields
     id = Column(
         Integer,
         autoincrement=True,
         nullable=False,
         primary_key=True,
-        name=_idname
+        name='id'
     )
     # Many to one FileWeb <-> File as part of the primary key
     id_file = Column(
         Integer,
-        ForeignKey('{0}file.id_file'.format(tables_prefix)),
+        ForeignKey('{0}file.id'.format(tables_prefix)),
         nullable=False,
         # conceptually it should be a PFK, but due to limitation in sqlite,
         # only is a FK
@@ -485,12 +469,12 @@ class FileWeb(Base, SQLDatabaseObject):
     name = Column(
         String(length=255),
         nullable=False,
-        name='name{0}'.format(_fields_suffix)
+        name='name'
     )
     # Many to one FileWeb <-> Scan
     id_scan = Column(
         Integer,
-        ForeignKey('{0}scan.id_scan'.format(tables_prefix)),
+        ForeignKey('{0}scan.id'.format(tables_prefix)),
         nullable=False
     )
     scan = relationship(
@@ -514,26 +498,23 @@ class FileAgent(Base, SQLDatabaseObject):
     if config.get_sql_db_uri_params()[0] == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
-    _fields_suffix = '_fa'
-    _idname = 'id{0}'.format(_fields_suffix)
-
     # Fields
     id = Column(
         Integer,
         autoincrement=True,
         nullable=False,
         primary_key=True,
-        name=_idname
+        name='id'
     )
     submission_path = Column(
         String(length=255),
         nullable=False,
-        name='submission_path{0}'.format(_fields_suffix)
+        name='submission_path'
     )
     # Many to one FileAgent <-> File as part of the primary key
     id_file = Column(
         Integer,
-        ForeignKey('{0}file.id_file'.format(tables_prefix)),
+        ForeignKey('{0}file.id'.format(tables_prefix)),
         nullable=False,
         # conceptually it should be a PFK, but due to limitation in sqlite,
         # only is a FK
@@ -547,7 +528,7 @@ class FileAgent(Base, SQLDatabaseObject):
     # Many to one FileAgent <-> Submission
     id_s = Column(
         Integer,
-        ForeignKey('{0}submission.id_s'.format(tables_prefix)),
+        ForeignKey('{0}submission.id'.format(tables_prefix)),
         nullable=False
     )
     submission = relationship(
@@ -571,42 +552,39 @@ class Submission(Base, SQLDatabaseObject):
     if config.get_sql_db_uri_params()[0] == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
-    _fields_suffix = '_s'
-    _idname = 'id{0}'.format(_fields_suffix)
-
     # Fields
     id = Column(
         Integer,
         autoincrement=True,
         nullable=False,
         primary_key=True,
-        name=_idname
+        name='id'
     )
     external_id = Column(
         String(length=36),
         index=True,
         nullable=False,
-        name='external_id{0}'.format(_fields_suffix)
+        name='external_id'
     )
     os_name = Column(
         String,
         nullable=False,
-        name='os_name{0}'.format(_fields_suffix)
+        name='os_name'
     )
     username = Column(
         String,
         nullable=False,
-        name='username{0}'.format(_fields_suffix)
+        name='username'
     )
     ip = Column(
         String,
         nullable=False,
-        name='ip{0}'.format(_fields_suffix)
+        name='ip'
     )
     date = Column(
         Integer,
         nullable=False,
-        name='date{0}'.format(_fields_suffix)
+        name='date'
     )
 
     def __init__(self, os_name, username, ip, date):
