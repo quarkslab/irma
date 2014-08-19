@@ -245,7 +245,7 @@ def scan_result_error(scanid, file_hash, probe, exc):
               "nb probedone {0} ".format(len(
                   [probe_res for probe_res in fw.probe_results])))
 
-        if scan.is_completed():
+        if scan.is_over():
             scan.status = IrmaScanStatus.finished
             scan.update(['status'], session=session)
         session.commit()
