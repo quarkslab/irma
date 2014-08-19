@@ -262,7 +262,11 @@ def scan_progress(scanid):
     try:
         sql = sql_connect(engine, dbname)
         user = sql_get_user(sql)
-        scan = sql_get_scan(sql, scanid, user)
+        try:
+            scan = sql_get_scan(sql, scanid, user)
+        except IrmaTaskError as e:
+            msg = "Brain: {0}".format(e)
+            return IrmaTaskReturn.warning(msg)
         if scan.status == IrmaScanStatus.launched:
             if not scan.taskid:
                 log.debug("{0}: sql no task_id".format(scanid))
