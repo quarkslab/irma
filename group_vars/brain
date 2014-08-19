@@ -1,2 +1,20 @@
 
+rabbitmq_ssl: false
+
+rabbitmq_vhost_definitions:
+  - mqbrain
+  - mqfrontend
+  - mqprobe
+
+rabbitmq_users_definitions:
+  - vhost: mqbrain
+    user: brain
+    password: changeme
+  - vhost: mqfrontend
+    user: frontend
+    password: changeme
+  - vhost: mqprobe
+    user: probe
+    password: changeme
+
 # vim: sw=2

@@ -19,12 +19,14 @@
             "ip": "172.16.1.31",
             "hostname": "brain.irma.local",
             "memory": "2048",
-            "share_code": false,
-            "share_from": "",
-            "share_to": "",
-            "share_user": "",
-            "share_group": "",
+            "share_code": true,
+            "share_from": "../irma-brain",
+            "share_to": "/opt/irma/irma-brain",
+            "share_user": "irma",
+            "share_group": "irma",
             "share_exclude": [
+                ".git/",
+                "venv/"
             ]
         },
         "probe": {
