@@ -33,16 +33,19 @@ If you’re interesting in using [Vagrant](http://vagrantup.com), be sure to hav
 ...
 |
 +--- irma-frontend
++--- irma-probe
 |
 +--- irma-ansible-provisioning
 ```
 
 To initialize and provision the Virtualbox VM, run in the irma-ansible-provisioning directory `vagrant up`.
 
+#### Frontend
+
 /!\ Make sure you’ve got a `config/frontend.ini` file up to date, before provisioning. An example file is available there:
 `config/frontend.ini.sample`.
 
-Then, you’ll need to manually “deploy” the application, run `vagrant ssh` to connect to the VM, and then:
+Then, you’ll need to manually “deploy” the application, run `vagrant ssh frontend` to connect to the VM, and then:
 ```
 $ sudo su www-data
 $ cd /var/wwww/prod.project.local/current
@@ -60,10 +63,19 @@ $ node_modules/.bin/gulp dist
 
 Then, for proper use, update your `/etc/hosts` file and add:
 ```
-172.16.1.30    www.allinone.irma.local
+172.16.1.30    www.frontend.irma.local
 ```
 
-Then, with your web browser, IRMA allinone is available at [www.allinone.irma.local](http://www.allinone.irma.local).
+Then, with your web browser, IRMA allinone is available at [www.frontend.irma.local](http://www.frontend.irma.local).
+
+#### Probe (ClamAV)
+
+Using `vagrant ssh probe` to connect to the VM:
+```
+$ cd /opt/irma/irma-probe
+$ virtualenv venv
+$ venv/bin/pip install -r requirements.txt
+```
 
 
 Configuration

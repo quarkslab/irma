@@ -1,9 +1,0 @@
----
-# file: vars/common
-
-users:
-  - username: "{{ default_user }}"
-    name: "{{ default_user }}"
-    groups: ["{{ default_user }}", 'sudo']
-    uid: 1002
-    ssh_key: "{{ default_ssh_keys }}"

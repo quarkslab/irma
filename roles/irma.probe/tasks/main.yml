@@ -39,7 +39,6 @@
 
 - name: ClamAV | Update freshclam
   shell: freshclam
-  # Only when installation restart
   sudo: true
   when: clamav_install | changed
 
