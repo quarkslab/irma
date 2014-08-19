@@ -27,7 +27,7 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
-from lib.irma.common.utils import IrmaProbeResultsStates
+from lib.irma.common.utils import IrmaProbeResultsStates, IrmaScanStatus
 from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 
@@ -429,6 +429,8 @@ class Scan(Base, SQLDatabaseObject):
         :rtype: boolean
         :return: True if the scan is over
         """
+        if self.status < IrmaScanStatus.launched:
+            return False
         for fw in self.files_web:
             for pr in fw.probe_results:
                 if pr.state != IrmaProbeResultsStates.finished:
