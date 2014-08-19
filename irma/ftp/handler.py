@@ -149,16 +149,6 @@ class FtpTls(object):
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
-    def upload_file(self, path, filename):
-        """ Upload <filename> content into directory <path>"""
-        try:
-            with open(filename, "rb") as f:
-                dstname = self._hash(f.read())
-                self._conn.storbinary("STOR {0}/{1}".format(path, dstname), f)
-            return dstname
-        except Exception as e:
-            raise IrmaFtpError("{0}".format(e))
-
     def upload_data(self, path, data):
         """ Upload <data> to remote directory <path>"""
         try:
@@ -167,6 +157,15 @@ class FtpTls(object):
             self._conn.storbinarydata("STOR {0}".format(dstpath),
                                       data)
             return dstname
+        except Exception as e:
+            raise IrmaFtpError("{0}".format(e))
+
+    def upload_file(self, path, filename):
+        """ Upload <filename> content into directory <path>"""
+        try:
+            with open(filename, "rb") as f:
+                dstname = self.upload_data(path, f.read())
+                return dstname
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
