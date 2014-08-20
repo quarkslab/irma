@@ -209,10 +209,12 @@ def progress(scanid):
     """
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-        if scan.status != IrmaScanStatus.launched:
+        if IrmaScanStatus.is_error(scan.status):
+            raise IrmaTaskError(IrmaScanStatus.label[scan.status])
+        elif scan.status != IrmaScanStatus.launched:
             # If not launched answer directly
-            # Else ask brain for job status
             raise IrmaValueError(IrmaScanStatus.label[scan.status])
+        # Else ask brain for job status
         (status, res) = celery_brain.scan_progress(scanid)
         if status == IrmaReturnCode.success:
             return res
