@@ -12,28 +12,31 @@
 # No part of the project, including this file, may be copied,
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
-import os
 
 import celery
 import config.parser as config
 
 from celery.utils.log import get_task_logger
-from frontend.models.nosqlobjects import ProbeRealResult
-from frontend.models.sqlobjects import Scan, File, sql_db_connect
-from lib.common import compat
-from lib.irma.common.exceptions import IrmaFileSystemError, IrmaFtpError
-from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
-    IrmaProbeResultsStates
+
+from frontend.objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
+from lib.common.compat import timestamp
+from lib.irma.common.exceptions import IrmaLockError
+from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
 from lib.common.utils import humanize_time_str
 from lib.irma.ftp.handler import FtpTls
-from lib.irma.database.sqlhandler import SQLDatabase
 
 
+log = get_task_logger(__name__)
+
+# declare a new application
 frontend_app = celery.Celery('frontendtasks')
 config.conf_frontend_celery(frontend_app)
+config.configure_syslog(frontend_app)
 
-brain_app = celery.Celery('scantasks')
-config.conf_brain_celery(brain_app)
+# declare a new application
+scan_app = celery.Celery('scantasks')
+configscan_app.conf_brain_celery(scan_app)
+config.configure_syslog(scan_app)
 
 
 @frontend_app.task(acks_late=True)
@@ -81,6 +84,10 @@ def scan_launch(scanid, force):
             scan.update(['status'], session=session)
             session.commit()
             return IrmaTaskReturn.success("Nothing to do")
+		
+		scan.status = IrmaScanStatus.uploading
+        scan.update(['status'], session=session)
+        session.commit()
 
         host = ftp_config.host
         port = ftp_config.port
@@ -101,14 +108,19 @@ def scan_launch(scanid, force):
                 if hashname != file_sha256:
                     reason = "Ftp Error: integrity failure while uploading \
                     file {0} for scanid {1}".format(scanid, fw.name)
-                    return IrmaTaskReturn.error(reason)
+                    return IrmaFtpReturn.error(reason)
                 scan_request.append((hashname, probes_to_do))
         # launch new celery task
-        brain_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
+        scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
         scan.status = IrmaScanStatus.launched
         scan.update(['status'], session=session)
         session.commit()
         return IrmaTaskReturn.success("scan launched")
+    except IrmaFtpError as e:
+            print("{0}: Ftp upload error".format(scanid))
+            scan.update_status(IrmaScanStatus.error_ftp_upload)
+            scan.release()
+            return
     except Exception as e:
         if session is not None:
             session.rollback()
