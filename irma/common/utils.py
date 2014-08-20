@@ -81,6 +81,7 @@ class IrmaReturnCode:
 
 class IrmaScanStatus:
     created = 0
+    uploading = 5
     launched = 10
     cancelling = 20
     cancelled = 21
@@ -88,8 +89,13 @@ class IrmaScanStatus:
     finished = 50
     flushed = 100
     error = 200
+    # Probes 201-209
     error_probe_missing = 201
+    error_probe_na = 202
+    # FTP 210-219
+    error_ftp_upload = 210
     label = {created: "created",
+             uploading: "uploading",
              launched: "launched",
              cancelling: "cancelling",
              cancelled: "cancelled",
@@ -97,41 +103,37 @@ class IrmaScanStatus:
              finished: "finished",
              flushed: "flushed",
              error: "error",
-             error_probe_missing: "error probe missing"
+             error_probe_missing: "probelist missing",
+             error_probe_na: "probe(s) not available",
+             error_ftp_upload: "ftp upload error"
              }
 
+    @staticmethod
+    def is_error(code):
+        return code >= IrmaScanStatus.error
 
-# ====================
-#  ScanResults states
-# ====================
+# ==========================================================
+#  Lock values for NoSQLDatabaseObjects (internal use only)
+# ==========================================================
 
-class IrmaProbeResultsStates:
-    created = 0
-    running = 10
-    cancelled = 20
-    finished = 30
-    error = 40
+class IrmaLock:
+    free = 0
+    locked = 5
     label = {
-        created: "created",
-        running: "running",
-        cancelled: "cancelled",
-        finished: "finished",
-        error: "error"
+        free: 'free',
+        locked: 'locked'
     }
+    lock_timeout = 60   # in seconds (delta between timestamps)
 
 
-# =============
-#  ScanResults
-# =============
+# =========================================================================
+#  Lock values for NoSQLDatabaseObjects (FOR THE CALL TO THE CONSTRUCTORS)
+# =========================================================================
 
-class IrmaScanResults:
-    notDoneYet = 0
-    isMalicious = 10
-    isNotMalicious = 20
-    doNotKnow = 30
+class IrmaLockMode:
+    read = 'r'
+    write = 'w'
     label = {
-        notDoneYet: "notDoneYet",
-        isMalicious: "isMalicious",
-        isNotMalicious: "isNotMalicious",
-        doNotKnow: "doNotKnow"
+        read: 'read',
+        write: 'write'
     }
