@@ -33,11 +33,11 @@ from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
 from lib.common.compat import timestamp
 
 
-from frontend.nosqlobjects import ProbeRealResult
-from frontend.sqlobjects import ProbeResult
-import frontend.web.core as core
-from frontend.web.core import IrmaFrontendWarning, IrmaFrontendError
-from frontend.sqlobjects import Scan, sql_db_connect
+from frontend.models.nosqlobjects import ProbeRealResult
+from frontend.models.sqlobjects import ProbeResult
+import frontend.controllers.scanctrl as core
+from frontend.controllers.scanctrl import IrmaValueError, IrmaTaskError
+from frontend.models.sqlobjects import Scan, sql_db_connect
 
 # Parameter for scan test
 PROBES = ['Probe1', 'Probe2']
@@ -58,7 +58,7 @@ def mock_probe_list(successful=True):
     if successful:
         return PROBES
     else:
-        raise IrmaFrontendError("Celery timeout - probe_list")
+        raise IrmaTaskError("Celery timeout - probe_list")
 
 
 def mock_scan_cancel(scanid, successful=True):
@@ -87,12 +87,12 @@ def mock_scan_progress(scanid, successful=True):
     if successful:
         return {"total": NB_FILES, "finished": 2, "successful": 2}
     else:
-        raise IrmaFrontendWarning(IrmaScanStatus.created)
+        raise IrmaValueError(IrmaScanStatus.created)
 
-core._task_probe_list = mock_probe_list
-core._task_scan_cancel = mock_scan_cancel
+core.probe_list = mock_probe_list
+core.scan_cancel = mock_scan_cancel
 core._task_scan_launch = mock_scan_launch
-core._task_scan_progress = mock_scan_progress
+core.scan_progress = mock_scan_progress
 
 
 # =================
