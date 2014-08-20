@@ -33,7 +33,6 @@ import frontend.controllers.frontendtasks as celery_frontend
 #  Helpers
 # =========
 
-
 def format_results(res_dict, filter_type):
     # - filter type is list of type returned
     res = {}
@@ -47,9 +46,8 @@ def format_results(res_dict, filter_type):
         format_res = IrmaFormatter.format(probe, probe_res)
         if filter_type is not None:
             # filter by type
-            filter_str = [IrmaProbeType.label[ft] for ft in filter_type]
-            if 'type' in format_res and \
-               format_res['type'] not in filter_str:
+            if 'category' in format_res and \
+               format_res['category'] not in filter_type:
                 continue
         res[probe] = format_res
     return res
