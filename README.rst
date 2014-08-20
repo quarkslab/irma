@@ -27,7 +27,7 @@ any way, please take 30 seconds to fill out a `ticket
 Getting help
 ````````````
 
-Join the #irma_qb channel on irc.freenode.net. Lots of helpful people hang out there.
+Join the #qb_irma channel on irc.freenode.net. Lots of helpful people hang out there.
 
 
 Contribute to IRMA

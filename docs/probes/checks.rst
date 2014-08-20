@@ -12,7 +12,7 @@ On GNU/Linux:
 
 .. code-block:: bash
 
-    $ celery worker --app=probe.tasks:app
+    $ celery worker --app=probe.tasks:app --workdir=/opt/irma/irma-probe
     WARNING:root: *** [plugin] Plugin failed to load: Kaspersky miss dependencies: win32 (PlatformDependency).
     WARNING:root: *** [plugin] Plugin failed to load: Sophos miss dependencies: win32 (PlatformDependency).
     WARNING:root: *** [plugin] Plugin failed to load: Symantec miss dependencies: win32 (PlatformDependency).
@@ -20,7 +20,7 @@ On GNU/Linux:
     WARNING:root: *** [plugin] Plugin failed to load: VirusTotal miss dependencies: virus_total_apis (ModuleDependency). See requirements.txt for needed dependencies
     WARNING:root: *** [plugin] Plugin failed to load: StaticAnalyzer miss dependencies: pefile (ModuleDependency). See requirements.txt for needed dependencies
      
-     -------------- celery@multiav v3.1.13 (Cipater)
+     -------------- celery@irma-probe v3.1.13 (Cipater)
     ---- **** ----- 
     --- * ***  * -- Linux-3.2.0-4-amd64-x86_64-with-debian-7.6
     -- * - **** --- 
@@ -43,7 +43,7 @@ The equivalent command on Microsoft Windows is:
 
 .. code-block:: bash
 
-    $ C:\Python27\Scripts\celery.exe worker --app=probe.tasks:app
+    $ C:\Python27\Scripts\celery.exe worker --app=probe.tasks:app --workdir=C:\irma\irma-probe
     [...]
 
 If your Celery worker does not output something similar to the above output,
