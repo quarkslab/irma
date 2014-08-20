@@ -25,56 +25,14 @@ from bottle import route, request, default_app, run, abort
 from lib.common.utils import UUID
 
 """
-    IRMA FRONTEND API
+    IRMA FRONTEND WEB API
     defines all accessible route accessed via uwsgi..
-
-    For test purpose set DEBUG to True and launch,
-    the server will use mockup core class
-    irma dependencies are no more required.
-
-    To launch the Debug server just type:
-
-    $ python -m frontend.web.api
-
-    it will launch the server on 0.0.0.0 port 8080
 """
 
-DEBUG = False
-if DEBUG:
-    s_utils = "mucore"
-    s_core = "mucore"
-else:
-    s_utils = "lib.irma.common.utils"
-    s_core = "frontend.web.core"
-
-utils = importlib.import_module(s_utils)
-core = importlib.import_module(s_core)
-
-IrmaFrontendReturn = getattr(utils, "IrmaFrontendReturn")
-IrmaFrontendError = getattr(core, "IrmaFrontendError")
-IrmaFrontendWarning = getattr(core, "IrmaFrontendWarning")
-
-
-# ==================
-#  SERVER TEST MODE
-# ==================
-
-@bottle.error(405)
-def method_not_allowed(res):
-    """ allow CORS request for debug purpose """
-    if request.method == 'OPTIONS':
-        new_res = bottle.HTTPResponse()
-        new_res.set_header('Access-Control-Allow-Origin', '*')
-        return new_res
-    res.headers['Allow'] += ', OPTIONS'
-    req_app = request.app
-    return req_app.default_error_handler(res)
-
-
-@bottle.hook('after_request')
-def enableCORSAfterRequestHook():
-    """ allow CORS request for debug purpose """
-    bottle.response.set_header('Access-Control-Allow-Origin', '*')
+from lib.irma.common.utils import IrmaFrontendReturn
+from lib.irma.common.exceptions import IrmaTaskError, IrmaValueError
+import frontend.controllers.scanctrl as scan_ctrl
+import frontend.controllers.filectrl as file_ctrl
 
 
 # =============
@@ -98,12 +56,14 @@ def svr_index():
 
 def _valid_id(scanid):
     """ check scanid format - should be UUID"""
-    return UUID.validate(scanid)
+    if not UUID.validate(scanid):
+        raise IrmaValueError("not a valid Scanid")
 
 
 def _valid_sha256(sha256):
     """ check hashvalue format - should be a sha256 hexdigest"""
-    return re.match(r'^[0-9a-fA-F]{64}$', sha256)
+    if not re.match(r'^[0-9a-fA-F]{64}$', sha256):
+        raise IrmaValueError("noe a valid sha256")
 
 
 # ==========
@@ -121,12 +81,8 @@ def scan_new():
         on error 'msg' gives reason message
     """
     try:
-        scan_id = core.scan_new()
+        scan_id = scan_ctrl.new()
         return IrmaFrontendReturn.success(scan_id=scan_id)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -144,22 +100,17 @@ def scan_add(scanid):
         on success 'nb_files' total number of files for the scan
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        # Filter malformed scanid
+        _valid_id(scanid)
         files = {}
         for f in request.files:
             upfile = request.files.get(f)
             filename = os.path.basename(upfile.filename)
             data = upfile.file.read()
             files[filename] = data
-        nb_files = core.scan_add(scanid, files)
+        nb_files = scan_ctrl.add(scanid, files)
         return IrmaFrontendReturn.success(nb_files=nb_files)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -177,10 +128,9 @@ def scan_launch(scanid):
         on success 'probe_list' is the list of probes used for the scan
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        # Filter malformed scanid
+        _valid_id(scanid)
         # handle 'force' parameter
         force = False
         if 'force' in request.params:
@@ -190,12 +140,8 @@ def scan_launch(scanid):
         in_probelist = None
         if 'probe' in request.params:
             in_probelist = request.params['probe'].split(',')
-        out_probelist = core.scan_launch(scanid, force, in_probelist)
+        out_probelist = scan_ctrl.launch(scanid, force, in_probelist)
         return IrmaFrontendReturn.success(probe_list=out_probelist)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -215,16 +161,13 @@ def scan_result(scanid):
         on success 'scan_results' is the dict of results for each filename
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        results = core.scan_result(scanid)
+        # Filter malformed scanid
+        _valid_id(scanid)
+        results = scan_ctrl.result(scanid)
         return IrmaFrontendReturn.success(scan_results=results)
-    except IrmaFrontendWarning as e:
+    except IrmaValueError as e:
         return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -247,16 +190,13 @@ def scan_progress(scanid):
         progress_details like 'processed' or 'finished'
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        progress = core.scan_progress(scanid)
+        # Filter malformed scanid
+        _valid_id(scanid)
+        progress = scan_ctrl.progress(scanid)
         return IrmaFrontendReturn.success(progress_details=progress)
-    except IrmaFrontendWarning as e:
+    except IrmaValueError as e:
         return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -282,12 +222,10 @@ def scan_cancel(scanid):
     if not _valid_id(scanid):
         return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        cancel = core.scan_cancel(scanid)
+        cancel = scan_ctrl.cancel(scanid)
         return IrmaFrontendReturn.success(cancel_details=cancel)
-    except IrmaFrontendWarning as e:
+    except IrmaValueError as e:
         return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -304,16 +242,13 @@ def scan_finished(scanid):
         on warning 'msg' gives current scan status
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
-        if core.scan_finished(scanid):
+        # Filter malformed scanid
+        _valid_id(scanid)
+        if scan_ctrl.finished(scanid):
             return IrmaFrontendReturn.success(msg="finished")
         else:
             return IrmaFrontendReturn.warning("not finished")
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -334,12 +269,8 @@ def probe_list():
         on error 'msg' gives reason message
     """
     try:
-        probelist = core.probe_list()
+        probelist = scan_ctrl.probe_list()
         return IrmaFrontendReturn.success(probe_list=probelist)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -364,7 +295,7 @@ def file_exists(sha256):
     if not _valid_sha256(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
     try:
-        exists = core.file_exists(sha256)
+        exists = file_ctrl.exists(sha256)
         return IrmaFrontendReturn.success(exists=exists)
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
@@ -389,7 +320,7 @@ def file_result(sha256):
     if not _valid_sha256(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
     try:
-        res = core.file_result(sha256)
+        res = file_ctrl.result(sha256)
         return IrmaFrontendReturn.success(scan_results=res)
     # handle all errors/warning as errors
     # file existence should be tested before calling this route
@@ -415,23 +346,11 @@ def file_infected(sha256):
     if not _valid_sha256(sha256):
         return IrmaFrontendReturn.error("not a valid sha256")
     try:
-        res = core.file_infected(sha256)
+        res = file_ctrl.infected(sha256)
         return IrmaFrontendReturn.success(infected=res['infected'],
                                           nb_scan=res['nb_scan'],
                                           nb_detected=res['nb_detected'])
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
-
-# ======
-#  Main
-# ======
-
-# deprecated launched via uwsgi now
 application = default_app()
-
-if __name__ == "__main__":
-    print "Irma Web Api",
-    if DEBUG:
-        print " /!\\ Debug MODE /!\\"
-    run(host='0.0.0.0', port=8080)

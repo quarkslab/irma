@@ -41,18 +41,6 @@ def sql_db_connect():
                         uri_params[3], uri_params[4], uri_params[5])
 
 
-def db_connector(func):
-    """Annotation that provides a connection to the sql db
-    """
-    def wrapper(*args, **kwargs):
-        sql_db_connect()
-
-        func_ret = func(*args, **kwargs)
-
-        return func_ret
-
-    return wrapper
-
 # SQLite fix for ForeignKey support
 # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
 if config.get_sql_db_uri_params()[0] == 'sqlite':
@@ -62,13 +50,9 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-
 sql_db_connect()
-
 Base = declarative_base()
-
 tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
-
 
 # Many to many Tag <-> File
 tag_file = Table(
@@ -84,7 +68,6 @@ tag_file = Table(
         Integer,
         ForeignKey('{0}file.id'.format(tables_prefix)))
 )
-
 
 # Many to many ProbeResult <-> FileWeb
 probe_result_file_web = Table(

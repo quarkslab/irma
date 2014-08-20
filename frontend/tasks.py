@@ -18,8 +18,8 @@ import celery
 import config.parser as config
 
 from celery.utils.log import get_task_logger
-from .nosqlobjects import ProbeRealResult
-from .sqlobjects import Scan, File, sql_db_connect
+from frontend.models.nosqlobjects import ProbeRealResult
+from frontend.models.sqlobjects import Scan, File, sql_db_connect
 from lib.common import compat
 from lib.irma.common.exceptions import IrmaFileSystemError, IrmaFtpError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
@@ -32,8 +32,8 @@ from lib.irma.database.sqlhandler import SQLDatabase
 frontend_app = celery.Celery('frontendtasks')
 config.conf_frontend_celery(frontend_app)
 
-scan_app = celery.Celery('scantasks')
-config.conf_brain_celery(scan_app)
+brain_app = celery.Celery('scantasks')
+config.conf_brain_celery(brain_app)
 
 
 @frontend_app.task(acks_late=True)
@@ -104,7 +104,7 @@ def scan_launch(scanid, force):
                     return IrmaTaskReturn.error(reason)
                 scan_request.append((hashname, probes_to_do))
         # launch new celery task
-        scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
+        brain_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
         scan.status = IrmaScanStatus.launched
         scan.update(['status'], session=session)
         session.commit()
