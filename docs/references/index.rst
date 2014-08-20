@@ -1,0 +1,7 @@
+References
+==========
+
+.. toctree::
+
+    license
+    authors
