@@ -246,7 +246,7 @@ texinfo_documents = [
 epub_title = 'IRMA'
 epub_author = 'Quarkslab'
 epub_publisher = 'Quarkslab'
-epub_copyright = '2014, Quarkslab'
+epub_copyright = '2013-2014, Quarkslab'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
