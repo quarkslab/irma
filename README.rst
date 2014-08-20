@@ -1,163 +1,38 @@
-************
-IRMA - Probe
-************
+IRMA: Incident Response & Malware Analysis 
+------------------------------------------
 
-========
-Overview
-========
+IRMA is an asynchronous and customizable analysis system for suspicious files.
+This repository is a subproject of IRMA and contains the source code for IRMA's
+Probes, which are python-based application that host a single or multiple
+analyzers. Thanks for checking it out.
 
-This package handles the scan job for one file.
+Documentation
+`````````````
 
-Features
---------
+All documentation is in the ``docs`` directory. If you are just getting
+started, here is how we recommend you read the docs:
 
-Support for the following Linux Antiviruses:
+1. First, build the documentation with ``sphinx`` (in the ``docs`` directory,
+   do ``make html``).
+2. Next, open the documentation in your favorite web browser. The documentation
+   is generated in ``_build/html``. You can open, for instance,
+   ``_build/html/index.html`` as a starting point.
+3. Go through the documentation.
 
-    * Clam Antivirus
-    * Comodo Antivirus
-    * Eset Nod32 Business Edition
-    * F-Prot
-    * McAfee VirusScan Command Line Scanner
-    * Sophos 
+We are trying to do your best to update the documentation regularly. If you
+find any problems in the documentation, or think they should be clarified in
+any way, please take 30 seconds to fill out a `ticket
+<https://github.com/quarkslab/irma-probe/issues>`_.
 
-Support for the following Windows Antiviruses:
+Getting help
+````````````
 
-    * Kasperksy
-    * MacAfee
-    * Sophos
-    * Symantec
-
-External web info:
-
-    * Virustotal (lookup by sha256, the file is not send)
-
-Database info:
-
-    * NSRL database
-
-Others:
-
-    * Static Analyzer (adapted from Cuckoo Sandbox)
-
-=======
-Install
-=======
+Join the #irma_qb channel on irc.freenode.net. Lots of helpful people hang out there.
 
 
-Quick install
--------------
+Contribute to IRMA
+``````````````````
 
-Add Quarkslab stable repository address. See `here`_ for instructions.
-Then install Meta package:
-
-.. code-block:: bash
-
-    sudo apt-get update && sudo apt-get install irma-probe
-
-Do not forget to change parameters according to your settings (See ``Config`` paragraph).
-
-
-Detailed Installation
----------------------
-
-For a detailed windows probe install guide see `windows`_ install.
-
-For a detailed linux probe install guide see `linux`_ install.
-
-
-.. NOTE::
-
-    With the default installation, no probe is available. One can easily set up
-    the following probes for tests purposes:
-
-         - ClamAV (on debian, ``apt-get install clamav``
-         - VirusTotal (``pip install requests`` and add VirusTotal API key in config file)
-         - StaticAnalyzer (``pip install python-magic pefile``)
-
-    Then, one can see the detected probes with the following command from irma
-    installation directory:
-
-    .. code-block:: bash
-
-        $ cd /opt/irma/irma-probe
-        $ python -m probe/tasks
-
-
-======
-Config
-======
-
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/probe.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-probe``.
-
-irma-probe configuration file:
-
-+----------------+-------------+------------+-----------+
-|     Section    |      Key    |    Type    |  Default  |
-+================+=============+============+===========+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |   5672    |
-|                +-------------+------------+-----------+
-|   broker       |     vhost   | ``string`` |           |
-|   probe        +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     queue   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|  backend probe |     port    |``integer`` |   6379    |
-|                +-------------+------------+-----------+
-|                |      db     |``integer`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |    21     |
-|  ftp brain     +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-+----------------+-------------+------------+-----------+
-
-**optional configuration parameters**
-
-- NSRL requires extra configuration (files path)
-
-+----------------+-------------+------------+-----------+
-|                | nsrl_os_db  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                | nsrl_mfg_db | ``string`` |           |
-|     NSRL       +-------------+------------+-----------+
-|                | nsrl_file_db| ``string`` |           |
-|                +-------------+------------+-----------+
-|                | nsrl_prod_db| ``string`` |           |
-+----------------+-------------+------------+-----------+
-
-- VirusTotal needs an API key
-
-+----------------+-------------+------------+-----------+
-|   VirusTotal   |   api_key   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-
-
-TODO
-----
-
-* Remove script folder and replace with our python script
-* Add option to disable a probe from configuration file
-* Add support for more Linux and Windows antiviruses. For command line options, see following links:
-    - http://www.shadowserver.org/wiki/pmwiki.php/AV/Viruses
-    - https://github.com/xchwarze/KIMS/tree/master/Data
-    - https://github.com/joxeankoret/multiav
-* Improve import from NRSL database
-* Make an plugin-friendly interface for static modules
-* Launch celery from a python script
-* Add support for more Linux and Windows antiviruses
-* Add different heuristics for antiviruses
-
-.. _here: http://apt.quarkslab.com/readme.txt
-.. _windows: /install/install_win.rst
-.. _linux: /install/install_linux.rst
-
+IRMA is an ambitious project. Make yourself known on the #irma_qb channel on
+irc.freenode.net. We will be please to greet you and to find a way to get you
+involved in the project.
