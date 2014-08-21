@@ -29,24 +29,33 @@ class ProbeRealResult(NoSQLDatabaseObject):
     _dbname = cfg_dbname
     _collection = '{0}probe_real_result'.format(cfg_coll_prefix)
 
-    def __init__(self, probe_name=None, probe_type=None, status=None,
-                 duration=None, result=None, results=None, dbname=None,
+    def __init__(self,
+                 probe_name=None,
+                 probe_type=None,
+                 probe_version=None,
+                 status=None,
+                 duration=None,
+                 retcode=None,
+                 results=None,
+                 dbname=None,
                  **kwargs):
         if dbname:
             self._dbname = dbname
         self.probe_name = probe_name
         self.probe_type = probe_type
+        self.version = probe_version
         self.status = status
         self.duration = duration
-        self.result = result
+        self.retcode = retcode
         self.results = results
         super(ProbeRealResult, self).__init__(**kwargs)
 
     def get_results(self):
         return {
-            'probe_type': self.probe_type,
-            'status': self.status,
+            'status': self.retcode,
+            'name': self.probe_name,
+            'results': self.results,
+            'version': self.version,
             'duration': self.duration,
-            'result': self.result,
-            'results': self.results
-        }
+            'type': self.probe_type
+            }

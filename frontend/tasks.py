@@ -181,13 +181,21 @@ def scan_result(scanid, file_hash, probe, result):
 
         # save the results
         # TODO add remaining parameters
+        s_duration = sanitized_res.get('duration', None)
+        s_type = sanitized_res.get('type', None)
+        s_name = sanitized_res.get('name', None)
+        s_version = sanitized_res.get('version', None)
+        s_results = sanitized_res.get('results', None)
+        s_retcode = sanitized_res.get('status', None)
+
         prr = ProbeRealResult(
-            probe_name=pr.probe_name,
-            probe_type=None,
+            probe_name=s_name,
+            probe_type=s_type,
+            probe_version=s_version,
             status=IrmaProbeResultsStates.finished,
-            duration=None,
-            result=None,
-            results=sanitized_res
+            duration=s_duration,
+            retcode=s_retcode,
+            results=s_results
         )
         pr.nosql_id = prr.id
         pr.state = IrmaProbeResultsStates.finished
