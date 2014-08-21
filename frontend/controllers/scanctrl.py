@@ -50,7 +50,7 @@ def format_results(res_dict, filter_type):
 # ==================
 
 
-def new():
+def new(ip=None):
     """ Create new scan
 
     :rtype: str
@@ -59,13 +59,13 @@ def new():
     """
     with session_transaction() as session:
         # TODO get the ip
-        scan = Scan(IrmaScanStatus.created, compat.timestamp(), None)
+        scan = Scan(IrmaScanStatus.created, compat.timestamp(), ip)
         scan.save(session=session)
         scanid = scan.external_id
     return scanid
 
 
-def add(scanid, files):
+def add_files(scanid, files):
     """ add file(s) to the specified scan
 
     :param scanid: id returned by scan_new

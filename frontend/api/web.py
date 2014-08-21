@@ -109,7 +109,7 @@ def scan_add(scanid):
             filename = os.path.basename(upfile.filename)
             data = upfile.file.read()
             files[filename] = data
-        nb_files = scan_ctrl.add(scanid, files)
+        nb_files = scan_ctrl.add_files(scanid, files)
         return IrmaFrontendReturn.success(nb_files=nb_files)
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
