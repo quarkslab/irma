@@ -270,7 +270,7 @@ def finished(scanid):
     """
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-        return scan.status == IrmaScanStatus.finished
+        return scan.finished()
 
 
 def probe_list():

@@ -189,7 +189,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         self.assertEqual(scan.status, IrmaScanStatus.created)
         # self.assertIsNotNone(scan.ip)
         # FIXME scan.is_over with wrong status
-        # self.assertFalse(scan.is_over())
+        # self.assertFalse(core.finished(scanid))
 
     def test_scan_add(self):
         scanid = core.new()
@@ -201,7 +201,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         self.assertEqual(scan.status, IrmaScanStatus.created)
         self.assertEqual(len(scan.files_web), NB_FILES)
         self.assertEqual(len((scan.files_web[0]).probe_results), 0)
-        self.assertFalse(scan.is_over())
+        self.assertFalse(core.finished(scanid))
 
     def test_scan_launch(self):
         scanid = core.new()
@@ -213,11 +213,11 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         self.assertEqual(scan.status, IrmaScanStatus.launched)
         self.assertEqual(len(scan.files_web), NB_FILES)
         self.assertEqual(len((scan.files_web[0]).probe_results), len(PROBES))
-        self.assertFalse(scan.is_over())
+        self.assertFalse(core.finished(scanid))
         for fw in scan.files_web:
             probelist = [pr.probe_name for pr in fw.probe_results]
             self.assertListContains(PROBES, probelist)
-        self.assertFalse(scan.is_over())
+        self.assertFalse(core.finished(scanid))
 
     def test_scan_partial_results(self):
         scanid = core.new()
@@ -228,7 +228,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         self.assertEqual(scan.status, IrmaScanStatus.launched)
         # add fake results to scan
         add_fake_results(scan, PROBES[0], self.session)
-        self.assertFalse(scan.is_over())
+        self.assertFalse(core.finished(scanid))
         results = core.result(scanid)
         self.assertEqual(type(results), dict)
         self.assertEqual(len(results.keys()), NB_FILES)
@@ -249,7 +249,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         self.assertEqual(len(results.keys()), NB_FILES)
         for (_, res_dict) in results.items():
             self.assertEqual(len(res_dict['results']), len(PROBES))
-        self.assertTrue(scan.is_over())
+        self.assertTrue(core.finished(scanid))
 
 if __name__ == '__main__':
     enable_logging()

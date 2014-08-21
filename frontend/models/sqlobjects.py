@@ -407,11 +407,13 @@ class Scan(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
-    def is_over(self):
+    def finished(self):
         """Tell if the scan is over or not
         :rtype: boolean
         :return: True if the scan is over
         """
+        if self.status == IrmaScanStatus.finished:
+            return True
         if self.status < IrmaScanStatus.launched:
             return False
         for fw in self.files_web:

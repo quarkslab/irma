@@ -210,7 +210,7 @@ def scan_result(scanid, file_hash, probe, result):
               "Result from {0} ".format(probe) +
               "probedone {0}".format([pr.probe_name for pr in fw.probe_results]))
 
-        if scan.is_over():
+        if scan.finished():
             scan.status = IrmaScanStatus.finished
             scan.update(['status'], session=session)
 
@@ -275,7 +275,7 @@ def scan_result_error(scanid, file_hash, probe, exc):
               "nb probedone {0} ".format(len(
                   [probe_res for probe_res in fw.probe_results])))
 
-        if scan.is_over():
+        if scan.finished():
             scan.status = IrmaScanStatus.finished
             scan.update(['status'], session=session)
         session.commit()
