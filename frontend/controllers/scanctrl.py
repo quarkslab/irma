@@ -36,20 +36,13 @@ import frontend.controllers.frontendtasks as celery_frontend
 def format_results(res_dict, filter_type):
     # - filter type is list of type returned
     res = {}
-    for probe in res_dict.keys():
-        # old results format
-        # FIXME: remove this if db is cleaned
-        if 'probe_res' in res_dict[probe]:
-            probe_res = res_dict[probe]['probe_res']
-        else:
-            probe_res = res_dict[probe]
-        format_res = IrmaFormatter.format(probe, probe_res)
-        if filter_type is not None:
-            # filter by type
-            if 'category' in format_res and \
-               format_res['category'] not in filter_type:
-                continue
-        res[probe] = format_res
+    for (name, results) in res_dict.items():
+        res[name] = IrmaFormatter.format(name, results)
+    # filter by type
+    if filter_type is not None:
+        res = filter(lambda x:
+                     'category' in x and x['category'] in filter_type,
+                     res)
     return res
 
 # ==================
