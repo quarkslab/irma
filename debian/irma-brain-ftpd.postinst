@@ -43,8 +43,8 @@ case "$1" in
         useradd -g "$FTP_GROUP" -d /dev/null -s /etc "$FTP_USER" || true
         invoke-rc.d pure-ftpd stop        
         # configure pure-ftpd
-        cp -r /opt/irma/irma-brain/extras/pure-ftpd/conf/* /etc/pure-ftpd/conf/
         cp -r /opt/irma/irma-brain/extras/pure-ftpd/auth/* /etc/pure-ftpd/auth
+        ln -s /etc/pure-ftpd/conf/PureDB /etc/pure-ftpd/auth/50puredb
         # configure accounts for frontend
         db_get irma-brain-ftpd/frontend_user
         USERNAME=$RET
