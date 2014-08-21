@@ -36,6 +36,8 @@ from lib.common.compat import timestamp
 from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import ProbeResult
 import frontend.controllers.scanctrl as core
+import frontend.controllers.braintasks as braintasks
+import frontend.controllers.frontendtasks as frontendtasks
 from frontend.controllers.scanctrl import IrmaValueError, IrmaTaskError
 from frontend.models.sqlobjects import Scan, sql_db_connect
 
@@ -56,7 +58,7 @@ FILES = {'file1.bin': 'This is File1 binary data',
 
 def mock_probe_list(successful=True):
     if successful:
-        return PROBES
+        return (IrmaReturnCode.success, PROBES)
     else:
         raise IrmaTaskError("Celery timeout - probe_list")
 
@@ -89,10 +91,10 @@ def mock_scan_progress(scanid, successful=True):
     else:
         raise IrmaValueError(IrmaScanStatus.created)
 
-core.probe_list = mock_probe_list
-core.scan_cancel = mock_scan_cancel
-core._task_scan_launch = mock_scan_launch
-core.scan_progress = mock_scan_progress
+braintasks.probe_list = mock_probe_list
+braintasks.cancel = mock_scan_cancel
+frontendtasks.scan_launch = mock_scan_launch
+braintasks.progress = mock_scan_progress
 
 
 # =================
@@ -155,10 +157,10 @@ def add_fake_results(scan, probe, session):
         """
         prr = ProbeRealResult(
             probe_name=probe,
-            probe_type=None,
+            probe_type="antivirus",
             status=IrmaProbeResultsStates.finished,
-            duration=None,
-            result=None,
+            duration="0.2s",
+            retcode=1,
             results=fake_res
         )
         pr = filter(lambda x: x.probe_name == probe, fw.probe_results)
@@ -175,12 +177,12 @@ class TestSQLDatabaseObject(WebCoreTestCase):
 
     def test_scan_new_id(self):
         # test we got an id
-        scanid = core.scan_new()
+        scanid = core.new()
         self.assertIsNotNone(scanid)
 
     def test_scan_new_status(self):
         # test we have a correct status
-        scanid = core.scan_new()
+        scanid = core.new()
         scan = Scan.load_from_ext_id(scanid, self.session)
 
         self.assertIsNotNone(scan.date)
@@ -190,8 +192,8 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         # self.assertFalse(scan.is_over())
 
     def test_scan_add(self):
-        scanid = core.scan_new()
-        res = core.scan_add(scanid, FILES)
+        scanid = core.new()
+        res = core.add_files(scanid, FILES)
         self.assertEqual(res, NB_FILES)
 
         scan = Scan.load_from_ext_id(scanid, self.session)
@@ -202,9 +204,9 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         self.assertFalse(scan.is_over())
 
     def test_scan_launch(self):
-        scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
-        self.assertEqual(core.scan_launch(scanid, True, None),
+        scanid = core.new()
+        self.assertEqual(core.add_files(scanid, FILES), len(FILES))
+        self.assertEqual(core.launch(scanid, True, None),
                          PROBES)
         scan = Scan.load_from_ext_id(scanid, self.session)
         self.assertIsNotNone(scan.date)
@@ -218,23 +220,23 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         self.assertFalse(scan.is_over())
 
     def test_scan_partial_results(self):
-        scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
-        self.assertEqual(core.scan_launch(scanid, True, None),
+        scanid = core.new()
+        self.assertEqual(core.add_files(scanid, FILES), len(FILES))
+        self.assertEqual(core.launch(scanid, True, None),
                          PROBES)
         scan = Scan.load_from_ext_id(scanid, self.session)
         self.assertEqual(scan.status, IrmaScanStatus.launched)
         # add fake results to scan
         add_fake_results(scan, PROBES[0], self.session)
         self.assertFalse(scan.is_over())
-        results = core.scan_result(scanid)
+        results = core.result(scanid)
         self.assertEqual(type(results), dict)
         self.assertEqual(len(results.keys()), NB_FILES)
 
     def test_scan_full_results(self):
-        scanid = core.scan_new()
-        self.assertEqual(core.scan_add(scanid, FILES), len(FILES))
-        self.assertEqual(core.scan_launch(scanid, True, None),
+        scanid = core.new()
+        self.assertEqual(core.add_files(scanid, FILES), len(FILES))
+        self.assertEqual(core.launch(scanid, True, None),
                          PROBES)
         scan = Scan.load_from_ext_id(scanid, self.session)
         self.assertEqual(scan.status, IrmaScanStatus.launched)
@@ -242,7 +244,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         for p in PROBES:
             add_fake_results(scan, p, self.session)
 
-        results = core.scan_result(scanid)
+        results = core.result(scanid)
         self.assertEqual(type(results), dict)
         self.assertEqual(len(results.keys()), NB_FILES)
         for (_, res_dict) in results.items():
