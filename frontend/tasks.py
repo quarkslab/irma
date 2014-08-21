@@ -51,14 +51,24 @@ def scan_launch(scanid, force):
         ftp_config = config.frontend_config['ftp_brain']
         scan = Scan.load_from_ext_id(scanid, session=session)
         if not scan.status == IrmaScanStatus.created:
-            return IrmaTaskReturn.error("Invalid scan status")
+            wrong_status = IrmaScanStatus.label[scan.status]
+            print("{0}: wrong scan status {1}".format(scanid, wrong_status))
+            scan.status = IrmaScanStatus.error
+            scan.update(['status'], session=session)
+            session.commit()
+            return
 
         # If nothing return
         if len(scan.files_web) == 0:
+            print("{0}: No files to scan, scan finished".format(scanid))
             scan.status = IrmaScanStatus.finished
             scan.update(['status'], session=session)
             session.commit()
-            return IrmaTaskReturn.success("No files to scan")
+            return
+
+        scan.status = IrmaScanStatus.uploading
+        scan.update(['status'], session=session)
+        session.commit()
 
         files_web_todo = []
         for fw in scan.files_web:
@@ -87,10 +97,6 @@ def scan_launch(scanid, force):
             scan.update(['status'], session=session)
             session.commit()
             return IrmaTaskReturn.success("Nothing to do")
-
-        scan.status = IrmaScanStatus.uploading
-        scan.update(['status'], session=session)
-        session.commit()
 
         host = ftp_config.host
         port = ftp_config.port
