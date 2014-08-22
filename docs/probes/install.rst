@@ -154,7 +154,7 @@ installed at the root of the ``C:\`` drive, namely in ``C:\irma\irma-probe``.
 
 .. code-block:: bash
 
-    $ C:\Python27\Scripts\pip.exe install --install-option="--install-base=C:\irma\irma-probe" irma-probe-app-1.0.4.tar.gz
+    $ C:\Python27\Scripts\pip.exe install irma-probe-app-1.0.4.tar.gz --root="C:\irma\" --install-option="--install-base=irma-probe" 
     [...]
 
 Since the way we packaged the python application does not support
@@ -174,7 +174,7 @@ installed in ``/opt/irma/irma-probe`` directory.
 
 .. code-block:: bash
 
-    $ pip install --install-option="--install-base=/opt/irma/irma-probe" irma-probe-app-1.0.4.tar.gz
+    $ pip install irma-probe-app-1.0.4.tar.gz --install-option="--install-base=/opt/irma/irma-probe" 
     [...]
 
 Since the way we packaged the python application does not so support
