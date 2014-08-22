@@ -256,7 +256,7 @@ needed by the application. To abort the configuration, press CTRL+D.
 
         # log configuration
         configuration['log']['syslog'] = \
-            int(ask('Do you want to enable syslog logging?',
+            int(ask('Do you want to enable syslog logging? (experimental)',
                     answer_type=bool, default=configuration['log']['syslog']))
         # probe configration
         configuration['probe']['name'] = \
