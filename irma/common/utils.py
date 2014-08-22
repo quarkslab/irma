@@ -80,16 +80,23 @@ class IrmaReturnCode:
 # ==============================
 
 class IrmaScanStatus:
-    created = 0
-    launched = 10
-    cancelling = 20
-    cancelled = 21
-    processed = 30
-    finished = 50
-    flushed = 100
+    created = 0  # New scan id asked
+    uploading = 5  # File added, being uploaded to the brain
+    launched = 10  # Scan launched on brain
+    cancelling = 20  # Cancel order received
+    cancelled = 21  # Cancel order done
+    processed = 30  # Brain subjobs completed, waiting for results on frontend
+    finished = 50  # All results present on the frontend scan finished
+    flushed = 100  # Files deleted from ftp
+
     error = 200
+    # Probes 201-209
     error_probe_missing = 201
+    error_probe_na = 202
+    # FTP 210-219
+    error_ftp_upload = 210
     label = {created: "created",
+             uploading: "uploading",
              launched: "launched",
              cancelling: "cancelling",
              cancelled: "cancelled",
@@ -97,9 +104,14 @@ class IrmaScanStatus:
              finished: "finished",
              flushed: "flushed",
              error: "error",
-             error_probe_missing: "error probe missing"
+             error_probe_missing: "probelist missing",
+             error_probe_na: "probe(s) not available",
+             error_ftp_upload: "ftp upload error"
              }
 
+    @staticmethod
+    def is_error(code):
+        return code >= IrmaScanStatus.error
 
 # ==========================================================
 #  Lock values for NoSQLDatabaseObjects (internal use only)
@@ -112,7 +124,7 @@ class IrmaLock:
         free: 'free',
         locked: 'locked'
     }
-    lock_timeout = 60   # in seconds (delta between timestamps)
+    lock_timeout = 60  # in seconds (delta between timestamps)
 
 
 # =========================================================================
