@@ -9,7 +9,7 @@ directory.
 From the package manager
 ````````````````````````
 
-The debian package can show dialog boxes to the user and query for require
+The debian package can show dialog boxes to the user and query for required
 configuration values. To configure the python application installed with
 ``apt-get`` command, one can do:
 

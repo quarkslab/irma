@@ -159,7 +159,7 @@ recalled here.
 Pre-requisites
 ++++++++++++++
 
-We assume that you have a command line interface on your system [#]_ with
+We assume that you have a command line interface on your system with
 the following tools installed:
 
 * python 2.7.x (see `Python for Windows <https://www.python.org/downloads/windows/>`_ 
@@ -198,9 +198,3 @@ automatic installation of dependencies, we need to install them manually:
 If everything has gone well, you should have installed the python application
 on your system. The next step is to configure it for your platform and to
 install the other components it relies on.
-
-.. rubric:: Footnotes
-
-.. [#] On Microsoft Windows, a Linux-like lightweight command line
-       interface can be installed by installing 
-       `MSYS <http://www.mingw.org/wiki/MSYS>`_.
