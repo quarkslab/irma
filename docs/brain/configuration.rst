@@ -9,7 +9,7 @@ directory.
 From the package manager
 ````````````````````````
 
-The debian package can show dialog boxes to the user and query for required
+The Debian package can show dialog boxes to the user and query for required
 configuration values. To configure the python application installed with
 ``apt-get`` command, one can do:
 
@@ -22,7 +22,7 @@ From the sources
 ````````````````
 
 At the root of the installation directory, the script ``setup.py``
-asks you questions to configure the application to your needs. To fit your
+asks you questions to configure the application for your needs. To fit your
 setup, you must provide the parameters configured previously on the RabbitMQ
 server and the Pure-FTPd server.
 
@@ -159,7 +159,7 @@ the following commands:
     $ python -m brain.objects frontend-irma frontend-rmq frontend-irma 0
 
 The quota sets to ``0`` simply disable the quota system and you will be able to
-launch as many analyses as you want.
+launch as many analyzes as you want.
 
 .. note:: 
 
@@ -167,7 +167,7 @@ launch as many analyses as you want.
     stored, plus the database file must be writable by the user running the
     worker:
 
-    .. code-block::
+    .. code-block:: bash
 
         $ sudo chown irma:irma quota.db
         $ sudo chmod a+w /opt/irma/irma-brain
