@@ -59,7 +59,7 @@ First, add Quarklab's Debian repository to your APT repositories:
 
 Then, install the meta-package ``irma-probe``. This meta-package installs and
 configure the python application that instrument analyzers (``irma-probe-app``)
-and its optionnal dependencies (``irma-probe-rsyslog`` and ``irma-probe-logrotate``).
+and its optional dependencies (``irma-probe-rsyslog`` and ``irma-probe-logrotate``).
 By default, the python application will be installed in ``/opt/irma/irma-probe/``.
 
 .. code-block:: bash
@@ -122,11 +122,11 @@ Installing the source distribution
 **********************************
 
 To be able to install the python source distribution, we assume that you have
-already install the following software on your system. The pre-requisites are
+already install the following software on your system. The prerequisites are
 recalled here.
 
-Pre-requisites
-++++++++++++++
+Prerequisites
++++++++++++++
 
 We assume that you have a command line interface on your system [#]_ with
 the following tools installed:
@@ -157,7 +157,7 @@ installed at the root of the ``C:\`` drive, namely in ``C:\irma\irma-probe``.
     $ C:\Python27\Scripts\pip.exe install --install-option="--install-base=C:\irma\irma-probe" irma-probe-app-1.0.4.tar.gz
     [...]
 
-Since the way we packaged the python application does not so support
+Since the way we packaged the python application does not support
 automatic installation of dependencies, we need to install them manually:
 
 .. code-block:: bash

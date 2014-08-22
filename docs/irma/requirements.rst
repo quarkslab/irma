@@ -24,7 +24,7 @@ hosting with multiple systems inside virtual machines.
 This setup gives fairly high throughput as long as it has reasonable IO
 (ideally, SSDs), and a good amount of memory. For a large company, in theory,
 given a single high-memory machine, with 16+ cores, and SSDs, you could run
-IRMA platform and bear the workload load with reasonnable response time.
+IRMA platform and bear the workload load with reasonable response time.
 
 .. rubric:: Footnotes
 
