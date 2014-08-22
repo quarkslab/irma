@@ -3,7 +3,7 @@ Installing and configuring nginx
 
 In the **Frontend**, we use a nginx web server to serve the uWSGI application
 and the static web site that query the API in order to get results of scanned
-files and present them to the user.
+files and to present them to the user.
 
 Installation
 ````````````
@@ -23,7 +23,7 @@ Configuration
 
 We provide several template scripts in the ``extras/`` repository located at the
 root of the installation directory. Templates for nginx are located in
-``extras/nginx/``. Copy the file to ``sites-available`` in nginx folder:
+``extras/nginx/``. Copy the file to ``sites-available`` in nginx configuration folder:
 
 .. code-block:: bash
 
@@ -47,7 +47,6 @@ soft-link into the ``sites-enabled`` folder:
 
     $ sudo ln -s /etc/nginx/sites-available/frontend /etc/nginx/sites-enabled/frontend
 
-.. TODO: update the commands for HTTPs
 .. note:: The case of HTTPs
 
     A template to set up a HTTPs server with nginx is also provided in the

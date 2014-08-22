@@ -14,6 +14,7 @@ Table of Contents
 
    irma/index.rst
    frontend/index.rst
+   web/index.rst
    references/index.rst
    irma/faq.rst
 

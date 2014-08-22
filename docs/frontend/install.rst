@@ -59,10 +59,10 @@ First, add Quarklab's Debian repository to your APT repositories:
     $ sudo apt-get update
 
 Then, install the meta-package ``irma-frontend``. This meta-package installs and
-configure the python application (``irma-frontend-app``) which include the celery
+configures the python application (``irma-frontend-app``) which include the celery
 worker and the restful API, the web server nginx (``irma-frontend-nginx``) and
 the uwsgi application server (``irma-frontend-uwsgi``) , mongdb, and some
-optionnal dependencies (``irma-frontend-rsyslog`` and ``irma-frontend-logrotate``).
+optional dependencies (``irma-frontend-rsyslog`` and ``irma-frontend-logrotate``).
 By default, the python application will be installed in ``/opt/irma/irma-frontend/``.
 
 .. code-block:: bash
@@ -126,13 +126,14 @@ directory:
 
 A new directory or an updated directory ``web/dist`` should appear now with
 HTML and javascript files that have been minified and "obfuscated" by ``gulp``.
+For more details on the web interface, please refer to the dedicated chapter.
 
 Building the source distribution
 ********************************
 
-We provide a Makefile that helps to build the python source distribution. By
-default, the source distribution will be available in the ``dist/`` directory.
-The created archive will be used to install the application.
+We provide a ``Makefile`` that helps to build the python source distribution.
+By default, the source distribution will be available in the ``dist/``
+directory.  The created archive will be used to install the application.
 
 .. code-block:: bash
 
@@ -153,17 +154,16 @@ Installing the source distribution
 **********************************
 
 To be able to install the python source distribution, we assume that you have
-already install the following software on your system. The pre-requisites are
+already install the following software on your system. The prerequisites are
 recalled here.
 
-Pre-requisites
-++++++++++++++
+Prerequisites
++++++++++++++
 
 We assume that you have a command line interface on your system with
 the following tools installed:
 
-* python 2.7.x (see `Python for Windows <https://www.python.org/downloads/windows/>`_ 
-  for prebuild MSI installer)
+* python 2.7.x 
 * python-pip (see `Install pip <https://pip.pypa.io/en/latest/installing.html>`_ 
   for the recommended way to install pip package manager)
 
@@ -187,7 +187,7 @@ installed in ``/opt/irma/irma-frontend`` directory.
     $ pip install --install-option="--install-base=/opt/irma/irma-frontend" irma-frontend-app-1.0.4.tar.gz
     [...]
 
-Since the way we packaged the python application does not so support
+Since the way we packaged the python application does not support
 automatic installation of dependencies, we need to install them manually:
 
 .. code-block:: bash

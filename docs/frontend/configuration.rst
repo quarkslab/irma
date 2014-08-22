@@ -9,7 +9,7 @@ directory.
 From the package manager
 ````````````````````````
 
-The debian package can show dialog boxes to the user and query for required
+The Debian package can show dialog boxes to the user and query for required
 configuration values. To configure the python application installed with
 ``apt-get`` command, one can do:
 
@@ -22,7 +22,7 @@ From the sources
 ````````````````
 
 At the root of the installation directory, the script ``setup.py``
-asks you questions to configure the application to your needs. To fit your
+asks you questions to configure the application for your needs. To fit your
 setup, you must provide the parameters configured on the **Brain**.
 
 For GNU/Linux systems:
@@ -90,8 +90,8 @@ For GNU/Linux systems:
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |     port    |``integer`` |   5672         |  port for the RabbitMQ server                           |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |   broker       |     vhost   | ``string`` |                |  virtual host configured for brain                      |
-     |   brain        +-------------+------------+----------------+---------------------------------------------------------+
+     |broker_brain    |     vhost   | ``string`` |                |  virtual host configured for brain                      |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   username  | ``string`` |                |  username used for brain on the RabbitMQ server         |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   password  | ``string`` |                |  password used for brain on the RabbitMQ server         |
@@ -102,8 +102,8 @@ For GNU/Linux systems:
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |     port    |``integer`` |   5672         |  port for the RabbitMQ server                           |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |   broker       |     vhost   | ``string`` |                |  virtual host configured for this frontend              |
-     |   frontend     +-------------+------------+----------------+---------------------------------------------------------+
+     |broker_frontend |     vhost   | ``string`` |                |  virtual host configured for this frontend              |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   username  | ``string`` |                |  username used for this frontend on the RabbitMQ server |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   password  | ``string`` |                |  password used for this frontend on the RabbitMQ server |
@@ -112,14 +112,14 @@ For GNU/Linux systems:
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |     host    | ``string`` |                | hostname for the Redis server                           |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |  backend brain |     port    |``integer`` |   6379         | port for the Redis server                               |
+     |  backend_brain |     port    |``integer`` |   6379         | port for the Redis server                               |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |      db     |``integer`` |                | id of the database to use on Redis                      |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |     host    | ``string`` |                | hostname for the FTP server                             |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |     port    |``integer`` |    21          | port for the FTP server                                 |
-     |  ftp brain     +-------------+------------+----------------+---------------------------------------------------------+
+     |  ftp_brain     +-------------+------------+----------------+---------------------------------------------------------+
      |                |   username  | ``string`` |                | username used by this frontend on the FTP server        |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   password  | ``string`` |                | password used by this frontend on the FTP server        |

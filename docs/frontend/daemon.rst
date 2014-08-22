@@ -14,7 +14,7 @@ Daemon on GNU/Linux
 ```````````````````
 
 At the moment, we only support daemonizing with ``init.d`` scripts. The
-following describe the procedure to run make a service run Celery workers on
+following describes the procedure to run make a service run Celery workers on
 Debian distribution.
 
 Installing the service

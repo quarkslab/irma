@@ -11,9 +11,7 @@ multiple technologies with each a specific purpose:
   application server. It gets the results of a file scan by querying a
   database.
 * a worker that will handle scan submission to the **Brain** and store the
-  results of analyses scheduled by the **Brain**. The worker relies on Celery,
+  results of analyzes scheduled by the **Brain**. The worker relies on Celery,
   a python-based distributed task queue.
-* a mongodb server is used to store results of analyses made on each file
+* a mongodb server is used to store results of analyzes made on each file
   submitted either by the web graphical interface or the CLI client. 
-
-.. TODO: add a picture of the overall architecture
