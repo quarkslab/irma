@@ -397,7 +397,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(help='sub-command help')
 
     # create the create parser
-    hlp_msg = 'create NSRL records into a database'
+    help_msg = 'create NSRL records into a database'
     create_parser = subparsers.add_parser('create',
                                           help=help_msg)
     create_parser.add_argument('-t',
