@@ -3,7 +3,7 @@
 Configuration
 -------------
 
-The configuration file is located at ``config/probe.ini`` in the installation
+The configuration file is ``config/probe.ini`` located in the installation
 directory. 
 
 From the package manager
@@ -27,7 +27,7 @@ setup, you must provide the parameters configured on the **Brain**.
 
 For Microsoft Windows systems:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ C:\Python27\python.exe setup.py configure --application
     running configure

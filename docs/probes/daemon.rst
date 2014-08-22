@@ -107,7 +107,7 @@ service that is going to be run:
 
 This is equivalent to launching the following command from the CLI:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ c:\Python27\python.exe -m celery worker --app=probe.tasks --workdir=c:\irma\irma-probe -f c:\irma\irma-probe\celery.log -l info
 
@@ -120,7 +120,7 @@ Installing the service
 You need to have administrator privileges to install the service in the Windows
 Registry so that it is started each time the system boots:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ C:\Python27\python.exe extras/winsrv/service.py --startup=auto install
 
@@ -133,7 +133,7 @@ Removing the service
 
 It can be removed with the following commands:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ C:\Python27\python extras/winsrv/service.py remove
 
@@ -142,7 +142,7 @@ Starting and stopping the service
 
 The service can be manually started and stopped with the following commands:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ C:\Python27\python.exe extras/winsrv/service.py start
     $ C:\Python27\python.exe extras/winsrv/service.py stop

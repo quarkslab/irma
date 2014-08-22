@@ -30,11 +30,11 @@ External analysis platforms
 
 So far, we query the following external analysis platforms:
 
-========== ================= ===============================================================
+========== ================= =================================================================
 Probe Name Analysis Platform Description
-========== ================= ===============================================================
-VirusTotal VirusTotal        Report is search using the sha256 of the file which is not sent
-========== ================= ===============================================================
+========== ================= =================================================================
+VirusTotal VirusTotal        Report is searched using the sha256 of the file which is not sent
+========== ================= =================================================================
 
 
 File database

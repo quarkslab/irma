@@ -185,7 +185,7 @@ automatic installation of dependencies, we need to install them manually:
     $ pip install -r /opt/irma/irma-probe/requirements.txt
     [...]
 
-If everything has gone well, you should have installed the python application
+If everything has gone well, the python application is now installed
 on your system. The next step is to configure it for your platform and to
 enable the analyzers you need.
 

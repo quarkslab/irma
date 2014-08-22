@@ -147,7 +147,7 @@ Symantec - Microsoft Windows
 ````````````````````````````
 
 The procedure to install a trial version of Symantec Endpoint Protection is
-particularly to tedious. We will not document its installation.
+particularly tedious. We will not document its installation.
 
 VirusTotal - GNU/Linux or Microsoft Windows
 ```````````````````````````````````````````
@@ -158,7 +158,7 @@ installation directory, one can execute:
 
 On GNU/Linux:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ pip install -r modules/external/virustotal/requirements.txt
     [...]
@@ -178,7 +178,7 @@ On GNU/Linux:
     
 On Microsoft Windows:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ C:\Python27\Scripts\pip.exe install -r modules/external/virustotal/requirements.txt
     [...]
@@ -223,7 +223,7 @@ database:
 Finally, one must indicate to the analyzer where to find the files for the
 database:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ python setup.py configure --NSRL
     running configure
@@ -276,7 +276,7 @@ On Microsoft Windows, you need cygwin to successfully install the requirements
 (see `python-magic documentation
 <https://github.com/ahupp/python-magic#dependencies>`_ for installation details):
 
-.. code-block:: bash
+.. code-block:: none
 
     $ C:\Python27\Scripts\pip.exe install -r modules/metadata/pe_analyzer/requirements.txt
     [...]
