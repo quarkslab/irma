@@ -17,10 +17,15 @@ packages:
 .. code-block:: bash
 
     $ sudo apt-get install clamav-daemon
+
     [...]
+
     $ sudo freshclam
+
     [...]
+
     $ sudo service restart clamav-daemon
+
     [...]
 
 ComodoCAVL - GNU/Linux
@@ -33,40 +38,46 @@ binaries are installed in ``/opt/COMODO/`` directory.
 
 .. code-block:: bash
 
-    $ sudo dpkg -i cav-linux_1.1.268025-1_i386.deb
+    $ ar x cav-linux_1.1.268025-1_iXXX.deb
+    $ sudo tar xvf ~/data.tar.gz -C /
+
     [...]
 
 Updates for the database can be performed with the following command:
 
 .. code-block:: bash
 
-    $ sudo /opt/COMODO/menu/comodo-updater
+    $ XAUTHORITY="$HOME/.Xauthority" sudo /opt/COMODO/menu/comodo-updater
+
     [...]
 
 .. note:: Dependencies to update the database
 
     To be able to update the database using the updater provided with Comodo
     Antivirus for Linux, some dependecies needed for the graphical interface
-    may be missing from the distribution. On Debian Stable system, one can 
+    may be missing from the distribution. On Debian Stable system, one can
     install them with:
 
     .. code-block:: bash
 
-        $ sudo apt-get install libqt4-sql libqt4-network
+        $ sudo apt-get install libqt4-sql libqt4-network libqtgui4
 
 EsetNod32 - GNU/Linux
 `````````````````````
 
 One can request a trial version of Eset Nod32 Business Edition for Linux on the
-`editor download page <http://www.eset.com/int/download//business/detail/family/69/>`_.
+`editor download page <http://www.eset.com/int/download/home/detail/family/71/>`_.
 
 Once downloaded, the anti-virus can be installed with the following commands on
 Debian. 
 
 .. code-block:: bash
 
-    $ sudo chmod u+x ueavbe.x86_64.en.linux
-    $ sudo ./ueavbe.x86_64.en.linux
+    $ sudo chmod u+x eset_nod32av_64bit_en.linux
+    $ sudo apt-get install libgtk-2.0-0 libc6-i386
+    $ sudo ./eset_nod32av_64bit_en.linux
+    $ XAUTHORITY="$HOME/.Xauthority" sudo /opt/COMODO/menu/comodo-updater
+
     [...]
 
 Binaries should be installed in ``/opt/eset/esets`` directory. Updates are
@@ -83,7 +94,10 @@ performed from the GUI:
 
     .. code-block:: bash
 
+        $ sudo service esets stop
         $ sudo mv /etc/init.d/esets /etc/init.d/esets.disable
+
+TODO: Explain GUI
 
 F-Prot - GNU/Linux
 ``````````````````
@@ -94,6 +108,10 @@ A copy of F-PROT anti-virus for Linux workstations is available on the
 
 The binaries should be installed in ``/usr/local/f-prot`` to make the python
 application detect it automatically.
+
+.. code-block:: bash
+
+    $ sudo tar xvf fp-Linux.x86.32-ws.tar.gz -C /usr/local/
 
 To launch an update, a configuration step is mandatory:
 
@@ -109,21 +127,59 @@ An update is launched with:
     ERROR: ld.so: object 'libesets_pac.so' from /etc/ld.so.preload cannot be preloaded: ignored.
     [...]
 
+.. note:: Error
+
+    If you see an error message like:
+
+    .. code-block:: bash
+
+        DownloadingWarning: Network - Connection failed (18), trying again...
+        Downloading updateError: Update - Bad mergefile
+
+    Just relaunch the script.
+
 .. note:: Disclaimer
 
     The F-PROT anti-virus for Linux is free for home users, when used on
     personal workstations.
 
+.. note:: Dependencies to update the database
+
+    To be able to update the database using the updater provided with Comodo
+    install them with:
+
+    .. code-block:: bash
+
+        $ sudo apt-get install libc6-i386
+
+
 McAfeeVSCL -  GNU/Linux or Microsoft Windows
 ````````````````````````````````````````````
 
 A free evaluation of McAfee VirusScan Command Line can be downloaded from the
-`editor download page <http://www.mcafee.com/us/downloads/free-evaluations/>`_.
+`editor download page <http://www.mcafee.com/apps/downloads/free-evaluations/>`_.
 
 The binaries should be installed in ``/usr/local/uvscan/`` on GNU/Linux system
 and must be installed in ``C:\VSCL`` on Windows Systems. Let us note that
 updates must be performed manually. Anti-virus databases and engines can be
 downloaded `here <http://www.mcafee.com/apps/downloads/security-updates/security-updates.aspx>`_.
+
+After downloading McAfee Virus Scan archive, create ``/usr/local/uvscan`` and
+extract the archive in it:
+
+.. code-block:: bash
+
+    $ sudo mkdir /usr/local/uvscan
+    $ sudo tar xvf vscl-XXX.tar.gz -C /usr/local/uvscan # replace using your values
+    $ sudo chmod +x /usr/local/uvscan/uvscan
+
+Extract also, using unzip program, the database:
+
+.. code-block:: bash
+
+    $ sudo unzip avvepo7536dat.zip -d /usr/local/uvscan
+    $ cd /usr/local/uvscan
+    $ sudo unzip avvdat-XXXX.zip
 
 Sophos - Microsoft Windows
 ``````````````````````````
@@ -166,16 +222,16 @@ On GNU/Linux:
     running configure
 
     Welcome to IRMA VirusTotal module configuration script.
-    
+
     The following script will help you to create a new configuration for
     VirusTotal module on IRMA probe application.
-    
+
     Please answer to the following questions so this script can generate the files
     needed by the application. To abort the configuration, press CTRL+D.
-    
+
     > Do you want to use VirusTotal private API? (y/N) N
     > What is the apikey you would you like to use for VirusTotal? <api key here>
-    
+
 On Microsoft Windows:
 
 .. code-block:: bash
@@ -190,7 +246,7 @@ On Microsoft Windows:
     +----------------+-------------+------------+-----------+--------------------------------------------------+
     | Section        | Option      | Type       | Default   | Description                                      |
     +----------------+-------------+------------+-----------+--------------------------------------------------+
-    |                |   apikey   | ``string``  |           | api_key used to query VirusTotal API             |
+    |                |   apikey    | ``string``  |           | api_key used to query VirusTotal API             |
     + VirusTotal     +-------------+------------+-----------+--------------------------------------------------+
     +                +   private   + ``boolean``+           + use private api (need a private api key)         |
     +----------------+-------------+------------+-----------+--------------------------------------------------+
@@ -215,10 +271,11 @@ database:
 
 .. code-block:: bash
 
-    $ python -m modules.database.nsrl.nsrl create -t os --filename NSRLOS.txt --database /home/irma/leveldb/os_db
-    $ python -m modules.database.nsrl.nsrl create -t manufacturer --filename NSRLMfg.txt --database /home/irma/leveldb/mfg_db
-    $ python -m modules.database.nsrl.nsrl create -t product --filename NSRLProd.txt --database /home/irma/leveldb/prod_db
-    $ python -m modules.database.nsrl.nsrl create -t file --filename NSRLFile.txt --database /home/irma/leveldb/file_db
+    $ mkdir /home/irma/leveldb
+    $ python -m modules.database.nsrl.nsrl create -t os NSRLOS.txt /home/irma/leveldb/os_db
+    $ python -m modules.database.nsrl.nsrl create -t manufacturer NSRLMfg.txt /home/irma/leveldb/mfg_db
+    $ python -m modules.database.nsrl.nsrl create -t product NSRLProd.txt /home/irma/leveldb/prod_db
+    $ python -m modules.database.nsrl.nsrl create -t file NSRLFile.txt /home/irma/leveldb/file_db
 
 Finally, one must indicate to the analyzer where to find the files for the
 database:
@@ -229,20 +286,30 @@ database:
     running configure
 
     Welcome to IRMA NSRL module configuration script.
- 
+
     The following script will help you to create a new configuration for
     NSRL module on IRMA probe application.
- 
+
     Please answer to the following questions so this script can generate the files
     needed by the application. To abort the configuration, press CTRL+D.
-             
+
     > Where is located NSRL OS database? /home/irma/leveldb/os_db
     > Where is located NSRL MFG database? /home/irma/leveldb/mfg_db
     > Where is located NSRL PRODUCT database? /home/irma/leveldb/prod_db
     > Where is located NSRL FILE database? /home/irma/leveldb/file_db
-     
+
 The last command ask questions to the user for the configuration file
 located at ``modules/database/nsrl/config.ini``.
+
+.. note:: Error
+
+    If you see an error message like:
+
+    .. code-block:: bash
+
+        fatal error: Python.h: No such file or directory
+
+    Then you'll need to install python-dev package (for Debian like systems).
 
 .. note:: Meaning of the fields in the configuration file
 
