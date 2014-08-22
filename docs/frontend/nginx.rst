@@ -59,10 +59,19 @@ soft-link into the ``sites-enabled`` folder:
         $ sudo ln -s /etc/nginx/sites-available/frontend-https /etc/nginx/sites-enabled/frontend-https
         $ sudo mkdir /etc/nginx/certificates/
         $ cd /etc/nginx/certificates/
+
+    Generate the required Diffie Hellman Ephemeral Parameters:
+
+    .. code-block:: bash
+
         $ sudo openssl dhparam -out dhparam.pem 4096
-        $ sudo openssl genrsa -des3 -out frontend.key 1024
-        $ sudo openssl req -new -key frontend.key -out frontend.csr
-        $ sudo openssl x509 -req -days 365 -in frontend.csr -signkey frontend.key -out frontend.crt
+    
+    Finally, generate a self signed certificate:
+
+    .. code-block:: bash
+
+        $ sudo openssl req -x509 -nodes -days 365 -newkey rsa:4096 -subj "/CN=$(hostname --fqdn)/" -keyout frontend.key -out frontend.crt
+
 
 Relaunch the service
 ````````````````````
