@@ -72,3 +72,8 @@ class IrmaLockModeError(Exception):
 class IrmaValueError(Exception):
     """Error for the parameters passed to the functions"""
     pass
+
+
+class IrmaStatusError(Exception):
+    """Wrong status for the function"""
+    pass
