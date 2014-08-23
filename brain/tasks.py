@@ -150,12 +150,15 @@ def get_probelist():
                         # exclude only predefined result queue
                         if info['name'] != result_queue:
                             slist.append(info['name'])
+        if len(slist) != 0:
+            # activate cache only on non empty list
+            cache_probelist['time'] = now
         cache_probelist['list'] = slist
-        cache_probelist['time'] = now
     return cache_probelist['list']
 
 
 def flush_dir(ftpuser, scanid):
+    print("Flushing dir {0}".format(scanid))
     conf_ftp = config.brain_config['ftp_brain']
     with FtpTls(conf_ftp.host,
                 conf_ftp.port,
@@ -170,7 +173,11 @@ def flush_dir(ftpuser, scanid):
 
 @scan_app.task()
 def probe_list():
-    return IrmaTaskReturn.success(get_probelist())
+    probe_list = get_probelist()
+    if len(probe_list) > 0:
+        return IrmaTaskReturn.success(get_probelist())
+    else:
+        return IrmaTaskReturn.error("No probe available")
 
 
 @scan_app.task(ignore_result=True)
@@ -245,6 +252,8 @@ def scan(scanid, scan_request):
         scan.status = IrmaScanStatus.launched
         sql.commit()
 
+    frontend_app.send_task("frontend.tasks.scan_launched",
+                           args=[scanid])
     log.debug(
         "{0}: ".format(scanid) +
         "{0} files receives / ".format(len(scan_request)) +
@@ -262,11 +271,10 @@ def scan_progress(scanid):
     try:
         sql = sql_connect(engine, dbname)
         user = sql_get_user(sql)
-        try:
-            scan = sql_get_scan(sql, scanid, user)
-        except IrmaTaskError as e:
-            msg = "Brain: {0}".format(e)
-            return IrmaTaskReturn.warning(msg)
+        scan = sql_get_scan(sql, scanid, user)
+        res = {}
+        res['status'] = scan.status
+        res['progress_details'] = None
         if scan.status == IrmaScanStatus.launched:
             if not scan.taskid:
                 log.debug("{0}: sql no task_id".format(scanid))
@@ -279,13 +287,11 @@ def scan_progress(scanid):
                     nbcompleted += 1
                 if j.successful():
                     nbsuccessful += 1
-            return IrmaTaskReturn.success({"total": len(gr),
-                                           "finished": nbcompleted,
-                                           "successful": nbsuccessful})
-        elif IrmaScanStatus.is_error(scan.status):
-            return IrmaTaskReturn.error(scan.status)
-        else:
-            return IrmaTaskReturn.warning(scan.status)
+            res['progress_details'] = {}
+            res['progress_details']['total'] = len(gr)
+            res['progress_details']['finished'] = nbcompleted
+            res['progress_details']['successful'] = nbsuccessful
+        return IrmaTaskReturn.success(res)
     except IrmaTaskError as e:
         msg = "Brain: progress error {0}".format(e)
         return IrmaTaskReturn.error(msg)
@@ -299,6 +305,9 @@ def scan_cancel(scanid):
         sql = sql_connect(engine, dbname)
         user = sql_get_user(sql)
         scan = sql_get_scan(sql, scanid, user)
+        res = {}
+        res['status'] = scan.status
+        res['cancel_details'] = None
         if scan.status == IrmaScanStatus.launched:
             scan.status = IrmaScanStatus.cancelling
             # commit as soon as possible to avoid cancelling again
@@ -315,9 +324,11 @@ def scan_cancel(scanid):
             scan.status = IrmaScanStatus.cancelled
             sql.commit()
             flush_dir(user.ftpuser, scanid)
-            return IrmaTaskReturn.success({"total": len(gr),
-                                           "finished": nbcompleted,
-                                           "cancelled": nbcancelled})
+            res['cancel_details'] = {}
+            res['cancel_details']['total'] = len(gr)
+            res['cancel_details']['finished'] = nbcompleted
+            res['cancel_details']['cancelled'] = nbcancelled
+            return IrmaTaskReturn.success(res)
         else:
             return IrmaTaskReturn.warning(scan.status)
     except IrmaTaskError as e:
