@@ -219,9 +219,8 @@ def scan_cancel(scanid):
         on error 'msg' gives reason message
     """
     # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        _valid_id(scanid)
         cancel = scan_ctrl.cancel(scanid)
         return IrmaFrontendReturn.success(cancel_details=cancel)
     except IrmaValueError as e:
