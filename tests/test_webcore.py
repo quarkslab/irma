@@ -69,14 +69,14 @@ def mock_scan_cancel(scanid, successful=True):
                                          "finished": NB_FILES - 2,
                                          "cancelled": 2})
     else:
-        return (IrmaReturnCode.warning, IrmaScanStatus.created)
+        return (IrmaReturnCode.warning, IrmaScanStatus.empty)
 
 
 def mock_scan_launch(scanid, force, successful=True):
     sql_db_connect()
     session = SQLDatabase.get_session()
     scan = Scan.load_from_ext_id(scanid, session)
-    if scan.status == IrmaScanStatus.created:
+    if scan.status == IrmaScanStatus.empty:
         scan.status = IrmaScanStatus.launched
         scan.update(['status'], session=session)
         session.commit()
@@ -89,7 +89,7 @@ def mock_scan_progress(scanid, successful=True):
     if successful:
         return {"total": NB_FILES, "finished": 2, "successful": 2}
     else:
-        raise IrmaValueError(IrmaScanStatus.created)
+        raise IrmaValueError(IrmaScanStatus.empty)
 
 braintasks.probe_list = mock_probe_list
 braintasks.cancel = mock_scan_cancel
@@ -186,7 +186,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
         scan = Scan.load_from_ext_id(scanid, self.session)
 
         self.assertIsNotNone(scan.date)
-        self.assertEqual(scan.status, IrmaScanStatus.created)
+        self.assertEqual(scan.status, IrmaScanStatus.empty)
         # self.assertIsNotNone(scan.ip)
         # FIXME scan.is_over with wrong status
         # self.assertFalse(core.finished(scanid))
@@ -198,7 +198,7 @@ class TestSQLDatabaseObject(WebCoreTestCase):
 
         scan = Scan.load_from_ext_id(scanid, self.session)
         self.assertIsNotNone(scan.date)
-        self.assertEqual(scan.status, IrmaScanStatus.created)
+        self.assertEqual(scan.status, IrmaScanStatus.empty)
         self.assertEqual(len(scan.files_web), NB_FILES)
         self.assertEqual(len((scan.files_web[0]).probe_results), 0)
         self.assertFalse(core.finished(scanid))

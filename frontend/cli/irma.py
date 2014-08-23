@@ -38,7 +38,7 @@ class IrmaError(Exception):
 # in order to get rid of this dependency
 # KEEP SYNCHRONIZED
 class IrmaScanStatus:
-    created = 0
+    empty = 0
     launched = 10
     cancelling = 20
     cancelled = 21
@@ -46,7 +46,7 @@ class IrmaScanStatus:
     finished = 50
     flushed = 100
     label = {
-        created: "created",
+        empty: "created",
         launched: "launched",
         cancelling: "being cancelled",
         cancelled: "cancelled",

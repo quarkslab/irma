@@ -50,7 +50,7 @@ def scan_launch(scanid, force):
         session = SQLDatabase.get_session()
         ftp_config = config.frontend_config['ftp_brain']
         scan = Scan.load_from_ext_id(scanid, session=session)
-        if not scan.status == IrmaScanStatus.created:
+        if not scan.status == IrmaScanStatus.ready:
             wrong_status = IrmaScanStatus.label[scan.status]
             print("{0}: wrong scan status {1}".format(scanid, wrong_status))
             scan.status = IrmaScanStatus.error
@@ -121,10 +121,10 @@ def scan_launch(scanid, force):
                 scan_request.append((hashname, probes_to_do))
         # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
-        scan.status = IrmaScanStatus.launched
+        scan.status = IrmaScanStatus.uploaded
         scan.update(['status'], session=session)
         session.commit()
-        return IrmaTaskReturn.success("scan launched")
+        return IrmaTaskReturn.success("scan uploaded")
     except IrmaFtpError as e:
             print("{0}: Ftp upload error".format(scanid))
             scan.status = IrmaScanStatus.error_ftp_upload
@@ -146,6 +146,24 @@ def sanitize_dict(d):
         newk = k.replace('.', '_').replace('$', '')
         new[newk] = v
     return new
+
+
+@frontend_app.task(acks_late=True)
+def scan_launched(scanid):
+    try:
+        print("Scanid {0} launched".format(scanid))
+        session = None
+        sql_db_connect()
+        session = SQLDatabase.get_session()
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        scan.status = IrmaScanStatus.launched
+        scan.update(['status'], session=session)
+        session.commit()
+    except Exception as e:
+        if session is not None:
+            session.rollback()
+        print "Exception has occurred:{0}".format(e)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
 
 
 @frontend_app.task(acks_late=True)

@@ -59,7 +59,7 @@ def new(ip=None):
     """
     with session_transaction() as session:
         # TODO get the ip
-        scan = Scan(IrmaScanStatus.created, compat.timestamp(), ip)
+        scan = Scan(IrmaScanStatus.empty, compat.timestamp(), ip)
         scan.save(session=session)
         scanid = scan.external_id
     return scanid
@@ -76,10 +76,15 @@ def add_files(scanid, files):
     """
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session)
-        if scan.status != IrmaScanStatus.created:
-            # Cannot add file to a launched scan
+        if scan.status == IrmaScanStatus.empty:
+            # on first file added update status to 'ready'
+            scan.status = IrmaScanStatus.ready
+            scan.update(['status'], session=session)
+            session.commit()
+        elif scan.status != IrmaScanStatus.ready:
+            # Cannot add file to a scan in ready status
             status_str = IrmaScanStatus.label[scan.status]
-            msg = "Can't add file to a scan {0}".format(status_str)
+            msg = "Can't add file to a scan in status {0}".format(status_str)
             raise IrmaValueError(msg)
         for (name, data) in files.items():
             try:
@@ -111,9 +116,11 @@ def launch(scanid, force, probelist):
     """
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session)
-        if scan.status != IrmaScanStatus.created:
+        if scan.status != IrmaScanStatus.ready:
             # Cannot launch scan with other status
-            raise IrmaValueError(IrmaScanStatus.label[scan.status])
+            status_str = IrmaScanStatus.label[scan.status]
+            msg = "Can't launch scan in status {0}".format(status_str)
+            raise IrmaValueError(msg)
         all_probe_list = probe_list()
         if len(all_probe_list) == 0:
             scan.status = IrmaScanStatus.finished
@@ -144,8 +151,8 @@ def launch(scanid, force, probelist):
                     0,  # TODO remove this dirty fix for probe types
                     p,
                     None,
-                    IrmaProbeResultsStates.created,
-                    IrmaScanStatus.created,
+                    IrmaProbeResultsStates.empty,
+                    IrmaScanStatus.empty,
                     file_web=fw
                 )
                 probe_result.save(session=session)
@@ -203,25 +210,26 @@ def progress(scanid):
         if IrmaScanStatus.is_error(scan.status):
             raise IrmaTaskError(IrmaScanStatus.label[scan.status])
         elif scan.status != IrmaScanStatus.launched:
-            # If not launched answer directly
             raise IrmaValueError(IrmaScanStatus.label[scan.status])
-        # Else ask brain for job status
-        (status, res) = celery_brain.scan_progress(scanid)
-        if status == IrmaReturnCode.success:
-            return res
-        elif status == IrmaReturnCode.warning:
-            # FIXME in task that gets results on brain
-            # send a processed status to frontend
-            # if scan is processed for the brain,
-            # it means all probes jobs are completed
-            # we are just waiting for results
-            if res == IrmaScanStatus.processed:
-                scan.status = IrmaScanStatus.processed
-                scan.update(['status'], session=session)
-                session.commit()
-            raise IrmaValueError(IrmaScanStatus.label[res])
         else:
-            raise IrmaTaskError(res)
+            # Else ask brain for job status
+            (status, res) = celery_brain.scan_progress(scanid)
+            if status == IrmaReturnCode.success:
+                return res
+            elif status == IrmaReturnCode.warning:
+                # FIXME in task that gets results on brain
+                # send a processed status to frontend
+                # if scan is processed for the brain,
+                # it means all probes jobs are completed
+                # we are just waiting for results
+                brain_status = res['status']
+                if brain_status == IrmaScanStatus.processed:
+                    scan.status = IrmaScanStatus.processed
+                    scan.update(['status'], session=session)
+                    session.commit()
+                raise IrmaValueError(IrmaScanStatus.label[brain_status])
+            else:
+                raise IrmaTaskError(IrmaScanStatus.label[brain_status])
 
 
 def cancel(scanid):
