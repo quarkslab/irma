@@ -80,27 +80,34 @@ class IrmaReturnCode:
 # ==============================
 
 class IrmaScanStatus:
-    created = 0
-    uploading = 5
-    launched = 10
-    cancelling = 20
-    cancelled = 21
-    processed = 30
-    finished = 50
-    flushed = 100
-    error = 200
-    # Probes 201-209
-    error_probe_missing = 201
-    error_probe_na = 202
-    # FTP 210-219
-    error_ftp_upload = 210
-    label = {created: "created",
+    empty = 0
+    ready = 10
+    uploading = 20
+    uploaded = 30
+    launched = 40
+    processed = 50
+    finished = 60
+    flushed = 70
+    # cancel
+    cancelling = 100
+    cancelled = 110
+    # errors
+    error = 1000
+    # Probes 101x
+    error_probe_missing = 1010
+    error_probe_na = 1011
+    # FTP 102x
+    error_ftp_upload = 1020
+
+    label = {empty: "empty",
+             ready: "ready",
              uploading: "uploading",
+             uploaded: "uploaded",
              launched: "launched",
-             cancelling: "cancelling",
-             cancelled: "cancelled",
              processed: "processed",
              finished: "finished",
+             cancelling: "cancelling",
+             cancelled: "cancelled",
              flushed: "flushed",
              error: "error",
              error_probe_missing: "probelist missing",
@@ -117,13 +124,13 @@ class IrmaScanStatus:
 # ====================
 
 class IrmaProbeResultsStates:
-    created = 0
+    empty = 0
     running = 10
     cancelled = 20
     finished = 30
     error = 40
     label = {
-        created: "created",
+        empty: "empty",
         running: "running",
         cancelled: "cancelled",
         finished: "finished",
