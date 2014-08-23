@@ -2,14 +2,6 @@
  IRMA - Web Interface
 ***********************
 
-========
-Overview
-========
-
-This directory stores everything related to the web interface on top of IRMA.
-
------------------------
-
 ============
 Installation
 ============

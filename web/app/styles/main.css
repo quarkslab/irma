@@ -6161,21 +6161,3 @@ h1 {
 .maintenance p {
   font-size: 24px;
 }
-.admin .hash {
-  background-color: #eee;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 3px;
-}
-.admin .hash .form-group {
-  margin-bottom: 0px;
-}
-.admin .hash .btn-danger {
-  position: relative;
-  left: -8px;
-}
-.admin .probes-list {
-  text-align: left;
-  margin-top: 0px;
-  padding-left: 10px;
-}
