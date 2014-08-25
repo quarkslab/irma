@@ -56,7 +56,8 @@ class VirusTotalFormatterPlugin(PluginBase):
     def format(raw_result):
         status = raw_result.get('status', -1)
         vt_result = raw_result.get('results', {})
-        av_result = vt_result.get('results', {})
+        if status != -1:
+            av_result = vt_result.get('results', {})
         if status == 1:
             # get ratios from virustotal results
             nb_detect = av_result.get('positives', 0)

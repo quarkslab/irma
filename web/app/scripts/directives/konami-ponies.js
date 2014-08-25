@@ -1,5 +1,7 @@
 'use strict';
 
+
+
 (function () {
 
   var dependencies = ['$document', '$window'];
@@ -15,7 +17,7 @@
             if (konami_index === konami_keys.length) {
               angular.element($document).unbind('keydown', down);
               /* jshint ignore:start */
-              angular.element('body').append('<script type="text/javascript" src="http://panzi.github.io/Browser-Ponies/basecfg.js" id="browser-ponies-config"></script><script type="text/javascript" src="http://panzi.github.io/Browser-Ponies/browserponies.js" id="browser-ponies-script"></script><script type="text/javascript">/* <![CDATA[ */ setTimeout(function(){ (function (cfg) {BrowserPonies.setBaseUrl(cfg.baseurl);BrowserPonies.loadConfig(BrowserPoniesBaseConfig);BrowserPonies.loadConfig(cfg);})({"baseurl":"http://panzi.github.io/Browser-Ponies/","fadeDuration":500,"volume":1,"fps":25,"speed":3,"audioEnabled":false,"showFps":false,"showLoadProgress":false,"speakProbability":0.01,"spawn":{"applejack":1,"fluttershy":1,"pinkie pie":1,"rainbow dash":1,"rarity":1,"twilight sparkle":1},"autostart":true}); },1000); /* ]]> */</script>');
+              angular.element('body').append('<script src="resources/ponies.js" id="browser-ponies-script"></script><script type="text/javascript">/* <![CDATA[ */ setTimeout(function(){ (function (cfg) {BrowserPonies.setBaseUrl(cfg.baseurl);BrowserPonies.loadConfig(BrowserPoniesBaseConfig);BrowserPonies.loadConfig(cfg);})({"baseurl":"http://panzi.github.io/Browser-Ponies/","fadeDuration":500,"volume":1,"fps":25,"speed":3,"audioEnabled":false,"showFps":false,"showLoadProgress":true,"dontSpeak":true,"spawn":{"applejack":1,"fluttershy":1,"pinkie pie":1,"rainbow dash":1,"rarity":1,"twilight sparkle":1},"autostart":true}); },1000); /* ]]> */</script>');
               /* jshint ignore:end */
             }
           } else {

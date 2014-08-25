@@ -18,9 +18,9 @@ import config.parser as config
 
 from celery.utils.log import get_task_logger
 
-from frontend.objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
+from .objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
 from lib.common.compat import timestamp
-from lib.irma.common.exceptions import IrmaLockError
+from lib.irma.common.exceptions import IrmaLockError, IrmaFtpError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
 from lib.common.utils import humanize_time_str
 from lib.irma.ftp.handler import FtpTls
@@ -46,18 +46,15 @@ def scan_launch(scanid, force):
         scan = None
         ftp_config = config.frontend_config['ftp_brain']
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        if not scan.status == IrmaScanStatus.created:
-            scan.release()
-            status = IrmaScanStatus.label[scan.status]
-            print("{0}: Error invalid scan status:{1}".format(scanid, status))
-            return IrmaTaskReturn.error("Frontend: Invalid scan status")
-
+        IrmaScanStatus.filter_status(scan.status,
+                                     IrmaScanStatus.ready,
+                                     IrmaScanStatus.ready)
         # If nothing return
         if len(scan.scanfile_ids) == 0:
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
-            print("{0}: Error No files to scan".format(scanid))
-            return IrmaTaskReturn.success("Frontend: No files to scan")
+            print("{0}: No files to scan, scan finished".format(scanid))
+            return
 
         filtered_file_oids = []
         for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
@@ -87,9 +84,8 @@ def scan_launch(scanid, force):
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             print("{0}: Success: Nothing to do".format(scanid))
-            return IrmaTaskReturn.success("Frontend: Nothing to do")
+            return
         scan.release()
-
         host = ftp_config.host
         port = ftp_config.port
         user = ftp_config.username
@@ -104,18 +100,39 @@ def scan_launch(scanid, force):
                 if hashname != f.hashvalue:
                     reason = "Ftp Error: integrity failure while uploading \
                     file {0} for scanid {1}".format(scanid, filename)
-                    return IrmaTaskReturn.error(reason)
+                    raise IrmaFtpError(reason)
                 scan_request.append((hashname, probelist))
-                # launch new celery task
+        # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.launched)
+        scan.update_status(IrmaScanStatus.uploaded)
         scan.release()
         print("{0}: Success: scan launched".format(scanid))
         return IrmaTaskReturn.success("scan launched")
+    except IrmaFtpError as e:
+            print("{0}: Ftp upload error".format(scanid))
+            scan.update_status(IrmaScanStatus.error_ftp_upload)
+            scan.release()
+            return
     except IrmaLockError as e:
         print "IrmaLockError has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
+    except Exception as e:
+        if scan is not None:
+            scan.release()
+        print "Exception has occurred:{0}".format(e)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
+
+
+@frontend_app.task(acks_late=True)
+def scan_launched(scanid):
+    try:
+        print("Scanid {0} launched".format(scanid))
+        scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+        if scan.status == IrmaScanStatus.uploaded:
+            scan.take()
+            scan.update_status(IrmaScanStatus.launched)
+            scan.release()
     except Exception as e:
         if scan is not None:
             scan.release()
@@ -177,6 +194,8 @@ def scan_result(scanid, file_hash, probe, result):
             scan.take()
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
+            # launch new celery task
+            scan_app.send_task("brain.tasks.scan_flush", args=[scanid])
 
     except IrmaLockError as e:
         print ("IrmaLockError has occurred:{0}".format(e))

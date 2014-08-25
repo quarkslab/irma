@@ -87,7 +87,7 @@ class ScanInfo(NoSQLDatabaseObject):
         self.date = timestamp()
         self.scanfile_ids = {}
         self.probelist = None
-        self.status = IrmaScanStatus.created
+        self.status = IrmaScanStatus.empty
         super(ScanInfo, self).__init__(**kwargs)
 
     def add_file(self, scanfile_id, name, hashvalue):

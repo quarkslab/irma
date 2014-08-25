@@ -2,14 +2,6 @@
  IRMA - Web Interface
 ***********************
 
-========
-Overview
-========
-
-This directory stores everything related to the web interface on top of IRMA.
-
------------------------
-
 ============
 Installation
 ============
@@ -104,5 +96,6 @@ To get a bundled and prod ready version of the interface, use the ``dist`` task,
     $ gulp dist
 
 
+------------
 
 .. _nodeJs: http://nodejs.org/
