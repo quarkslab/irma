@@ -18,7 +18,7 @@ import config.parser as config
 from frontend.objects import ScanInfo, ScanFile, ScanRefResults
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaLockMode
 from lib.irma.common.exceptions import IrmaDatabaseError, \
-    IrmaDatabaseResultNotFound
+    IrmaDatabaseResultNotFound, IrmaCoreError, IrmaValueError, IrmaTaskError
 
 
 # =====================
@@ -50,34 +50,32 @@ def _task_probe_list():
     """ send a task to the brain asking for active probe list """
     try:
         task = scan_app.send_task("brain.tasks.probe_list", args=[])
-        (status, res) = task.get(timeout=cfg_timeout)
-        if status == IrmaReturnCode.error:
-            raise IrmaFrontendError(res)
-        elif status == IrmaReturnCode.warning:
-            raise IrmaFrontendWarning(res)
+        (retcode, res) = task.get(timeout=cfg_timeout)
+        if retcode != IrmaReturnCode.success:
+            raise IrmaTaskError(res)
+        if len(res) == 0:
+            raise IrmaCoreError("no probe available")
         return res
     except celery.exceptions.TimeoutError:
-        raise IrmaFrontendError("Celery timeout - probe_list")
+        raise IrmaTaskError("celery timeout on brain probe_list")
 
 
 def _task_scan_progress(scanid):
     """ send a task to the brain asking for status of subtasks launched """
     try:
         task = scan_app.send_task("brain.tasks.scan_progress", args=[scanid])
-        (status, res) = task.get(timeout=cfg_timeout)
-        return (status, res)
+        return task.get(timeout=cfg_timeout)
     except celery.exceptions.TimeoutError:
-        raise IrmaFrontendError("Celery timeout - scan progress")
+        raise IrmaTaskError("celery timeout on brain progress")
 
 
 def _task_scan_cancel(scanid):
     """ send a task to the brain to cancel all remaining subtasks """
     try:
         task = scan_app.send_task("brain.tasks.scan_cancel", args=[scanid])
-        (status, res) = task.get(timeout=cfg_timeout)
-        return (status, res)
+        return task.get(timeout=cfg_timeout)
     except celery.exceptions.TimeoutError:
-        raise IrmaFrontendError("Celery timeout - scan progress")
+        raise IrmaTaskError("celery timeout on brain scan_cancel")
 
 
 # ==================
@@ -102,17 +100,19 @@ def scan_add(scanid, files):
     :param files: dict of 'filename':str, 'data':str
     :rtype: int
     :return: int - total number of files for the scan
-    :raise: IrmaDataBaseError
+    :raise: IrmaDataBaseError, IrmaValueError
     """
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    if scan.status != IrmaScanStatus.created:
-        # Can not add file to scan launched
-        raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
+    IrmaScanStatus.filter_status(scan.status,
+                                 IrmaScanStatus.empty,
+                                 IrmaScanStatus.ready)
     scan.take()
     for (name, data) in files.items():
         fobj = ScanFile()
         fobj.save(data, name)
         scan.add_file(fobj.id, name, fobj.hashvalue)
+        if scan.status == IrmaScanStatus.empty:
+            scan.status = IrmaScanStatus.ready
     scan.update()
     scan.release()
     return len(scan.scanfile_ids)
@@ -126,19 +126,13 @@ def scan_launch(scanid, force, probelist):
     :return:
         on success 'probe_list' is the list of probes used for the scan
         on error 'msg' gives reason message
-    :raise: IrmaDataBaseError, IrmaFrontendError
+    :raise: IrmaDataBaseError, IrmaValueError
     """
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    if scan.status != IrmaScanStatus.created:
-        # Can not launch scan with other status
-        raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
+    IrmaScanStatus.filter_status(scan.status,
+                                 IrmaScanStatus.ready,
+                                 IrmaScanStatus.ready)
     all_probe_list = _task_probe_list()
-    if len(all_probe_list) == 0:
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.finished)
-        scan.release()
-        raise IrmaFrontendError("No probe available")
-
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
     if probelist is not None:
         unknown_probes = []
@@ -146,10 +140,8 @@ def scan_launch(scanid, force, probelist):
             if p not in all_probe_list:
                 unknown_probes.append(p)
         if len(unknown_probes) != 0:
-            reason = "Probe {0} unknown".format(", ".join(unknown_probes))
-            scan.update_status(IrmaScanStatus.cancelled)
-            scan.release()
-            raise IrmaFrontendError(reason)
+            reason = "probe {0} unknown".format(", ".join(unknown_probes))
+            raise IrmaValueError(reason)
         scan.probelist = probelist
     else:
         # all available probe
@@ -182,30 +174,31 @@ def scan_progress(scanid):
     """ get scan progress for specified scan
 
     :param scanid: id returned by scan_new
-    :rtype: dict of 'total':int, 'finished':int, 'successful':int
+    :rtype: 'status': label of status [optional dict of 'total':int, 
+        'finished':int, 'successful':int]
     :return:
         dict with total/finished/succesful jobs submitted by irma-brain
-    :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
+    :raise: IrmaDatabaseError, IrmaTaskError
     """
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
     if scan.status != IrmaScanStatus.launched:
-        # If not launched answer directly
-        # Else ask brain for job status
-        raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
-    (status, res) = _task_scan_progress(scanid)
-    if status == IrmaReturnCode.success:
-        return res
-    elif status == IrmaReturnCode.warning:
-        # if scan is processed for the brain,
-        # it means all probes jobs are completed
-        # we are just waiting for results
-        if res == IrmaScanStatus.processed:
-            scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-            scan.update_status(IrmaScanStatus.processed)
-            scan.release()
-        raise IrmaFrontendWarning(IrmaScanStatus.label[res])
+        if IrmaScanStatus.is_error(scan.status):
+            raise IrmaCoreError(IrmaScanStatus.label[scan.status])
+        else:
+            return {'status': IrmaScanStatus.label[scan.status]}
     else:
-        raise IrmaFrontendError(res)
+        # Else ask brain for job status
+        (retcode, res) = _task_scan_progress(scanid)
+        if retcode == IrmaReturnCode.success:
+            if res['status'] == IrmaScanStatus.label[IrmaScanStatus.processed]:
+                scan.take()
+                scan.update_status(IrmaScanStatus.processed)
+                scan.release()
+            return res
+        else:
+            # else take directly error string from brain and
+            # pass it to the caller
+            raise IrmaTaskError(res)
 
 
 def scan_cancel(scanid):
@@ -216,33 +209,44 @@ def scan_cancel(scanid):
         'cancelled':int
     :return:
         informations about number of cancelled jobs by irma-brain
-    :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
+    :raise: IrmaDatabaseError, IrmaTaskError
     """
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
-    if scan.status != IrmaScanStatus.launched:
+    if scan.status < IrmaScanStatus.uploaded:
         # If not launched answer directly
-        # Else ask brain for job status
         scan.take()
+        status_str = IrmaScanStatus.label[scan.status]
         scan.update_status(IrmaScanStatus.cancelled)
         scan.release()
-        raise IrmaFrontendWarning(IrmaScanStatus.label[scan.status])
+        return None
+    if scan.status != IrmaScanStatus.launched:
+        # If too late answer directly
+        status_str = IrmaScanStatus.label[scan.status]
+        if IrmaScanStatus.is_error(scan.status):
+            # let the cancel finish and keep the error status
+            return None
+        else:
+            reason = "can not cancel scan in {0} status".format(status_str)
+            raise IrmaValueError(reason)
 
-    (status, res) = _task_scan_cancel(scanid)
-    if status == IrmaReturnCode.success:
-        scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.cancelled)
-        scan.release()
-        return res
-    elif status == IrmaReturnCode.warning:
-        # if scan is finished for the brain
-        # it means we are just waiting for results
-        if res == IrmaScanStatus.processed:
+    # Else ask brain for job cancel
+    (retcode, res) = _task_scan_cancel(scanid)
+    if retcode == IrmaReturnCode.success:
+        if 'cancel_details' in res:
+            scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
+            scan.update_status(IrmaScanStatus.cancelled)
+            scan.release()
+            return res['cancel_details']
+        elif res['status'] == IrmaScanStatus.label[IrmaScanStatus.processed]:
+            # if scan is finished for the brain
+            # it means we are just waiting for results
             scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
             scan.update_status(IrmaScanStatus.processed)
             scan.release()
-        raise IrmaFrontendWarning(IrmaScanStatus.label[res])
+        reason = "can not cancel scan in {0} status".format(res['status'])
+        raise IrmaValueError(reason)
     else:
-        raise IrmaFrontendError(res)
+        raise IrmaTaskError(res)
 
 
 def scan_finished(scanid):
@@ -252,7 +256,7 @@ def scan_finished(scanid):
     :return:
         True if scan is finished
         False otherwise
-    :raise: IrmaDatabaseError, IrmaFrontendWarning, IrmaFrontendError
+    :raise: IrmaDatabaseError
     """
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
     return scan.status == IrmaScanStatus.finished
@@ -282,8 +286,6 @@ def file_exists(sha256):
         return True
     except IrmaDatabaseResultNotFound:
         return False
-    except IrmaDatabaseError as e:
-        raise IrmaFrontendError(str(e))
 
 
 def file_result(sha256):
@@ -296,14 +298,11 @@ def file_result(sha256):
     :return:
         if exists returns all available scan results
         for file with given sha256 value
-    :raise: IrmaFrontendError
+    :raise: IrmaDatabaseError
     """
-    try:
-        f = ScanFile(sha256=sha256)
-        ref_res = ScanRefResults(id=f.id)
-        return ref_res.get_results()
-    except IrmaDatabaseError as e:
-        raise IrmaFrontendWarning(str(e))
+    f = ScanFile(sha256=sha256)
+    ref_res = ScanRefResults(id=f.id)
+    return ref_res.get_results()
 
 
 def file_infected(sha256):
@@ -314,23 +313,20 @@ def file_infected(sha256):
     :return:
         returns detection score for
         file with given sha256 value
-    :raise: IrmaFrontendError
+    :raise: IrmaDatabaseError
     """
-    try:
-        f = ScanFile(sha256=sha256)
-        ref_res = ScanRefResults(id=f.id)
-        nb_scan = nb_detected = 0
-        av_results = ref_res.get_results(filter_type=["antivirus"])
-        probe_res = av_results[sha256]['results']
-        for res in probe_res.values():
-            nb_scan += 1
-            if res['result'] is not None:
-                nb_detected += 1
-        suspicious = False
-        if nb_detected > 0:
-            suspicious = True
-        return {'infected': suspicious,
-                'nb_detected': nb_detected,
-                'nb_scan': nb_scan}
-    except IrmaDatabaseError as e:
-        raise IrmaFrontendWarning(str(e))
+    f = ScanFile(sha256=sha256)
+    ref_res = ScanRefResults(id=f.id)
+    nb_scan = nb_detected = 0
+    av_results = ref_res.get_results(filter_type=["antivirus"])
+    probe_res = av_results[sha256]['results']
+    for res in probe_res.values():
+        nb_scan += 1
+        if res['result'] is not None:
+            nb_detected += 1
+    suspicious = False
+    if nb_detected > 0:
+        suspicious = True
+    return {'infected': suspicious,
+            'nb_detected': nb_detected,
+            'nb_scan': nb_scan}

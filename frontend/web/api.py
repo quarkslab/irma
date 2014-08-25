@@ -17,11 +17,8 @@ import re
 import os
 import bottle
 import importlib
-import json
-import sys
-import logging
 
-from bottle import route, request, default_app, run, abort
+from bottle import route, request, default_app, run
 
 """
     IRMA FRONTEND API
@@ -95,14 +92,16 @@ def svr_index():
 #  Common param checks
 # =====================
 
-def _valid_id(scanid):
+def validate_id(scanid):
     """ check scanid format - should be a str(ObjectId)"""
-    return re.match(r'^[0-9a-fA-F]{24}$', scanid)
+    if not re.match(r'^[0-9a-fA-F]{24}$', scanid):
+        raise ValueError("Malformed Scanid")
 
 
-def _valid_sha256(sha256):
+def validate_sha256(sha256):
     """ check hashvalue format - should be a sha256 hexdigest"""
-    return re.match(r'^[0-9a-fA-F]{64}$', sha256)
+    if not re.match(r'^[0-9a-fA-F]{64}$', sha256):
+        raise ValueError("Malformed Sha256")
 
 
 # ==========
@@ -122,10 +121,6 @@ def scan_new():
     try:
         scan_id = core.scan_new()
         return IrmaFrontendReturn.success(scan_id=scan_id)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -143,10 +138,8 @@ def scan_add(scanid):
         on success 'nb_files' total number of files for the scan
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        validate_id(scanid)
         files = {}
         for f in request.files:
             upfile = request.files.get(f)
@@ -155,10 +148,6 @@ def scan_add(scanid):
             files[filename] = data
         nb_files = core.scan_add(scanid, files)
         return IrmaFrontendReturn.success(nb_files=nb_files)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -176,10 +165,8 @@ def scan_launch(scanid):
         on success 'probe_list' is the list of probes used for the scan
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        validate_id(scanid)
         # handle 'force' parameter
         force = False
         if 'force' in request.params:
@@ -191,10 +178,6 @@ def scan_launch(scanid):
             in_probelist = request.params['probe'].split(',')
         out_probelist = core.scan_launch(scanid, force, in_probelist)
         return IrmaFrontendReturn.success(probe_list=out_probelist)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -214,16 +197,10 @@ def scan_result(scanid):
         on success 'scan_results' is the dict of results for each filename
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        validate_id(scanid)
         results = core.scan_result(scanid)
         return IrmaFrontendReturn.success(scan_results=results)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -246,16 +223,14 @@ def scan_progress(scanid):
         progress_details like 'processed' or 'finished'
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        validate_id(scanid)
         progress = core.scan_progress(scanid)
-        return IrmaFrontendReturn.success(progress_details=progress)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
+        if 'progress_details' in progress:
+            details = progress['progress_details']
+            return IrmaFrontendReturn.success(progress_details=details)
+        else:
+            return IrmaFrontendReturn.warning(progress['status'])
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -274,19 +249,12 @@ def scan_cancel(scanid):
     :return:
         on success 'cancel_details' contains informations \
         about cancelled jobs by irma-brain
-        on warning 'msg' gives scan status that make it not cancellable
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        validate_id(scanid)
         cancel = core.scan_cancel(scanid)
         return IrmaFrontendReturn.success(cancel_details=cancel)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -300,19 +268,14 @@ def scan_finished(scanid):
     :rtype: dict of 'code': int, 'msg': str
     :return:
         on success results are ready
-        on warning 'msg' gives current scan status
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_id(scanid):
-        return IrmaFrontendReturn.error("not a valid scanid")
     try:
+        validate_id(scanid)
         if core.scan_finished(scanid):
             return IrmaFrontendReturn.success(msg="finished")
         else:
             return IrmaFrontendReturn.warning("not finished")
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -335,10 +298,6 @@ def probe_list():
     try:
         probelist = core.probe_list()
         return IrmaFrontendReturn.success(probe_list=probelist)
-    except IrmaFrontendWarning as e:
-        return IrmaFrontendReturn.warning(str(e))
-    except IrmaFrontendError as e:
-        return IrmaFrontendReturn.error(str(e))
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
@@ -359,10 +318,8 @@ def file_exists(sha256):
         file exists or not
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_sha256(sha256):
-        return IrmaFrontendReturn.error("not a valid sha256")
     try:
+        validate_sha256(sha256)
         exists = core.file_exists(sha256)
         return IrmaFrontendReturn.success(exists=exists)
     except Exception as e:
@@ -384,10 +341,8 @@ def file_result(sha256):
         on success 'scan_results' contains results for file
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_sha256(sha256):
-        return IrmaFrontendReturn.error("not a valid sha256")
     try:
+        validate_sha256(sha256)
         res = core.file_result(sha256)
         return IrmaFrontendReturn.success(scan_results=res)
     # handle all errors/warning as errors
@@ -410,10 +365,8 @@ def file_infected(sha256):
         with details in 'nb_detected' and 'nb_scan'
         on error 'msg' gives reason message
     """
-    # Filter malformed scanid
-    if not _valid_sha256(sha256):
-        return IrmaFrontendReturn.error("not a valid sha256")
     try:
+        validate_sha256(sha256)
         res = core.file_infected(sha256)
         return IrmaFrontendReturn.success(infected=res['infected'],
                                           nb_scan=res['nb_scan'],
