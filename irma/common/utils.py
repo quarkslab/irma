@@ -13,6 +13,8 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+from .exceptions import IrmaValueError, IrmaValueError
+
 
 # ==========================
 #  Tasks response formatter
@@ -80,27 +82,32 @@ class IrmaReturnCode:
 # ==============================
 
 class IrmaScanStatus:
-    created = 0
-    uploading = 5
-    launched = 10
-    cancelling = 20
-    cancelled = 21
-    processed = 30
+    empty = 0
+    ready = 10
+    uploaded = 20
+    launched = 30
+    processed = 40
     finished = 50
-    flushed = 100
-    error = 200
-    # Probes 201-209
-    error_probe_missing = 201
-    error_probe_na = 202
-    # FTP 210-219
-    error_ftp_upload = 210
-    label = {created: "created",
-             uploading: "uploading",
+    flushed = 60
+    # cancel
+    cancelling = 100
+    cancelled = 110
+    # errors
+    error = 1000
+    # Probes 101x
+    error_probe_missing = 1010
+    error_probe_na = 1011
+    # FTP 102x
+    error_ftp_upload = 1020
+
+    label = {empty: "empty",
+             ready: "ready",
+             uploaded: "uploaded",
              launched: "launched",
-             cancelling: "cancelling",
-             cancelled: "cancelled",
              processed: "processed",
              finished: "finished",
+             cancelling: "cancelling",
+             cancelled: "cancelled",
              flushed: "flushed",
              error: "error",
              error_probe_missing: "probelist missing",
@@ -111,6 +118,17 @@ class IrmaScanStatus:
     @staticmethod
     def is_error(code):
         return code >= IrmaScanStatus.error
+
+    @staticmethod
+    def filter_status(status, status_min=None, status_max=None):
+        if status not in IrmaScanStatus.label.keys():
+            raise IrmaValueError("Unknown scan status {0}".format(status))
+        status_str = IrmaScanStatus.label[status]
+        if status_min is not None and status < status_min:
+            raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
+        if status_max is not None and status > status_max:
+            raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
+        return
 
 # ==========================================================
 #  Lock values for NoSQLDatabaseObjects (internal use only)
