@@ -182,7 +182,10 @@ def scan_progress(scanid):
     """
     scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
     if scan.status != IrmaScanStatus.launched:
-        return {'status': IrmaScanStatus.label[scan.status]}
+        if IrmaScanStatus.is_error(scan.status):
+            raise IrmaCoreError(IrmaScanStatus.label[scan.status])
+        else:
+            return {'status': IrmaScanStatus.label[scan.status]}
     else:
         # Else ask brain for job status
         (retcode, res) = _task_scan_progress(scanid)
@@ -219,8 +222,12 @@ def scan_cancel(scanid):
     if scan.status != IrmaScanStatus.launched:
         # If too late answer directly
         status_str = IrmaScanStatus.label[scan.status]
-        reason = "can not cancel scan in {0} status".format(status_str)
-        raise IrmaValueError(reason)
+        if IrmaScanStatus.is_error(scan.status):
+            # let the cancel finish and keep the error status
+            return None
+        else:
+            reason = "can not cancel scan in {0} status".format(status_str)
+            raise IrmaValueError(reason)
 
     # Else ask brain for job cancel
     (retcode, res) = _task_scan_cancel(scanid)
