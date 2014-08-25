@@ -18,7 +18,7 @@ import config.parser as config
 
 from celery.utils.log import get_task_logger
 
-from frontend.objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
+from .objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
 from lib.common.compat import timestamp
 from lib.irma.common.exceptions import IrmaLockError, IrmaFtpError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
@@ -46,14 +46,9 @@ def scan_launch(scanid, force):
         scan = None
         ftp_config = config.frontend_config['ftp_brain']
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        if not scan.status == IrmaScanStatus.created:
-            # should never happen as status is checked in core.scan_launch
-            scan.update_status(IrmaScanStatus.cancelled)
-            scan.release()
-            status = IrmaScanStatus.label[scan.status]
-            print("{0}: Error invalid scan status:{1}".format(scanid, status))
-            return
-
+        IrmaScanStatus.filter_status(scan.status,
+                                     IrmaScanStatus.ready,
+                                     IrmaScanStatus.ready)
         # If nothing return
         if len(scan.scanfile_ids) == 0:
             scan.update_status(IrmaScanStatus.finished)
@@ -61,8 +56,6 @@ def scan_launch(scanid, force):
             print("{0}: No files to scan, scan finished".format(scanid))
             return
 
-        scan.update_status(IrmaScanStatus.uploading)
-        scan.release()
         filtered_file_oids = []
         for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
             if not force:
@@ -112,7 +105,7 @@ def scan_launch(scanid, force):
         # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.launched)
+        scan.update_status(IrmaScanStatus.uploaded)
         scan.release()
         print("{0}: Success: scan launched".format(scanid))
         return IrmaTaskReturn.success("scan launched")
@@ -124,6 +117,22 @@ def scan_launch(scanid, force):
     except IrmaLockError as e:
         print "IrmaLockError has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
+    except Exception as e:
+        if scan is not None:
+            scan.release()
+        print "Exception has occurred:{0}".format(e)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
+
+
+@frontend_app.task(acks_late=True)
+def scan_launched(scanid):
+    try:
+        print("Scanid {0} launched".format(scanid))
+        scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+        if scan.status == IrmaScanStatus.uploaded:
+            scan.take()
+            scan.update_status(IrmaScanStatus.launched)
+            scan.release()
     except Exception as e:
         if scan is not None:
             scan.release()
@@ -185,6 +194,8 @@ def scan_result(scanid, file_hash, probe, result):
             scan.take()
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
+            # launch new celery task
+            scan_app.send_task("brain.tasks.scan_flush", args=[scanid])
 
     except IrmaLockError as e:
         print ("IrmaLockError has occurred:{0}".format(e))
