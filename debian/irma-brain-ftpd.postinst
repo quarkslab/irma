@@ -43,8 +43,8 @@ case "$1" in
         useradd -g "$FTP_GROUP" -d /dev/null -s /etc "$FTP_USER" || true
         invoke-rc.d pure-ftpd stop        
         # configure pure-ftpd
-        cp -r /opt/irma/irma-brain/extras/pure-ftpd/conf/* /etc/pure-ftpd/conf/
         cp -r /opt/irma/irma-brain/extras/pure-ftpd/auth/* /etc/pure-ftpd/auth
+        ln -s /etc/pure-ftpd/conf/PureDB /etc/pure-ftpd/auth/50puredb
         # configure accounts for frontend
         db_get irma-brain-ftpd/frontend_user
         USERNAME=$RET
@@ -71,7 +71,7 @@ EOF
            [ ! -f "$FTPD_KEY_DIR/$FTPD_CERT" ];
         then
             mkdir -p $FTPD_KEY_DIR
-            openssl req -x509 -nodes -days 7300 -newkey rsa:2048 \
+            openssl req -x509 -nodes -days 365 -newkey rsa:4096 \
                         -subj "/CN=$(hostname --fqdn)/" \
                         -keyout "$FTPD_KEY_DIR/$FTPD_PRIV" \
                         -out "$FTPD_KEY_DIR/$FTPD_CERT"

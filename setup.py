@@ -146,7 +146,7 @@ class sdist(_sdist):
 
 class configure(Command):
 
-    description = "Configure IRMA's probe application and modules"
+    description = "Configure IRMA's brain application and modules"
 
     # NOTE: user defined option must be defined with the following format:
     # tuple ('long option', 'short option', 'description')
@@ -256,7 +256,7 @@ needed by the application. To abort the configuration, press CTRL+D.
 
         # log configuration
         configuration['log']['syslog'] = \
-            int(ask('Do you want to enable syslog logging?',
+            int(ask('Do you want to enable syslog logging? (experimental)',
                     answer_type=bool, default=configuration['log']['syslog']))
         # broker configration
         configuration['broker_brain']['host'] = \
@@ -332,11 +332,15 @@ DATA_FILES = {
     'linux2': [
         # setup.py related files
         ('', ['setup.py', 'setup.cfg', 'MANIFEST.in', 'requirements.txt']),
-        # Celery worker for linux
-        ('etc/init.d/',  ['extras/init.d/celeryd.brain']),
-        ('etc/default/', ['extras/default/celeryd.brain']),
-    ] +  # IRMA documentation generated with build_sphinx
-         include_data('docs/html', base='opt/irma/irma-brain/docs/')
+        # Celery worker for linux (removed as cannot chmod using setuptools)
+        # ('/etc/init.d/',  ['extras/init.d/celeryd.brain',
+        #                    'extras/init.d/celeryd.results']),
+        # ('/etc/default/', ['extras/default/celeryd.brain',
+        #                    'extras/default/celeryd.results']),
+    ]  # IRMA documentation generated with build_sphinx
+       + include_data('docs', base='')
+       # IRMA extras files
+       + include_data('extras', base=''),
 }
 
 
