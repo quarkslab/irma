@@ -19,7 +19,7 @@ import requests
 import json
 import argparse
 
-ADDRESS = "http://debian/_api"
+ADDRESS = "http://localhost/_api"
 
 
 class IrmaScanStatus:
