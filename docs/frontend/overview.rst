@@ -6,7 +6,7 @@ multiple technologies with each a specific purpose:
 
 * a client through which an user submits a file and get the analysis results.
   There are two clients bundled in the repository: a web user interface and a
-  CLI client.
+  command-line client.
 * a python-based restful API, served by a nginx web server and a uWSGI
   application server. It gets the results of a file scan by querying a
   database.

@@ -27,7 +27,7 @@ setup, you must provide the parameters configured on the **Brain**.
 
 For GNU/Linux systems:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ python setup.py configure --application
     running configure

@@ -16,7 +16,7 @@ On Debian, installing nginx is done with few commands:
     [...]
 
 Please refer to the documentation of your preferred distribution to install
-a uwsgi server on it.
+an uWSGI server on it.
 
 Configuration
 `````````````

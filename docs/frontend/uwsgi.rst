@@ -1,8 +1,8 @@
 Installing and configuring uWSGI
 --------------------------------
 
-The restful API is serve by a uWSGI application server. This section will
-explain how to install a uWSGI server and configure it for the **Frontend**.
+The restful API is served by an uWSGI application server. This section will
+explain how to install an uWSGI server and configure it for the **Frontend**.
 
 Installation
 ````````````
@@ -16,14 +16,14 @@ straightforward:
     [...]
 
 Please refer to the documentation of your preferred distribution to install
-a uwsgi server on it.
+an uWSGI server on it.
 
 Configuration
 `````````````
 
 We provide several template scripts in the ``extras/`` repository located at the
-root of the installation directory. Templates for uwsgi are located in
-``extras/uwsgi/``. Copy the file to uwsgi ``app-available`` folder.
+root of the installation directory. Templates for uWSGI are located in
+``extras/uwsgi/``. Copy the file to uWSGI ``app-available`` folder.
 
 .. code-block:: bash
 
