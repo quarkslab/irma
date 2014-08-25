@@ -1,0 +1,55 @@
+---
+
+- name: Common tasks to execute on all servers
+  hosts: all
+  sudo: yes
+  pre_tasks:
+    - name: Install Uncomplicated Firewall software
+      apt: pkg=ufw state=present
+    - name: Close all ports for Prod server
+      ufw: state=enabled policy=deny
+      when: vagrant|default(False) == False
+    - name: Open OpenSSH port
+      ufw: rule=allow port=ssh
+  roles:
+    - { role: mivok0.users, tags: 'users' }
+    - { role: quarkslab.irma_provisioning_common, tags: 'common' }
+    - { role: franklinkim.sudo, tags: 'sudo' }
+    - { role: Ansibles.openssh, tags: 'openssh' }
+
+
+- name: Frontend provisioning
+  hosts: frontend
+  sudo: yes
+  roles:
+    - { role: mivok0.users, tags: 'users', users: "{{ frontend_users }}" }
+    - { role: quarkslab.nodejs, tags: 'nodejs' }
+    - { role: gdamjan.uwsgi, tags: 'uwsgi' }
+    - { role: Stouts.mongodb, tags: 'mongodb' }
+    - { role: quarkslab.supervisor, tags: 'supervisor' }
+    - { role: quarkslab.irma_provisioning_frontend, tags: 'frontend' }
+    - { role: jdauphant.nginx, tags: 'nginx' }
+  post_tasks:
+    - name: Open Webserver port
+      ufw: rule=allow port=80
+
+
+- name: Brain provisioning
+  hosts: brain
+  sudo: yes
+  roles:
+    - { role: quarkslab.supervisor, tags: 'supervisor' }
+    - { role: DavidWittman.redis, tags: 'redis' }
+    - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
+    - { role: quarkslab.pureftpd, tags: 'pureftpd' }
+    - { role: quarkslab.irma_provisioning_brain, tags: 'brain' }
+
+
+- name: Probe provisioning
+  hosts: probe
+  sudo: yes
+  roles:
+    - { role: quarkslab.supervisor, tags: 'supervisor' }
+    - { role: quarkslab.clamav, tags: 'probe' }
+
+# vim: sw=2

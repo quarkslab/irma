@@ -1,84 +1,208 @@
 IRMA Ansible Provisioning
 =========================
 
-Requirements
-------------
 
-This playbook requires Ansible 1.6 or higher. It has been tested for Debian 7 system.
+What You’ll need?
+-----------------
 
-Another requirements:
-- Users role from [mivok/ansible-users](https://github.com/mivok/ansible-users)
-- OpenSSH role from [Ansibles/openssh](https://github.com/Ansibles/openssh)
-- NodeJS role from [JasonGiedymin/nodejs](https://github.com/AnsibleShipyard/ansible-nodejs)
-- Nginx role from [jdauphant/ansible-role-nginx](https://github.com/jdauphant/ansible-role-nginx)
-- uWSGI role from [gdamjan/ansible-uwsgi](https://github.com/gdamjan/ansible-uwsgi)
-- MongoDB role from [Stouts/Stouts.mongodb](https://github.com/Stouts/Stouts.mongodb)
+- [Ansible](http://www.ansible.com) 1.6 or higher
+- One or multiple 64-bit [Debian](https://www.debian.org) 7 servers. They should
+  have been configure as mention in the Prerequisites section
+
+For *test or development* purposes (optional):
+- [Vagrant](http://www.vagrantup.com/) 1.5 or higher has to be installed
+- As the installation work only for [Virtualbox](https://www.virtualbox.org/),
+  you’ll need to install it
+- [Vagrant VBGuest](https://github.com/dotless-de/vagrant-vbguest) to speed up
+  your VM
+- [Rsync](https://rsync.samba.org/) for directories copy between host and VMs
+- Read the [Ansible introduction](http://docs.ansible.com/intro.html)
 
 
-Installation
-------------
+Getting Started
+---------------
 
-To install dependencies (see requirements), simply run:
+### 1. Prep servers
+
+Create an account for Ansible provisioning, or use one which has already been
+created. For speed up provisioning, you can:
+
+- Authorize you SSH key for password less authentication (optional):
+  ```
+    *On your local machine*
+  $ ssh-copy-id user@hostname # -i if you want to select your identity file
+  ```
+
+- If you don’t want to have to type your password for sudo command execution,
+  add your user to sudoers, using `visudo` command (optional):
+
+  ```
+  user ALL=(ALL) NOPASSWD: ALL
+  ```
+
+
+### 2. Clone IRMA repository
+
+Using [Git](http://git-scm.com/) software, clone the repository:
+```
+$ git clone --recursive
+```
+
+
+### 3. Configure you installation
+
+Modify settings in `group_vars/*` especially the `default_ssh_keys:` section,
+you’ll need to add private keys from user for passwordless connection to the
+default irma server user. *Be carreful, you’ll need to change all passwords from
+this configuration files (`changeme` variables).*
+
+You’ll need to custom the `hosts` file and adapt it with you own server
+infrastructure. There is three sections, one for each server role (frontend,
+brain, probe). If you want to have all your
+
+
+### 4. Install Ansible dependencies
+
+Dependencies are availabe via [Ansible Galaxy](https://galaxy.ansible.com/)
+repository. Installation has been made easy using:
 
 ```
-$ ansible-galaxy install -r galaxy.yml -p ./roles
+$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already
+                                                  # install it
 ```
 
 
-### Vagrant
+### 5. Run the Ansible Playbook
 
-If you’re interesting in using [Vagrant](http://vagrantup.com), be sure to have the following directory layout:
+To run the whole thing:
+```
+$ ansible-playbook -i ./hosts playbook.yml -u <your_sudo_username> -K
+```
+Ansible will ask you the sudo password (`-K` option),
+
+To run one or more specific actions you can use tags. For example, if you want
+to re-provision NGinx, run the same command, but add `--tags=nginx`. You can
+combine multiple tags.
+
+
+### 6. Modify .ini files
+
+You’ll need to connect on each server you’ve just used, and modify at hand .ini
+files.
+
+In next release of this playbook, there’ll be more convenient way to automate
+configuration generation.
+
+
+### 7. Deploy new version of IRMA
+
+As your servers have been provision and deploy in step 5, when you want to upgrade
+it, you’ll need to run the deployment script:
+```
+$ ansible-playbook -i ./hosts deployment.yml -u irma
+```
+
+/!\ Replace `irma` with the default user if you’ve change it in the
+`group_vars/all` file.
+
+
+### 8. Access to your IRMA installation
+
+Access to your installation using the hostname you’ve used as frontend hostname.
+
+
+Test or develop IRMA using Vagrant
+----------------------------------
+
+### 1. Create the right environment
+
+If you’re interesting in using [Vagrant](http://vagrantup.com), be sure to have
+the following directory layout:
 
 ```
-...
-|
-+--- irma-frontend
-+--- irma-probe
-|
-+--- irma-ansible-provisioning
+… # all in the same directory
+ |
+ +--- irma-frontend
+ +--- irma-probe
+ +--- irma-brain
+[…]
+ +--- irma-ansible-provisioning
 ```
 
-To initialize and provision the Virtualbox VM, run in the irma-ansible-provisioning directory `vagrant up`.
+Note: This directory layout can be modify, see `share_*` from
+`environments/dev.yml` file.
 
-#### Frontend
 
-/!\ Make sure you’ve got a `config/frontend.ini` file up to date, before provisioning. An example file is available there:
-`config/frontend.ini.sample`.
+### 2. Run Vagrant and create your VMs
 
-Then, you’ll need to manually “deploy” the application, run `vagrant ssh frontend` to connect to the VM, and then:
+To initialize and provision the Virtualbox VM, run in the
+irma-ansible-provisioning directory `vagrant up --no-provision`. VM will be
+downloaded, and configure using `environments/dev.yml` file (default behavior).
+
+(optional) If you want to use your own environment, create it in `environments`
+directory and run:
 ```
-$ sudo su www-data
-$ cd /var/wwww/prod.project.local/current
-
-  # API Installation
-$ virtualenv venv
-$ venv/bin/pip install -r install/requirements.txt
-
-  # Web application installation
-$ cd web
-$ npm install
-$ node_modules/.bin/bower install
-$ node_modules/.bin/gulp dist
+$ VM_ENV=your_environment_name vagrant up --no-provision
 ```
+
+### 3. Configure you .ini files
+
+/!\ You can bypass this step, as this provisioning is sync with default username
+and password used in (frontend|brain|probe) config files.
+
+As your `config/*.ini` file are transferring from host to VMs, you’ll need
+locally to modify it (frontend, probe, brain) to match `group_vars/*` user and
+password.
+
+In next release of this playbook, there’ll be more convenient way to automate
+configuration generation.
+
+
+### 4. Provision your VMs
+
+Due to Ansible limit using parallel execution, you’ll need to launch the
+provision Vagrant command only for one VM:
+```
+$ vagrant provision frontend
+```
+
+The provisioning and deployment will apply to all of your VMs.
+
+
+### 5. Modify your host and open IRMA frontend
 
 Then, for proper use, update your `/etc/hosts` file and add:
 ```
 172.16.1.30    www.frontend.irma.local
 ```
 
-Then, with your web browser, IRMA allinone is available at [www.frontend.irma.local](http://www.frontend.irma.local).
-
-#### Probe (ClamAV)
-
-Using `vagrant ssh probe` to connect to the VM:
-```
-$ cd /opt/irma/irma-probe
-$ virtualenv venv
-$ venv/bin/pip install -r requirements.txt
-```
+Then, with your web browser, IRMA allinone is available at
+[www.frontend.irma.local](http://www.frontend.irma.local).
 
 
-Configuration
--------------
+Contributing
+------------
 
-You need to add your public SSH key to the file `vars/defaults.yml` (in the `users : ssh_key` section) to be able to connect as `www-data` on the instance.
+Check the ”Test or develop IRMA using Vagrant” and feel free to submit pull
+requests.
+
+
+IRMA on IRC
+-----------
+
+Feel free to check out our IRC channel on Freenode #qb_irma, if you have
+questions or any technical issues.
+
+
+Credits
+-------
+
+Some of roles from [Ansible Galaxy](https://galaxy.ansible.com/) used here:
+- MongoDB role from [Stouts/Stouts.mongodb](https://github.com/Stouts/Stouts.mongodb)
+- NodeJS role from [JasonGiedymin/nodejs](https://github.com/AnsibleShipyard/ansible-nodejs)
+- Nginx role from [jdauphant/ansible-role-nginx](https://github.com/jdauphant/ansible-role-nginx)
+- OpenSSH role from [Ansibles/openssh](https://github.com/Ansibles/openssh)
+- Redis role from [DavidWittman/ansible-redis](https://github.com/DavidWittman/ansible-redis)
+- Sudo role from [weareinteractive/ansible-sudo](https://github.com/weareinteractive/ansible-sudo)
+- Users role from [mivok/ansible-users](https://github.com/mivok/ansible-users)
+- uWSGI role from [gdamjan/ansible-uwsgi](https://github.com/gdamjan/ansible-uwsgi)

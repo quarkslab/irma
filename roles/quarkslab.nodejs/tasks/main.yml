@@ -1,0 +1,17 @@
+---
+# Taken from https://github.com/joyent/node/wiki/installing-node.js-via-package-manager
+
+- name: Install lsb-release
+  apt: name={{ item }} state=present
+  with_items:
+    - curl
+    - lsb-release
+
+- name: Setup node source
+  shell: curl -sL https://deb.nodesource.com/setup | bash -
+
+- name: Install NodeJS
+  apt: name={{ item }} state=present
+  with_items:
+    - nodejs
+    - npm

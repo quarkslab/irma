@@ -1,0 +1,7 @@
+; {{ ansible_managed  }}
+
+[program:{{ item.name }}]
+
+{% for k, v in item.iteritems() if k != 'name' %}
+{{ k }} = {{ v }}
+{% endfor %}

@@ -1,3 +1,4 @@
+---
 
 default_ssh_keys:
   # Guillaume Dedrie @Quarkslab
@@ -6,9 +7,14 @@ default_ssh_keys:
 default_user: irma
 default_group: irma
 
-default_users:
+users:
   - username: "{{ default_user }}"
     name: "{{ default_user }}"
     groups: ["{{ default_user }}", 'sudo']
     uid: 1002
     ssh_key: "{{ default_ssh_keys }}"
+
+sudo_users:
+  - { name: "{{ default_user }}", nopasswd: yes }
+
+irma_code_version: master

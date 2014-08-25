@@ -1,0 +1,54 @@
+---
+# Variables used by Vagrantfile are defined here
+
+servers:
+  - name: frontend
+    ip: 172.16.1.30
+    hostname: frontend.irma.local
+    memory: 2048
+    share_code: true
+    share_from: ../irma-frontend
+    share_to: /var/www/prod.project.local/current
+    share_user: www-data
+    share_group: www-data
+    share_exclude:
+      - .git/
+      - venv/
+      - web/dist
+  - name: brain
+    ip: 172.16.1.31
+    hostname: brain.irma.local
+    memory: 2048
+    share_code: true
+    share_from: ../irma-brain
+    share_to: /opt/irma/irma-brain
+    share_user: irma
+    share_group: irma
+    share_exclude:
+      - .git/
+      - venv/
+      - db/
+  - name: probe
+    ip: 172.16.1.32
+    hostname: probe.irma.local
+    memory: 2048
+    share_code: true
+    share_from: ../irma-probe
+    share_to: /opt/irma/irma-probe
+    share_user: irma
+    share_group: irma
+    share_exclude:
+      - .git/
+      - venv/
+ansible_config:
+  extra_vars:
+    user: vagrant
+    vagrant: true
+    irma_code_version: local
+  groups:
+    frontend:
+      - frontend
+    brain:
+      - brain
+    probe:
+      - probe

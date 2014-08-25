@@ -1,0 +1,13 @@
+---
+
+- name: ClamAV | Install package
+  apt: name=clamav-daemon state=present
+  register: clamav_install
+
+- name: ClamAV | Update freshclam
+  shell: freshclam
+  sudo: true
+  when: clamav_install | changed
+
+- name: ClamAV | start daemon
+  service: name=clamav-daemon state=started

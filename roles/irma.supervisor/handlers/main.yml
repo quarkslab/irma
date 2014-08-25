@@ -1,5 +1,0 @@
----
-# handlers/main.yml
-
-- name: Restart Supervisor
-  service: name=supervisord state=restarted

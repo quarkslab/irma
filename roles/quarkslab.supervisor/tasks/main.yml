@@ -1,0 +1,7 @@
+---
+
+- include: install.yml
+- include: configuration.yml
+- include: programs.yml
+
+# vim: sw=2

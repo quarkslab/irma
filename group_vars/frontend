@@ -1,27 +1,51 @@
+---
 
+## Global variables
 hostname: frontend.irma.local
+frontend_user: www-data
+frontend_group: www-data
+frontend_project_dir: /var/www/prod.project.local
+frontend_install_dir: "{{ frontend_project_dir }}/current"
+frontend_venv_dir: "{{ frontend_install_dir }}/venv"
 
-users:
+
+## Users role
+frontend_users:
   - username: www-data
     name: www-data
     groups: ['www-data']
     uid: 1003
     ssh_key: "{{ default_ssh_keys }}"
 
-frontend_install_dir: /var/www/prod.project.local/current
-frontend_venv_dir: "{{ frontend_install_dir }}/venv"
+
+## uWSGI role
 frontend_uwsgi_api_appname: frontend-api
 frontend_uwsgi_api_socket: /var/run/uwsgi/{{ frontend_uwsgi_api_appname }}.socket
+frontend_uwsgi_api_pidfile: /var/run/uwsgi/{{ frontend_uwsgi_api_appname }}.pid
 frontend_uwsgi_api_logfile: /var/log/uwsgi/{{ frontend_uwsgi_api_appname }}.log
-frontend_celery_cmd: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --loglevel=INFO"
-frontend_celery_logfile: /var/log/celery.log
 
+
+## NodeJS role
 nodejs_version: "0.10.30"
 nodejs_global_packages:
   - debug
 
-# supervisord_extra_confs:
 
+## Supervisor role
+supervisor_programs:
+  - name: frontend_app
+    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --loglevel=INFO"
+    directory: "{{ frontend_install_dir }}"
+    user: nobody
+    numprocs: 1
+    stdout_logfile: /var/log/supervisor/frontend_app.log
+    stderr_logfile: /var/log/supervisor/frontend_app.log
+    autostart: true
+    stopwaitsecs: 600
+    killasgroup: true
+
+
+## Nginx role
 nginx_configs:
   proxy:
     - proxy_set_header X-Real-IP $remote_addr

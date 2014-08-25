@@ -1,4 +1,14 @@
+---
 
+## Global
+brain_install_dir: /opt/irma/irma-brain
+brain_venv_dir: "{{ brain_install_dir }}/venv"
+
+brain_user: "{{ default_user }}"
+brain_group: "{{ default_group }}"
+
+
+## RabbitMQ role
 rabbitmq_ssl: false
 
 rabbitmq_vhost_definitions:
@@ -9,12 +19,52 @@ rabbitmq_vhost_definitions:
 rabbitmq_users_definitions:
   - vhost: mqbrain
     user: brain
-    password: changeme
+    password: brain
   - vhost: mqfrontend
     user: frontend
-    password: changeme
+    password: frontend
   - vhost: mqprobe
     user: probe
-    password: changeme
+    password: probe
+
+
+## Pure-FTPD role
+# Standalone role
+pureftpd_options:
+  - { name: "CreateHomeDir", value: "yes"}
+  - { name: "PAMAuthentication", value: "no"}
+  - { name: "TLS", value: "2"}
+
+# Brain role
+brain_pureftpd_virtual_users:
+  - { username: "frontend", virtual_user: "ftpuser", virtual_home: "/home/ftpuser/frontend", password: "frontend" }
+  - { username: "probe", virtual_user: "ftpuser", virtual_home: "/home/ftpuser", password: "probe" }
+
+brain_pureftpd_openssl_subj: "/C=FR/ST=Paris/L=Paris/O=IRMA"
+
+
+## Supervisor role
+# supervisor_extra_confs:
+supervisor_programs:
+  - name: scan_app
+    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.tasks:scan_app --loglevel=INFO"
+    directory: "{{ brain_install_dir }}"
+    user: nobody
+    numprocs: 1
+    stdout_logfile: /var/log/supervisor/scan_app.log
+    stderr_logfile: /var/log/supervisor/scan_app.log
+    autostart: true
+    stopwaitsecs: 600
+    killasgroup: true
+  - name: result_app
+    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.tasks:results_app --loglevel=INFO"
+    directory: "{{ brain_install_dir }}"
+    user: nobody
+    numprocs: 1
+    stdout_logfile: /var/log/supervisor/result_app.log
+    stderr_logfile: /var/log/supervisor/result_app.log
+    autostart: true
+    stopwaitsecs: 600
+    killasgroup: true
 
 # vim: sw=2

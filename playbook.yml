@@ -1,51 +1,5 @@
+---
+# Master Playbook
 
-- name: Common tasks to execute on all servers
-  hosts: all
-  sudo: yes
-  pre_tasks:
-    - name: Install Uncomplicated Firewall software
-      apt: pkg=ufw state=latest
-    - name: Close all ports for prod server
-      ufw: state=enabled policy=deny
-      when: vagrant|default(False) == False
-    - name: Open OpenSSH port
-      ufw: rule=allow port=ssh
-  roles:
-    - { role: mivok0.users, tags: 'users', users: "{{ default_users }}" }
-    - { role: Ansibles.openssh, tags: 'openssh' }
-
-
-- name: Frontend provisioning
-  hosts: frontend
-  sudo: yes
-  roles:
-    - { role: mivok0.users, tags: 'users' }
-    - { role: JasonGiedymin.nodejs, tags: 'nodejs' }
-    - { role: gdamjan.uwsgi, tags: 'uwsgi' }
-    - { role: Stouts.mongodb, tags: 'mongodb' }
-    - { role: irma.setuptools, tags: 'setuptools' }
-    - { role: irma.supervisor, tags: 'supervisor' }
-    - { role: irma.frontend, tags: 'frontend' }
-    - { role: jdauphant.nginx, tags: 'nginx' }
-  post_tasks:
-    - name: Open Webserver port
-      ufw: rule=allow port=80
-
-
-- name: Brain provisioning
-  hosts: brain
-  sudo: yes
-  roles:
-    - { role: DavidWittman.redis, tags: 'redis' }
-    - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
-
-
-- name: Probe provisioning
-  hosts: probe
-  sudo: yes
-  roles:
-    - { role: irma.setuptools, tags: 'setuptools' }
-    - { role: irma.supervisor, tags: 'supervisor' }
-    - { role: irma.probe, tags: 'probe' }
-
-# vim: sw=2
+- include: provisioning.yml
+- include: deployment.yml

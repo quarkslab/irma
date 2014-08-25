@@ -1,0 +1,21 @@
+---
+
+# TODO: Check Pure-FTPD version and to compare to the requested version.
+
+- include: install.yml
+  when: pureftpd_install_method == "source"
+
+- include: package.yml
+  when: pureftpd_install_method == "package"
+
+- name: Configuration | Add file with content in /etc/pure-ftpd/conf/ directory
+  template:
+    src=pureftpd_conf.j2
+    dest=/etc/pure-ftpd/conf/{{ item.name }}
+    owner=root
+    group=root
+    mode=0644
+  with_items: pureftpd_options
+
+- name: Daemon | Ensure Pure-FTPD is started
+  service: name=pure-ftpd state=started
