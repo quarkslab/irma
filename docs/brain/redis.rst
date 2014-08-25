@@ -16,7 +16,7 @@ Redis server can be installed with this command on Debian:
 Configuring Redis
 `````````````````
 
-Redis serves all components of IRMA platform. Thus, you will have to make it to
+Redis serves all components of IRMA platform. Thus, you will have to make it
 listen on all interfaces. For that, edit ``/etc/redis/redis.conf`` and comment
 the ``bind`` parameter if necessary. You should have something similar to the
 following in your configuration file:

@@ -163,5 +163,5 @@ automatic installation of dependencies, we need to install them manually:
     [...]
 
 If everything has gone well, you should have installed the python application
-on your system. The next step install the other components it relies on and
-finally to configure it for your platform.
+on your system. The next step is to install the other components it relies on
+and finally to configure it for your platform.

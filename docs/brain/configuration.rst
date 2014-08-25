@@ -28,7 +28,7 @@ server and the Pure-FTPd server.
 
 For GNU/Linux systems:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ python setup.py configure --application
     running configure

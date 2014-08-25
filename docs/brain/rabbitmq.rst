@@ -49,8 +49,8 @@ The script simply execute the following three commands:
 .. warning:: Important
 
     Make sure to note down the username, the password and the virtual host you
-    just defined. You will be asked to retype them on each application (brain,
-    frontend and probe)
+    just defined. You will be asked to retype them on each application
+    configuration file (brain, frontend and probe)
 
 .. note:: Disclaimer
 
@@ -61,13 +61,13 @@ The script simply execute the following three commands:
 Verifying RabbitMQ configuration
 ````````````````````````````````
 
-We can verify that the RabbitMQ server has taken into account our modification
+We can verify that the RabbitMQ server has taken into account our modifications
 with some commands:
 
 Checking for vhosts
 *******************
 
-.. codeblock:: bash
+.. code-block:: bash
 
     $ sudo rabbitmqctl list_vhosts
     Listing vhosts ...
@@ -84,7 +84,7 @@ once more the script.
 Checking for users
 ******************
 
-.. codeblock:: bash
+.. code-block:: bash
 
     $ sudo rabbitmqctl list_users
     Listing users ...

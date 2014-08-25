@@ -1,7 +1,7 @@
 Installing and configuring Pure-ftpd
 ====================================
 
-A FTP server with TLS is used to store file to are uploaded by
+A FTP server with TLS is used to store file uploaded by
 **Frontends** and meant to be analyzed by **Probes**. We describe in the
 following how to set up pure-ftpd. 
 
