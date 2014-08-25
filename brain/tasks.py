@@ -182,18 +182,22 @@ def probe_list():
 
 @scan_app.task(ignore_result=True)
 def scan(scanid, scan_request):
+    engine = config.brain_config['sql_brain'].engine
+    dbname = config.brain_config['sql_brain'].dbname
+    sql = sql_connect(engine, dbname)
+    available_probelist = get_probelist()
+    jobs_list = []
+    # create an initial entry to track future errors
+    scan = Scan(scanid=scanid,
+                status=IrmaScanStatus.empty,
+                date=datetime.now())
+    sql.add(scan)
+    sql.commit()
     try:
-        engine = config.brain_config['sql_brain'].engine
-        dbname = config.brain_config['sql_brain'].dbname
-        sql = sql_connect(engine, dbname)
-        available_probelist = get_probelist()
-        jobs_list = []
-        scan = Scan(scanid=scanid,
-                    status=IrmaScanStatus.created,
-                    date=datetime.now())
-        sql.add(scan)
-        sql.commit()
-        # create an initial entry to track future errors
+        # tell frontend that scanid is now known to brain
+        # progress available
+        frontend_app.send_task("frontend.tasks.scan_launched",
+                               args=[scanid])
         user = sql_get_user(sql)
         quota = get_quota(sql, user)
         if quota is not None:
@@ -204,63 +208,64 @@ def scan(scanid, scan_request):
                       "".format(scanid, user.name))
         scan.user_id = user.id
         sql.commit()
-    except IrmaTaskError as e:
-        msg = "Brain: scan error {0}".format(e)
-        return IrmaTaskReturn.error(msg)
 
-    for (filename, probelist) in scan_request:
-        if probelist is None:
-            scan.status = IrmaScanStatus.error_probe_missing
-            sql.commit()
-            log.debug("{0}: Empty probe list".format(scanid))
-            return IrmaTaskReturn.error("BrainTask: Empty probe list")
-        # first check probelist
-        for p in probelist:
-            # check if probe exists
-            if p not in available_probelist:
-                scan.status = IrmaScanStatus.error_probe_na
+        for (filename, probelist) in scan_request:
+            if probelist is None:
+                scan.status = IrmaScanStatus.error_probe_missing
                 sql.commit()
-                msg = "BrainTask: Unknown probe {0}".format(p)
-                log.debug("{0}: Unknown probe {1}".format(scanid, p))
-                return IrmaTaskReturn.error(msg)
+                log.debug("{0}: Empty probe list".format(scanid))
+                return IrmaTaskReturn.error("BrainTask: Empty probe list")
+            # first check probelist
+            for p in probelist:
+                # check if probe exists
+                if p not in available_probelist:
+                    scan.status = IrmaScanStatus.error_probe_na
+                    sql.commit()
+                    msg = "BrainTask: Unknown probe {0}".format(p)
+                    log.debug("{0}: Unknown probe {1}".format(scanid, p))
+                    return IrmaTaskReturn.error(msg)
 
-        # Now, create one subtask per file to scan per probe according to quota
-        for probe in probelist:
-            if quota is not None and quota <= 0:
-                break
-            if quota:
-                quota -= 1
-            callback_signature = route(
-                results_app.signature("brain.tasks.scan_result",
-                                      (user.ftpuser, scanid, filename, probe)))
-            jobs_list.append(
-                probe_app.send_task("probe.tasks.probe_scan",
-                                    args=(user.ftpuser, scanid, filename),
-                                    queue=probe,
-                                    link=callback_signature))
+            # Now, create one subtask per file to scan per probe according to quota
+            for probe in probelist:
+                if quota is not None and quota <= 0:
+                    break
+                if quota:
+                    quota -= 1
+                callback_signature = route(
+                    results_app.signature("brain.tasks.scan_result",
+                                          (user.ftpuser, scanid, filename, probe)))
+                jobs_list.append(
+                    probe_app.send_task("probe.tasks.probe_scan",
+                                        args=(user.ftpuser, scanid, filename),
+                                        queue=probe,
+                                        link=callback_signature))
 
-    if len(jobs_list) != 0:
-        # Build a result set with all job AsyncResult
-        # for progress/cancel operations
-        groupid = str(uuid.uuid4())
-        groupres = probe_app.GroupResult(id=groupid, results=jobs_list)
-        # keep the groupresult object for task status/cancel
-        groupres.save()
+        if len(jobs_list) != 0:
+            # Build a result set with all job AsyncResult
+            # for progress/cancel operations
+            groupid = str(uuid.uuid4())
+            groupres = probe_app.GroupResult(id=groupid, results=jobs_list)
+            # keep the groupresult object for task status/cancel
+            groupres.save()
 
-        scan.taskid = groupid
-        scan.nbfiles = len(jobs_list)
-        scan.status = IrmaScanStatus.launched
+            scan.taskid = groupid
+            scan.nbfiles = len(jobs_list)
+            scan.status = IrmaScanStatus.launched
+            sql.commit()
+
+        log.debug(
+            "{0}: ".format(scanid) +
+            "{0} files receives / ".format(len(scan_request)) +
+            "{0} active probe / ".format(len(available_probelist)) +
+            "{0} probe used / ".format(len(probelist)) +
+            "{0} jobs launched".format(len(jobs_list)))
+
+    except Exception as e:
+        scan_flush(scanid)
+        scan.status = IrmaScanStatus.error
         sql.commit()
-
-    frontend_app.send_task("frontend.tasks.scan_launched",
-                           args=[scanid])
-    log.debug(
-        "{0}: ".format(scanid) +
-        "{0} files receives / ".format(len(scan_request)) +
-        "{0} active probe / ".format(len(available_probelist)) +
-        "{0} probe used / ".format(len(probelist)) +
-        "{0} jobs launched".format(len(jobs_list)))
-    return
+        log.debug("{0} : Error {1}".format(scanid, e))
+        return
 
 
 @scan_app.task()
@@ -273,7 +278,11 @@ def scan_progress(scanid):
         user = sql_get_user(sql)
         scan = sql_get_scan(sql, scanid, user)
         res = {}
-        res['status'] = scan.status
+        if IrmaScanStatus.is_error(scan.status):
+            status_str = IrmaScanStatus.label[scan.status]
+            msg = "Brain: scan error ({0})".format(status_str)
+            return IrmaTaskReturn.error(msg)
+        res['status'] = IrmaScanStatus.label[scan.status]
         res['progress_details'] = None
         if scan.status == IrmaScanStatus.launched:
             if not scan.taskid:
@@ -306,8 +315,10 @@ def scan_cancel(scanid):
         user = sql_get_user(sql)
         scan = sql_get_scan(sql, scanid, user)
         res = {}
-        res['status'] = scan.status
+        res['status'] = IrmaScanStatus.label[scan.status]
         res['cancel_details'] = None
+        if IrmaScanStatus.is_error(scan.status):
+            scan_flush(scanid)
         if scan.status == IrmaScanStatus.launched:
             scan.status = IrmaScanStatus.cancelling
             # commit as soon as possible to avoid cancelling again
@@ -323,14 +334,12 @@ def scan_cancel(scanid):
                     nbcancelled += 1
             scan.status = IrmaScanStatus.cancelled
             sql.commit()
-            flush_dir(user.ftpuser, scanid)
+            scan_flush(scanid)
             res['cancel_details'] = {}
             res['cancel_details']['total'] = len(gr)
             res['cancel_details']['finished'] = nbcompleted
             res['cancel_details']['cancelled'] = nbcancelled
-            return IrmaTaskReturn.success(res)
-        else:
-            return IrmaTaskReturn.warning(scan.status)
+        return IrmaTaskReturn.success(res)
     except IrmaTaskError as e:
         msg = "Brain: cancel error {0}".format(e)
         return IrmaTaskReturn.error(msg)
@@ -359,11 +368,28 @@ def scan_result(result, ftpuser, scanid, filename, probe):
             # update scan status
             scan.status = IrmaScanStatus.processed
             sql.commit()
-            # delete groupresult
-            gr.delete()
-            # remove directory
-            flush_dir(ftpuser, scanid)
-            log.debug("{0} complete deleting files".format(scanid))
     except IrmaTaskError as e:
         msg = "Brain: result error {0}".format(e)
         return IrmaTaskReturn.error(msg)
+
+
+@results_app.task(ignore_result=True)
+def scan_flush(scanid):
+    try:
+        log.debug("{0} scan flush requested".format(scanid))
+        engine = config.brain_config['sql_brain'].engine
+        dbname = config.brain_config['sql_brain'].dbname
+        sql = sql_connect(engine, dbname)
+        user = sql_get_user(sql)
+        scan = sql_get_scan(sql, scanid, user)
+        if not IrmaScanStatus.is_error(scan.status):
+            log.debug("{0} deleting group results entry".format(scanid))
+            gr = get_groupresult(scan.taskid)
+            # delete groupresult
+            gr.delete()
+            # remove directory
+        log.debug("{0} deleting files".format(scanid))
+        flush_dir(user.ftpuser, scanid)
+    except Exception as e:
+        log.debug("{0} flush error {1}".format(scanid, e))
+        return
