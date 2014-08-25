@@ -19,7 +19,42 @@ import requests
 import json
 import argparse
 
-ADDRESS = "http://frontend.irma.qb/_api"
+ADDRESS = "http://debian/_api"
+
+
+class IrmaScanStatus:
+    empty = 0
+    ready = 10
+    uploaded = 20
+    launched = 30
+    processed = 40
+    finished = 50
+    flushed = 60
+    # cancel
+    cancelling = 100
+    cancelled = 110
+    # errors
+    error = 1000
+    # Probes 101x
+    error_probe_missing = 1010
+    error_probe_na = 1011
+    # FTP 102x
+    error_ftp_upload = 1020
+
+    label = {empty: "empty",
+             ready: "ready",
+             uploaded: "uploaded",
+             launched: "launched",
+             processed: "processed",
+             finished: "finished",
+             cancelling: "cancelling",
+             cancelled: "cancelled",
+             flushed: "flushed",
+             error: "error",
+             error_probe_missing: "probelist missing",
+             error_probe_na: "probe(s) not available",
+             error_ftp_upload: "ftp upload error"
+             }
 
 
 class IrmaReturnCode:
@@ -32,28 +67,6 @@ class IrmaReturnCode:
 class IrmaError(Exception):
     """Error on cli script"""
     pass
-
-
-# Warning this is a copy of IrmaScanStatus lib.irma.common.utils
-# in order to get rid of this dependency
-# KEEP SYNCHRONIZED
-class IrmaScanStatus:
-    created = 0
-    launched = 10
-    cancelling = 20
-    cancelled = 21
-    processed = 30
-    finished = 50
-    flushed = 100
-    label = {
-        created: "created",
-        launched: "launched",
-        cancelling: "being cancelled",
-        cancelled: "cancelled",
-        processed: "processed",
-        finished: "finished",
-        flushed: "flushed"
-    }
 
 
 # =============================================================
@@ -103,18 +116,17 @@ def _scan_progress(scanid, verbose=False):
     data = json.loads(resp.content)
     if verbose:
         print data
-    status = None
-    finished = None
-    successful = None
-    total = None
+    finished = successful = total = None
     if data['code'] == IrmaReturnCode.success:
-        status = IrmaScanStatus.label[IrmaScanStatus.launched]
-        results = data['progress_details']
-        finished = results['finished']
-        successful = results['successful']
-        total = results['total']
+        status = data['status']
+        if 'progress_details' in data:
+            results = data['progress_details']
+            finished = results['finished']
+            successful = results['successful']
+            total = results['total']
     elif data['code'] == IrmaReturnCode.warning:
         status = data['msg']
+        return (status, finished, total, successful)
     else:
         code = IrmaReturnCode.label[data['code']]
         reason = "{0} getting progress: {1}".format(code, data['msg'])
@@ -191,15 +203,17 @@ def print_results(list_res, justify=12):
         print "{0}\n[SHA256: {1}]".format(name, hashval)
         for av in res:
             print "\t%s" % (av.ljust(justify)),
-            avres = res[av].get('result', "No result")
+            avres = res[av].get('results', "No result")
             if type(avres) == str:
                 print(avres.strip())
             elif type(avres) == list:
                 print("\n\t " + " " * justify).join(avres)
             elif avres is None:
                 print('clean')
+            elif type(avres) == dict:
+                print "[...]"
             else:
-                print avres
+                print(avres)
 
 
 def scan_results(scanid=None, verbose=False):
