@@ -13,7 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from .exceptions import IrmaValueError, IrmaStatusError
+from .exceptions import IrmaValueError, IrmaValueError
 
 
 # ==========================
@@ -84,12 +84,11 @@ class IrmaReturnCode:
 class IrmaScanStatus:
     empty = 0
     ready = 10
-    uploading = 20
-    uploaded = 30
-    launched = 40
-    processed = 50
-    finished = 60
-    flushed = 70
+    uploaded = 20
+    launched = 30
+    processed = 40
+    finished = 50
+    flushed = 60
     # cancel
     cancelling = 100
     cancelled = 110
@@ -103,7 +102,6 @@ class IrmaScanStatus:
 
     label = {empty: "empty",
              ready: "ready",
-             uploading: "uploading",
              uploaded: "uploaded",
              launched: "launched",
              processed: "processed",
@@ -127,9 +125,9 @@ class IrmaScanStatus:
             raise IrmaValueError("Unknown scan status {0}".format(status))
         status_str = IrmaScanStatus.label[status]
         if status_min is not None and status < status_min:
-            raise IrmaStatusError("Wrong scan status [{0}]".format(status_str))
+            raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
         if status_max is not None and status > status_max:
-            raise IrmaStatusError("Wrong scan status [{0}]".format(status_str))
+            raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
         return
 
 # ==========================================================

@@ -34,7 +34,22 @@ class IrmaAdminError(Exception):
     pass
 
 
-class IrmaDatabaseError(Exception):
+class IrmaValueError(Exception):
+    """Error for the parameters passed to the functions"""
+    pass
+
+
+class IrmaCoreError(Exception):
+    """Error in core parts (Db, Ftp, Celery..)"""
+    pass
+
+
+class IrmaConfigurationError(IrmaCoreError):
+    """Error wrong configuration."""
+    pass
+
+
+class IrmaDatabaseError(IrmaCoreError):
     """Error on a database manager."""
     pass
 
@@ -44,36 +59,21 @@ class IrmaDatabaseResultNotFound(IrmaDatabaseError):
     pass
 
 
-class IrmaConfigurationError(Exception):
-    """Error wrong configuration."""
-    pass
-
-
-class IrmaFtpError(Exception):
-    """Error on ftp manager."""
-    pass
-
-
-class IrmaTaskError(Exception):
-    """Error while processing celery tasks."""
-    pass
-
-
-class IrmaLockError(Exception):
+class IrmaLockError(IrmaDatabaseError):
     """Error for the locks on db content (already taken)"""
     pass
 
 
-class IrmaLockModeError(Exception):
+class IrmaLockModeError(IrmaDatabaseError):
     """Error for the mode of the locks (doesn't exist)"""
     pass
 
 
-class IrmaValueError(Exception):
-    """Error for the parameters passed to the functions"""
+class IrmaFtpError(IrmaCoreError):
+    """Error on ftp manager."""
     pass
 
 
-class IrmaStatusError(Exception):
-    """Wrong status for the function"""
+class IrmaTaskError(IrmaCoreError):
+    """Error while processing celery tasks."""
     pass
