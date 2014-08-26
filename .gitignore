@@ -1,1 +1,20 @@
+# for python
 *.pyc
+
+# for dev configuration files
+config/probe.ini
+
+# for pip packaging
+dist
+*.egg-info/
+
+# for debian packages
+debian/*.substvars
+debian/*.log
+debian/files
+debian/rules
+
+# for documentation
+docs/_build/*
+docs/doctrees/*
+docs/html/*

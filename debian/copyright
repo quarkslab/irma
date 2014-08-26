@@ -1,9 +1,9 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: irma-common
-Source: <url://example.com>
+Upstream-Name: irma-probe
+Source: <http://irma.quarkslab.com>
 
 Files: *
-Copyright: 2014 quarkslab
+Copyright: 2014 Quarkslab
 License: Apache v2.0
 
 # Please also look if there are files or directories which have a

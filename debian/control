@@ -8,5 +8,21 @@ Homepage: http://irma.quarkslab.com
 
 Package: irma-probe
 Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, irma-probe-app
+Description: Metapackage to install IRMA probe
+Recommends: irma-probe-rsyslog, irma-probe-logrotate
+
+Package: irma-probe-app
+Architecture: all
 Depends: ${misc:Depends}, python, python-pip
-Description: Base install for Irma probes
+Description: Base install for IRMA probe application
+
+Package: irma-probe-rsyslog
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog, rsyslog-gnutls
+Description: rsyslog configuration for IRMA probe
+
+Package: irma-probe-logrotate
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, rsyslog
+Description: logrotate configuration for IRMA probe

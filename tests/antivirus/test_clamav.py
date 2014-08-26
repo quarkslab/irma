@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.clam import Clam
+from modules.antivirus.clamav.clam import Clam
 
 
 # ============
@@ -20,7 +20,6 @@ class ClamAVEicar(GenericEicar, unittest.TestCase):
         'eicar.lha': None,
         'eicar.lzh': None,
         'eicar.msc': 'Eicar-Test-Signature',
-        'eicar.msc': None,
         'eicar.plain': 'Eicar-Test-Signature',
         'eicar.rar': None,
         'eicar.tar': 'Eicar-Test-Signature',

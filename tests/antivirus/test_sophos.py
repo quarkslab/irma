@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.sophos import Sophos
+from modules.antivirus.sophos.sophos import Sophos
 
 
 # ============

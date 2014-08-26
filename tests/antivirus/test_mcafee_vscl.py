@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.mcafee_vscl import McAfeeVSCL
+from modules.antivirus.mcafee.vscl import McAfeeVSCL
 
 
 # ============

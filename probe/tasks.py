@@ -17,36 +17,15 @@ import kombu
 import ssl
 import tempfile
 import os
+import sys
 import uuid
+import config.parser as config
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
 
-from config.probe import probe_config as config
 from lib.irma.ftp.handler import FtpTls
-
-##############################################################################
-# statically import plugins
-##############################################################################
-
-from probes.antivirus.antivirus import AntivirusProbe
-from probes.antivirus.clam import ClamProbe
-from probes.antivirus.comodo_cavl import ComodoCAVLProbe
-from probes.antivirus.eset_nod32 import EsetNod32Probe
-from probes.antivirus.fprot import FProtProbe
-from probes.antivirus.mcafee_vscl import McAfeeVSCLProbe
-from probes.antivirus.sophos import SophosProbe
-from probes.antivirus.kaspersky import KasperskyProbe
-from probes.antivirus.symantec import SymantecProbe
-
-from probes.web.web import WebProbe
-from probes.web.virustotal import VirusTotalProbe
-
-from probes.information.information import InformationProbe
-from probes.information.analyzer import StaticAnalyzerProbe
-
-from probes.database.database import DatabaseProbe
-from probes.database.nsrl import NSRLProbe
+from lib.plugins import PluginManager
 
 ##############################################################################
 # celery application configuration
@@ -58,50 +37,28 @@ log = get_task_logger(__name__)
 if (kombu.VERSION.major) < 3:
     kombu.disable_insecure_serializers()
 
-# build connection strings
-broker = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
-    user=config.broker_probe.username, password=config.broker_probe.password,
-    host=config.broker_probe.host, port=config.broker_probe.port,
-    vhost=config.broker_probe.vhost
-)
-
-backend = "redis://{host}:{port}/{database}".format(
-    host=config.backend_probe.host,
-    port=config.backend_probe.port,
-    database=config.backend_probe.db)
-
 # declare a new application
 app = Celery("probe.tasks")
-app.conf.update(
-    BROKER_URL=broker,
-    CELERY_RESULT_BACKEND=backend,
-    # CELERY_IGNORE_RESULT=True,
-    CELERY_ACCEPT_CONTENT=['json'],
-    CELERY_RESULT_SERIALIZER='json',
-    CELERY_TASK_SERIALIZER='json',
-    CELERY_ACKS_LATE=True
-    )
-"""
-    BROKER_USE_SSL = {
-        'ca_certs': config.broker_probe['ssl_ca'],
-        'keyfile': config.broker_probe['ssl_key'],
-        'certfile': config.broker_probe['ssl_cert'],
-        'cert_reqs': ssl.CERT_REQUIRED
-        },
-    BROKER_LOGIN_METHOD='EXTERNAL',
-    CELERY_DISABLE_RATE_LIMITS=True,
-"""
+config.conf_probe_celery(app)
+config.configure_syslog(app)
 
-# determine dynamically queues to connect to
+# discover plugins located at specified path
+plugin_path = os.path.abspath("modules")
+if not os.path.exists(plugin_path):
+    log.error("path {0} is invalid, cannot load probes".format(plugin_path))
+    sys.exit(1)
+manager = PluginManager()
+manager.discover(plugin_path)
+
+# determine dynamically queues to connect to using plugin names
+probes = PluginManager().get_all_plugins()
+if not probes:
+    log.error("No probe found, exiting application")
+    sys.exit(1)
+
+# instanciation of probes and queue creation
+probes = dict((probe.plugin_name, probe()) for probe in probes)
 queues = []
-probes = sum([AntivirusProbe.plugins,
-              WebProbe.plugins,
-              DatabaseProbe.plugins,
-              InformationProbe.plugins], [])
-probes = map(lambda pb: pb(conf=config.get(pb.plugin_name, None)),
-             probes)
-probes = filter(lambda pb: pb.ready(), probes)
-probes = dict((type(pb).plugin_name, pb) for pb in probes)
 for probe in probes.keys():
     queues.append(kombu.Queue(probe, routing_key=probe))
 
@@ -110,10 +67,10 @@ app.conf.update(
     CELERY_QUEUES=tuple(queues),
 )
 
+
 ##############################################################################
 # declare celery tasks
 ##############################################################################
-
 
 @app.task(acks_late=True)
 def probe_scan(frontend, scanid, filename):
@@ -121,7 +78,7 @@ def probe_scan(frontend, scanid, filename):
         # retrieve queue name and the associated plugin
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
-        conf_ftp = config.ftp_brain
+        conf_ftp = config.probe_config.ftp_brain
         (fd, tmpname) = tempfile.mkstemp()
         os.close(fd)
         with FtpTls(conf_ftp.host,
@@ -137,7 +94,7 @@ def probe_scan(frontend, scanid, filename):
         return results
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))
-        raise probe_scan.retry(countdown=10, max_retries=5)
+        raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
 
 ##############################################################################
 # command line launcher, only for debug purposes
