@@ -15,13 +15,13 @@
 
 import logging
 import unittest
-from irma.common.exceptions import IrmaDatabaseError, IrmaLockError, \
+from ..irma.common.exceptions import IrmaDatabaseError, IrmaLockError, \
     IrmaValueError
-from irma.database.nosqlhandler import NoSQLDatabase
-from irma.database.nosqlobjects import NoSQLDatabaseObject
+from ..irma.database.nosqlhandler import NoSQLDatabase
+from ..irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
 from bson import ObjectId
-from irma.common.utils import IrmaLock, IrmaLockMode
+from ..irma.common.utils import IrmaLock, IrmaLockMode
 
 # Test config
 test_db_uri = "mongodb://localhost"

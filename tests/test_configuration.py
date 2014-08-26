@@ -17,9 +17,9 @@ import logging
 import unittest
 import os
 import copy
-from irma.configuration.config import ConfigurationSection
-from irma.configuration.ini import IniConfiguration, TemplatedConfiguration
-from irma.common.exceptions import IrmaConfigurationError
+from ..irma.configuration.config import ConfigurationSection
+from ..irma.configuration.ini import IniConfiguration, TemplatedConfiguration
+from ..irma.common.exceptions import IrmaConfigurationError
 
 
 # =================

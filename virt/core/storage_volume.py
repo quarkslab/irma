@@ -19,11 +19,11 @@ import os.path
 
 from multiprocessing import Array, Process as Task
 
-from common.oopatterns import ParametricSingleton
-from virt.core.connection import ConnectionManager
-from virt.core.storage_pool import StoragePoolManager
-from virt.core.mapper.storage_volume import StorageVolume
-from virt.core.exceptions import StorageVolumeManagerError, StorageVolumeError
+from ...common.oopatterns import ParametricSingleton
+from .connection import ConnectionManager
+from .storage_pool import StoragePoolManager
+from .mapper.storage_volume import StorageVolume
+from .exceptions import StorageVolumeManagerError, StorageVolumeError
 
 log = logging.getLogger(__name__)
 

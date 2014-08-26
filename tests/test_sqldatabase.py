@@ -17,9 +17,9 @@ import logging
 import unittest
 import os
 from datetime import datetime, timedelta
-from irma.common.exceptions import IrmaDatabaseError
-from irma.database.sqlhandler import SQLDatabase
-from irma.database.sqlobjects import Base, Column, Integer, String, DateTime
+from ..irma.common.exceptions import IrmaDatabaseError
+from ..irma.database.sqlhandler import SQLDatabase
+from ..irma.database.sqlobjects import Base, Column, Integer, String, DateTime
 
 cwd = os.path.abspath(__file__)
 test_dbfile = "irma_test.db"
