@@ -226,8 +226,8 @@ def scan_progress(scanid):
     try:
         validate_id(scanid)
         progress = core.scan_progress(scanid)
-        if 'progress_details' in progress:
-            details = progress['progress_details']
+        details = progress.get('progress_details', None)
+        if details is not None:
             return IrmaFrontendReturn.success(progress_details=details)
         else:
             return IrmaFrontendReturn.warning(progress['status'])
