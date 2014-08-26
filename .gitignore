@@ -1,4 +1,15 @@
+# for python
 *.pyc
+
+# for dev configuration files
 config/brain.ini
+
+# for pip packaging
 dist
 *.egg-info/
+
+# for debian packages
+debian/*.substvars
+debian/*.log
+debian/files
+debian/rules

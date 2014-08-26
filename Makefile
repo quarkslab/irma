@@ -3,7 +3,7 @@ DESTDIR=/
 DISTDIR=$(CURDIR)/deb_dist
 BUILDIR=$(CURDIR)/debian/irma-brain
 PROJECT=irma-brain
-VERSION=1.0.3
+VERSION=1.0.4
 
 all:
 	@echo "make source - Create source package"
@@ -32,6 +32,14 @@ builddeb:
 clean:
 	$(PYTHON) setup.py clean
 	#$(MAKE) -f $(CURDIR)/debian/rules clean
-	rm -rf build/ MANIFEST $(DISTDIR) $(BUILDIR)
+	rm -rf $(CURDIR)/irma_brain_app.egg-info
+	rm -rf $(CURDIR)/debian/*.substvars $(CURDIR)/debian/*.log $(CURDIR)/debian/tmp
+	rm -rf $(CURDIR)/debian/irma-rsyslog-server
+	rm -rf $(CURDIR)/debian/irma-brain-rsyslog
+	rm -rf $(CURDIR)/debian/irma-brain-app
+	rm -rf $(CURDIR)/debian/irma-brain-logrotate
+	rm -rf $(CURDIR)/debian/irma-brain-rabbitmq
+	rm -rf $(CURDIR)/debian/irma-brain-ftpd
+	rm -rf $(CURDIR)/debian/irma-brain-redis
+	rm -rf build/ MANIFEST $(DISTDIR) $(BUILDIR) 
 	find . -name '*.pyc' -delete
-

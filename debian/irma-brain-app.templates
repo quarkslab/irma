@@ -1,0 +1,23 @@
+Template: irma-brain-app/rmqvhost
+Type: string
+Default: mqfrontend
+Description: RabbitMQ virtualhost used but the frontend
+ IRMA uses RabbitMQ as a broker. Brokers for the brain, the frontend and the
+ probes are isolated through a virtualhost mechanism.
+ .
+ Please give the username that will be used by the frontend to poll tasks:
+
+Template: irma-brain-app/ftpuser
+Type: string
+Default: 
+Description: FTPs account for the frontend
+ Probes connect to brain by FTPs in order to upload the sample to be analyzed.
+ .
+ Please specify the username that the frontend will use with FTPs connections:
+
+Template: irma-brain-app/quota
+Type: string
+Default: 0
+Description: Number of authorized scans
+ Please give the number of authorized scans for this frontend (0 means
+ unlimited)
