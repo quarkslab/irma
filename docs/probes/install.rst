@@ -152,10 +152,19 @@ Installation on Microsoft Windows
 On windows system, we will assume that the code for the **Probe** will be
 installed at the root of the ``C:\`` drive, namely in ``C:\irma\irma-probe``.
 
+Due to differences between Python for Windows and Python for Linux, the
+installation with pip can only be done with the following command:
+
 .. code-block:: bash
 
-    $ C:\Python27\Scripts\pip.exe install irma-probe-app-1.0.4.tar.gz --root="C:\irma\" --install-option="--install-base=irma-probe" 
-    [...]
+    $ C:\Python27\Scripts\pip.exe install irma-probe-app-1.0.4.tar.gz --root="C:\irma\irma-probe" 
+
+However, this command puts the code source in ``C:\irma\irma-probe\Python27``
+instead of ``C:\irma\irma-probe``. To fix this, either install
+``irma-probe-app`` with ``pip`` and move the content of
+``C:\irma\irma-probe\Python27`` to ``C:\irma\irma-probe\`` or simply copy the
+code source you have just checked out from github.com in
+``C:\irma\irma-probe``. Both methods should work.
 
 Since the way we packaged the python application does not support
 automatic installation of dependencies, we need to install them manually:

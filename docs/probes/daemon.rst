@@ -128,6 +128,76 @@ The ``--startup=auto`` makes the service to start automatically when the system
 boots. You can check that the service has been effectively installed by
 consulting the list of Microsoft Windows Services.
 
+Starting and stopping the service
+*********************************
+
+Before starting the service, one should debug it to see if the service works
+correctly. This can be done by launching the binary ``pythonservice.exe`` in
+charge of launching the service. Let us note that the worker keeps on working
+even if an error due to ``libmagic`` (see output below) is raised. This error
+is not critical as long as we do not enable ``StaticAnalyzer`` probe. Please
+check the documentation if you want to solve this issue and to enable the
+``StaticAnalyzer`` probe on Microsoft Windows systems.
+
+.. code-block:: none
+
+    $ C:\Python27\Lib\site-packages\win32\pythonservice.exe -debug irma-service
+    Debugging service irma-service - press Ctrl+C to stop.
+    Info 0x400000FF - Initialization
+    Info 0x400000FF - c:\irma\irma-probe\extras\winsrv\service.ini
+    Info 0x400000FF - starting
+    Info 0x400000FF - Spawned c:\Python27\python.exe -m celery worker --app=probe.tasks --workdir=c:\irma\irma-probe -f c:\irma\irma-probe\celery.log -l info
+    Info 0x400000FF - Started. Waiting for stop
+    No handlers could be found for logger "multiprocessing"
+    starting command: c:\Python27\python.exe -m celery worker --app=probe.tasks --workdir=c:\irma\irma-probe -f c:\irma\irma-probe\celery.log -l info
+    WARNING:root: *** [plugin] Plugin failed to load: ClamAV miss dependencies: linux (PlatformDependency).
+    WARNING:root: *** [plugin] Plugin failed to load: ComodoCAVL miss dependencies: linux (PlatformDependency).
+    WARNING:root: *** [plugin] Plugin failed to load: EsetNod32 miss dependencies: linux (PlatformDependency).
+    WARNING:root: *** [plugin] Plugin failed to load: FProt miss dependencies: linux (PlatformDependency).
+    WARNING:root: *** [plugin] Plugin failed to load: KasperskyPlugin: verify() failed because Kaspersky executable was not found.
+    WARNING:root: *** [plugin] Plugin failed to load: McAfeeVSCLPlugin: verify() failed because McAfeeVSCL executable was not found.
+    WARNING:root: *** [plugin] Plugin failed to load: SophosPlugin: verify() failed because Sophos executable was not found.
+    WARNING:root: *** [plugin] Plugin failed to load: Unable to find Symantec executable
+    WARNING:root: *** [plugin] Plugin failed to load: NSRL miss dependencies: leveldict (ModuleDependency). See requirements.txt for needed dependencies
+    ERROR:root:failed to find libmagic.  Check your installation
+    Traceback (most recent call last):
+      File "c:\irma\irma-probe\lib\plugins\manager.py", line 58, in discover
+        module = module_meta.load_module(pkg_name)
+      File "c:\Python27\lib\pkgutil.py", line 246, in load_module
+        mod = imp.load_module(fullname, self.file, self.filename, self.etc)
+      File "c:\irma\irma-probe\modules\metadata\pe_analyzer\pe.py", line 20, in <module>
+        from lib.common.mimetypes import Magic
+      File "c:\irma\irma-probe\lib\common\mimetypes.py", line 20, in <module>
+        import magic
+      File "c:\Python27\lib\site-packages\magic.py", line 161, in <module>
+        raise ImportError('failed to find libmagic.  Check your installation')
+    ImportError: failed to find libmagic.  Check your installation
+    WARNING:root: *** [plugin] Plugin failed to load: StaticAnalyzer miss dependencies: modules.metadata.pe_analyzer.pe (ModuleDependency).
+     
+     -------------- celery@irma-probe v3.1.13 (Cipater)
+    ---- **** -----
+    --- * ***  * -- Windows-7-6.1.7601-SP1
+    -- * - **** ---
+    - ** ---------- [config]
+    - ** ---------- .> app:         probe.tasks:0x2f08ff0
+    - ** ---------- .> transport:   amqp://probe:**@brain:5672/mqprobe
+    - ** ---------- .> results:     redis://brain:6379/1
+    - *** --- * --- .> concurrency: 1 (prefork)
+    -- ******* ----
+    --- ***** ----- [queues]
+     -------------- .> VirusTotal       exchange=celery(direct) key=VirusTotal
+     
+     
+    [tasks]
+      . probe.tasks.probe_scan
+
+The service can be manually started and stopped with the following commands:
+
+.. code-block:: none
+
+    $ C:\Python27\python.exe extras/winsrv/service.py start
+    $ C:\Python27\python.exe extras/winsrv/service.py stop
+
 Removing the service
 ********************
 
@@ -136,13 +206,3 @@ It can be removed with the following commands:
 .. code-block:: none
 
     $ C:\Python27\python extras/winsrv/service.py remove
-
-Starting and stopping the service
-*********************************
-
-The service can be manually started and stopped with the following commands:
-
-.. code-block:: none
-
-    $ C:\Python27\python.exe extras/winsrv/service.py start
-    $ C:\Python27\python.exe extras/winsrv/service.py stop
