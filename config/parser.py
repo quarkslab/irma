@@ -14,15 +14,27 @@
 # terms contained in the LICENSE file.
 
 import os
-from celery.schedules import crontab
+
 from kombu import Queue
+from celery.schedules import crontab
+
+from logging import BASIC_FORMAT, Formatter
+from logging.handlers import SysLogHandler
+from celery.log import redirect_stdouts_to_logger
+from celery.signals import after_setup_task_logger, after_setup_logger
+
 from lib.irma.configuration.ini import TemplatedConfiguration
+
 
 # ==========
 #  Template
 # ==========
 
 template_frontend_config = {
+    'log': [
+        ('syslog', TemplatedConfiguration.integer, 0),
+        ('prefix', TemplatedConfiguration.string, "irma-frontend :"),
+    ],
     'mongodb': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 27017),
@@ -191,3 +203,29 @@ def get_brain_broker_uri():
 
 def get_frontend_broker_uri():
     return _get_broker_uri(frontend_config.broker_frontend)
+
+
+# ================
+#  Syslog helpers
+# ================
+
+def configure_syslog(app):
+    if frontend_config.log.syslog:
+        app.conf.update(CELERYD_LOG_COLOR=False)
+        after_setup_logger.connect(setup_log)
+        after_setup_task_logger.connect(setup_log)
+
+
+def setup_log(**args):
+    # redirect stdout and stderr to logger
+    redirect_stdouts_to_logger(args['logger'])
+    # logs to local syslog
+    hl = SysLogHandler('/dev/log',
+                       facility=SysLogHandler.facility_names['syslog'])
+    # setting log level
+    hl.setLevel(args['loglevel'])
+    # setting log format
+    formatter = Formatter(frontend_config.log.prefix + BASIC_FORMAT)
+    hl.setFormatter(formatter)
+    # add new handler to logger
+    args['logger'].addHandler(hl)

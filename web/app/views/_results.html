@@ -1,4 +1,4 @@
-<div ng-repeat="(id, file) in scan.results" class="file-display">
+<div ng-repeat="(id, file) in state.scan.results" class="file-display">
   <h3>{{file.filename}}</h3>
   <div class="results">
     <div class="row" ng-repeat="(toolName, toolResults) in file.results" ng-click="toolResults.displayVersion = !toolResults.displayVersion">

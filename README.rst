@@ -1,133 +1,39 @@
-***************
-IRMA - Frontend
-***************
+IRMA: Incident Response & Malware Analysis 
+------------------------------------------
 
-========
-Overview
-========
+IRMA is an asynchronous and customizable analysis system for suspicious files.
+This repository is a subproject of IRMA and contains the source code for IRMA's
+Frontend, which are python-based application that provides a way to store
+analysis performed by probes in a database and to display them either through a
+web-client or a CLI-client. Thanks for checking it out.
 
-This package handles scan submission to the brain. Keep track of scanned files results and provides the web graphical user interface.
+Documentation
+`````````````
 
+All documentation is in the ``docs`` directory. If you are just getting
+started, here is how we recommend you read the docs:
 
-============
-Installation
-============
+1. First, build the documentation with ``sphinx`` (in the ``docs`` directory,
+   do ``make html``).
+2. Next, open the documentation in your favorite web browser. The documentation
+   is generated in ``_build/html``. You can open, for instance,
+   ``_build/html/index.html`` as a starting point.
+3. Go through the documentation.
 
-Quick install
--------------
+We are trying to do your best to update the documentation regularly. If you
+find any problems in the documentation, or think they should be clarified in
+any way, please take 30 seconds to fill out a `ticket
+<https://github.com/quarkslab/irma-frontend/issues>`_.
 
-Add Quarkslab repository address. See `here`_ for instructions.
-Then install Meta package:
+Getting help
+````````````
 
-.. code-block:: bash
-
-    sudo apt-get update && sudo apt-get install irma-frontend
-
-Do not forget to change parameters according to your settings (See ``Config`` paragraph).
-
-Get the code
-------------
-
-clone from github
-
-.. code-block:: bash
-
-    $ git clone --recursive https://github.com/quarkslab/irma-frontend.git irma-frontend
-
-With source install see `install.rst`_ for instructions.
+Join the #qb_irma channel on irc.freenode.net. Lots of helpful people hang out there.
 
 
-======
-Config
-======
+Contribute to IRMA
+``````````````````
 
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/frontend.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-frontend``.
-
-irma-frontend configuration file content:
-
-+----------------+-------------+------------+-----------+
-|     Section    |      Key    |    Type    |  Default  |
-+================+=============+============+===========+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|  mongodb       |     port    |``integer`` |   27017   |
-|                +-------------+------------+-----------+
-|                |    dbname   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |  scan_info  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                | scan_results| ``string`` |           |
-| collections    +-------------+------------+-----------+
-|                |  scan_files | ``string`` |           |
-|                +-------------+------------+-----------+
-|                | scan_file_fs| ``string`` |           |
-+----------------+-------------+------------+-----------+
-|celery_brain    |    timeout  | ``integer``|   10(sec) |
-+----------------+-------------+------------+-----------+
-|celery_frontend |    timeout  | ``integer``|   10(sec) |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |   5672    |
-|                +-------------+------------+-----------+
-|   broker       |     vhost   | ``string`` |           |
-|   brain        +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     queue   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |   5672    |
-|                +-------------+------------+-----------+
-|   broker       |     vhost   | ``string`` |           |
-|   frontend     +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     queue   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|  backend brain |     port    |``integer`` |   6379    |
-|                +-------------+------------+-----------+
-|                |      db     |``integer`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |    21     |
-|  ftp brain     +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|    100    |
-|                |_info_max_age|            | (in days) |
-|                +-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|     2     |
-|                |_file_max_age|            | (in days) |
-|                +-------------+------------+-----------+
-| cron_frontend  |clean_db_cron| ``integer``|     0     |
-|                |_hour        |            |           |
-|                +-------------+------------+-----------+
-|                |clean_db_cron| ``integer``|     0     |
-|                |_minute      |            |           |
-|                +-------------+------------+-----------+
-|                |clean_db_scan| ``integer``|     \*    |
-|                |_day_of_week |            |           |
-+----------------+-------------+------------+-----------+
-
-=======
-Licence
-=======
-
-Licensed under Apache v2.0 license. Please see `LICENSE`_.
-
-
-.. _here: http://apt.quarkslab.com/readme.txt
-.. _install.rst: /install/install.rst
-.. _LICENSE: /LICENSE
-
+IRMA is an ambitious project. Make yourself known on the #irma_qb channel on
+irc.freenode.net. We will be please to greet you and to find a way to get you
+involved in the project.

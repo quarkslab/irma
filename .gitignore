@@ -1,7 +1,29 @@
+# configuration
+config/*.ini
+
+# for python
+*.pyc
+
+# for web
 web/node_modules
 web/app/components
 web/dist
-*.pyc
+web/.sass-cache/
+web/.tmp/
+web/app/bower_components/
+
+# for pip packaging
+dist
+*.egg-info/
+
+# for debian packages
+debian/*.substvars
+debian/*.log
+debian/files
+debian/rules
+
+# other
 doc/
-irma_frontend.egg-info/
 .idea/*
+
+.gitmodules
