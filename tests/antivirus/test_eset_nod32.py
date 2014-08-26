@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.eset_nod32 import EsetNod32
+from modules.antivirus.eset.nod32 import EsetNod32
 
 
 # ============

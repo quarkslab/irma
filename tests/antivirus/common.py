@@ -47,19 +47,23 @@ class GenericAVTest():
         # check if probe is ready
         self.ready = self.__class__.ready(self.antivirus)
         if not self.ready:
-            self.log.warning("{0} not to be available, skipping all tests ..."
+            self.log.warning("{0} seems not to be available, "
+                             "skipping all tests ..."
                              "".format(self.antivirus.name))
 
     def scan_and_check(self, filename, refresult):
-        self.antivirus.scan(filename)
-        results = self.antivirus.scan_results.items()
-        for result in results:
-            # transform result as the AV returns abspath
-            result = os.path.basename(result[0]), result[1]
-            if result[1] != refresult:
-                self.log.error("{0}: {1} / {2}"
-                               "".format(result[0], result[1], refresult))
-            self.assertEqual(result[1], refresult)
+        code = self.antivirus.scan(filename)
+        if code >= 0:
+            results = self.antivirus.scan_results.items()
+            for result in results:
+                # transform result as the AV returns abspath
+                result = os.path.basename(result[0]), result[1]
+                if result[1] != refresult:
+                    self.log.error("{0}: {1} / {2}"
+                                   "".format(result[0], result[1], refresult))
+                self.assertEqual(result[1], refresult)
+        else:
+            self.log.warning("error: {0}".format(self.antivirus.scan_results))
 
     def test_eicar_with_fileext(self):
         if not self.ready:

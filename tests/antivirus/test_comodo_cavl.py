@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.comodo_cavl import ComodoCAVL
+from modules.antivirus.comodo.cavl import ComodoCAVL
 
 
 # ============

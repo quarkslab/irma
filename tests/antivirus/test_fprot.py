@@ -2,7 +2,7 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.fprot import FProt
+from modules.antivirus.fprot.fprot import FProt
 
 
 # ============

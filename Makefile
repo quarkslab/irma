@@ -3,9 +3,11 @@ DESTDIR = /
 DISTDIR = $(CURDIR)/deb_dist
 BUILDIR = $(CURDIR)/debian/irma-probe
 PROJECT = irma-probe
-VERSION = 1.0.3
+VERSION = 1.0.4
 
-all:
+all: help
+
+help:
 	@echo "make source - Create source package"
 	@echo "make install - Install on local system"
 	@echo "make buildrpm - Generate a rpm package"
@@ -22,7 +24,6 @@ buildrpm:
 	$(PYTHON) setup.py bdist_rpm --post-install=rpm/postinstall --pre-uninstall=rpm/preuninstall
 
 builddeb:
-	export IRMA_PROBE_PKG_TARGET="Linux"
 	# build the source package in the parent directory
 	# then rename it to project_version.orig.tar.gz
 	$(PYTHON) setup.py sdist $(COMPILE) --dist-dir=$(DISTDIR) 
@@ -33,6 +34,11 @@ builddeb:
 clean:
 	$(PYTHON) setup.py clean
 	#$(MAKE) -f $(CURDIR)/debian/rules clean
+	rm -rf $(CURDIR)/irma_probe_app.egg-info
+	rm -rf $(CURDIR)/debian/*.log
+	rm -rf $(CURDIR)/debian/*.substvars
+	rm -rf $(CURDIR)/debian/irma-probe
+	rm -rf $(CURDIR)/debian/irma-probe-logrotate
+	rm -rf $(CURDIR)/debian/irma-probe-rsyslog
 	rm -rf build/ MANIFEST $(DISTDIR) $(BUILDIR)
 	find . -name '*.pyc' -delete
-
