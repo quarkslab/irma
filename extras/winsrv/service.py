@@ -226,6 +226,7 @@ class IRMAService(win32serviceutil.ServiceFramework):
     _svc_display_name_ = "IRMA background Processes"
     _svc_description_ = "Run the IRMA background Processes"
     _config_filename = 'service.ini'
+    _base_path = dirname(abspath(__file__))
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
