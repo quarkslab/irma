@@ -76,8 +76,12 @@ if __name__ == "__main__":
 
     dirname = os.path.dirname(config.brain_config['sql_brain'].dbname)
     dirname = os.path.abspath(dirname)
-    if not (os.path.exists(dirname) and os.path.isdir(dirname)):
-        print("Error. Maybe have you forgotten to create directory {0} ?"
+    if not os.path.exists(dirname):
+        print("SQL directory does not exist {0}"
+              "..creating".format(dirname))
+        os.makedirs(dirname)
+    if not (os.path.isdir(dirname)):
+        print("Error. SQL directory is a not a dir {0}"
               "".format(dirname))
         sys.exit(1)
 
