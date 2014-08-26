@@ -22,7 +22,7 @@ graft modules
 graft config
 graft docs
 graft extras
-graft tests
+prune tests
 prune lib/tests
 global-exclude *.git
 global-exclude *.gitignore
