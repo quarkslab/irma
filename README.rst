@@ -1,127 +1,39 @@
-************
-IRMA - Brain
-************
+IRMA: Incident Response & Malware Analysis 
+------------------------------------------
 
-========
-Overview
-========
+IRMA is an asynchronous and customizable analysis system for suspicious files.
+This repository is a subproject of IRMA and contains the source code for IRMA's
+Brain, which is a python-based application that schedules analysis jobs
+requested by the Frontend for one or multiple Probes. Thanks for checking it
+out.
 
-This package handles the dispatch of the meta scan job to the probes. Deals with accounting and collecting results to send them back to frontend.
+Documentation
+`````````````
 
+All documentation is in the ``docs`` directory. If you are just getting
+started, here is how we recommend you read the docs:
 
-============
-Installation
-============
+1. First, build the documentation with ``sphinx`` (in the ``docs`` directory,
+   do ``make html``).
+2. Next, open the documentation in your favorite web browser. The documentation
+   is generated in ``_build/html``. You can open, for instance,
+   ``_build/html/index.html`` as a starting point.
+3. Go through the documentation.
 
+We are trying to do your best to update the documentation regularly. If you
+find any problems in the documentation, or think they should be clarified in
+any way, please take 30 seconds to fill out a `ticket
+<https://github.com/quarkslab/irma-brain/issues>`_.
 
-Quick install
--------------
+Getting help
+````````````
 
-Add Quarkslab stable repository address. See `here`_ for instructions.
-Then install Meta package:
-
-.. code-block:: bash
-
-    sudo apt-get update && sudo apt-get install irma-brain
-
-Do not forget to change parameters according to your settings (See ``Config`` paragraph).
-
-Get the code
-------------
-
-clone from github
-
-.. code-block:: bash
-
-    $ git clone --recursive https://github.com/quarkslab/irma-brain.git irma-brain
-
-For post-install instructions see `install.rst`_ for:
-
-     * ftps accounts
-     * rabbitmq accounts
-     * redis config
-     * sqlite user db creation
-
-======
-Config
-======
-
-The default location of the configuration file is ``IRMA_INSTALL_DIR/config/brain.ini``. Default ``IRMA_INSTALL_DIR`` is ``/opt/irma/irma-brain``.
-
-irma-brain configuration file:
-
-+----------------+-------------+------------+-----------+
-|     Section    |      Key    |    Type    |  Default  |
-+================+=============+============+===========+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |   5672    |
-|                +-------------+------------+-----------+
-|   broker       |     vhost   | ``string`` |           |
-|   brain        +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     queue   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |   5672    |
-|                +-------------+------------+-----------+
-|   broker       |     vhost   | ``string`` |           |
-|   probe        +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     queue   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |   5672    |
-|                +-------------+------------+-----------+
-|   broker       |     vhost   | ``string`` |           |
-|   frontend     +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     queue   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|  backend brain |     port    |``integer`` |   6379    |
-|                +-------------+------------+-----------+
-|                |      db     |``integer`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|  backend probe |     port    |``integer`` |   6379    |
-|                +-------------+------------+-----------+
-|                |      db     |``integer`` |           |
-+----------------+-------------+------------+-----------+
-|                |     engine  | ``string`` |           |
-|   sql brain    +-------------+------------+-----------+
-|                |    dbname   | ``string`` |           |
-+----------------+-------------+------------+-----------+
-|                |     host    | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |     port    |``integer`` |    21     |
-|  ftp brain     +-------------+------------+-----------+
-|                |   username  | ``string`` |           |
-|                +-------------+------------+-----------+
-|                |   password  | ``string`` |           |
-+----------------+-------------+------------+-----------+
-
-=======
-Licence
-=======
-
-Licensed under Apache v2.0 license. Please see `LICENSE`_.
+Join the #qb_irma channel on irc.freenode.net. Lots of helpful people hang out there.
 
 
-.. _here: http://apt.quarkslab.com/readme.txt
-.. _install.rst: /install/install.rst
-.. _LICENSE: /LICENSE
+Contribute to IRMA
+``````````````````
 
+IRMA is an ambitious project. Make yourself known on the #irma_qb channel on
+irc.freenode.net. We will be please to greet you and to find a way to get you
+involved in the project.
