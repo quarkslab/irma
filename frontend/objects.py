@@ -21,7 +21,7 @@ from lib.irma.common.exceptions import IrmaDatabaseError, \
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
 from lib.irma.fileobject.handler import FileObject
 from lib.irma.common.utils import IrmaScanStatus
-from frontend.format import IrmaProbeType, IrmaFormatter
+from frontend.format import IrmaFormatter
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
@@ -41,9 +41,8 @@ def format_results(res_dict, filter_type):
         format_res = IrmaFormatter.format(probe, probe_res)
         if filter_type is not None:
             # filter by type
-            filter_str = [ IrmaProbeType.label[ft] for ft in filter_type]
-            if 'type' in format_res and \
-             format_res['type'] not in filter_str:
+            if 'category' in format_res and \
+               format_res['category'] not in filter_type:
                 continue
         res[probe] = format_res
     return res
@@ -88,7 +87,7 @@ class ScanInfo(NoSQLDatabaseObject):
         self.date = timestamp()
         self.scanfile_ids = {}
         self.probelist = None
-        self.status = IrmaScanStatus.created
+        self.status = IrmaScanStatus.empty
         super(ScanInfo, self).__init__(**kwargs)
 
     def add_file(self, scanfile_id, name, hashvalue):
@@ -242,7 +241,7 @@ class ScanFile(NoSQLDatabaseObject):
             self.load(_id)
             if name not in self.alt_filenames:
                 self.alt_filenames.append(name)
-            if self.file_oid is None:   # if deleted, save again
+            if self.file_oid is None:  # if deleted, save again
                 file_data = ScanFileData()
                 file_data.save(data, self.filename)
                 self.file_oid = file_data.id

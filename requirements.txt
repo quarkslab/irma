@@ -1,0 +1,4 @@
+celery==3.1.13
+redis>=2.9.1
+pymongo>=2.6.3
+bottle>=0.12.5

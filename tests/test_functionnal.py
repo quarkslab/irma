@@ -80,7 +80,7 @@ class FunctionnalTestCase(unittest.TestCase):
         self.assertEquals(results.keys(), [EICAR_HASH])
         ref_keys = results[EICAR_HASH]['results'].keys()
         self.assertEquals(sorted(ref_keys), sorted(probelaunched))
-        for p in probelaunched :
+        for p in probelaunched:
             res = results[EICAR_HASH]['results'][p]['result']
             self.assertEquals(res, EICAR_RESULTS[p]['result'])
         return

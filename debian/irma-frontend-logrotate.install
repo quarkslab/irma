@@ -1,0 +1,1 @@
+extras/logrotate.d/irma-frontend /etc/logrotate.d/

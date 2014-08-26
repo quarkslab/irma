@@ -1,0 +1,34 @@
+<div class="spinner" ng-if="!state.scan.results">
+  <div class="bounce1"></div>
+  <div class="bounce2"></div>
+  <div class="bounce3"></div>
+</div>
+
+<div class="details" ng-show="state.scan.results">
+  <h2><span>File: </span>{{detailsCtrl.details.filename}}</h2>
+  <p><a href="#/results/{{state.scan.id}}">Back to the scan summary</a></p>
+
+  <div class="probe" ng-repeat="(probeName, probeData) in detailsCtrl.details.results">
+    <h3>
+      <span class="label label-primary pull-right">{{probeData.type}}</span>
+      <span class="badge pull-right" ng-if="probeData.duration">{{(probeData.duration | number:1)}}s</span>
+      {{probeName}}
+      <small>{{probeData.name}} {{probeData.version}}</small>
+    </h3>
+    <h5>Responded in {{probeData.duration | number:1}}s with status: {{probeData.status}}</h5>
+    <h5 ng-if="probeData.type === 'antivirus'">
+      <ng-switch on="probeData.status">
+        <div class="result" ng-switch-when="0">
+          <span boolean-display="true">The file is clean</span>
+        </div>
+        <div class="result" ng-switch-when="1">
+          <span boolean-display="false">The file is compromised</span>
+        </div>
+        <div class="result" ng-switch-default>
+          <span class="glyphicon glyphicon-exclamation-sign" style="color: #f0ad4e ;"></span> <span style="color: #f0ad4e ;">An error occured</span>
+        </div>
+      </ng-switch>
+    </h5>
+    <pre>{{probeData.results | json}}</pre>
+  </div>
+</div>

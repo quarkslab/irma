@@ -5806,6 +5806,9 @@ button.close {
   font-weight: 900;
   src: local('Raleway Heavy'), local('Raleway-Heavy'), url(http://themes.googleusercontent.com/static/fonts/raleway/v7/PKCRbVvRfd5n7BTjtGiFZBsxEYwM7FgeyaSgU71cLG0.woff) format('woff');
 }
+body {
+  margin-bottom: 30px;
+}
 .browsehappy {
   margin: 0.2em 0;
   background: #ccc;
@@ -5817,6 +5820,11 @@ p {
   text-align: center;
   font-size: 18px;
   padding: 10px 20px 20px;
+}
+h1 {
+  font-family: 'Raleway', sans-serif;
+  text-align: center;
+  margin-bottom: 20px;
 }
 .alerts {
   position: fixed;
@@ -5834,15 +5842,20 @@ p {
 }
 .head {
   position: relative;
-  margin-bottom: 50px;
+  margin-top: 10px;
+  margin-bottom: 30px;
 }
 .head h1 {
   float: left;
   font-weight: 900;
   font-size: 160px;
   line-height: 155px;
-  padding-left: 70px;
+  padding-left: 40px;
   font-family: 'Raleway', sans-serif;
+  margin: 0px;
+}
+.head h1 img {
+  width: 450px;
 }
 .head h2 {
   font-weight: 200;
@@ -5850,9 +5863,10 @@ p {
   line-height: 55px;
   color: #999999;
   padding-left: 500px;
-  padding-top: 50px;
+  padding-top: 40px;
   position: relative;
   font-family: 'Raleway', sans-serif;
+  margin: 0px;
 }
 .head:before {
   content: '&';
@@ -5863,7 +5877,7 @@ p {
   position: absolute;
   right: 80px;
   top: -10px;
-  z-index: 0;
+  z-index: -1;
 }
 .status {
   clear: both;
@@ -5960,14 +5974,14 @@ p {
   background-color: #333;
   border-color: #fff;
 }
-.selection .settings .params ul {
+.probes-list {
   padding-left: 0;
   list-style: none;
   text-align: center;
   margin: 0px;
   margin-top: -10px;
 }
-.selection .settings .params ul li {
+.probes-list li {
   border: 1px solid #ddd;
   border-radius: 5px;
   padding: 0px 5px;
@@ -5976,7 +5990,7 @@ p {
   color: #999;
   line-height: 20px;
 }
-.selection .settings .params ul li.active {
+.probes-list li.active {
   color: #fff;
   background-color: #333;
   border-color: #fff;
@@ -6024,6 +6038,29 @@ p {
   bottom: 35px;
   text-align: center;
 }
+.details {
+  width: 800px;
+  margin: auto;
+}
+.details h2 {
+  text-align: center;
+  margin-bottom: 0px;
+  font-weight: normal;
+  color: #666;
+}
+.details h2 span {
+  font-weight: bold;
+  color: #333;
+}
+.details .probe {
+  margin-bottom: 20px;
+}
+.details .probe .badge {
+  position: relative;
+  top: 5px;
+  right: 3px;
+  background-color: #aaa;
+}
 .scan .progress {
   width: 700px;
   margin: 5px auto 20px;
@@ -6041,4 +6078,86 @@ p {
 .existing .input-group {
   width: 70%;
   margin: auto;
+}
+.popover .popover-title {
+  font-family: 'Raleway', sans-serif;
+  font-weight: 900;
+  color: #333333;
+  font-size: 18px;
+  margin-top: 2px;
+}
+.popover .popover-content {
+  font-weight: normal;
+  color: #999999;
+  font-size: 16px;
+}
+.popover .popover-content span {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.spinner {
+  margin: 10px auto;
+  width: 95px;
+  text-align: center;
+}
+.spinner.main {
+  margin-top: 100px;
+}
+.spinner > div {
+  width: 18px;
+  height: 18px;
+  margin: 5px;
+  background-color: #dddddd;
+  border-radius: 100%;
+  display: inline-block;
+  -webkit-animation: bouncedelay 1.4s infinite ease-in-out;
+  animation: bouncedelay 1.4s infinite ease-in-out;
+  /* Prevent first frame from flickering when animation starts */
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+.spinner .bounce1 {
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+.spinner .bounce2 {
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+@-webkit-keyframes bouncedelay {
+  0%,
+  80%,
+  100% {
+    -webkit-transform: scale(0);
+  }
+  40% {
+    -webkit-transform: scale(1);
+  }
+}
+@keyframes bouncedelay {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+    -webkit-transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+    -webkit-transform: scale(1);
+  }
+}
+.maintenance {
+  border: 10px solid #dddddd;
+  border-radius: 20px;
+  margin: 60px 100px;
+  text-align: center;
+}
+.maintenance h1 {
+  font-weight: 700;
+  font-family: 'Raleway', sans-serif;
+  font-size: 40px;
+  margin-bottom: 0px;
+}
+.maintenance p {
+  font-size: 24px;
 }

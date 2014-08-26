@@ -15,19 +15,28 @@
 
 import celery
 import config.parser as config
-from frontend.objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
+
+from celery.utils.log import get_task_logger
+
+from .objects import ScanFile, ScanInfo, ScanRefResults, ScanResults
 from lib.common.compat import timestamp
-from lib.irma.common.exceptions import IrmaLockError
+from lib.irma.common.exceptions import IrmaLockError, IrmaFtpError
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaLockMode
 from lib.common.utils import humanize_time_str
 from lib.irma.ftp.handler import FtpTls
 
 
+log = get_task_logger(__name__)
+
+# declare a new application
 frontend_app = celery.Celery('frontendtasks')
 config.conf_frontend_celery(frontend_app)
+config.configure_syslog(frontend_app)
 
+# declare a new application
 scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
+config.configure_syslog(scan_app)
 
 
 @frontend_app.task(acks_late=True)
@@ -37,18 +46,15 @@ def scan_launch(scanid, force):
         scan = None
         ftp_config = config.frontend_config['ftp_brain']
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        if not scan.status == IrmaScanStatus.created:
-            scan.release()
-            status = IrmaScanStatus.label[scan.status]
-            print("{0}: Error invalid scan status:{1}".format(scanid, status))
-            return IrmaTaskReturn.error("Frontend: Invalid scan status")
-
+        IrmaScanStatus.filter_status(scan.status,
+                                     IrmaScanStatus.ready,
+                                     IrmaScanStatus.ready)
         # If nothing return
         if len(scan.scanfile_ids) == 0:
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
-            print("{0}: Error No files to scan".format(scanid))
-            return IrmaTaskReturn.success("Frontend: No files to scan")
+            print("{0}: No files to scan, scan finished".format(scanid))
+            return
 
         filtered_file_oids = []
         for (scanfile_id, scanres_id) in scan.scanfile_ids.items():
@@ -78,9 +84,8 @@ def scan_launch(scanid, force):
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
             print("{0}: Success: Nothing to do".format(scanid))
-            return IrmaTaskReturn.success("Frontend: Nothing to do")
+            return
         scan.release()
-
         host = ftp_config.host
         port = ftp_config.port
         user = ftp_config.username
@@ -95,23 +100,44 @@ def scan_launch(scanid, force):
                 if hashname != f.hashvalue:
                     reason = "Ftp Error: integrity failure while uploading \
                     file {0} for scanid {1}".format(scanid, filename)
-                    return IrmaTaskReturn.error(reason)
+                    raise IrmaFtpError(reason)
                 scan_request.append((hashname, probelist))
-                # launch new celery task
+        # launch new celery task
         scan_app.send_task("brain.tasks.scan", args=(scanid, scan_request))
         scan = ScanInfo(id=scanid, mode=IrmaLockMode.write)
-        scan.update_status(IrmaScanStatus.launched)
+        scan.update_status(IrmaScanStatus.uploaded)
         scan.release()
         print("{0}: Success: scan launched".format(scanid))
         return IrmaTaskReturn.success("scan launched")
+    except IrmaFtpError as e:
+            print("{0}: Ftp upload error".format(scanid))
+            scan.update_status(IrmaScanStatus.error_ftp_upload)
+            scan.release()
+            return
     except IrmaLockError as e:
         print "IrmaLockError has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=15, max_retries=10)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
         if scan is not None:
             scan.release()
         print "Exception has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=15, max_retries=10)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
+
+
+@frontend_app.task(acks_late=True)
+def scan_launched(scanid):
+    try:
+        print("Scanid {0} launched".format(scanid))
+        scan = ScanInfo(id=scanid, mode=IrmaLockMode.read)
+        if scan.status == IrmaScanStatus.uploaded:
+            scan.take()
+            scan.update_status(IrmaScanStatus.launched)
+            scan.release()
+    except Exception as e:
+        if scan is not None:
+            scan.release()
+        print "Exception has occurred:{0}".format(e)
+        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
 
 
 def sanitize_dict(d):
@@ -134,7 +160,8 @@ def scan_result(scanid, file_hash, probe, result):
         if scanfile.id not in scan.scanfile_ids:
             print("{0}: fileid (%s) not found in scan info".format(scanfile.id,
                                                                    scanid))
-            return IrmaTaskReturn.error("Frontend: filename not found in scan info")
+            reason = "Frontend: filename not found in scan info"
+            return IrmaTaskReturn.error(reason)
 
         scanfile.take()
         if scanid not in scanfile.scan_id:
@@ -167,10 +194,12 @@ def scan_result(scanid, file_hash, probe, result):
             scan.take()
             scan.update_status(IrmaScanStatus.finished)
             scan.release()
+            # launch new celery task
+            scan_app.send_task("brain.tasks.scan_flush", args=[scanid])
 
     except IrmaLockError as e:
         print ("IrmaLockError has occurred:{0}".format(e))
-        raise scan_result.retry(countdown=15, max_retries=10)
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
     except Exception as e:
         if scan is not None:
             scan.release()
@@ -179,7 +208,52 @@ def scan_result(scanid, file_hash, probe, result):
         if ref_res is not None:
             ref_res.release()
         print ("Exception has occurred:{0}".format(e))
-        raise scan_result.retry(countdown=15, max_retries=10)
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
+
+
+@frontend_app.task(acks_late=True)
+def scan_result_error(scanid, file_hash, probe, exc):
+    try:
+        scan = scan_res = ref_res = None
+
+        scanfile = ScanFile(sha256=file_hash)
+        scan = ScanInfo(id=scanid)
+        if scanfile.id not in scan.scanfile_ids:
+            print("{0}: fileid (%s) not found in scan info".format(scanfile.id,
+                                                                   scanid))
+            reason = "Frontend: filename not found in scan info"
+            return IrmaTaskReturn.error(reason)
+
+        # keep scan results into scanresults objects
+        scanres_id = scan.scanfile_ids[scanfile.id]
+        scan_res = ScanResults(id=scanres_id, mode=IrmaLockMode.write)
+        results = {}
+        results['success'] = False
+        results['reason'] = exc
+        scan_res.results[probe] = results
+        scan_res.update()
+        scan_res.release()
+        print("{0}: ".format(scanid) +
+              "error from {0} ".format(probe) +
+              "nb probedone {0} ".format(len(scan_res.probedone)))
+
+        if scan.is_completed():
+            scan.take()
+            scan.update_status(IrmaScanStatus.finished)
+            scan.release()
+
+    except IrmaLockError as e:
+        print ("IrmaLockError has occurred:{0}".format(e))
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
+    except Exception as e:
+        if scan is not None:
+            scan.release()
+        if scan_res is not None:
+            scan_res.release()
+        if ref_res is not None:
+            ref_res.release()
+        print ("Exception has occurred:{0}".format(e))
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
 
 
 @frontend_app.task()
@@ -203,4 +277,4 @@ def clean_db():
         return (nb_scaninfo, nb_scanfile)
     except Exception as e:
         print "Exception has occurred:{0}".format(e)
-        raise clean_db.retry(countdown=15, max_retries=10)
+        raise clean_db.retry(countdown=2, max_retries=3, exc=e)

@@ -12,80 +12,60 @@
     this.messages = [];
 
     this.map = {
+
+      'uploadStart': {
+        message: '<strong>Info: </strong> The upload has started',
+        type: 'info',
+        dismiss: 3000,
+        status: 'debug'
+      },
+      'uploadCancel': {
+        message: '<strong>Info: </strong> The upload was cancelled',
+        type: 'info',
+        dismiss: 3000,
+        status: 'debug'
+      },
+      'uploadSuccess': {
+        message: '<strong>Info: </strong> The upload was successful',
+        type: 'info',
+        dismiss: 3000,
+        status: 'debug'
+      },
+      'uploadError': {
+        message: '<strong>Info: </strong> The upload encountered errors',
+        type: 'info',
+        dismiss: 3000,
+        status: 'debug'
+      },
+
+      'scanStart': {
+        message: '<strong>Info: </strong> The scan has started',
+        type: 'info',
+        dismiss: 3000,
+        status: 'debug'
+      },
+      'scanCancel': {
+        message: '<strong>Info: </strong> The scan was cancelled',
+        type: 'info',
+        dismiss: 3000,
+        status: 'debug'
+      },
+      'scanSuccess': {
+        message: '<strong>Info: </strong> The scan was successful',
+        type: 'info',
+        dismiss: 3000,
+        status: 'debug'
+      },
+
       'apiError': {
-        message: '<strong>Error:</strong> Unable to get response from API',
+        message: '<strong>Error:</strong> An error occured',
         type: 'danger',
         dismiss: false
       },
-      'noFilesToUpload': {
-        message: '<strong>Warning:</strong> There are no files queued for upload',
-        type: 'warning',
-        dismiss: 5000
-      },
-      'scanIdRetrievalError': {
-        message: '<strong>Error:</strong> An error occured while requesting a new scan id',
+      'apiErrorWithMsg': {
+        message: '<strong>Api Error:</strong> ',
         type: 'danger',
         dismiss: false
-      },
-      'probesListError': {
-        message: '<strong>Error:</strong> Unable to load probes list',
-        type: 'danger',
-        dismiss: false
-      },
-      'noSelectedProbes': {
-        message: '<strong>Warning:</strong> There are no selected probes',
-        type: 'danger',
-        dismiss: 5000
-      },
-      'uploadStarted': {
-        message: '<strong>Info:</strong> Upload has started...',
-        type: 'info',
-        dismiss: 2000,
-        status: 'debug'
-      },
-      'uploadCanceled': {
-        message: '<strong>Warning:</strong> Upload was canceled',
-        type: 'warning',
-        dismiss: 5000
-      },
-      'errorInUpload': {
-        message: '<strong>Error:</strong> An error occured during upload',
-        type: 'danger',
-        dismiss: false
-      },
-      'uploadComplete': {
-        message: '<strong>Info:</strong> The upload was successfull',
-        type: 'info',
-        dismiss: 2000,
-        status: 'debug'
-      },
-      'scanStarted': {
-        message: '<strong>Info:</strong> Scan has started...',
-        type: 'info',
-        dismiss: 2000,
-        status: 'debug'
-      },
-      'scanCanceled': {
-        message: '<strong>Warning:</strong> Scan was canceled',
-        type: 'warning',
-        dismiss: 5000
-      },
-      'scanComplete': {
-        message: '<strong>Info:</strong> The scan was successfull',
-        type: 'info',
-        dismiss: 2000,
-        status: 'debug'
-      },
-      'loadingExistingResults': {
-        message: '<strong>Info:</strong> Loading an existing scan',
-        type: 'info',
-        dismiss: 2000,
-        status: 'debug'
-      },
-      'noScanFound': {
-        message: '<strong>Warning:</strong> The requested scan does not exist',
-        type: 'warning',
-        dismiss: 5000
       }
     };
 
@@ -103,7 +83,18 @@
 
     this.add = function(alert){
       // Tries to populate the alert with a standard one
-      if(alert.standard && this.map[alert.standard]){ alert = _.extend(alert, this.map[alert.standard]);}
+      if(alert.standard && this.map[alert.standard]){
+        alert = _.extend(alert, this.map[alert.standard]);
+        if(alert.apiMsg){ alert.message += alert.apiMsg; }
+      }
+
+      if(alert.standard && !this.map[alert.standard]){
+        alert = {
+          message: '<strong>Missing alert:</strong> '+alert.standard,
+          type: 'warning',
+          dismiss: 5000
+        };
+      }
 
       // Adds a type if missing
       if(['info', 'warning', 'success', 'danger'].indexOf(alert.type) === -1){ alert.type = 'info';}
