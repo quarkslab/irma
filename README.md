@@ -7,9 +7,10 @@ What You’ll need?
 
 - [Ansible](http://www.ansible.com) 1.6 or higher
 - One or multiple 64-bit [Debian](https://www.debian.org) 7 servers. They should
-  have been configure as mention in the Prerequisites section
+  have been configured as mentionned in the Prerequisites section
 
 For *test or development* purposes (optional):
+
 - [Vagrant](http://www.vagrantup.com/) 1.5 or higher has to be installed
 - As the installation work only for [Virtualbox](https://www.virtualbox.org/),
   you’ll need to install it
@@ -28,8 +29,9 @@ Create an account for Ansible provisioning, or use one which has already been
 created. For speed up provisioning, you can:
 
 - Authorize you SSH key for password less authentication (optional):
+
   ```
-    *On your local machine*
+  *On your local machine*
   $ ssh-copy-id user@hostname # -i if you want to select your identity file
   ```
 
@@ -87,7 +89,7 @@ combine multiple tags.
 
 ### 6. Modify .ini files
 
-You’ll need to connect on each server you’ve just used, and modify at hand .ini
+You’ll need to connect on each server you’ve just used, and modify manually .ini
 files.
 
 In next release of this playbook, there’ll be more convenient way to automate
@@ -116,7 +118,7 @@ Test or develop IRMA using Vagrant
 
 ### 1. Create the right environment
 
-If you’re interesting in using [Vagrant](http://vagrantup.com), be sure to have
+If you’re interested in using [Vagrant](http://vagrantup.com), be sure to have
 the following directory layout:
 
 ```
@@ -129,7 +131,7 @@ the following directory layout:
  +--- irma-ansible-provisioning
 ```
 
-Note: This directory layout can be modify, see `share_*` from
+Note: This directory layout can be modified, see `share_*` from
 `environments/dev.yml` file.
 
 
@@ -137,7 +139,7 @@ Note: This directory layout can be modify, see `share_*` from
 
 To initialize and provision the Virtualbox VM, run in the
 irma-ansible-provisioning directory `vagrant up --no-provision`. VM will be
-downloaded, and configure using `environments/dev.yml` file (default behavior).
+downloaded, and configured using `environments/dev.yml` file (default behavior).
 
 (optional) If you want to use your own environment, create it in `environments`
 directory and run:
@@ -145,7 +147,7 @@ directory and run:
 $ VM_ENV=your_environment_name vagrant up --no-provision
 ```
 
-### 3. Configure you .ini files
+### 3. Configure your .ini files
 
 /!\ You can bypass this step, as this provisioning is sync with default username
 and password used in (frontend|brain|probe) config files.
