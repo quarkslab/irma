@@ -1,3 +1,6 @@
 [submodule "roles/Stouts.mongodb"]
 	path = roles/Stouts.mongodb
 	url = https://github.com/guillaumededrie/Stouts.mongodb.git
+[submodule "roles/Ansibles.openssh"]
+	path = roles/Ansibles.openssh
+	url = https://github.com/Ansibles/openssh
