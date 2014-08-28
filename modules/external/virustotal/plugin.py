@@ -21,7 +21,6 @@ from ConfigParser import SafeConfigParser
 from datetime import datetime
 
 from lib.common.utils import timestamp
-from lib.common.utils import to_unicode
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
@@ -116,4 +115,4 @@ class VirusTotalPlugin(PluginBase):
         except Exception as e:
             results.status = self.VirusTotalResult.ERROR
             results.results = str(e)
-        return to_unicode(results)
+        return results
