@@ -26,7 +26,7 @@
     - { role: quarkslab.nodejs, tags: 'nodejs' }
     - { role: gdamjan.uwsgi, tags: 'uwsgi' }
     - { role: Stouts.mongodb, tags: 'mongodb' }
-    - { role: quarkslab.supervisor, tags: 'supervisor' }
+    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_frontend }}" }
     - { role: quarkslab.irma_provisioning_frontend, tags: 'frontend' }
     - { role: jdauphant.nginx, tags: 'nginx' }
   post_tasks:
@@ -38,7 +38,7 @@
   hosts: brain
   sudo: yes
   roles:
-    - { role: quarkslab.supervisor, tags: 'supervisor' }
+    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_brain }}" }
     - { role: DavidWittman.redis, tags: 'redis' }
     - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
     - { role: quarkslab.pureftpd, tags: 'pureftpd' }
@@ -50,7 +50,7 @@
   sudo: yes
   roles:
     - { role: quarkslab.irma_provisioning_probe, tags: 'probe' }
-    - { role: quarkslab.supervisor, tags: 'supervisor' }
+    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}" }
 
 
 # Antivirus section

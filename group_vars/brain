@@ -51,7 +51,7 @@ brain_pureftpd_openssl_subj: "/C=FR/ST=Paris/L=Paris/O=IRMA"
 
 ## Supervisor role
 # supervisor_extra_confs:
-supervisor_programs:
+supervisor_programs_brain:
   - name: scan_app
     command: "{{ brain_venv_dir }}/bin/celery worker -A brain.tasks:scan_app --loglevel=INFO"
     directory: "{{ brain_install_dir }}"

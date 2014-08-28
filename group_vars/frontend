@@ -37,7 +37,7 @@ nodejs_global_packages:
 
 
 ## Supervisor role
-supervisor_programs:
+supervisor_programs_frontend:
   - name: frontend_app
     command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --loglevel=INFO"
     directory: "{{ frontend_install_dir }}"
