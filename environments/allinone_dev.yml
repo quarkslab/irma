@@ -1,9 +1,9 @@
 ---
 
 servers:
-  - name: frontend.irma
+  - name: brain.irma
     ip: 172.16.1.30
-    hostname: frontend.irma.local
+    hostname: brain.irma
     memory: 2048
     shares:
       - share_from: ../irma-frontend
@@ -37,10 +37,10 @@ ansible_config:
     vagrant_share: true
   groups:
     frontend:
-      - frontend.irma
+      - brain.irma
     brain:
-      - frontend.irma
+      - brain.irma
     clamav:
-      - frontend.irma
+      - brain.irma
     "probe:children":
       - clamav
