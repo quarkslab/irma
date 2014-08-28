@@ -17,4 +17,7 @@ users:
 sudo_users:
   - { name: "{{ default_user }}", nopasswd: yes }
 
-irma_code_version: master
+
+## Deployment
+irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else 'HEAD' }}"
+irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"

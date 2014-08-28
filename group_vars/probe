@@ -1,11 +1,17 @@
 ---
 
 ## Global
+hostname: probe.irma
 probe_user: "{{ default_user }}"
 probe_group: "{{ default_group }}"
 
-probe_install_dir: /opt/irma/irma-probe
+probe_project_dir: /opt/irma/irma-probe
+probe_install_dir: "{{ probe_project_dir }}/current"
 probe_venv_dir: "{{ probe_install_dir }}/venv"
+
+
+## Deployment
+probe_deployment_repository: "ssh://git@git.qb/irma-probe"
 
 
 ## Supervisor Role

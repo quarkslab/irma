@@ -1,0 +1,11 @@
+---
+
+- name: Ensure good rights on IRMA-Probe install directory
+  file:
+    path: "{{ probe_project_dir }}"
+    state: directory
+    owner: "{{ probe_user }}"
+    group: "{{ probe_group }}"
+    recurse: yes
+
+# vim: sw=2

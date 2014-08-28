@@ -1,12 +1,17 @@
 ---
 
 ## Global variables
-hostname: frontend.irma.local
+hostname: frontend.irma
 frontend_user: www-data
 frontend_group: www-data
 frontend_project_dir: /var/www/prod.project.local
 frontend_install_dir: "{{ frontend_project_dir }}/current"
+frontend_releases_dir: "{{ frontend_project_dir }}/releases"
 frontend_venv_dir: "{{ frontend_install_dir }}/venv"
+
+
+## Deployment
+frontend_deployment_repository: "ssh://git@git.qb/irma-frontend"
 
 
 ## Users role

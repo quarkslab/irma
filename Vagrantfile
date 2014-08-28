@@ -6,7 +6,7 @@ env = ENV.has_key?('VM_ENV') ? ENV['VM_ENV'] : "dev"
 require 'yaml'
 configuration = YAML.load_file(File.dirname(__FILE__) + "/environments/#{env}.yml")
 servers = configuration['servers']
-ansible_config = configuration['ansible_config']
+ansible_config = configuration['ansible_config'] || false
 
 # set minimal Vagrant version
 Vagrant.require_version ">= 1.1.0"
@@ -33,15 +33,17 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.provision :ansible do |ansible|
-    ansible.playbook = 'playbook.yml'
-    ansible.extra_vars = ansible_config['extra_vars']
-    ansible.groups = ansible_config['groups']
-    ansible.limit = 'all'
+  if ansible_config
+    config.vm.provision :ansible do |ansible|
+      ansible.playbook = 'playbook.yml'
+      ansible.extra_vars = ansible_config['extra_vars']
+      ansible.groups = ansible_config['groups']
+      ansible.limit = 'all'
 
-    # ansible.tags = ['']
-    # ansible.skip_tags = ['']
-    # ansible.verbose = 'vvvv'
-    # ansible.raw_arguments = ['--check','--diff']
+      # ansible.tags = ['']
+      # ansible.skip_tags = ['']
+      # ansible.verbose = 'vvvv'
+      # ansible.raw_arguments = ['--check','--diff']
+    end
   end
 end

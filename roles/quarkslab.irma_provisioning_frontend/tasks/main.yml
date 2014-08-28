@@ -2,10 +2,11 @@
 
 - name: Ensure that directory /var/www has www-data rights
   file:
-    path=/var/www
-    state=directory
-    owner={{ frontend_user }}
-    group={{ frontend_group }}
+    path: /var/www
+    state: directory
+    owner: "{{ frontend_user }}"
+    group: "{{ frontend_group }}"
+    recurse: yes
 
 - name: API | Install uWSGI config file
   template:

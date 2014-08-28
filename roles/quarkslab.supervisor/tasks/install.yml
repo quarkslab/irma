@@ -30,7 +30,13 @@
     owner=root
     group=root
     mode=0755
-  # Replace init.d var
+  # TODO: Replace init.d var
   when: ansible_os_family == "Debian"
+
+- name: Ensure Supervisor is running and start at boot
+  service:
+    name: supervisord
+    state: started
+    enabled: yes
 
 # vim: sw=2

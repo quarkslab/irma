@@ -49,7 +49,15 @@
   hosts: probe
   sudo: yes
   roles:
+    - { role: quarkslab.irma_provisioning_probe, tags: 'probe' }
     - { role: quarkslab.supervisor, tags: 'supervisor' }
-    - { role: quarkslab.clamav, tags: 'probe' }
+
+
+# Antivirus section
+- name: ClamAV provisioning
+  hosts: clamav
+  sudo: yes
+  roles:
+    - { role: quarkslab.clamav, tags: 'clamav' }
 
 # vim: sw=2

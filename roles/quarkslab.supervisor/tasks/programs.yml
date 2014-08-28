@@ -2,10 +2,15 @@
 
 - name: Install programs managed by Supervisor
   template:
-    src=program.j2
-    dest=/etc/supervisor/conf.d/{{ item.name }}
-    owner=root
-    group=root
-    mode=0755
+    src: program.j2
+    dest: /etc/supervisor/conf.d/{{ item.name }}
+    owner: root
+    group: root
+    mode: 0755
   with_items: supervisor_programs
-  notify: Restart Supervisor
+
+- name: Ensure that programs are available
+  supervisorctl:
+    name: "{{ item.name }}"
+    state: present
+  with_items: supervisor_programs

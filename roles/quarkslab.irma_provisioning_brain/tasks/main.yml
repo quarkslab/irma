@@ -1,5 +1,13 @@
 ---
 
+- name: Ensure good rights on IRMA-Brain install directory
+  file:
+    path: "{{ brain_project_dir }}"
+    state: directory
+    owner: "{{ brain_user }}"
+    group: "{{ brain_group }}"
+    recurse: yes
+
 - name: Pure-FTPD | Create group ftpgroup
   group:
     name=ftpgroup
