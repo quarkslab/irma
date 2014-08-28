@@ -26,6 +26,7 @@ from celery.utils.log import get_task_logger
 
 from lib.irma.ftp.handler import FtpTls
 from lib.plugins import PluginManager
+from lib.common.utils import to_unicode
 
 ##############################################################################
 # celery application configuration
@@ -91,7 +92,7 @@ def probe_scan(frontend, scanid, filename):
         # Some AV always delete suspicious file
         if os.path.exists(tmpname):
             os.remove(tmpname)
-        return results
+        return to_unicode(results)
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))
         raise probe_scan.retry(countdown=2, max_retries=3, exc=e)

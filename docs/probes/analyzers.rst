@@ -21,7 +21,7 @@ packages:
     [...]
     $ sudo freshclam
     [...]
-    $ sudo service restart clamav-daemon
+    $ sudo service clamav-daemon restart
     [...]
 
 ComodoCAVL - GNU/Linux
