@@ -1,0 +1,22 @@
+---
+
+servers:
+  - name: frontend.irma
+    ip: 172.16.1.30
+    hostname: frontend.irma.local
+    memory: 2048
+    share_code: false
+ansible_config:
+  extra_vars:
+    user: vagrant
+    vagrant: true
+    vagrant_share: false
+  groups:
+    frontend:
+      - frontend.irma
+    brain:
+      - frontend.irma
+    clamav:
+      - frontend.irma
+    "probe:children":
+      - clamav

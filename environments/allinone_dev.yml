@@ -1,0 +1,46 @@
+---
+
+servers:
+  - name: frontend.irma
+    ip: 172.16.1.30
+    hostname: frontend.irma.local
+    memory: 2048
+    shares:
+      - share_from: ../irma-frontend
+        share_to: /var/www/prod.project.local/current
+        share_user: www-data
+        share_group: www-data
+        share_exclude:
+          - .git/
+          - venv/
+          - web/dist
+      - share_from: ../irma-brain
+        share_to: /opt/irma/irma-brain/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
+          - db/
+      - share_from: ../irma-probe
+        share_to: /opt/irma/irma-probe/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
+
+ansible_config:
+  extra_vars:
+    user: vagrant
+    vagrant: true
+    vagrant_share: true
+  groups:
+    frontend:
+      - frontend.irma
+    brain:
+      - frontend.irma
+    clamav:
+      - frontend.irma
+    "probe:children":
+      - clamav

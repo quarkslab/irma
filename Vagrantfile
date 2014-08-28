@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-env = ENV.has_key?('VM_ENV') ? ENV['VM_ENV'] : "dev"
+env = ENV.has_key?('VM_ENV') ? ENV['VM_ENV'] : "allinone_prod"
 
 require 'yaml'
 configuration = YAML.load_file(File.dirname(__FILE__) + "/environments/#{env}.yml")
