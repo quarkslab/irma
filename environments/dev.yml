@@ -6,40 +6,40 @@ servers:
     ip: 172.16.1.30
     hostname: frontend.irma
     memory: 2048
-    share_code: true
-    share_from: ../irma-frontend
-    share_to: /var/www/prod.project.local/current
-    share_user: www-data
-    share_group: www-data
-    share_exclude:
-      - .git/
-      - venv/
-      - web/dist
+    shares:
+      - share_from: ../irma-frontend
+        share_to: /var/www/prod.project.local/current
+        share_user: www-data
+        share_group: www-data
+        share_exclude:
+          - .git/
+          - venv/
+          - web/dist
   - name: brain.irma
     ip: 172.16.1.31
     hostname: brain.irma
     memory: 2048
-    share_code: true
-    share_from: ../irma-brain
-    share_to: /opt/irma/irma-brain/current
-    share_user: irma
-    share_group: irma
-    share_exclude:
-      - .git/
-      - venv/
-      - db/
+    shares:
+      - share_from: ../irma-brain
+        share_to: /opt/irma/irma-brain/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
+          - db/
   - name: clamav.irma
     ip: 172.16.1.32
     hostname: probe.irma
     memory: 2048
-    share_code: true
-    share_from: ../irma-probe
-    share_to: /opt/irma/irma-probe/current
-    share_user: irma
-    share_group: irma
-    share_exclude:
-      - .git/
-      - venv/
+    shares:
+      - share_from: ../irma-probe
+        share_to: /opt/irma/irma-probe/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
 
 ansible_config:
   extra_vars:

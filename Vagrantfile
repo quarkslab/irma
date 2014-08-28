@@ -27,8 +27,10 @@ Vagrant.configure("2") do |config|
         machine.vm.network "private_network", ip: server['ip']
       end
 
-      if server['share_code']
-        machine.vm.synced_folder server["share_from"], server["share_to"], type: "rsync", owner: server['share_user'], group: server['share_group'], rsync__exclude: server["share_exclude"]
+      if server.has_key?('shares')
+        server['shares'].each do |share|
+          machine.vm.synced_folder share["share_from"], share["share_to"], type: "rsync", owner: share['share_user'], group: share['share_group'], rsync__exclude: share["share_exclude"]
+        end
       end
     end
   end
