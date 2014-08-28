@@ -51,9 +51,9 @@
 
 - name: Pure-FTPD | Lookup created virtual users
   command: pure-pw show {{ item.username }}
-  sudo: yes
   with_items: brain_pureftpd_virtual_users
   register: pure_ftpd_users_status
+  ignore_errors: True
 
 - name: Pure-FTPD | Add virtual users
   template:
