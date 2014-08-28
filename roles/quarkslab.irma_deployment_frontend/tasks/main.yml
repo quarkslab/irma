@@ -21,7 +21,7 @@
 - name: Install requirements in a Frontend virtualenv
   pip:
     requirements: "{{ frontend_deployment_dir }}/requirements.txt"
-    virtualenv: "{{ frontend_venv_dir }}"
+    virtualenv: "{{ frontend_deployment_dir }}/venv"
 
 - name: Install NPM dependencies
   npm:

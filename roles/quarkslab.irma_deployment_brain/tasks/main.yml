@@ -21,8 +21,7 @@
 - name: Install requirements in a virtualenv
   pip:
     requirements: "{{ brain_deployment_dir }}/requirements.txt"
-    virtualenv: "{{ brain_venv_dir }}"
-  notify: Restart Supervisor
+    virtualenv: "{{ brain_deployment_dir }}/venv"
 
 - name: Create database directory
   file:
@@ -33,11 +32,10 @@
     state: directory
 
 - name: Generate datbase
-  command: "{{ brain_venv_dir }}/bin/python -m brain.objects pepito mqfrontend frontend"
+  command: "{{ brain_deployment_dir }}/venv/bin/python -m brain.objects pepito mqfrontend frontend"
   args:
     chdir: "{{ brain_deployment_dir }}"
     creates: "{{ brain_deployment_dir }}/db/irma_scan.db"
-  notify: Restart Supervisor
 
 - name: Update database rights
   file:

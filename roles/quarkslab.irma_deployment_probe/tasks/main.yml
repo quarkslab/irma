@@ -21,8 +21,7 @@
 - name: Install requirements in a virtualenv
   pip:
     requirements: "{{ probe_deployment_dir }}/requirements.txt"
-    virtualenv: "{{ probe_venv_dir }}"
-  notify: Restart Supervisor
+    virtualenv: "{{ probe_deployment_dir }}/venv"
 
 # Copy previous config file
 #
