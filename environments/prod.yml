@@ -1,0 +1,16 @@
+---
+# Variables used by Vagrantfile are defined here
+
+servers:
+  - name: frontend
+    ip: 172.16.1.30
+    hostname: frontend.irma.local
+    memory: 2048
+  - name: brain
+    ip: 172.16.1.31
+    hostname: brain.irma.local
+    memory: 2048
+  - name: probe
+    ip: 172.16.1.32
+    hostname: probe.irma.local
+    memory: 2048
