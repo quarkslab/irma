@@ -1,0 +1,58 @@
+---
+
+- set_fact:
+    frontend_deployment_dir: "{{ frontend_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
+
+- name: Ensure that releases directory has been created
+  file:
+    path: "{{ frontend_project_dir }}/releases"
+    state: directory
+    owner: "{{ frontend_user }}"
+    group: "{{ frontend_group }}"
+
+- name: Clone repository
+  git:
+    repo: "{{ frontend_deployment_repository }}"
+    dest: "{{ frontend_deployment_dir }}"
+    version: "{{ irma_deployment_code_version }}"
+    accept_hostkey: yes
+  when: irma_deployment_code_version != 'local'
+
+- name: Install requirements in a Frontend virtualenv
+  pip:
+    requirements: "{{ frontend_deployment_dir }}/requirements.txt"
+    virtualenv: "{{ frontend_venv_dir }}"
+
+- name: Install NPM dependencies
+  npm:
+    path: "{{ frontend_deployment_dir }}/web"
+    state: present
+  register: npm_install
+
+- name: Install Bower dependencies
+  command: node_modules/.bin/bower install --config.interactive=false
+  args:
+    chdir: "{{ frontend_deployment_dir }}/web"
+
+- name: Generate Web Frontend
+  command: node_modules/.bin/gulp dist
+  args:
+    chdir: "{{ frontend_deployment_dir }}/web"
+
+# Copy previous config file
+#
+# If error with copy, generate it
+#- name: Configure {{ frontend_install_dir }}/config/frontend.ini file
+  #ini_file:
+    #dest="{{ frontend_install_dir }}/config/frontend.ini"
+    #section={{ item.section }}
+    #option={{ item.option }}
+    #value={{ item.value }}
+  #with_items: frontend_configs
+
+- name: Create symlink release -> current
+  file:
+    src: "{{ frontend_deployment_dir }}"
+    dest: "{{ frontend_install_dir }}"
+    state: link
+  when: irma_deployment_code_version != 'local'

@@ -1,0 +1,73 @@
+---
+
+- set_fact:
+    brain_deployment_dir: "{{ brain_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
+
+- name: Ensure that releases directory has been created
+  file:
+    path: "{{ brain_project_dir }}/releases"
+    state: directory
+    owner: "{{ brain_user }}"
+    group: "{{ brain_group }}"
+
+- name: Clone irma-brain repository
+  git:
+    repo: "{{ brain_deployment_repository }}"
+    dest: "{{ brain_deployment_dir }}"
+    version: "{{ irma_deployment_code_version }}"
+    accept_hostkey: yes
+  when: irma_deployment_code_version != 'local'
+
+- name: Install requirements in a virtualenv
+  pip:
+    requirements: "{{ brain_deployment_dir }}/requirements.txt"
+    virtualenv: "{{ brain_venv_dir }}"
+  notify: Restart Supervisor
+
+- name: Create database directory
+  file:
+    path: "{{ brain_deployment_dir }}/db"
+    owner: "{{ brain_user }}"
+    group: "{{ brain_group }}"
+    mode: 0766
+    state: directory
+
+- name: Generate datbase
+  command: "{{ brain_venv_dir }}/bin/python -m brain.objects pepito mqfrontend frontend"
+  args:
+    chdir: "{{ brain_deployment_dir }}"
+    creates: "{{ brain_deployment_dir }}/db/irma_scan.db"
+  notify: Restart Supervisor
+
+- name: Update database rights
+  file:
+    path: "{{ brain_deployment_dir }}/db"
+    owner: "{{ brain_user }}"
+    group: "{{ brain_group }}"
+    mode: 0777
+    recurse: yes
+    state: directory
+
+# Copy previous config file
+#
+# If error with copy, generate it
+#- name: Configure {{ brain_install_dir }}/config/brain.ini file
+  #ini_file:
+    #dest="{{ brain_install_dir }}/config/brain.ini"
+    #section={{ item.section }}
+    #option={{ item.option }}
+    #value={{ item.value }}
+  #with_items: brain_configs
+
+- name: Create symlink release -> current
+  file:
+    src: "{{ brain_deployment_dir }}"
+    dest: "{{ brain_install_dir }}"
+    state: link
+  when: irma_deployment_code_version != 'local'
+
+- name: Restart Supervisor
+  service:
+    name: supervisord
+    state: restarted
+  sudo: true
