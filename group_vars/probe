@@ -15,7 +15,7 @@ probe_deployment_repository: "ssh://git@git.qb/irma-probe"
 
 
 ## Supervisor Role
-supervisor_programs:
+supervisor_programs_probe:
   - name: probe_app
     command: "{{ probe_venv_dir }}/bin/celery worker -A probe.tasks --loglevel=INFO --without-gossip --without-mingle --without-heartbeat"
     directory: "{{ probe_install_dir }}"
