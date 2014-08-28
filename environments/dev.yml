@@ -46,7 +46,6 @@ ansible_config:
     user: vagrant
     vagrant: true
     vagrant_share: true
-    irma_code_version: local
   groups:
     frontend:
       - frontend.irma
