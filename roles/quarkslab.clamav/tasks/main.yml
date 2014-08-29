@@ -15,6 +15,7 @@
 - name: ClamAV | Update virus definition
   shell: freshclam --quiet
   sudo: true
-  async: 7200
+  async: 60
+  retries: 5
   when: clamav_install | changed
   notify: ClamAV | restart daemon
