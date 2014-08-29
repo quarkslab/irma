@@ -16,6 +16,7 @@ servers:
           - venv/
           - web/dist
           - web/node_modules
+          - app/components
   - name: brain.irma
     ip: 172.16.1.31
     hostname: brain.irma
