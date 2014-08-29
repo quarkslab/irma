@@ -13,6 +13,8 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+from .exceptions import IrmaValueError, IrmaValueError
+
 
 # ==========================
 #  Tasks response formatter
@@ -82,12 +84,11 @@ class IrmaReturnCode:
 class IrmaScanStatus:
     empty = 0
     ready = 10
-    uploading = 20
-    uploaded = 30
-    launched = 40
-    processed = 50
-    finished = 60
-    flushed = 70
+    uploaded = 20
+    launched = 30
+    processed = 40
+    finished = 50
+    flushed = 60
     # cancel
     cancelling = 100
     cancelled = 110
@@ -101,7 +102,6 @@ class IrmaScanStatus:
 
     label = {empty: "empty",
              ready: "ready",
-             uploading: "uploading",
              uploaded: "uploaded",
              launched: "launched",
              processed: "processed",
@@ -118,6 +118,43 @@ class IrmaScanStatus:
     @staticmethod
     def is_error(code):
         return code >= IrmaScanStatus.error
+
+    @staticmethod
+    def filter_status(status, status_min=None, status_max=None):
+        if status not in IrmaScanStatus.label.keys():
+            raise IrmaValueError("Unknown scan status {0}".format(status))
+        status_str = IrmaScanStatus.label[status]
+        if status_min is not None and status < status_min:
+            raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
+        if status_max is not None and status > status_max:
+            raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
+        return
+
+# ==========================================================
+#  Lock values for NoSQLDatabaseObjects (internal use only)
+# ==========================================================
+
+class IrmaLock:
+    free = 0
+    locked = 5
+    label = {
+        free: 'free',
+        locked: 'locked'
+    }
+    lock_timeout = 60  # in seconds (delta between timestamps)
+
+
+# =========================================================================
+#  Lock values for NoSQLDatabaseObjects (FOR THE CALL TO THE CONSTRUCTORS)
+# =========================================================================
+
+class IrmaLockMode:
+    read = 'r'
+    write = 'w'
+    label = {
+        read: 'read',
+        write: 'write'
+    }
 
 # ====================
 #  ScanResults states
