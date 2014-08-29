@@ -4,3 +4,6 @@
 [submodule "roles/Ansibles.openssh"]
 	path = roles/Ansibles.openssh
 	url = https://github.com/Ansibles/openssh
+[submodule "roles/gdamjan.uwsgi"]
+	path = roles/gdamjan.uwsgi
+	url = https://github.com/guillaumededrie/ansible-uwsgi.git

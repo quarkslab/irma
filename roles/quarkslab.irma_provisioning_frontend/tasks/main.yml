@@ -7,11 +7,3 @@
     owner: "{{ frontend_user }}"
     group: "{{ frontend_group }}"
     recurse: yes
-
-- name: API | Install uWSGI config file
-  template:
-    src=frontend-api.ini.j2
-    dest=/etc/uwsgi/vassals/{{ frontend_uwsgi_api_appname }}.ini
-    owner=root
-    group=root
-    mode=0755

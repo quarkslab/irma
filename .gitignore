@@ -4,7 +4,7 @@ vagrant_ansible_inventory_default
 roles/Ansibles.openssh/
 roles/DavidWittman.redis/
 roles/franklinkim.sudo/
-roles/gdamjan.uwsgi/
+/*roles/gdamjan.uwsgi/*/
 roles/JasonGiedymin.nodejs/
 roles/jdauphant.nginx/
 roles/Mayeu.RabbitMQ/

@@ -24,10 +24,7 @@ frontend_users:
 
 
 ## uWSGI role
-frontend_uwsgi_api_appname: frontend-api
-frontend_uwsgi_api_socket: /var/run/uwsgi/{{ frontend_uwsgi_api_appname }}.socket
-frontend_uwsgi_api_pidfile: /var/run/uwsgi/{{ frontend_uwsgi_api_appname }}.pid
-frontend_uwsgi_api_logfile: /var/log/uwsgi/{{ frontend_uwsgi_api_appname }}.log
+uwsgi_install_method: "pip"
 
 
 ## NodeJS role
@@ -45,6 +42,20 @@ supervisor_programs_frontend:
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_app.log
     stderr_logfile: /var/log/supervisor/frontend_app.log
+    autostart: true
+    stopwaitsecs: 600
+    killasgroup: true
+  - name: frontend_api
+    command: >
+      /usr/local/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+      --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
+      --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/web/api.py
+    user: nobody
+    numprocs: 1
+    stdout_logfile: /var/log/supervisor/frontend_api.log
+    stderr_logfile: /var/log/supervisor/frontend_api.log
+    redirect_stderr: true
+    stopsignal: INT
     autostart: true
     stopwaitsecs: 600
     killasgroup: true
@@ -79,7 +90,7 @@ nginx_sites:
     - location /_api {
         include uwsgi_params;
         rewrite ^/_api/(.+) /$1 break;
-        uwsgi_pass unix://{{ frontend_uwsgi_api_socket }};
+        uwsgi_pass 127.0.0.1:8081;
       }
     - location / {
             alias {{ frontend_install_dir }}/web/dist/;
