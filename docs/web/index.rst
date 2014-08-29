@@ -2,14 +2,6 @@
  IRMA - Web Interface
 ***********************
 
-========
-Overview
-========
-
-This directory stores everything related to the web interface on top of IRMA.
-
------------------------
-
 ============
 Installation
 ============
@@ -32,13 +24,13 @@ Those two work better when installed globally, you may need root privileges to i
 
 **3. Fetch the dependencies**
 
-The rest of the dependencies can them be fetched with this command:
+The rest of the dependencies can then be fetched with this command:
 
 .. code-block:: bash
 
     $ npm install
 
-If everything went fine, ``bower`` and the ``webdriver-manager`` should launch their respectiv updates right after ``npm install`` is done.
+If everything went fine, ``bower`` and the ``webdriver-manager`` should launch their respective updates right after ``npm install`` is done.
 If not, here they are:
 
 .. code-block:: bash
@@ -75,7 +67,7 @@ There is a standalone server embeded in the project, just launch it in another s
 
 .. code-block:: bash
 
-    $ # In another shell
+    # in another shell
     $ npm start
 
 The end to end tests can then be checked with another gulp task:
@@ -97,7 +89,7 @@ You can launch those 3 in sequence with the ``full`` task. You will need the sta
 Build
 ------------
 
-To get a bundled and prod ready version of the interface, use the ``dist`` task, which will build a ``dist`` directory.
+To get a bundled and production ready version of the interface, use the ``dist`` task, which will build a ``dist`` directory.
 
 .. code-block:: bash
 

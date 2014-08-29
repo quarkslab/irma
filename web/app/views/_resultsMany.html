@@ -21,7 +21,7 @@
         {{file.filename}}
       </th>
       <td ng-repeat="(toolName, toolResults) in file.results">
-        <div data-trigger="hover" bs-popover="state.scan.getPopover(toolName, toolResults)">
+        <div data-trigger="hover" bs-popover="state.scan.getPopover(toolName, toolResults)" data-placement="bottom">
           <ng-switch on="toolResults.result">
             <div class="result" ng-switch-when="null">
               <span boolean-display="true"></span>
