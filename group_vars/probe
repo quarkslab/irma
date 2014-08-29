@@ -11,7 +11,7 @@ probe_venv_dir: "{{ probe_install_dir }}/venv"
 
 
 ## Deployment
-probe_deployment_repository: "ssh://git@git.qb/irma-probe"
+probe_deployment_repository: "https://github.com/quarkslab/irma-probe.git"
 
 
 ## Supervisor Role

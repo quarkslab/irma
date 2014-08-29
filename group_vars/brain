@@ -11,7 +11,7 @@ brain_group: "{{ default_group }}"
 
 
 ## Deployment
-brain_deployment_repository: "ssh://git@git.qb/irma-brain"
+brain_deployment_repository: "https://github.com/quarkslab/irma-brain.git"
 
 
 ## RabbitMQ role

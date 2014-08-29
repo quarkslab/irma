@@ -11,7 +11,7 @@ frontend_venv_dir: "{{ frontend_install_dir }}/venv"
 
 
 ## Deployment
-frontend_deployment_repository: "ssh://git@git.qb/irma-frontend"
+frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
 
 
 ## Users role
