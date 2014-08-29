@@ -1,13 +1,20 @@
 ---
 
 - name: ClamAV | Install package
-  apt: name=clamav-daemon state=present
+  apt: name={{ item }} state=latest
+  with_items:
+    - clamav
+    - clamav-base
+    - clamav-freshclam
+    - clamav-daemon
+    - clamav-unofficial-sigs
   register: clamav_install
 
-- name: ClamAV | Update freshclam
-  shell: freshclam
+# Removed when clause 'when: clamav_install|changed' due to Ansible bug
+# https://github.com/ansible/ansible/issues/7432
+- name: ClamAV | Update virus definition
+  shell: freshclam --quiet
   sudo: true
+  async: 7200
   when: clamav_install | changed
-
-- name: ClamAV | start daemon
-  service: name=clamav-daemon state=started
+  notify: ClamAV | restart daemon
