@@ -4,6 +4,9 @@
   hosts: all
   sudo: yes
   pre_tasks:
+    # Run the equivalent of "apt-get update" as a separate step
+    - name: Ensure that APT cache is up to date
+      apt: update_cache=yes
     - name: Install Uncomplicated Firewall software
       apt: pkg=ufw state=present
     - name: Close all ports for Prod server
