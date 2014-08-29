@@ -21,7 +21,7 @@
         <a href="#/results/{{state.scan.id}}/file/{{id}}">{{file.filename}}</a>
       </th>
       <td ng-repeat="(toolName, toolResults) in file.results">
-        <div data-trigger="hover" bs-popover="state.scan.getPopover(toolName, toolResults)">
+        <div data-trigger="hover" bs-popover="state.scan.getPopover(toolName, toolResults)" data-placement="bottom">
           <ng-switch on="toolResults.status">
             <div class="result" ng-switch-when="0">
               <span boolean-display="true"></span>
