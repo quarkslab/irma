@@ -1,7 +1,6 @@
 ---
 
 ## Global
-hostname: brain.irma
 brain_project_dir: /opt/irma/irma-brain
 brain_install_dir: "{{ brain_project_dir }}/current"
 brain_venv_dir: "{{ brain_install_dir }}/venv"

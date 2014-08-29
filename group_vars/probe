@@ -1,7 +1,6 @@
 ---
 
 ## Global
-hostname: probe.irma
 probe_user: "{{ default_user }}"
 probe_group: "{{ default_group }}"
 

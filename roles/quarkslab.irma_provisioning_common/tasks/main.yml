@@ -1,9 +1,5 @@
 ---
 
-- name: Set Hostname if exist
-  hostname: name={{ hostname }}
-  when: hostname is defined
-
 # From https://coderwall.com/p/0xtstw
 - name: Check Apt last update
   stat: path=/var/cache/apt
