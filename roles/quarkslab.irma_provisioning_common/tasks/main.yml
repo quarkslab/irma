@@ -21,6 +21,7 @@
     - git
     - python-pip
     - python-virtualenv
+  when: ansible_os_family == "Debian"
 
 - name: Build /etc/hosts file
   lineinfile:
