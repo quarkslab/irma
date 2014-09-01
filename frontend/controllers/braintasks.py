@@ -17,6 +17,8 @@
 import celery
 import config.parser as config
 from frontend.helpers.celerytasks import sync_call
+from lib.irma.common.exceptions import IrmaCoreError, IrmaTaskError
+from lib.irma.common.utils import IrmaReturnCode
 
 timeout = config.get_brain_celery_timeout()
 brain_app = celery.Celery('braintasks')
@@ -29,10 +31,15 @@ config.conf_brain_celery(brain_app)
 
 def probe_list():
     """ send a task to the brain asking for active probe list """
-    return sync_call(brain_app,
-                     "brain.tasks",
-                     "probe_list",
-                     timeout)
+    (retcode, res) = sync_call(brain_app,
+                               "brain.tasks",
+                               "probe_list",
+                               timeout)
+    if retcode != IrmaReturnCode.success:
+        raise IrmaTaskError(res)
+    if len(res) == 0:
+        raise IrmaCoreError("no probe available")
+    return res
 
 
 def scan_progress(scanid):
