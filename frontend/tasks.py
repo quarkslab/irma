@@ -44,8 +44,8 @@ config.configure_syslog(scan_app)
 
 @frontend_app.task(acks_late=True)
 def scan_launch(scanid, force):
-    try:        
-		session = None
+    try:
+        session = None
         sql_db_connect()
         session = SQLDatabase.get_session()
         print("{0}: Launching with force={1}".format(scanid, force))
@@ -98,7 +98,7 @@ def scan_launch(scanid, force):
             scan_request = []
             ftps.mkdir(scanid)
             common_path = config.get_samples_storage_path()
-            for fw in scan.files_web:
+            for (fw, probelist) in files_web_todo:
                 file_sha256 = fw.file.sha256
                 file_path = os.path.join(common_path, file_sha256)
                 print "Uploading file {0}".format(file_path)
@@ -108,7 +108,7 @@ def scan_launch(scanid, force):
                 # our ftp handler store file under its sha256 name
                 if hashname != file_sha256:
                     reason = "Ftp Error: integrity failure while uploading \
-                    file {0} for scanid {1}".format(scanid, filename)
+                    file {0} for scanid {1}".format(file_path, scanid)
                     raise IrmaFtpError(reason)
                 scan_request.append((hashname, probelist))
         # launch new celery task
@@ -139,10 +139,10 @@ def scan_launched(scanid):
         sql_db_connect()
         session = SQLDatabase.get_session()
         scan = Scan.load_from_ext_id(scanid, session=session)
-		if scan.status == IrmaScanStatus.uploaded:
-    	    scan.status = IrmaScanStatus.launched
-    	    scan.update(['status'], session=session)
-    	    session.commit()
+        if scan.status == IrmaScanStatus.uploaded:
+            scan.status = IrmaScanStatus.launched
+            scan.update(['status'], session=session)
+            session.commit()
     except Exception as e:
         if session is not None:
             session.rollback()
@@ -218,14 +218,15 @@ def scan_result(scanid, file_hash, probe, result):
         pr.nosql_id = prr.id
         pr.state = IrmaProbeResultsStates.finished
         pr.update(['nosql_id', 'state'], session=session)
+        probedone = [pr.probe_name for pr in fw.probe_results]
         print("Scanid {0}".format(scanid) +
               "Result from {0} ".format(probe) +
-              "probedone {0}".format([pr.probe_name for pr in fw.probe_results]))
+              "probedone {0}".format(probedone))
 
         if scan.finished():
             scan.status = IrmaScanStatus.finished
             scan.update(['status'], session=session)
-			# launch flush celery task on brain
+            # launch flush celery task on brain
             scan_app.send_task("brain.tasks.scan_flush", args=[scanid])
 
         session.commit()
@@ -292,7 +293,7 @@ def scan_result_error(scanid, file_hash, probe, exc):
         if scan.finished():
             scan.status = IrmaScanStatus.finished
             scan.update(['status'], session=session)
-			# launch flush celery task on brain
+            # launch flush celery task on brain
             scan_app.send_task("brain.tasks.scan_flush", args=[scanid])
 
         session.commit()
