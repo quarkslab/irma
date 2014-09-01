@@ -13,41 +13,14 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import re
 import os
-import bottle
-import importlib
-import json
-import sys
-import logging
-
-from bottle import route, request, default_app, run, abort
+from bottle import Bottle, request
 from lib.common.utils import UUID
-
-"""
-    IRMA FRONTEND WEB API
-    defines all accessible route accessed via uwsgi..
-"""
-
 from lib.irma.common.utils import IrmaFrontendReturn
-from lib.irma.common.exceptions import IrmaTaskError, IrmaValueError
 import frontend.controllers.scanctrl as scan_ctrl
-import frontend.controllers.filectrl as file_ctrl
 
 
-# =============
-#  Server root
-# =============
-
-@route("/")
-def svr_index():
-    """ hello world
-
-    :route: /
-    :rtype: dict of 'code': int, 'msg': str
-    :return: on success 'code' is 0
-    """
-    return IrmaFrontendReturn.success()
+scan_app = Bottle()
 
 
 # =====================
@@ -56,25 +29,19 @@ def svr_index():
 
 def validate_id(scanid):
     """ check scanid format - should be a str(ObjectId)"""
-    if not re.match(r'^[0-9a-fA-F]{24}$', scanid):
+    if not UUID.validate(scanid):
         raise ValueError("Malformed Scanid")
-
-
-def validate_sha256(sha256):
-    """ check hashvalue format - should be a sha256 hexdigest"""
-    if not re.match(r'^[0-9a-fA-F]{64}$', sha256):
-        raise ValueError("Malformed Sha256")
 
 
 # ==========
 #  Scan api
 # ==========
 
-@route("/scan/new")
-def scan_new():
+@scan_app.route("/new")
+def new():
     """ create new scan
 
-    :route: /scan/new
+    :route: /new
     :rtype: dict of 'code': int, 'msg': str [, optional 'scan_id':str]
     :return:
         on success 'scan_id' contains the newly created scan id
@@ -87,11 +54,11 @@ def scan_new():
         return IrmaFrontendReturn.error(str(e))
 
 
-@route("/scan/add/<scanid>", method='POST')
-def scan_add(scanid):
+@scan_app.route("/add/<scanid>", method='POST')
+def add(scanid):
     """ add posted file(s) to the specified scan
 
-    :route: /scan/add/<scanid>
+    :route: /add/<scanid>
     :postparam: multipart form with filename(s) and file(s) data
     :param scanid: id returned by scan_new
     :note: files are posted as multipart/form-data
@@ -114,11 +81,11 @@ def scan_add(scanid):
         return IrmaFrontendReturn.error(str(e))
 
 
-@route("/scan/launch/<scanid>", method='GET')
-def scan_launch(scanid):
+@scan_app.route("/launch/<scanid>", method='GET')
+def launch(scanid):
     """ launch specified scan
 
-    :route: /scan/launch/<scanid>
+    :route: /launch/<scanid>
     :getparam: force=True or False
     :getparam: probe=probe1,probe2
     :param scanid: id returned by scan_new
@@ -144,11 +111,11 @@ def scan_launch(scanid):
         return IrmaFrontendReturn.error(str(e))
 
 
-@route("/scan/result/<scanid>", method='GET')
-def scan_result(scanid):
+@scan_app.route("/result/<scanid>", method='GET')
+def result(scanid):
     """ get all results from files of specified scan
 
-    :route: /scan/result/<scanid>
+    :route: /result/<scanid>
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str
         [, optional 'scan_results': dict of [
@@ -161,17 +128,17 @@ def scan_result(scanid):
     """
     try:
         validate_id(scanid)
-        results = core.scan_result(scanid)
+        results = scan_ctrl.result(scanid)
         return IrmaFrontendReturn.success(scan_results=results)
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
 
 
-@route("/scan/progress/<scanid>", method='GET')
-def scan_progress(scanid):
+@scan_app.route("/progress/<scanid>", method='GET')
+def progress(scanid):
     """ get scan progress for specified scan
 
-    :route: /scan/progress/<scanid>
+    :route: /progress/<scanid>
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str
         [, optional 'progress_details':
@@ -188,7 +155,7 @@ def scan_progress(scanid):
     try:
         validate_id(scanid)
         progress = scan_ctrl.progress(scanid)
-		details = progress.get('progress_details', None)
+        details = progress.get('progress_details', None)
         if details is not None:
             return IrmaFrontendReturn.success(progress_details=details)
         else:
@@ -197,11 +164,11 @@ def scan_progress(scanid):
         return IrmaFrontendReturn.error(str(e))
 
 
-@route("/scan/cancel/<scanid>", method='GET')
+@scan_app.route("/cancel/<scanid>", method='GET')
 def scan_cancel(scanid):
     """ cancel all remaining jobs for specified scan
 
-    :route: /scan/cancel/<scanid>
+    :route: /cancel/<scanid>
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str
         [, optional 'cancel_details':
@@ -221,11 +188,11 @@ def scan_cancel(scanid):
         return IrmaFrontendReturn.error(str(e))
 
 
-@route("/scan/finished/<scanid>", method='GET')
-def scan_finished(scanid):
+@scan_app.route("/finished/<scanid>", method='GET')
+def finished(scanid):
     """ tell if scan specified is finished
 
-    :route: /scan/finished/<scanid>
+    :route: /finished/<scanid>
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str
     :return:
@@ -240,106 +207,3 @@ def scan_finished(scanid):
             return IrmaFrontendReturn.warning("not finished")
     except Exception as e:
         return IrmaFrontendReturn.error(str(e))
-
-
-# ===========
-#  Probe api
-# ===========
-
-@route("/probe/list")
-def probe_list():
-    """ get active probe list
-
-    :route: /probe/list
-    :rtype: dict of 'code': int, 'msg': str
-        [, optional 'probe_list': list of str]
-    :return:
-        on success 'probe_list' contains list of probes names
-        on error 'msg' gives reason message
-    """
-    try:
-        probelist = scan_ctrl.probe_list()
-        return IrmaFrontendReturn.success(probe_list=probelist)
-    except Exception as e:
-        return IrmaFrontendReturn.error(str(e))
-
-
-# ==========
-#  File api
-# ==========
-@route("/file/exists/<sha256>")
-def file_exists(sha256):
-    """ lookup file by sha256 and tell if it exists
-
-    :route: /file/exists/<sha256>
-    :param sha256 of the file
-    :rtype: dict of 'code': int, 'msg': str
-        [, optional 'exists':boolean]
-    :return:
-        on success 'exists' contains a boolean telling if
-        file exists or not
-        on error 'msg' gives reason message
-    """
-    try:
-        validate_sha256(sha256)
-        exists = file_ctrl.exists(sha256)
-        return IrmaFrontendReturn.success(exists=exists)
-    except Exception as e:
-        return IrmaFrontendReturn.error(str(e))
-
-
-@route("/file/result/<sha256>")
-def file_result(sha256):
-    """ lookup file by sha256
-
-    :route: /file/search/<scanid>
-    :param sha256 of the file
-    :rtype: dict of 'code': int, 'msg': str
-        [, optional 'scan_results': dict of [
-            sha256 value: dict of
-                'filenames':list of filename,
-                'results': dict of [str probename: dict [results of probe]]]]
-    :return:
-        on success 'scan_results' contains results for file
-        on error 'msg' gives reason message
-    """
-    try:
-        validate_sha256(sha256)
-        res = file_ctrl.result(sha256)
-        return IrmaFrontendReturn.success(scan_results=res)
-    # handle all errors/warning as errors
-    # file existence should be tested before calling this route
-    except Exception as e:
-        return IrmaFrontendReturn.error(str(e))
-
-
-@route("/file/infected/<sha256>")
-def file_infected(sha256):
-    """ lookup file by sha256 and tell if av detect it as
-        infected
-
-    :route: /file/suspicious/<sha256>
-    :param sha256 of the file
-    :rtype: dict of 'code': int, 'msg': str
-        [, optional 'infected':boolean, 'nb_detected':int, 'nb_scan':int]
-    :return:
-        on success 'infected' contains boolean results
-        with details in 'nb_detected' and 'nb_scan'
-        on error 'msg' gives reason message
-    """
-    try:
-        validate_sha256(sha256)
-        res = file_ctrl.infected(sha256)
-        return IrmaFrontendReturn.success(infected=res['infected'],
-                                          nb_scan=res['nb_scan'],
-                                          nb_detected=res['nb_detected'])
-    except Exception as e:
-        return IrmaFrontendReturn.error(str(e))
-
-
-# ======
-#  Main
-# ======
-
-# deprecated launched via uwsgi now
-application = default_app()
