@@ -333,7 +333,13 @@ class ProbeResult(Base, SQLDatabaseObject):
         backref=backref('ref_results')
     )
 
-    def __init__(self, probe_type, probe_name, nosql_id, state, result, file_web=None):
+    def __init__(self,
+                 probe_type,
+                 probe_name,
+                 nosql_id,
+                 state,
+                 result,
+                 file_web=None):
         super(ProbeResult, self).__init__()
 
         self.probe_type = probe_type

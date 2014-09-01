@@ -21,6 +21,7 @@ import argparse
 
 ADDRESS = "http://localhost/_api"
 
+
 # Warning this is a copy of IrmaScanStatus lib.irma.common.utils
 # in order to get rid of this dependency
 # KEEP SYNCHRONIZED
