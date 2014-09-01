@@ -62,5 +62,10 @@
   sudo: yes
   roles:
     - { role: quarkslab.clamav, tags: 'clamav' }
+- name: ComodoCAVL provisioning
+  hosts: comodo
+  sudo: yes
+  roles:
+    - { role: quarkslab.comodo_cavl, tags: 'comodo' }
 
 # vim: sw=2

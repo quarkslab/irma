@@ -10,7 +10,12 @@ servers:
     ip: 172.16.1.31
     hostname: brain.irma
     memory: 2048
-  - name: probe.irma
+  - name: clamav.irma
     ip: 172.16.1.32
-    hostname: probe.irma
+    hostname: clamav.irma
     memory: 2048
+  - name: comodo.irma
+    ip: 172.16.1.33
+    hostname: comodo.irma
+    memory: 2048
+
