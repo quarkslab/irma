@@ -10,12 +10,8 @@
     - clamav-unofficial-sigs
   register: clamav_install
 
-# Removed when clause 'when: clamav_install|changed' due to Ansible bug
-# https://github.com/ansible/ansible/issues/7432
 - name: ClamAV | Update virus definition
   shell: freshclam --quiet
   sudo: true
-  async: 60
-  retries: 5
   when: clamav_install | changed
   notify: ClamAV | restart daemon

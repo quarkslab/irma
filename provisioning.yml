@@ -62,10 +62,17 @@
   sudo: yes
   roles:
     - { role: quarkslab.clamav, tags: 'clamav' }
+
 - name: ComodoCAVL provisioning
   hosts: comodo
   sudo: yes
   roles:
     - { role: quarkslab.comodo_cavl, tags: 'comodo' }
+
+- name: McAfee VSCL provisioning
+  hosts: mcafee
+  sudo: yes
+  roles:
+    - { role: quarkslab.mcafee_vscl, tags: 'mcafee_vscl' }
 
 # vim: sw=2

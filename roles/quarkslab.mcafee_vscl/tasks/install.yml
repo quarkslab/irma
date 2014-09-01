@@ -1,0 +1,14 @@
+---
+
+- name: McAfee VSCL | Download Package
+  get_url:
+    url: "{{ macafee_vscl_tgz_url }}"
+    dest: /tmp/vscl.tar.gz
+
+- file: path=/usr/local/uvscan state=directory
+
+- name: McAfee VSCL | Extract files
+  shell: tar xzf /tmp/vscl.tar.gz -C /usr/local/uvscan
+
+- file: path=/usr/local/uvscan/uvscan mode="655"
+
