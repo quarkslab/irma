@@ -35,6 +35,9 @@
   post_tasks:
     - name: Open Webserver port
       ufw: rule=allow port=80
+    - name: Open OpenSSL port
+      ufw: rule=allow port=443
+      when: frontend_openssl|default(False) == True
 
 
 - name: Brain provisioning
