@@ -182,6 +182,27 @@ Then, with your web browser, IRMA allinone is available at
 [www.frontend.irma.local](http://www.frontend.irma.local).
 
 
+Enable SSL using OpenSSL
+------------------------
+
+If you want to activate SSL on the frontend server, you’ll need:
+
+- modify frontend_openssl variables in `group_vars/frontend`:
+
+  ```
+  frontend_openssl: True # Default is false
+  frontend_openssl_dh_param: # put the DH file locations
+  frontend_openssl_certificates: [] # an array of files {source, destination}
+                                    # to copy to the server
+  ```
+
+- Uncomment (and customize) the `nginx_sites` variable in the
+  `group_vars/frontend`, a commented example is available.
+
+Then, provision or reprovision your infrastructure. Ansible will only change
+file related to OpenSSL and Nginx configurations.
+
+
 Contributing
 ------------
 

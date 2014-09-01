@@ -10,3 +10,5 @@ roles/jdauphant.nginx/
 roles/Mayeu.RabbitMQ/
 roles/mivok0.users/
 roles/Stouts.mongodb/
+files/*
+!files/.gitkeep
