@@ -34,7 +34,7 @@ servers:
 
 ansible_config:
   extra_vars:
-    user: vagrant
+    remote_user: vagrant
     vagrant: true
     vagrant_share: true
   groups:
