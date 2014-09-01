@@ -20,8 +20,8 @@ from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common import compat
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
-    IrmaProbeResultsStates, IrmaScanResults
-from lib.irma.common.exceptions import IrmaDatabaseError, \
+    IrmaProbeResultsStates
+from lib.irma.common.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError
 from frontend.format import IrmaFormatter
 from frontend.helpers.sql import session_transaction, session_query
@@ -76,9 +76,9 @@ def add_files(scanid, files):
     """
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session)
-	    IrmaScanStatus.filter_status(scan.status,
-	                                 IrmaScanStatus.empty,
-	                                 IrmaScanStatus.ready)
+        IrmaScanStatus.filter_status(scan.status,
+                                     IrmaScanStatus.empty,
+                                     IrmaScanStatus.ready)
         if scan.status == IrmaScanStatus.empty:
             # on first file added update status to 'ready'
             scan.status = IrmaScanStatus.ready
@@ -114,19 +114,18 @@ def launch(scanid, force, probelist):
     """
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session)
-   		IrmaScanStatus.filter_status(scan.status,
-                                	 IrmaScanStatus.ready,
-                                 	 IrmaScanStatus.ready)
-        all_probe_list = probe_list()
-
+        IrmaScanStatus.filter_status(scan.status,
+                                     IrmaScanStatus.ready,
+                                     IrmaScanStatus.ready)
+        all_probe_list = celery_brain.probe_list()
         if probelist is not None:
             unknown_probes = []
             for p in probelist:
                 if p not in all_probe_list:
                     unknown_probes.append(p)
-            if len(unknown_probes) != 0: 
-				reason = "probe {0} unknown".format(", ".join(unknown_probes))
-	            raise IrmaValueError(reason)
+            if len(unknown_probes) != 0:
+                reason = "probe {0} unknown".format(", ".join(unknown_probes))
+                raise IrmaValueError(reason)
             scan.probelist = probelist
         else:
             # all available probes
@@ -188,7 +187,7 @@ def progress(scanid):
     """ get scan progress for specified scan
 
     :param scanid: id returned by scan_new
-    :rtype: 'status': label of status [optional dict of 'total':int, 
+    :rtype: 'status': label of status [optional dict of 'total':int,
         'finished':int, 'successful':int]
     :return:
         dict with total/finished/succesful jobs submitted by irma-brain
@@ -196,24 +195,25 @@ def progress(scanid):
     """
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-    	if scan.status != IrmaScanStatus.launched:
-        	if IrmaScanStatus.is_error(scan.status):
-            	raise IrmaCoreError(IrmaScanStatus.label[scan.status])
-       	 	else:
-            	return {'status': IrmaScanStatus.label[scan.status]}
+        if scan.status != IrmaScanStatus.launched:
+            if IrmaScanStatus.is_error(scan.status):
+                raise IrmaCoreError(IrmaScanStatus.label[scan.status])
+            else:
+                return {'status': IrmaScanStatus.label[scan.status]}
         else:
             # Else ask brain for job status
-		(retcode, res) = _task_scan_progress(scanid)
-        if retcode == IrmaReturnCode.success:
-            if res['status'] == IrmaScanStatus.label[IrmaScanStatus.processed]:
-                scan.status = IrmaScanStatus.processed
-                scan.update(['status'], session=session)
-                session.commit()
-            return res
-        else:
-            # else take directly error string from brain and
-            # pass it to the caller
-            raise IrmaTaskError(res)
+            (retcode, res) = celery_brain.scan_progress(scanid)
+            if retcode == IrmaReturnCode.success:
+                s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
+                if res['status'] == s_processed:
+                    scan.status = IrmaScanStatus.processed
+                    scan.update(['status'], session=session)
+                    session.commit()
+                return res
+            else:
+                # else take directly error string from brain and
+                # pass it to the caller
+                raise IrmaTaskError(res)
 
 
 def cancel(scanid):
@@ -228,36 +228,37 @@ def cancel(scanid):
     """
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-		if scan.status < IrmaScanStatus.uploaded:
-			# If not launched answer directly
-			scan.status = IrmaScanStatus.cancelled
+        if scan.status < IrmaScanStatus.uploaded:
+            # If not launched answer directly
+            scan.status = IrmaScanStatus.cancelled
             scan.update(['status'], session=session)
             session.commit()
-			return None
+            return None
         if scan.status != IrmaScanStatus.launched:
-        	# If too late answer directly
-        	status_str = IrmaScanStatus.label[scan.status]        
-			if IrmaScanStatus.is_error(scan.status):
-	            # let the cancel finish and keep the error status
-	            return None
-	        else:
-	            reason = "can not cancel scan in {0} status".format(status_str)
-	            raise IrmaValueError(reason)
+            # If too late answer directly
+            status_str = IrmaScanStatus.label[scan.status]
+            if IrmaScanStatus.is_error(scan.status):
+                # let the cancel finish and keep the error status
+                return None
+            else:
+                reason = "can not cancel scan in {0} status".format(status_str)
+                raise IrmaValueError(reason)
 
         # Else ask brain for job cancel
         (retcode, res) = celery_brain.scan_cancel(scanid)
         if retcode == IrmaReturnCode.success:
-			if 'cancel_details' in res:
-	            scan.status = IrmaScanStatus.cancelled
-	            scan.update(['status'], session=session)
-	            return res['cancel_details']
-			 elif res['status'] == IrmaScanStatus.label[IrmaScanStatus.processed]:
-	            # if scan is finished for the brain
-	            # it means we are just waiting for results
-	            scan.status = IrmaScanStatus.processed
-	            scan.update(['status'], session=session)
-	        reason = "can not cancel scan in {0} status".format(res['status'])
-	        raise IrmaValueError(reason)
+            s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
+            if 'cancel_details' in res:
+                scan.status = IrmaScanStatus.cancelled
+                scan.update(['status'], session=session)
+                return res['cancel_details']
+            elif res['status'] == s_processed:
+                # if scan is finished for the brain
+                # it means we are just waiting for results
+                scan.status = IrmaScanStatus.processed
+                scan.update(['status'], session=session)
+            reason = "can not cancel scan in {0} status".format(res['status'])
+            raise IrmaValueError(reason)
         else:
             raise IrmaTaskError(res)
 
@@ -274,19 +275,3 @@ def finished(scanid):
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
         return scan.finished()
-
-
-def probe_list():
-    """ get active probe list
-
-    :rtype: list of str
-    :return:
-        list of probes names
-    :raise: IrmaFrontendWarning, IrmaFrontendError
-    """
-    (status, res) = celery_brain.probe_list()
-    if status == IrmaReturnCode.success:
-        return res
-    else:
-        raise IrmaTaskError(res)
-
