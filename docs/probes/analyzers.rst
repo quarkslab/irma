@@ -70,9 +70,8 @@ Debian. Just follow the typical installation on the GUI:
 .. code-block:: bash
 
     $ sudo chmod u+x eset_nod32av_64bit_en.linux
-    $ sudo apt-get install libgtk-2.0-0 libc6-i386
+    $ sudo apt-get install libgtk2.0-0 libc6-i386
     $ sudo ./eset_nod32av_64bit_en.linux
-    $ XAUTHORITY="$HOME/.Xauthority" sudo /opt/COMODO/menu/comodo-updater
     [...]
 
 Binaries should be installed in ``/opt/eset/esets`` directory. Updates are
@@ -80,7 +79,7 @@ performed from the GUI:
 
 .. code-block:: bash
 
-    $ sudo /opt/eset/esets/bin/esets_gui
+    $ XAUTHORITY="$HOME/.Xauthority" sudo /opt/eset/esets/bin/esets_gui
 
 .. note:: Disabling the antivirus daemon
 
