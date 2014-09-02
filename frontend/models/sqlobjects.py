@@ -11,6 +11,7 @@
 # No part of the project, including this file, may be copied,
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
+import hashlib
 import os
 
 from sqlalchemy import Table, Column, Integer, ForeignKey, String, \
@@ -29,7 +30,6 @@ from lib.irma.common.exceptions import IrmaFileSystemError
 from lib.irma.common.utils import IrmaProbeResultsStates, IrmaScanStatus
 from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.database.sqlobjects import SQLDatabaseObject
-from lib.common.hash import sha256sum, sha1sum, md5sum
 
 
 def sql_db_connect():
@@ -252,7 +252,7 @@ class File(Base, SQLDatabaseObject):
         :raise: IrmaFileSystemError if there is a problem with the filesystem
         """
 
-        sha256 = sha256sum(data)
+        sha256 = hashlib.sha256(data).hexdigest()
         common_path = config.get_samples_storage_path()
         full_path = os.path.join(common_path, sha256)
         try:
@@ -264,8 +264,8 @@ class File(Base, SQLDatabaseObject):
             )
 
         self.sha256 = sha256
-        self.sha1 = sha1sum(data)
-        self.md5 = md5sum(data)
+        self.sha1 = hashlib.sha1(data).hexdigest()
+        self.md5 = hashlib.md5(data).hexdigest()
         self.size = len(data)
         self.path = self.sha256
 

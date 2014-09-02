@@ -14,7 +14,6 @@
 # terms contained in the LICENSE file.
 
 import hashlib
-import logging
 
 from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
