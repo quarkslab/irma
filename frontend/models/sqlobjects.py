@@ -228,6 +228,42 @@ class File(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
+    @classmethod
+    def load_from_sha1(cls, sha1, session):
+        """Find the object in the database
+        :param sha1: the sha1 to look for
+        :param session: the session to use
+        :rtype: cls
+        :return: the object that corresponds to the sha1
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        """
+        try:
+            return session.query(cls).filter(
+                cls.sha1 == sha1
+            ).one()
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+        except MultipleResultsFound as e:
+            raise IrmaDatabaseError(e)
+
+    @classmethod
+    def load_from_md5(cls, md5, session):
+        """Find the object in the database
+        :param md5: the md5 to look for
+        :param session: the session to use
+        :rtype: cls
+        :return: the object that corresponds to the md5
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        """
+        try:
+            return session.query(cls).filter(
+                cls.md5 == md5
+            ).one()
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+        except MultipleResultsFound as e:
+            raise IrmaDatabaseError(e)
+
     def save_file_to_fs(self, data):
         """Add a sample
         :param data: the sample file
