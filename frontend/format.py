@@ -32,10 +32,9 @@ class IrmaFormatter:
         manager = PluginManager()
         manager.discover("frontend/formatters", "frontend.formatters")
         # TODO add plugin type to distinguish between api/formatter plugin
-        self.formatters = []
-        for plugin in manager.get_all_plugins():
-            if 'can_handle_results' in dir(plugin):
-                self.formatters.append(plugin)
+        all_plugins = manager.get_all_plugins()
+        self.formatters = filter(lambda x: not x.plugin_category == "api",
+                                 all_plugins)
 
     @classmethod
     def format(cls, probe_name, raw_result):
