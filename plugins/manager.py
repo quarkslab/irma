@@ -75,7 +75,7 @@ class PluginManager(Singleton):
     ##########################################################################
     # plugin registering
     ##########################################################################
-
+    @classmethod
     def register_plugin(cls, plugin):
         logging.debug('Found plugin {name}. Trying to register it.'
                       ''.format(name=plugin.plugin_name))
