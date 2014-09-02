@@ -53,3 +53,6 @@ Some screenshots of the irma user interface shipped with frontend package.
 
 .. image:: images/screenshots/webui/webui4.png
    :alt: Scan Results
+
+.. image:: images/screenshots/webui/webui5.png
+   :alt: Scan Details
