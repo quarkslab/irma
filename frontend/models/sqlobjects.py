@@ -275,7 +275,7 @@ class File(Base, SQLDatabaseObject):
         from_submission = []
         for fa in self.files_agent:
             from_submission.append(os.path.split(fa.submission_path)[1])
-        return from_web + from_submission
+        return list(set(from_web + from_submission))
 
 
 class ProbeResult(Base, SQLDatabaseObject):

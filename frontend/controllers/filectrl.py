@@ -1,3 +1,10 @@
+from frontend.models.sqlobjects import File
+from frontend.models.nosqlobjects import ProbeRealResult
+from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+    IrmaDatabaseError, IrmaTaskError
+from .scanctrl import format_results
+from frontend.helpers.sql import session_query
+
 
 def exists(sha256):
     """ return results for file with given sha256 value
@@ -7,13 +14,14 @@ def exists(sha256):
         if exists returns True else False
     :raise: IrmaTaskError
     """
-    try:
-        File.load_from_sha256(sha256=sha256)
-        return True
-    except IrmaDatabaseResultNotFound:
-        return False
-    except IrmaDatabaseError as e:
-        raise IrmaTaskError(str(e))
+    with session_query() as session:
+        try:
+            File.load_from_sha256(sha256, session)
+            return True
+        except IrmaDatabaseResultNotFound:
+            return False
+        except IrmaDatabaseError as e:
+            raise IrmaTaskError(str(e))
 
 
 def result(sha256, filter_type=None):
@@ -26,20 +34,20 @@ def result(sha256, filter_type=None):
         if exists returns all available scan results
         for file with given sha256 value
     """
-    # TODO handle file dont exists here
-    f = File.load_from_sha256(sha256=sha256)
-    ref_res = {}
-    probe_results = {}
-    for rr in f.ref_results:
-        probe_results[rr.probe_name] = ProbeRealResult(
-            id=rr.nosql_id
-        ).get_results()
-    ref_res[f.sha256] = {
-        'filename': f.get_file_names(),
-        'results': format_results(probe_results, filter_type)
-    }
-
-    return ref_res
+    with session_query() as session:
+        # TODO handle file dont exists here
+        f = File.load_from_sha256(sha256, session)
+        ref_res = {}
+        probe_results = {}
+        for rr in f.ref_results:
+            probe_results[rr.probe_name] = ProbeRealResult(
+                id=rr.nosql_id
+            ).get_results()
+        ref_res[f.sha256] = {
+            'filename': f.get_file_names(),
+            'results': format_results(probe_results, filter_type)
+        }
+        return ref_res
 
 
 def infected(sha256):
@@ -51,16 +59,13 @@ def infected(sha256):
         returns detection score for
         file with given sha256 value
     """
-    f = File.load_from_sha256(sha256=sha256)
-    # FIXME old code here
-    ref_res = ScanRefResults(id=f.id)
-    nb_scan = nb_detected = 0
-
-    av_results = file_result(sha256, filter_type=["antivirus"])
+    av_results = result(sha256, filter_type=["antivirus"])
     probe_res = av_results[sha256]['results']
+    nb_scan = nb_detected = 0
     for res in probe_res.values():
         nb_scan += 1
-        if res['result'] == IrmaScanResults.isMalicious:
+        # TODO export Antivirus.ScanResults values
+        if res['status'] == 1:
             nb_detected += 1
 
     return {'infected': (nb_detected > 0),

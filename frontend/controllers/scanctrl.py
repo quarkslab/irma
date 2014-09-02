@@ -40,9 +40,7 @@ def format_results(res_dict, filter_type):
         res[name] = IrmaFormatter.format(name, results)
     # filter by type
     if filter_type is not None:
-        res = filter(lambda x:
-                     'category' in x and x['category'] in filter_type,
-                     res)
+        res = dict((k, v) for k, v in res.items() if v['type'] in filter_type)
     return res
 
 # ==================
