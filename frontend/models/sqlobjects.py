@@ -220,17 +220,16 @@ class File(Base, SQLDatabaseObject):
         common_path = config.get_samples_storage_path()
         full_path = os.path.join(common_path, sha256)
         try:
-            h = open(full_path, 'wb')
-            h.write(data)
-            h.close()
+            with open(full_path, 'wb') as h:
+                h.write(data)
         except IOError:
             raise IrmaFileSystemError(
                 'Cannot add the sample {0} to the collection'.format(sha256)
             )
 
         self.sha256 = sha256
-        self.sha1 = hashlib.sha256(data).hexdigest()
-        self.md5 = hashlib.sha256(data).hexdigest()
+        self.sha1 = hashlib.sha1(data).hexdigest()
+        self.md5 = hashlib.md5(data).hexdigest()
         self.size = len(data)
         self.path = self.sha256
 
