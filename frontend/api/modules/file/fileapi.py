@@ -15,6 +15,18 @@ def validate_sha256(sha256):
         raise ValueError("Malformed Sha256")
 
 
+def validate_sha1(sha1):
+    """ check hashvalue format - should be a sha1 hexdigest"""
+    if not re.match(r'^[0-9a-fA-F]{40}$', sha1):
+        raise ValueError("Malformed Sha1")
+
+
+def validate_md5(md5):
+    """ check hashvalue format - should be a md5 hexdigest"""
+    if not re.match(r'^[0-9a-fA-F]{32}$', md5):
+        raise ValueError("Malformed md5")
+
+
 # ==========
 #  File api
 # ==========
@@ -27,10 +39,11 @@ class FileApi(WebApi):
         self._app.route('/exists/<sha256>', callback=self._exists)
         self._app.route('/result/<sha256>', callback=self._result)
         self._app.route('/infected/<sha256>', callback=self._infected)
+        self._app.route('/findByHash/<hashvalue>', callback=self._find_by_hash)
 
     def _exists(self, sha256):
         """ lookup file by sha256 and tell if it exists
-        :route: /file/exists/<sha256>
+        :route: /exists/<sha256>
         :param sha256 of the file
         :rtype: dict of 'code': int, 'msg': str
             [, optional 'exists':boolean]
@@ -41,14 +54,14 @@ class FileApi(WebApi):
         """
         try:
             validate_sha256(sha256)
-            exists = file_ctrl.exists(sha256)
+            exists = (file_ctrl.init_by_sha256(sha256) is not None)
             return IrmaFrontendReturn.success(exists=exists)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
     def _result(self, sha256):
         """ lookup file by sha256
-        :route: /file/search/<scanid>
+        :route: /search/<scanid>
         :param sha256 of the file
         :rtype: dict of 'code': int, 'msg': str
             [, optional 'scan_results': dict of [
@@ -72,7 +85,7 @@ class FileApi(WebApi):
     def _infected(self, sha256):
         """ lookup file by sha256 and tell if av detect it as
             infected
-        :route: /file/suspicious/<sha256>
+        :route: /suspicious/<sha256>
         :param sha256 of the file
         :rtype: dict of 'code': int, 'msg': str
             [, optional 'infected':boolean, 'nb_detected':int, 
@@ -85,5 +98,46 @@ class FileApi(WebApi):
         try:
             validate_sha256(sha256)
             return file_ctrl.infected(sha256)
+        except Exception as e:
+            return IrmaFrontendReturn.error(str(e))
+
+    def _find_by_hash(self, hashvalue):
+        """ lookup file by hash and returns sha256
+        :route: /findByHash/<hashvalue>
+        :param hashvalue of the file (sha1, sha256, md5 are supported)
+        :rtype: dict of 'code': int, 'msg': str
+            [, optional 'found': sha256 of file found]
+        :return:
+            on success 'infected' contains boolean results
+            with details in 'nb_detected' and 'nb_scan'
+            on error 'msg' gives reason message
+        """
+        try:
+            try:
+                validate_sha256(hashvalue)
+                if file_ctrl.init_by_sha256(hashvalue) is not None:
+                    return IrmaFrontendReturn.success(found=hashvalue)
+                else:
+                    return IrmaFrontendReturn.error("hash not found")
+            except ValueError:
+                pass
+            try:
+                validate_sha1(hashvalue)
+                sha256 = file_ctrl.init_by_sha1(hashvalue)
+                if sha256 is not None:
+                    return IrmaFrontendReturn.success(found=sha256)
+                else:
+                    return IrmaFrontendReturn.error("hash not found")
+            except ValueError:
+                pass
+            try:
+                validate_md5(hashvalue)
+                sha256 = file_ctrl.init_by_md5(hashvalue)
+                if sha256 is not None:
+                    return IrmaFrontendReturn.success(found=sha256)
+                else:
+                    return IrmaFrontendReturn.error("hash not found")
+            except ValueError:
+                pass
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

@@ -6,7 +6,43 @@ from .scanctrl import format_results
 from frontend.helpers.sql import session_query
 
 
-def exists(sha256):
+def init_by_sha256(sha256):
+    """ return results for file with given sha256 value
+
+    :rtype: boolean
+    :return:
+        if exists returns sha256 value else None
+    :raise: IrmaTaskError
+    """
+    with session_query() as session:
+        try:
+            f = File.load_from_sha256(sha256, session)
+            return f.sha256
+        except IrmaDatabaseResultNotFound:
+            return None
+        except IrmaDatabaseError as e:
+            raise IrmaTaskError(str(e))
+
+
+def init_by_sha1(sha1):
+    """ return results for file with given sha1 value
+
+    :rtype: boolean
+    :return:
+        if exists returns sha256 value else None
+    :raise: IrmaTaskError
+    """
+    with session_query() as session:
+        try:
+            f = File.load_from_sha1(sha1, session)
+            return f.sha256
+        except IrmaDatabaseResultNotFound:
+            return None
+        except IrmaDatabaseError as e:
+            raise IrmaTaskError(str(e))
+
+
+def init_by_md5(md5):
     """ return results for file with given sha256 value
 
     :rtype: boolean
@@ -16,8 +52,8 @@ def exists(sha256):
     """
     with session_query() as session:
         try:
-            File.load_from_sha256(sha256, session)
-            return True
+            f = File.load_from_md5(md5, session)
+            return f.sha256
         except IrmaDatabaseResultNotFound:
             return False
         except IrmaDatabaseError as e:
