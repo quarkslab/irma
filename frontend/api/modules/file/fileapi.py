@@ -106,7 +106,7 @@ class FileApi(WebApi):
         :route: /findByHash/<hashvalue>
         :param hashvalue of the file (sha1, sha256, md5 are supported)
         :rtype: dict of 'code': int, 'msg': str
-            [, optional 'found': sha256 of file found]
+            [, optional 'found': list of (one) sha256 of file found]
         :return:
             on success 'infected' contains boolean results
             with details in 'nb_detected' and 'nb_scan'
@@ -116,7 +116,7 @@ class FileApi(WebApi):
             try:
                 validate_sha256(hashvalue)
                 if file_ctrl.init_by_sha256(hashvalue) is not None:
-                    return IrmaFrontendReturn.success(found=hashvalue)
+                    return IrmaFrontendReturn.success(found=[hashvalue])
                 else:
                     return IrmaFrontendReturn.error("hash not found")
             except ValueError:
@@ -125,7 +125,7 @@ class FileApi(WebApi):
                 validate_sha1(hashvalue)
                 sha256 = file_ctrl.init_by_sha1(hashvalue)
                 if sha256 is not None:
-                    return IrmaFrontendReturn.success(found=sha256)
+                    return IrmaFrontendReturn.success(found=[sha256])
                 else:
                     return IrmaFrontendReturn.error("hash not found")
             except ValueError:
@@ -134,7 +134,7 @@ class FileApi(WebApi):
                 validate_md5(hashvalue)
                 sha256 = file_ctrl.init_by_md5(hashvalue)
                 if sha256 is not None:
-                    return IrmaFrontendReturn.success(found=sha256)
+                    return IrmaFrontendReturn.success(found=[sha256])
                 else:
                     return IrmaFrontendReturn.error("hash not found")
             except ValueError:
