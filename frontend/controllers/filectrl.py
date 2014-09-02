@@ -1,4 +1,4 @@
-from frontend.models.sqlobjects import File
+from frontend.models.sqlobjects import File, FileWeb
 from frontend.models.nosqlobjects import ProbeRealResult
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaTaskError
@@ -56,6 +56,15 @@ def init_by_md5(md5):
             return f.sha256
         except IrmaDatabaseResultNotFound:
             return False
+        except IrmaDatabaseError as e:
+            raise IrmaTaskError(str(e))
+
+
+def find_by_name(name):
+    with session_query() as session:
+        try:
+            f_list = FileWeb.find_by_name(name, session)
+            return [f.file.sha256 for f in f_list]
         except IrmaDatabaseError as e:
             raise IrmaTaskError(str(e))
 

@@ -40,6 +40,7 @@ class FileApi(WebApi):
         self._app.route('/result/<sha256>', callback=self._result)
         self._app.route('/infected/<sha256>', callback=self._infected)
         self._app.route('/findByHash/<hashvalue>', callback=self._find_by_hash)
+        self._app.route('/findByName/<path:name>', callback=self._find_by_name)
 
     def _exists(self, sha256):
         """ lookup file by sha256 and tell if it exists
@@ -108,8 +109,7 @@ class FileApi(WebApi):
         :rtype: dict of 'code': int, 'msg': str
             [, optional 'found': list of (one) sha256 of file found]
         :return:
-            on success 'infected' contains boolean results
-            with details in 'nb_detected' and 'nb_scan'
+            on success 'found' contains sha256 of files found
             on error 'msg' gives reason message
         """
         try:
@@ -139,5 +139,25 @@ class FileApi(WebApi):
                     return IrmaFrontendReturn.error("hash not found")
             except ValueError:
                 pass
+            return IrmaFrontendReturn.error("hash not supported")
+        except Exception as e:
+            return IrmaFrontendReturn.error(str(e))
+
+    def _find_by_name(self, name):
+        """ lookup file by name
+        :route: /findByName/<name>
+        :param name of the file (partial supported)
+        :rtype: dict of 'code': int, 'msg': str
+            [, optional 'found': list of sha256 of file(s) found]
+        :return:
+            on success 'found' contains sha256 of files found
+            on error 'msg' gives reason message
+        """
+        try:
+            list_sha256 = file_ctrl.find_by_name(name)
+            if len(list_sha256) != 0:
+                return IrmaFrontendReturn.success(found=list_sha256)
+            else:
+                return IrmaFrontendReturn.error("name not found")
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

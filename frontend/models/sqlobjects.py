@@ -539,6 +539,22 @@ class FileWeb(Base, SQLDatabaseObject):
         self.name = name
         self.scan = scan
 
+    @classmethod
+    def find_by_name(cls, name, session):
+        """Find the object in the database
+        :param name: the partial name to look for
+        :param session: the session to use
+        :rtype: cls
+        :return: the object that corresponds to the partial name
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        """
+        try:
+            return session.query(cls).filter(
+                cls.name.like("%{0}%".format(name))
+            )
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+
 
 class FileAgent(Base, SQLDatabaseObject):
     __tablename__ = '{0}fileAgent'.format(tables_prefix)
