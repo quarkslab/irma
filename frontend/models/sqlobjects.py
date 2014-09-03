@@ -50,6 +50,24 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
+    # Auto-create directory for sqlite db
+    dirname = os.path.dirname(config.get_sql_db_uri_params()[5])
+    dirname = os.path.abspath(dirname)
+    if not os.path.exists(dirname):
+        print("SQL directory does not exist {0}"
+              "..creating".format(dirname))
+        os.makedirs(dirname)
+        os.chmod(dirname, 0777)
+        db_name = os.path.abspath(config.get_sql_db_uri_params()[5])
+        # touch like method to create a rw-rw-rw- file for db
+        open(db_name, 'a').close()
+        os.chmod(db_name, 0666)
+    if not (os.path.isdir(dirname)):
+        print("Error. SQL directory is a not a dir {0}"
+              "".format(dirname))
+        raise IrmaDatabaseError("Can not create Frontend database dir")
+
+
 sql_db_connect()
 Base = declarative_base()
 tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
