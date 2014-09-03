@@ -19,6 +19,7 @@ from frontend.api.modules.webapi import WebApi
 from lib.common.utils import UUID
 from lib.irma.common.utils import IrmaFrontendReturn
 import frontend.controllers.scanctrl as scan_ctrl
+import frontend.controllers.frontendtasks as celery_frontend
 
 
 scan_app = Bottle()
@@ -113,7 +114,11 @@ class ScanApi(WebApi):
             in_probelist = None
             if 'probe' in request.params:
                 in_probelist = request.params['probe'].split(',')
-            out_probelist = scan_ctrl.launch(scanid, force, in_probelist)
+            out_probelist = scan_ctrl.launch_synchronous(scanid,
+                                                         force,
+                                                         in_probelist)
+            # launch_asynchronous scan via frontend task
+            celery_frontend.scan_launch(scanid, force)
             return IrmaFrontendReturn.success(probe_list=out_probelist)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

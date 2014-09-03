@@ -16,7 +16,7 @@
 
 import celery
 import config.parser as config
-from frontend.helpers.celerytasks import sync_call
+from frontend.helpers.celerytasks import sync_call, async_call
 from lib.irma.common.exceptions import IrmaCoreError, IrmaTaskError
 from lib.irma.common.utils import IrmaReturnCode
 
@@ -58,3 +58,11 @@ def scan_cancel(scanid):
                      "scan_progress",
                      timeout,
                      args=[scanid])
+
+
+def scan_launch(scanid, scan_request):
+    """ send a task to the brain to start the scan """
+    return async_call(brain_app,
+                      "brain.tasks",
+                      "scan",
+                      args=[scanid, scan_request])

@@ -14,19 +14,23 @@
 # terms contained in the LICENSE file.
 
 import hashlib
-
+import logging
 from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common import compat
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
     IrmaProbeResultsStates
 from lib.irma.common.exceptions import IrmaCoreError, \
-    IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError
+    IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError, \
+    IrmaFtpError
 from frontend.format import IrmaFormatter
 from frontend.helpers.sql import session_transaction, session_query
 import frontend.controllers.braintasks as celery_brain
-import frontend.controllers.frontendtasks as celery_frontend
+import frontend.controllers.ftpctrl as ftp_ctrl
 
+
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
 
 # =========
 #  Helpers
@@ -99,8 +103,11 @@ def add_files(scanid, files):
     return nb_files
 
 
-def launch(scanid, force, probelist):
-    """ launch specified scan
+# launch operation is divided in two parts
+# one is synchronous, the other called by
+# a celery task is asynchronous (Ftp transfer)
+def launch_synchronous(scanid, force, probelist):
+    """ launch_synchronous specified scan
 
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'probe_list':list]
@@ -140,9 +147,69 @@ def launch(scanid, force, probelist):
                     file_web=fw
                 )
                 probe_result.save(session=session)
-        # launch scan via frontend task
-        celery_frontend.scan_launch(scanid, force)
         return probelist
+
+
+def launch_asynchronous(scanid, force):
+    with session_transaction() as session:
+        log.info("{0}: Launching with force={1}".format(scanid, force))
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        IrmaScanStatus.filter_status(scan.status,
+                                     IrmaScanStatus.ready,
+                                     IrmaScanStatus.ready)
+        # Create scan request
+        # dict of sha256 : probe_list
+        # force parameter taken into account
+        scan_request = {}
+        for fw in scan.files_web:
+            probes_to_do = []
+            for pr in fw.probe_results:
+                # init with all probes asked
+                probes_to_do.append(pr.probe_name)
+
+            log.debug("{0}: Init probe_to_do with".format(scanid,
+                                                          probes_to_do))
+            if not force:
+                # Fetch the ref results for the file
+                for rr in fw.file.ref_results:
+                    log.debug("{0}: Found ref results for {1}".format(scanid,
+                                                                      rr.probe_name))
+                    if rr.probe_name not in probes_to_do:
+                        continue
+                    # if not force
+                    # remove results already present
+                    probes_to_do.remove(rr.probe_name)
+                    # and link results to request
+                    fw.probe_results.append(rr)
+                fw.update(session=session)
+            log.debug("{0}: Updated todo list {1}".format(scanid,
+                                                          probes_to_do))
+
+            if len(probes_to_do) > 0:
+                scan_request[fw.file.sha256] = probes_to_do
+
+        # Nothing to do
+        if len(scan_request) == 0:
+            scan.status = IrmaScanStatus.finished
+            scan.update(['status'], session=session)
+            session.commit()
+            log.info("{0}: Finished nothing to do".format(scanid))
+            return
+
+        try:
+            ftp_ctrl.upload_scan(scanid, scan_request.keys())
+        except IrmaFtpError as e:
+            log.error("{0}: Ftp upload error {1}".format(scanid, str(e)))
+            scan.status = IrmaScanStatus.error_ftp_upload
+            scan.update(['status'], session=session)
+            return
+
+        # launch new celery scan task on brain
+        celery_brain.scan_launch(scanid, scan_request)
+        scan.status = IrmaScanStatus.uploaded
+        scan.update(['status'], session=session)
+        log.info("{0}: Success: scan uploaded".format(scanid))
+        return
 
 
 def result(scanid):
@@ -203,6 +270,8 @@ def progress(scanid):
             if retcode == IrmaReturnCode.success:
                 s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
                 if res['status'] == s_processed:
+                    log.debug('{0}: Current status is {1} -> processed'.format(scanid,
+                                                                               IrmaScanStatus.label[scan.status]))
                     scan.status = IrmaScanStatus.processed
                     scan.update(['status'], session=session)
                     session.commit()
