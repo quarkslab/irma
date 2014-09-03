@@ -166,13 +166,13 @@ def scan_result(scanid, file_hash, probe, result):
         sql_db_connect()
         session = SQLDatabase.get_session()
         scan = Scan.load_from_ext_id(scanid, session=session)
-        fw = None
+        fws = []
 
         for file_web in scan.files_web:
             if file_hash == file_web.file.sha256:
-                fw = file_web
+                fws.append(file_web)
                 break
-        if fw is None:
+        if len(fws) == 0:
             return IrmaTaskReturn.error("filename not found in scan")
 
         fw.file.timestamp_last_scan = compat.timestamp()
@@ -180,6 +180,8 @@ def scan_result(scanid, file_hash, probe, result):
 
         sanitized_res = sanitize_dict(result)
 
+        # update results for all files with same sha256
+        for fw in fws:
         # Update main reference results with fresh results
         pr = None
         ref_res_names = [rr.probe_name for rr in fw.file.ref_results]
