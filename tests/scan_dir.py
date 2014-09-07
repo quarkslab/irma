@@ -21,15 +21,16 @@ import hashlib
 import signal
 import sys
 from frontend.cli.irma import _scan_new, _scan_add, _scan_launch, \
-    _scan_progress, _scan_cancel, IrmaScanStatus, _scan_result
+    _scan_progress, _scan_cancel, IrmaScanStatus, _scan_result, IrmaError
 import time
 
 RES_PATH = "."
 SRC_PATH = "."
 
 DEBUG = True
-SCAN_TIMEOUT_SEC = 300
-BEFORE_NEXT_PROGRESS = 5
+NB_FILE_PER_SCAN = 5
+SCAN_TIMEOUT_SEC = NB_FILE_PER_SCAN * 20
+BEFORE_NEXT_PROGRESS = 3
 DEBUG = False
 Probelist = [u'ClamAV', u'VirusTotal', u'Kaspersky', u'Sophos',
              u'McAfeeVSCL', u'Symantec', u'StaticAnalyzer']
@@ -74,22 +75,24 @@ class Scanner(object):
         probelist = _scan_launch(self.scanid, force, probe, DEBUG)
         scanid = self.scanid
         nb = len(files)
-        probes = " - ".join(sorted(probelist))
         print("launching scan {0}".format(scanid) +
-              " of {0} files on {1}".format(scanid, nb, probes))
+              " of {0} files on {1} probes".format(nb, len(probelist)))
         start = time.time()
         while True:
             time.sleep(BEFORE_NEXT_PROGRESS)
             (status, fin, tot, suc) = _scan_progress(self.scanid, DEBUG)
             if fin is not None:
                 # write in place
-                sys.stdout.write("\r\tjobs {0}({1})/{2}".format(fin, suc, tot))
+                sys.stdout.write("\r\tjobs {0}({1})/{2} ".format(fin, suc, tot))
                 sys.stdout.flush()
             if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
                 break
             now = time.time()
             if now > (start + timeout):
-                _scan_cancel(self.scanid, DEBUG)
+                try:
+                    _scan_cancel(self.scanid, DEBUG)
+                except:
+                    pass
                 raise ScannerError("Results Timeout")
         return _scan_result(self.scanid, DEBUG)
 
@@ -111,6 +114,7 @@ class Scanner(object):
                 dst.write("timeout")
 
     def scan_dir(self, dirname, nb_files_per_scan):
+        dirname = os.path.abspath(dirname)
         if not os.path.exists(dirname):
             raise ScannerError("dir to scan does not exits")
 
@@ -119,6 +123,7 @@ class Scanner(object):
         for _, _, filename in os.walk(dirname):
             for f in filename:
                 filenames.append(os.path.join(dirname, f))
+	print 'Found {0} files to scan in {1}'.format(len(filenames), dirname)
         random.shuffle(filenames)
         for i in xrange(0, len(filenames), nb_files_per_scan):
             file_list = filenames[i:i + nb_files_per_scan]
@@ -133,4 +138,4 @@ class Scanner(object):
 signal.signal(signal.SIGTERM, handler)
 signal.signal(signal.SIGINT, handler)
 scanner = Scanner()
-scanner.scan_dir("samples", 5)
+scanner.scan_dir("samples", NB_FILE_PER_SCAN)
