@@ -20,6 +20,8 @@ import random
 import hashlib
 import signal
 import sys
+cwd = os.path.dirname(__file__)
+sys.path.append(os.path.join(cwd, os.pardir))
 from frontend.cli.irma import _scan_new, _scan_add, _scan_launch, \
     _scan_progress, _scan_cancel, IrmaScanStatus, _scan_result, IrmaError
 import time
