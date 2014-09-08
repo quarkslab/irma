@@ -62,7 +62,7 @@ class FileApi(WebApi):
 
     def _result(self, sha256):
         """ lookup file by sha256
-        :route: /search/<scanid>
+        :route: /file/search/<scanid>
         :param sha256 of the file
         :rtype: dict of 'code': int, 'msg': str
             [, optional 'scan_results': dict of [
