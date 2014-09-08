@@ -60,8 +60,9 @@ def new(ip=None):
     """
     with session_transaction() as session:
         # TODO get the ip
-        scan = Scan(IrmaScanStatus.empty, compat.timestamp(), ip)
+        scan = Scan(compat.timestamp(), ip)
         scan.save(session=session)
+        scan.set_status(IrmaScanStatus.empty, session)
         scanid = scan.external_id
     return scanid
 
@@ -82,8 +83,7 @@ def add_files(scanid, files):
                                      IrmaScanStatus.ready)
         if scan.status == IrmaScanStatus.empty:
             # on first file added update status to 'ready'
-            scan.status = IrmaScanStatus.ready
-            scan.update(['status'], session=session)
+            scan.set_status(IrmaScanStatus.ready, session)
             session.commit()
         for (name, data) in files.items():
             try:
@@ -190,9 +190,7 @@ def launch_asynchronous(scanid, force):
 
         # Nothing to do
         if len(scan_request) == 0:
-            scan.status = IrmaScanStatus.finished
-            scan.update(['status'], session=session)
-            session.commit()
+            scan.set_status(IrmaScanStatus.finished, session)
             log.info("{0}: Finished nothing to do".format(scanid))
             return
 
@@ -200,14 +198,12 @@ def launch_asynchronous(scanid, force):
             ftp_ctrl.upload_scan(scanid, scan_request.keys())
         except IrmaFtpError as e:
             log.error("{0}: Ftp upload error {1}".format(scanid, str(e)))
-            scan.status = IrmaScanStatus.error_ftp_upload
-            scan.update(['status'], session=session)
+            scan.set_status(IrmaScanStatus.error_ftp_upload, session)
             return
 
         # launch new celery scan task on brain
         celery_brain.scan_launch(scanid, scan_request)
-        scan.status = IrmaScanStatus.uploaded
-        scan.update(['status'], session=session)
+        scan.set_status(IrmaScanStatus.uploaded, session)
         log.info("{0}: Success: scan uploaded".format(scanid))
         return
 
@@ -257,29 +253,29 @@ def progress(scanid):
         dict with total/finished/succesful jobs submitted by irma-brain
     :raise: IrmaDatabaseError, IrmaTaskError
     """
-    with session_transaction() as session:
+    with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
         if scan.status != IrmaScanStatus.launched:
             if IrmaScanStatus.is_error(scan.status):
                 raise IrmaCoreError(IrmaScanStatus.label[scan.status])
             else:
                 return {'status': IrmaScanStatus.label[scan.status]}
+    # Else ask brain for job status
+    (retcode, res) = celery_brain.scan_progress(scanid)
+    with session_transaction() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        if retcode == IrmaReturnCode.success:
+            s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
+            if res['status'] == s_processed and \
+               scan.status != IrmaScanStatus.launched:
+                # update only if status does not changed
+                # during synchronous progress task
+                scan.set_status(IrmaScanStatus.processed, session)
+            return res
         else:
-            # Else ask brain for job status
-            (retcode, res) = celery_brain.scan_progress(scanid)
-            if retcode == IrmaReturnCode.success:
-                s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
-                if res['status'] == s_processed:
-                    log.debug('{0}: Current status is {1} -> processed'.format(scanid,
-                                                                               IrmaScanStatus.label[scan.status]))
-                    scan.status = IrmaScanStatus.processed
-                    scan.update(['status'], session=session)
-                    session.commit()
-                return res
-            else:
-                # else take directly error string from brain and
-                # pass it to the caller
-                raise IrmaTaskError(res)
+            # else take directly error string from brain and
+            # pass it to the caller
+            raise IrmaTaskError(res)
 
 
 def cancel(scanid):
@@ -296,9 +292,7 @@ def cancel(scanid):
         scan = Scan.load_from_ext_id(scanid, session=session)
         if scan.status < IrmaScanStatus.uploaded:
             # If not launched answer directly
-            scan.status = IrmaScanStatus.cancelled
-            scan.update(['status'], session=session)
-            session.commit()
+            scan.set_status(IrmaScanStatus.cancelled, session)
             return None
         if scan.status != IrmaScanStatus.launched:
             # If too late answer directly
@@ -315,14 +309,13 @@ def cancel(scanid):
         if retcode == IrmaReturnCode.success:
             s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
             if 'cancel_details' in res:
-                scan.status = IrmaScanStatus.cancelled
-                scan.update(['status'], session=session)
+                scan.set_status(IrmaScanStatus.cancelled, session)
                 return res['cancel_details']
             elif res['status'] == s_processed:
                 # if scan is finished for the brain
                 # it means we are just waiting for results
-                scan.status = IrmaScanStatus.processed
-                scan.update(['status'], session=session)
+                scan.set_status(IrmaScanStatus.processed, session)
+                session.commit()
             reason = "can not cancel scan in {0} status".format(res['status'])
             raise IrmaValueError(reason)
         else:

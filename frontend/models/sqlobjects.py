@@ -15,7 +15,7 @@ import hashlib
 import os
 
 from sqlalchemy import Table, Column, Integer, ForeignKey, String, \
-    ForeignKeyConstraint, event
+    event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
@@ -23,7 +23,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
-    IrmaDatabaseError
+    IrmaDatabaseError, IrmaCoreError
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
@@ -389,11 +389,6 @@ class Scan(Base, SQLDatabaseObject):
         nullable=False,
         name='external_id'
     )
-    status = Column(
-        Integer,
-        nullable=False,
-        name='status'
-    )
     date = Column(
         Integer,
         nullable=False,
@@ -404,11 +399,9 @@ class Scan(Base, SQLDatabaseObject):
         name='ip'
     )
 
-    def __init__(self, status, date, ip):
+    def __init__(self, date, ip):
         super(Scan, self).__init__()
-
         self.external_id = UUID.generate()
-        self.status = status
         self.date = date
         self.ip = ip
 
@@ -444,6 +437,17 @@ class Scan(Base, SQLDatabaseObject):
                 if pr.state != IrmaProbeResultsStates.finished:
                     return False
         return True
+
+    @property
+    def status(self):
+        return max(evt.status for evt in self.events)
+
+    def set_status(self, status_code, session):
+        if status_code not in IrmaScanStatus.label.keys():
+            raise IrmaCoreError("Trying to update with an unknown status")
+        if status_code not in [evt.status for evt in self.events]:
+            evt = ScanEvents(status_code, self)
+            evt.save(session)
 
 
 class FileWeb(Base, SQLDatabaseObject):
@@ -623,5 +627,50 @@ class Submission(Base, SQLDatabaseObject):
             raise IrmaDatabaseResultNotFound(e)
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
+
+
+class ScanEvents(Base, SQLDatabaseObject):
+    __tablename__ = '{0}scanEvents'.format(tables_prefix)
+
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
+    # Fields
+    id = Column(
+        Integer,
+        autoincrement=True,
+        nullable=False,
+        primary_key=True,
+        name='id'
+    )
+    status = Column(
+        Integer,
+        nullable=False,
+        name='status'
+    )
+    timestamp = Column(
+        String,
+        nullable=False,
+        name='timestamp'
+    )
+    # Many to one FileWeb <-> Scan
+    id_scan = Column(
+        Integer,
+        ForeignKey('{0}scan.id'.format(tables_prefix)),
+        nullable=False
+    )
+    scan = relationship(
+        "Scan",
+        backref=backref('events')
+    )
+
+    def __init__(self, status, scan):
+        super(ScanEvents, self).__init__()
+        self.status = status
+        self.timestamp = compat.timestamp()
+        self.scan = scan
+
 
 Base.metadata.create_all(SQLDatabase.get_engine())

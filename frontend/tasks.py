@@ -59,8 +59,7 @@ def scan_launched(scanid):
         session = SQLDatabase.get_session()
         scan = Scan.load_from_ext_id(scanid, session=session)
         if scan.status == IrmaScanStatus.uploaded:
-            scan.status = IrmaScanStatus.launched
-            scan.update(['status'], session=session)
+            scan.set_status(IrmaScanStatus.launched, session)
             session.commit()
     except Exception as e:
         if session is not None:
@@ -144,8 +143,7 @@ def scan_result(scanid, file_hash, probe, result):
                   "probedone {0}".format(probedone))
 
         if scan.finished():
-            scan.status = IrmaScanStatus.finished
-            scan.update(['status'], session=session)
+            scan.set_status(IrmaScanStatus.finished, session)
             # launch flush celery task on brain
             scan_app.send_task("brain.tasks.scan_flush", args=[scanid])
 
