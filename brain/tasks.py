@@ -209,7 +209,7 @@ def scan(scanid, scan_request):
         scan.user_id = user.id
         sql.commit()
 
-        for (filename, probelist) in scan_request.items():
+        for (filename, probelist) in scan_request:
             if probelist is None:
                 scan.status = IrmaScanStatus.error_probe_missing
                 sql.commit()
@@ -225,8 +225,7 @@ def scan(scanid, scan_request):
                     log.debug("{0}: Unknown probe {1}".format(scanid, p))
                     return IrmaTaskReturn.error(msg)
 
-            # Now, create one subtask per file to scan
-            # per probe according to quota
+            # Now, create one subtask per file to scan per probe according to quota
             for probe in probelist:
                 if quota is not None and quota <= 0:
                     break
@@ -234,10 +233,7 @@ def scan(scanid, scan_request):
                     quota -= 1
                 callback_signature = route(
                     results_app.signature("brain.tasks.scan_result",
-                                          (user.ftpuser,
-                                           scanid,
-                                           filename,
-                                           probe)))
+                                          (user.ftpuser, scanid, filename, probe)))
                 jobs_list.append(
                     probe_app.send_task("probe.tasks.probe_scan",
                                         args=(user.ftpuser, scanid, filename),
