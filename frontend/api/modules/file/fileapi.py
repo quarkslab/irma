@@ -40,7 +40,7 @@ class FileApi(WebApi):
         self._app.route('/result/<sha256>', callback=self._result)
         self._app.route('/infected/<sha256>', callback=self._infected)
         self._app.route('/findByHash/<hashvalue>', callback=self._find_by_hash)
-        self._app.route('/findByName/<path:name>', callback=self._find_by_name)
+        self._app.route('/findByName/<name:path>', callback=self._find_by_name)
 
     def _exists(self, sha256):
         """ lookup file by sha256 and tell if it exists
@@ -145,7 +145,7 @@ class FileApi(WebApi):
 
     def _find_by_name(self, name):
         """ lookup file by name
-        :route: /findByName/<name>
+        :route: /findByName/<name:path>
         :param name of the file (partial supported)
         :rtype: dict of 'code': int, 'msg': str
             [, optional 'found': list of sha256 of file(s) found]
