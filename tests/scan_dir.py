@@ -28,9 +28,7 @@ RES_PATH = "."
 SRC_PATH = "."
 
 DEBUG = True
-NB_FILE_PER_SCAN = 5
-SCAN_TIMEOUT_SEC = NB_FILE_PER_SCAN * 20
-BEFORE_NEXT_PROGRESS = 3
+BEFORE_NEXT_PROGRESS = 2
 DEBUG = False
 Probelist = [u'ClamAV', u'VirusTotal', u'Kaspersky', u'Sophos',
              u'McAfeeVSCL', u'Symantec', u'StaticAnalyzer']
@@ -41,8 +39,14 @@ scanner = None
 def handler(*_):
     print 'Cancelling...'
     if scanner is not None:
-        scanner.cancel()
+        try:
+            scanner.cancel()
+        except IrmaError as e:
+            print (str(e))
     sys.exit(0)
+
+signal.signal(signal.SIGTERM, handler)
+signal.signal(signal.SIGINT, handler)
 
 
 class ScannerError(Exception):
@@ -69,7 +73,7 @@ class Scanner(object):
     def scan_files(self, files,
                    force=False,
                    probe=None,
-                   timeout=SCAN_TIMEOUT_SEC):
+                   timeout=10):
         self.scanid = _scan_new(DEBUG)
         _scan_add(self.scanid, files, DEBUG)
         probelist = _scan_launch(self.scanid, force, probe, DEBUG)
@@ -114,28 +118,40 @@ class Scanner(object):
                 dst.write("timeout")
 
     def scan_dir(self, dirname, nb_files_per_scan):
-        dirname = os.path.abspath(dirname)
-        if not os.path.exists(dirname):
-            raise ScannerError("dir to scan does not exits")
-
         # get all files in dir
         filenames = []
         for _, _, filename in os.walk(dirname):
             for f in filename:
                 filenames.append(os.path.join(dirname, f))
-	print 'Found {0} files to scan in {1}'.format(len(filenames), dirname)
+        print 'Found {0} files to scan in {1}'.format(len(filenames), dirname)
         random.shuffle(filenames)
         for i in xrange(0, len(filenames), nb_files_per_scan):
             file_list = filenames[i:i + nb_files_per_scan]
             try:
-                res = self.scan_files(file_list, force=True)
+                res = self.scan_files(file_list,
+                                      force=True,
+                                      timeout=nb_files_per_scan * 10)
             except ScannerError:
                 self._write_timeout_result(file_list)
                 res = _scan_result(self.scanid, DEBUG)
             self._write_result(res)
         return
 
-signal.signal(signal.SIGTERM, handler)
-signal.signal(signal.SIGINT, handler)
-scanner = Scanner()
-scanner.scan_dir("samples", NB_FILE_PER_SCAN)
+
+if __name__ == "__main__":
+    if len(sys.argv) not in [2, 3]:
+        print ("IRMA directory scanner")
+        print ("Usage: {0} <directory name>".format(__file__) + \
+               "<nb file per scan " + \
+               "(default:5)>")
+        sys.exit(0)
+    directory = os.path.abspath(sys.argv[1])
+    if not os.path.exists(directory):
+        print ("[!] directory to scan does not exits")
+        sys.exit(-1)
+    if len(sys.argv) == 3:
+        nb_file_per_scan = sys.argv[2]
+    else:
+        nb_file_per_scan = 5
+    scanner = Scanner()
+    scanner.scan_dir(directory, nb_file_per_scan)
