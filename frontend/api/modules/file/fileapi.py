@@ -1,5 +1,5 @@
 import re
-from bottle import Bottle
+from bottle import Bottle, request
 from frontend.api.modules.webapi import WebApi
 from lib.irma.common.utils import IrmaFrontendReturn
 import frontend.controllers.filectrl as file_ctrl
@@ -154,7 +154,12 @@ class FileApi(WebApi):
             on error 'msg' gives reason message
         """
         try:
-            list_sha256 = file_ctrl.find_by_name(name)
+            # handle 'strict' parameter
+            strict = False
+            if 'strict' in request.params:
+                if request.params['strict'].lower() == 'true':
+                    strict = True
+            list_sha256 = file_ctrl.find_by_name(name, strict)
             if len(list_sha256) != 0:
                 return IrmaFrontendReturn.success(found=list_sha256)
             else:

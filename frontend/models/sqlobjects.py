@@ -540,18 +540,24 @@ class FileWeb(Base, SQLDatabaseObject):
         self.scan = scan
 
     @classmethod
-    def find_by_name(cls, name, session):
+    def find_by_name(cls, name, strict, session):
         """Find the object in the database
-        :param name: the partial name to look for
+        :param name: the name to look for
+        :param strict: boolean to check with partial name or strict name
         :param session: the session to use
         :rtype: cls
-        :return: the object that corresponds to the partial name
+        :return: the object thats corresponds to the partial name
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
         """
         try:
-            return session.query(cls).filter(
-                cls.name.like("%{0}%".format(name))
-            )
+            if strict:
+                return session.query(cls).filter(
+                    cls.name == name
+                    ).all()
+            else:
+                return session.query(cls).filter(
+                    cls.name.like("%{0}%".format(name))
+                    ).all()
         except NoResultFound as e:
             raise IrmaDatabaseResultNotFound(e)
 
