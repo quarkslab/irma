@@ -334,3 +334,94 @@ def finished(scanid):
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
         return scan.finished()
+
+
+def set_launched(scanid):
+    """ set status launched for scan
+    :param scanid: id returned by scan_new
+    :return: None
+    :raise: IrmaDatabaseError
+    """
+    with session_transaction() as session:
+        print("Scanid {0} is now launched".format(scanid))
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        if scan.status == IrmaScanStatus.uploaded:
+            scan.set_status(IrmaScanStatus.launched, session)
+
+
+def sanitize_dict(d):
+    new = {}
+    for k, v in d.iteritems():
+        if isinstance(v, dict):
+            v = sanitize_dict(v)
+        newk = k.replace('.', '_').replace('$', '')
+        new[newk] = v
+    return new
+
+
+def set_result(scanid, file_hash, probe, result):
+    with session_transaction() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        fws = []
+
+        for file_web in scan.files_web:
+            if file_hash == file_web.file.sha256:
+                fws.append(file_web)
+        if len(fws) == 0:
+            print ("filename not found in scan")
+            return
+
+        fws[0].file.timestamp_last_scan = compat.timestamp()
+        fws[0].file.update(['timestamp_last_scan'], session=session)
+
+        sanitized_res = sanitize_dict(result)
+
+        # update results for all files with same sha256
+        for fw in fws:
+            # Update main reference results with fresh results
+            pr = None
+            ref_res_names = [rr.probe_name for rr in fw.file.ref_results]
+            for probe_result in fw.probe_results:
+                if probe_result.probe_name == probe:
+                    pr = probe_result
+                    if probe_result.probe_name not in ref_res_names:
+                        fw.file.ref_results.append(probe_result)
+                    else:
+                        for rr in fw.file.ref_results:
+                            if probe_result.probe_name == rr.probe_name:
+                                fw.file.ref_results.remove(rr)
+                                fw.file.ref_results.append(probe_result)
+                                break
+                    break
+            fw.file.update(session=session)
+
+            # save the results
+            # TODO add remaining parameters
+            s_duration = sanitized_res.get('duration', None)
+            s_type = sanitized_res.get('type', None)
+            s_name = sanitized_res.get('name', None)
+            s_version = sanitized_res.get('version', None)
+            s_results = sanitized_res.get('results', None)
+            s_retcode = sanitized_res.get('status', None)
+
+            prr = ProbeRealResult(
+                probe_name=s_name,
+                probe_type=s_type,
+                probe_version=s_version,
+                status=IrmaProbeResultsStates.finished,
+                duration=s_duration,
+                retcode=s_retcode,
+                results=s_results
+            )
+            pr.nosql_id = prr.id
+            pr.state = IrmaProbeResultsStates.finished
+            pr.update(['nosql_id', 'state'], session=session)
+            probedone = [pr.probe_name for pr in fw.probe_results if pr.state == IrmaProbeResultsStates.finished]
+            print("Scanid {0}".format(scanid) +
+                  "Result from {0} ".format(probe) +
+                  "probedone {0}".format(probedone))
+
+        if scan.finished():
+            scan.set_status(IrmaScanStatus.finished, session)
+            # launch flush celery task on brain
+            celery_brain.scan_flush(scanid)
