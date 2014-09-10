@@ -166,7 +166,6 @@ def conf_frontend_celery(app):
     )
 
 
-
 def get_brain_celery_timeout():
     return frontend_config.celery_brain.timeout
 
@@ -241,6 +240,7 @@ def setup_log(**args):
     hl.setFormatter(formatter)
     # add new handler to logger
     args['logger'].addHandler(hl)
+
 
 # ==================
 #  Database helpers

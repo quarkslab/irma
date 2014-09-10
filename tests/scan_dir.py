@@ -89,7 +89,7 @@ class Scanner(object):
             (status, fin, tot, suc) = _scan_progress(self.scanid, DEBUG)
             if fin is not None:
                 # write in place
-                sys.stdout.write("\r\tjobs {0}({1})/{2} ".format(fin, suc, tot))
+                sys.stdout.write("\r\tjobs {0}({1})/{2}".format(fin, suc, tot))
                 sys.stdout.flush()
             if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
                 break
@@ -143,8 +143,8 @@ class Scanner(object):
 if __name__ == "__main__":
     if len(sys.argv) not in [2, 3]:
         print ("IRMA directory scanner")
-        print ("Usage: {0} <directory name>".format(__file__) + \
-               "<nb file per scan " + \
+        print ("Usage: {0} <directory name>".format(__file__) +
+               "<nb file per scan " +
                "(default:5)>")
         sys.exit(0)
     directory = os.path.abspath(sys.argv[1])

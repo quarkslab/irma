@@ -97,7 +97,7 @@ class ScanApi(WebApi):
         :getparam: force=True or False
         :getparam: probe=probe1,probe2
         :param scanid: id returned by scan_new
-        :rtype: dict of 'code': int, 'msg': str 
+        :rtype: dict of 'code': int, 'msg': str
                 [, optional 'probe_list':list]
         :return:
             on success 'probe_list' is the list of probes used for the scan
@@ -132,10 +132,10 @@ class ScanApi(WebApi):
             [, optional 'scan_results': dict of [
                 sha256 value: dict of
                     'filenames':list of filename,
-                    'results': dict of [str probename: 
+                    'results': dict of [str probename:
                     dict [results of probe]]]]
         :return:
-            on success 'scan_results' is the dict of 
+            on success 'scan_results' is the dict of
                         results for each filename
             on error 'msg' gives reason message
         """

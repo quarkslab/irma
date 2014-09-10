@@ -68,7 +68,7 @@ class FileApi(WebApi):
             [, optional 'scan_results': dict of [
                 sha256 value: dict of
                     'filenames':list of filename,
-                    'results': dict of [str probename: 
+                    'results': dict of [str probename:
                                         dict [results of probe]]]]
         :return:
             on success 'scan_results' contains results for file
@@ -89,7 +89,7 @@ class FileApi(WebApi):
         :route: /suspicious/<sha256>
         :param sha256 of the file
         :rtype: dict of 'code': int, 'msg': str
-            [, optional 'infected':boolean, 'nb_detected':int, 
+            [, optional 'infected':boolean, 'nb_detected':int,
             'nb_scan':int]
         :return:
             on success 'infected' contains boolean results
