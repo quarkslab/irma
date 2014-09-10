@@ -276,7 +276,7 @@ class File(Base, SQLDatabaseObject):
         :return: the number of deleted files
         """
         fl = session.query(cls).filter(
-            cls.timestamp_last_scan == compat.timestamp() - max_age
+            cls.timestamp_last_scan < compat.timestamp() - max_age
         ).all()
         for f in fl:
             f.remove_file_from_fs()
