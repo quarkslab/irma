@@ -209,7 +209,7 @@ def scan(scanid, scan_request):
         scan.user_id = user.id
         sql.commit()
 
-        for (filename, probelist) in scan_request:
+        for (filename, probelist) in scan_request.items():
             if probelist is None:
                 scan.status = IrmaScanStatus.error_probe_missing
                 sql.commit()
