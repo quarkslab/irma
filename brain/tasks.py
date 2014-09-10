@@ -22,7 +22,7 @@ from celery.utils.log import get_task_logger
 from datetime import datetime, timedelta
 from brain.objects import User, Scan
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
-from lib.irma.common.exceptions import IrmaTaskError, IrmaDatabaseError
+from lib.irma.common.exceptions import IrmaTaskError
 from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.ftp.handler import FtpTls
 
@@ -225,7 +225,8 @@ def scan(scanid, scan_request):
                     log.debug("{0}: Unknown probe {1}".format(scanid, p))
                     return IrmaTaskReturn.error(msg)
 
-            # Now, create one subtask per file to scan per probe according to quota
+            # Now, create one subtask per file to
+            # scan per probe according to quota
             for probe in probelist:
                 if quota is not None and quota <= 0:
                     break
@@ -233,7 +234,9 @@ def scan(scanid, scan_request):
                     quota -= 1
                 callback_signature = route(
                     results_app.signature("brain.tasks.scan_result",
-                                          (user.ftpuser, scanid, filename, probe)))
+                                          (user.ftpuser,
+                                           scanid,
+                                           filename, probe)))
                 jobs_list.append(
                     probe_app.send_task("probe.tasks.probe_scan",
                                         args=(user.ftpuser, scanid, filename),
