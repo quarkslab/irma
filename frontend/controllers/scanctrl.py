@@ -195,7 +195,10 @@ def launch_asynchronous(scanid, force):
             return
 
         try:
-            ftp_ctrl.upload_scan(scanid, scan_request.keys())
+            upload_list = list()
+            for fw in scan.files_web:
+                upload_list.append(fw.file.path)
+            ftp_ctrl.upload_scan(scanid, upload_list)
         except IrmaFtpError as e:
             log.error("{0}: Ftp upload error {1}".format(scanid, str(e)))
             scan.set_status(IrmaScanStatus.error_ftp_upload, session)

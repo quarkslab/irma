@@ -23,7 +23,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
-    IrmaDatabaseError, IrmaCoreError
+    IrmaDatabaseError, IrmaCoreError, IrmaValueError
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
@@ -235,12 +235,28 @@ class File(Base, SQLDatabaseObject):
         :param data: the sample file
         :raise: IrmaFileSystemError if there is a problem with the filesystem
         """
+        # helper to split files in subdirs
+        def build_path(sha256):
+                PREFIX_NB = 3
+                PREFIX_LEN = 2
+                base_path = config.get_samples_storage_path()
+                if (PREFIX_NB * PREFIX_LEN) > len(sha256):
+                    raise IrmaValueError("too much prefix for file storage")
+                path = base_path
+                for i in xrange(0, PREFIX_NB + 1, PREFIX_LEN):
+                    path = os.path.join(path, sha256[i:i + PREFIX_LEN])
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                if not os.path.isdir(path):
+                    reason = "storage path is not a directory"
+                    raise IrmaFileSystemError(reason)
+                return os.path.join(path, sha256)
 
         sha256 = hashlib.sha256(data).hexdigest()
-        common_path = config.get_samples_storage_path()
-        full_path = os.path.join(common_path, sha256)
+        # split files between subdirs
+        path = build_path(sha256)
         try:
-            with open(full_path, 'wb') as h:
+            with open(path, 'wb') as h:
                 h.write(data)
         except IOError:
             raise IrmaFileSystemError(
@@ -251,17 +267,16 @@ class File(Base, SQLDatabaseObject):
         self.sha1 = hashlib.sha1(data).hexdigest()
         self.md5 = hashlib.md5(data).hexdigest()
         self.size = len(data)
-        self.path = self.sha256
+        self.path = path
 
     def remove_file_from_fs(self):
         """Remove the sample
         :raise: IrmaFileSystemError if there is a problem with the filesystem
         """
-        common_path = config.get_samples_storage_path()
-        full_path = os.path.join(common_path, self.sha256)
-
         try:
-            os.remove(full_path)
+            if self.path is None:
+                return
+            os.remove(self.path)
             self.path = None
         except OSError as e:
             raise IrmaFileSystemError(e)
