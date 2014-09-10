@@ -18,8 +18,7 @@ import logging
 from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common import compat
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
-    IrmaProbeResultsStates
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
 from lib.irma.common.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError, \
     IrmaFtpError
@@ -31,6 +30,7 @@ import frontend.controllers.ftpctrl as ftp_ctrl
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
+
 
 # =========
 #  Helpers
@@ -136,14 +136,13 @@ def launch_synchronous(scanid, force, probelist):
             probelist = all_probe_list
 
         for fw in scan.files_web:
-            for p in probelist:
+            for probe_name in probelist:
                 # TODO probe types
                 probe_result = ProbeResult(
-                    0,  # TODO remove this dirty fix for probe types
-                    p,
                     None,
-                    IrmaProbeResultsStates.empty,
-                    IrmaScanStatus.empty,
+                    probe_name,
+                    None,
+                    None,
                     file_web=fw
                 )
                 probe_result.save(session=session)
@@ -167,13 +166,9 @@ def launch_asynchronous(scanid, force):
                 # init with all probes asked
                 probes_to_do.append(pr.probe_name)
 
-            log.debug("{0}: Init probe_to_do with".format(scanid,
-                                                          probes_to_do))
             if not force:
                 # Fetch the ref results for the file
                 for rr in fw.file.ref_results:
-                    log.debug("{0}: Found ref results for {1}".format(scanid,
-                                                                      rr.probe_name))
                     if rr.probe_name not in probes_to_do:
                         continue
                     # if not force
@@ -182,8 +177,6 @@ def launch_asynchronous(scanid, force):
                     # and link results to request
                     fw.probe_results.append(rr)
                 fw.update(session=session)
-            log.debug("{0}: Updated todo list {1}".format(scanid,
-                                                          probes_to_do))
 
             if len(probes_to_do) > 0:
                 scan_request[fw.file.sha256] = probes_to_do
@@ -229,12 +222,7 @@ def result(scanid):
         for fw in scan.files_web:
             probe_results = {}
             for pr in fw.probe_results:
-                if pr.nosql_id is None:  # An error occurred in the process
-                    probe_results[pr.probe_name] = {
-                        'probe_type': pr.probe_type,
-                        'status': pr.state
-                    }
-                else:
+                if pr.nosql_id is not None:
                     probe_results[pr.probe_name] = ProbeRealResult(
                         id=pr.nosql_id
                     ).get_results()
@@ -242,7 +230,6 @@ def result(scanid):
                 'filename': fw.name,
                 'results': format_results(probe_results, None)
             }
-
         return res
 
 
@@ -405,21 +392,24 @@ def set_result(scanid, file_hash, probe, result):
             s_name = sanitized_res.get('name', None)
             s_version = sanitized_res.get('version', None)
             s_results = sanitized_res.get('results', None)
-            s_retcode = sanitized_res.get('status', None)
+            s_status = sanitized_res.get('status', None)
 
             prr = ProbeRealResult(
                 probe_name=s_name,
                 probe_type=s_type,
                 probe_version=s_version,
-                status=IrmaProbeResultsStates.finished,
+                status=s_status,
                 duration=s_duration,
-                retcode=s_retcode,
                 results=s_results
             )
             pr.nosql_id = prr.id
-            pr.state = IrmaProbeResultsStates.finished
-            pr.update(['nosql_id', 'state'], session=session)
-            probedone = [pr.probe_name for pr in fw.probe_results if pr.state == IrmaProbeResultsStates.finished]
+            pr.result = s_status
+            pr.type = s_type
+            pr.update(session=session)
+            probedone = []
+            for pr in fw.probe_results:
+                if pr.nosql_id is not None:
+                    probedone.append(pr.probe_name)
             print("Scanid {0}".format(scanid) +
                   "Result from {0} ".format(probe) +
                   "probedone {0}".format(probedone))

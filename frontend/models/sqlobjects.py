@@ -27,7 +27,7 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
-from lib.irma.common.utils import IrmaProbeResultsStates, IrmaScanStatus
+from lib.irma.common.utils import IrmaScanStatus
 from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 
@@ -330,7 +330,6 @@ class ProbeResult(Base, SQLDatabaseObject):
     )
     probe_type = Column(
         String,
-        nullable=False,
         name='probe_type'
     )
     probe_name = Column(
@@ -341,11 +340,6 @@ class ProbeResult(Base, SQLDatabaseObject):
     nosql_id = Column(
         String,
         name='nosql_id'
-    )
-    state = Column(
-        Integer,
-        nullable=False,
-        name='state'
     )
     result = Column(
         Integer,
@@ -371,7 +365,6 @@ class ProbeResult(Base, SQLDatabaseObject):
                  probe_type,
                  probe_name,
                  nosql_id,
-                 state,
                  result,
                  file_web=None):
         super(ProbeResult, self).__init__()
@@ -379,7 +372,6 @@ class ProbeResult(Base, SQLDatabaseObject):
         self.probe_type = probe_type
         self.probe_name = probe_name
         self.nosql_id = nosql_id
-        self.state = state
         self.result = result
         self.files_web = [file_web]
 
@@ -451,7 +443,7 @@ class Scan(Base, SQLDatabaseObject):
             return False
         for fw in self.files_web:
             for pr in fw.probe_results:
-                if pr.state != IrmaProbeResultsStates.finished:
+                if pr.nosql_id is None:
                     return False
         return True
 
