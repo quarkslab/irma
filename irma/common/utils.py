@@ -13,7 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from .exceptions import IrmaValueError, IrmaValueError
+from .exceptions import IrmaValueError
 
 
 # ==========================
@@ -130,6 +130,7 @@ class IrmaScanStatus:
             raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
         return
 
+
 # ==========================================================
 #  Lock values for NoSQLDatabaseObjects (internal use only)
 # ==========================================================
@@ -154,40 +155,4 @@ class IrmaLockMode:
     label = {
         read: 'read',
         write: 'write'
-    }
-
-# ====================
-#  ScanResults states
-# ====================
-
-class IrmaProbeResultsStates:
-    empty = 0
-    running = 10
-    cancelled = 20
-    finished = 30
-    error = 40
-    label = {
-        empty: "empty",
-        running: "running",
-        cancelled: "cancelled",
-        finished: "finished",
-        error: "error"
-    }
-    
-
-
-# =============
-#  ScanResults
-# =============
-
-class IrmaScanResults:
-    notDoneYet = 0
-    isMalicious = 10
-    isNotMalicious = 20
-    doNotKnow = 30
-    label = {
-        notDoneYet: "notDoneYet",
-        isMalicious: "isMalicious",
-        isNotMalicious: "isNotMalicious",
-        doNotKnow: "doNotKnow"
     }
