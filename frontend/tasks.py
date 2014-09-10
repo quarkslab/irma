@@ -17,11 +17,10 @@ import celery
 import config.parser as config
 
 from celery.utils.log import get_task_logger
-from frontend.models.sqlobjects import File, sql_db_connect
-from lib.irma.database.sqlhandler import SQLDatabase
 from lib.common.utils import humanize_time_str
 import frontend.controllers.scanctrl as scan_ctrl
-from lib.irma.common.exceptions import IrmaDatabaseError
+import frontend.controllers.filectrl as file_ctrl
+from lib.irma.common.exceptions import IrmaDatabaseError, IrmaFileSystemError
 
 
 log = get_task_logger(__name__)
@@ -41,7 +40,7 @@ config.configure_syslog(scan_app)
 def scan_launch(scanid, force):
     try:
         scan_ctrl.launch_asynchronous(scanid, force)
-    except Exception as e:
+    except IrmaDatabaseError as e:
         print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
 
@@ -67,21 +66,15 @@ def scan_result(scanid, file_hash, probe, result):
 @frontend_app.task()
 def clean_db():
     try:
-        sql_db_connect()
-        session = SQLDatabase.get_session()
-
         cron_cfg = config.frontend_config['cron_frontend']
-
         max_age_file = cron_cfg['clean_db_file_max_age']
         # days to seconds
         max_age_file *= 24 * 60 * 60
-        nb_files = File.remove_old_files(max_age_file, session=session)
+        nb_files = file_ctrl.remove_files(max_age_file)
         hage_file = humanize_time_str(max_age_file, 'seconds')
-
         print("removed {0} files ".format(nb_files) +
               "(older than {0})".format(hage_file))
-
-        return nb_files, 0
-    except Exception as e:
+        return nb_files
+    except (IrmaDatabaseError, IrmaFileSystemError) as e:
         print "Exception has occurred:{0}".format(e)
         raise clean_db.retry(countdown=2, max_retries=3, exc=e)
