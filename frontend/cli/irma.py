@@ -22,6 +22,9 @@ import argparse
 ADDRESS = "http://localhost/_api"
 
 
+# Warning this is a copy of IrmaScanStatus lib.irma.common.utils
+# in order to get rid of this dependency
+# KEEP SYNCHRONIZED
 class IrmaScanStatus:
     empty = 0
     ready = 10
@@ -80,6 +83,8 @@ def _generic_get_call(url, kwname, verbose):
         print data
     if data['code'] == IrmaReturnCode.success:
         return data[kwname]
+    elif data['code'] == IrmaReturnCode.warning:
+        print "data['msg']"
     else:
         code = IrmaReturnCode.label[data['code']]
         reason = "{0}: {1}".format(code, data['msg'])
@@ -118,12 +123,11 @@ def _scan_progress(scanid, verbose=False):
         print data
     finished = successful = total = None
     if data['code'] == IrmaReturnCode.success:
-        status = data['status']
-        if 'progress_details' in data:
-            results = data['progress_details']
-            finished = results['finished']
-            successful = results['successful']
-            total = results['total']
+        progress = data['progress_details']
+        finished = progress['finished']
+        successful = progress['successful']
+        total = progress['total']
+        status = "launched"
     elif data['code'] == IrmaReturnCode.warning:
         status = data['msg']
         return (status, finished, total, successful)

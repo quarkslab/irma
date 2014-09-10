@@ -15,7 +15,7 @@
 
 import logging
 
-from lib.plugins import PluginManager
+from lib.plugins.manager import PluginManager
 from lib.plugin_result import PluginResult
 
 
@@ -31,7 +31,10 @@ class IrmaFormatter:
     def __init__(self):
         manager = PluginManager()
         manager.discover("frontend/formatters", "frontend.formatters")
-        self.formatters = manager.get_all_plugins()
+        # TODO add plugin type to distinguish between api/formatter plugin
+        all_plugins = manager.get_all_plugins()
+        self.formatters = filter(lambda x: not x.plugin_category == "api",
+                                 all_plugins)
 
     @classmethod
     def format(cls, probe_name, raw_result):
