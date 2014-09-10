@@ -16,7 +16,7 @@
       <small>{{probeData.name}} {{probeData.version}}</small>
     </h3>
     <h5>Responded in {{probeData.duration | number:1}}s with status: {{probeData.status}}</h5>
-    <h5 ng-if="probeData.type === 'antivirus'">
+    <h5 ng-if="probeData.type === 'antivirus' || probeData.status == -1">
       <ng-switch on="probeData.status">
         <div class="result" ng-switch-when="0">
           <span boolean-display="true">The file is clean</span>
@@ -29,6 +29,6 @@
         </div>
       </ng-switch>
     </h5>
-    <pre>{{probeData.results | json}}</pre>
+    <pre>{{probeData.results | json}}</pre>
   </div>
 </div>
