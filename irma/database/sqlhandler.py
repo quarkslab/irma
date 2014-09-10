@@ -62,9 +62,9 @@ class SQLDatabase(object):
 
             session_factory = sessionmaker(bind=cls.__engine)
             cls.__Session = scoped_session(session_factory)
-            logging.info('engine connected')
+            logging.debug('engine connected')
         else:
-            logging.info('engine already connected, nothing to do')
+            logging.debug('engine already connected, nothing to do')
 
     @classmethod
     def get_engine(cls):
