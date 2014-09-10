@@ -13,7 +13,6 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-
 import celery
 import config.parser as config
 from frontend.helpers.celerytasks import async_call
