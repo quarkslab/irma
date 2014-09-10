@@ -18,8 +18,7 @@ import logging
 from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common import compat
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, \
-    IrmaProbeResultsStates
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
 from lib.irma.common.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError, \
     IrmaFtpError
@@ -31,6 +30,7 @@ import frontend.controllers.ftpctrl as ftp_ctrl
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
+
 
 # =========
 #  Helpers
@@ -136,14 +136,13 @@ def launch_synchronous(scanid, force, probelist):
             probelist = all_probe_list
 
         for fw in scan.files_web:
-            for p in probelist:
+            for probe_name in probelist:
                 # TODO probe types
                 probe_result = ProbeResult(
-                    0,  # TODO remove this dirty fix for probe types
-                    p,
                     None,
-                    IrmaProbeResultsStates.empty,
-                    IrmaScanStatus.empty,
+                    probe_name,
+                    None,
+                    None,
                     file_web=fw
                 )
                 probe_result.save(session=session)
@@ -167,13 +166,9 @@ def launch_asynchronous(scanid, force):
                 # init with all probes asked
                 probes_to_do.append(pr.probe_name)
 
-            log.debug("{0}: Init probe_to_do with".format(scanid,
-                                                          probes_to_do))
             if not force:
                 # Fetch the ref results for the file
                 for rr in fw.file.ref_results:
-                    log.debug("{0}: Found ref results for {1}".format(scanid,
-                                                                      rr.probe_name))
                     if rr.probe_name not in probes_to_do:
                         continue
                     # if not force
@@ -182,8 +177,6 @@ def launch_asynchronous(scanid, force):
                     # and link results to request
                     fw.probe_results.append(rr)
                 fw.update(session=session)
-            log.debug("{0}: Updated todo list {1}".format(scanid,
-                                                          probes_to_do))
 
             if len(probes_to_do) > 0:
                 scan_request[fw.file.sha256] = probes_to_do
@@ -195,7 +188,10 @@ def launch_asynchronous(scanid, force):
             return
 
         try:
-            ftp_ctrl.upload_scan(scanid, scan_request.keys())
+            upload_list = list()
+            for fw in scan.files_web:
+                upload_list.append(fw.file.path)
+            ftp_ctrl.upload_scan(scanid, upload_list)
         except IrmaFtpError as e:
             log.error("{0}: Ftp upload error {1}".format(scanid, str(e)))
             scan.set_status(IrmaScanStatus.error_ftp_upload, session)
@@ -226,12 +222,7 @@ def result(scanid):
         for fw in scan.files_web:
             probe_results = {}
             for pr in fw.probe_results:
-                if pr.nosql_id is None:  # An error occurred in the process
-                    probe_results[pr.probe_name] = {
-                        'probe_type': pr.probe_type,
-                        'status': pr.state
-                    }
-                else:
+                if pr.nosql_id is not None:
                     probe_results[pr.probe_name] = ProbeRealResult(
                         id=pr.nosql_id
                     ).get_results()
@@ -239,7 +230,6 @@ def result(scanid):
                 'filename': fw.name,
                 'results': format_results(probe_results, None)
             }
-
         return res
 
 
@@ -334,3 +324,97 @@ def finished(scanid):
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
         return scan.finished()
+
+
+def set_launched(scanid):
+    """ set status launched for scan
+    :param scanid: id returned by scan_new
+    :return: None
+    :raise: IrmaDatabaseError
+    """
+    with session_transaction() as session:
+        print("Scanid {0} is now launched".format(scanid))
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        if scan.status == IrmaScanStatus.uploaded:
+            scan.set_status(IrmaScanStatus.launched, session)
+
+
+def sanitize_dict(d):
+    new = {}
+    for k, v in d.iteritems():
+        if isinstance(v, dict):
+            v = sanitize_dict(v)
+        newk = k.replace('.', '_').replace('$', '')
+        new[newk] = v
+    return new
+
+
+def set_result(scanid, file_hash, probe, result):
+    with session_transaction() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        fws = []
+
+        for file_web in scan.files_web:
+            if file_hash == file_web.file.sha256:
+                fws.append(file_web)
+        if len(fws) == 0:
+            print ("filename not found in scan")
+            return
+
+        fws[0].file.timestamp_last_scan = compat.timestamp()
+        fws[0].file.update(['timestamp_last_scan'], session=session)
+
+        sanitized_res = sanitize_dict(result)
+
+        # update results for all files with same sha256
+        for fw in fws:
+            # Update main reference results with fresh results
+            pr = None
+            ref_res_names = [rr.probe_name for rr in fw.file.ref_results]
+            for probe_result in fw.probe_results:
+                if probe_result.probe_name == probe:
+                    pr = probe_result
+                    if probe_result.probe_name not in ref_res_names:
+                        fw.file.ref_results.append(probe_result)
+                    else:
+                        for rr in fw.file.ref_results:
+                            if probe_result.probe_name == rr.probe_name:
+                                fw.file.ref_results.remove(rr)
+                                fw.file.ref_results.append(probe_result)
+                                break
+                    break
+            fw.file.update(session=session)
+
+            # save the results
+            # TODO add remaining parameters
+            s_duration = sanitized_res.get('duration', None)
+            s_type = sanitized_res.get('type', None)
+            s_name = sanitized_res.get('name', None)
+            s_version = sanitized_res.get('version', None)
+            s_results = sanitized_res.get('results', None)
+            s_status = sanitized_res.get('status', None)
+
+            prr = ProbeRealResult(
+                probe_name=s_name,
+                probe_type=s_type,
+                probe_version=s_version,
+                status=s_status,
+                duration=s_duration,
+                results=s_results
+            )
+            pr.nosql_id = prr.id
+            pr.result = s_status
+            pr.type = s_type
+            pr.update(session=session)
+            probedone = []
+            for pr in fw.probe_results:
+                if pr.nosql_id is not None:
+                    probedone.append(pr.probe_name)
+            print("Scanid {0}".format(scanid) +
+                  "Result from {0} ".format(probe) +
+                  "probedone {0}".format(probedone))
+
+        if scan.finished():
+            scan.set_status(IrmaScanStatus.finished, session)
+            # launch flush celery task on brain
+            celery_brain.scan_flush(scanid)

@@ -120,3 +120,8 @@ def infected(sha256):
     return {'infected': (nb_detected > 0),
             'nb_detected': nb_detected,
             'nb_scan': nb_scan}
+
+
+def remove_files(max_age_sec):
+    with session_query() as session:
+        return File.remove_old_files(max_age_sec, session)

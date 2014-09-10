@@ -23,11 +23,11 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
-    IrmaDatabaseError, IrmaCoreError
+    IrmaDatabaseError, IrmaCoreError, IrmaValueError
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
-from lib.irma.common.utils import IrmaProbeResultsStates, IrmaScanStatus
+from lib.irma.common.utils import IrmaScanStatus
 from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 
@@ -58,14 +58,16 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
               "..creating".format(dirname))
         os.makedirs(dirname)
         os.chmod(dirname, 0777)
-        db_name = os.path.abspath(config.get_sql_db_uri_params()[5])
-        # touch like method to create a rw-rw-rw- file for db
-        open(db_name, 'a').close()
-        os.chmod(db_name, 0666)
-    if not (os.path.isdir(dirname)):
+    elif not (os.path.isdir(dirname)):
         print("Error. SQL directory is a not a dir {0}"
               "".format(dirname))
         raise IrmaDatabaseError("Can not create Frontend database dir")
+
+    db_name = os.path.abspath(config.get_sql_db_uri_params()[5])
+    if not os.path.exists(db_name):
+        # touch like method to create a rw-rw-rw- file for db
+        open(db_name, 'a').close()
+        os.chmod(db_name, 0666)
 
 
 sql_db_connect()
@@ -269,12 +271,28 @@ class File(Base, SQLDatabaseObject):
         :param data: the sample file
         :raise: IrmaFileSystemError if there is a problem with the filesystem
         """
+        # helper to split files in subdirs
+        def build_path(sha256):
+                PREFIX_NB = 3
+                PREFIX_LEN = 2
+                base_path = config.get_samples_storage_path()
+                if (PREFIX_NB * PREFIX_LEN) > len(sha256):
+                    raise IrmaValueError("too much prefix for file storage")
+                path = base_path
+                for i in xrange(0, PREFIX_NB + 1, PREFIX_LEN):
+                    path = os.path.join(path, sha256[i:i + PREFIX_LEN])
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                if not os.path.isdir(path):
+                    reason = "storage path is not a directory"
+                    raise IrmaFileSystemError(reason)
+                return os.path.join(path, sha256)
 
         sha256 = hashlib.sha256(data).hexdigest()
-        common_path = config.get_samples_storage_path()
-        full_path = os.path.join(common_path, sha256)
+        # split files between subdirs
+        path = build_path(sha256)
         try:
-            with open(full_path, 'wb') as h:
+            with open(path, 'wb') as h:
                 h.write(data)
         except IOError:
             raise IrmaFileSystemError(
@@ -285,17 +303,16 @@ class File(Base, SQLDatabaseObject):
         self.sha1 = hashlib.sha1(data).hexdigest()
         self.md5 = hashlib.md5(data).hexdigest()
         self.size = len(data)
-        self.path = self.sha256
+        self.path = path
 
     def remove_file_from_fs(self):
         """Remove the sample
         :raise: IrmaFileSystemError if there is a problem with the filesystem
         """
-        common_path = config.get_samples_storage_path()
-        full_path = os.path.join(common_path, self.sha256)
-
         try:
-            os.remove(full_path)
+            if self.path is None:
+                return
+            os.remove(self.path)
             self.path = None
         except OSError as e:
             raise IrmaFileSystemError(e)
@@ -310,7 +327,7 @@ class File(Base, SQLDatabaseObject):
         :return: the number of deleted files
         """
         fl = session.query(cls).filter(
-            cls.timestamp_last_scan == compat.timestamp() - max_age
+            cls.timestamp_last_scan < compat.timestamp() - max_age
         ).all()
         for f in fl:
             f.remove_file_from_fs()
@@ -349,7 +366,6 @@ class ProbeResult(Base, SQLDatabaseObject):
     )
     probe_type = Column(
         String,
-        nullable=False,
         name='probe_type'
     )
     probe_name = Column(
@@ -360,11 +376,6 @@ class ProbeResult(Base, SQLDatabaseObject):
     nosql_id = Column(
         String,
         name='nosql_id'
-    )
-    state = Column(
-        Integer,
-        nullable=False,
-        name='state'
     )
     result = Column(
         Integer,
@@ -390,7 +401,6 @@ class ProbeResult(Base, SQLDatabaseObject):
                  probe_type,
                  probe_name,
                  nosql_id,
-                 state,
                  result,
                  file_web=None):
         super(ProbeResult, self).__init__()
@@ -398,7 +408,6 @@ class ProbeResult(Base, SQLDatabaseObject):
         self.probe_type = probe_type
         self.probe_name = probe_name
         self.nosql_id = nosql_id
-        self.state = state
         self.result = result
         self.files_web = [file_web]
 
@@ -470,7 +479,7 @@ class Scan(Base, SQLDatabaseObject):
             return False
         for fw in self.files_web:
             for pr in fw.probe_results:
-                if pr.state != IrmaProbeResultsStates.finished:
+                if pr.nosql_id is None:
                     return False
         return True
 

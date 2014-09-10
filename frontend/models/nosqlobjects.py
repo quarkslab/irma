@@ -35,7 +35,6 @@ class ProbeRealResult(NoSQLDatabaseObject):
                  probe_version=None,
                  status=None,
                  duration=None,
-                 retcode=None,
                  results=None,
                  dbname=None,
                  **kwargs):
@@ -46,13 +45,12 @@ class ProbeRealResult(NoSQLDatabaseObject):
         self.version = probe_version
         self.status = status
         self.duration = duration
-        self.retcode = retcode
         self.results = results
         super(ProbeRealResult, self).__init__(**kwargs)
 
     def get_results(self):
         return {
-            'status': self.retcode,
+            'status': self.status,
             'name': self.probe_name,
             'results': self.results,
             'version': self.version,
