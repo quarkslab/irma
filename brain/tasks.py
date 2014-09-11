@@ -19,8 +19,7 @@ import config.parser as config
 
 from celery import Celery
 from celery.utils.log import get_task_logger
-from datetime import datetime, timedelta
-from brain.objects import User, Scan
+from brain.models.sqlobjects import User, Scan
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
 from lib.irma.common.exceptions import IrmaTaskError
 from lib.irma.database.sqlhandler import SQLDatabase
@@ -49,66 +48,6 @@ config.configure_syslog(results_app)
 frontend_app = Celery('frontendtasks')
 config.conf_frontend_celery(frontend_app)
 config.configure_syslog(frontend_app)
-
-
-# =============
-#  SQL Helpers
-# =============
-
-def get_quota(sql, user):
-    if user.quota == 0:
-        # quota=0 means quota disabled
-        quota = None
-    else:
-        # Quota are set per 24 hours
-        delta = timedelta(hours=24)
-        what = ("user_id={0} ".format(user.id) +
-                "and date >= '{0}'".format(datetime.now() - delta))
-        quota = user.quota - sql.sum(Scan.nbfiles, what)
-    return quota
-
-
-def get_groupresult(taskid):
-    if not taskid:
-        msg = "SQL: task_id not set"
-        log.debug(msg)
-        raise IrmaTaskError()
-    gr = probe_app.GroupResult.restore(taskid)
-    if not gr:
-        msg = "SQL: taskid not valid"
-        log.debug(msg + " [{0}]".format(taskid))
-        raise IrmaTaskError(msg)
-    return gr
-
-
-def sql_connect(engine, dbname):
-    try:
-        return SQLDatabase(engine + dbname)
-    except Exception as e:
-        msg = "SQL: can't connect"
-        log.debug(msg + " [{0}]".format(e))
-        raise IrmaTaskError(msg)
-
-
-def sql_get_user(sql, rmqvhost=None):
-    # FIXME: get rmq_vhost dynamically
-    try:
-        if rmqvhost is None:
-            rmqvhost = config.brain_config['broker_frontend'].vhost
-        return sql.one_by(User, rmqvhost=rmqvhost)
-    except Exception as e:
-        msg = "SQL: user not found"
-        log.debug(msg + " [{0}]".format(e))
-        raise IrmaTaskError(msg)
-
-
-def sql_get_scan(sql, scanid, user):
-    try:
-        return sql.one_by(Scan, scanid=scanid, user_id=user.id)
-    except Exception as e:
-        msg = "SQL: scan id not found"
-        log.debug(msg + " [{0}]".format(e))
-        raise IrmaTaskError(msg)
 
 
 # ================
@@ -232,8 +171,13 @@ def scan(scanid, scan_request):
                     break
                 if quota:
                     quota -= 1
-                callback_signature = route(
-                    results_app.signature("brain.tasks.scan_result",
+                hook_success = route(
+                    results_app.signature("brain.tasks.scan_success",
+                                          (user.ftpuser,
+                                           scanid,
+                                           filename, probe)))
+                hook_error = route(
+                    results_app.signature("brain.tasks.scan_error",
                                           (user.ftpuser,
                                            scanid,
                                            filename, probe)))
@@ -241,20 +185,12 @@ def scan(scanid, scan_request):
                     probe_app.send_task("probe.tasks.probe_scan",
                                         args=(user.ftpuser, scanid, filename),
                                         queue=probe,
-                                        link=callback_signature))
+                                        link=hook_success,
+                                        link_error=hook_error))
 
-        if len(jobs_list) != 0:
-            # Build a result set with all job AsyncResult
-            # for progress/cancel operations
-            groupid = str(uuid.uuid4())
-            groupres = probe_app.GroupResult(id=groupid, results=jobs_list)
-            # keep the groupresult object for task status/cancel
-            groupres.save()
-
-            scan.taskid = groupid
-            scan.nbfiles = len(jobs_list)
-            scan.status = IrmaScanStatus.launched
-            sql.commit()
+        scan.nbfiles = len(jobs_list)
+        scan.status = IrmaScanStatus.launched
+        sql.commit()
 
         log.debug(
             "{0}: ".format(scanid) +
