@@ -36,6 +36,6 @@ def async_call(celery_app, taskpath, taskname, **kwargs):
     """
     try:
         full_task_path = "{0}.{1}".format(taskpath, taskname)
-        celery_app.send_task(full_task_path, **kwargs)
+        return celery_app.send_task(full_task_path, **kwargs)
     except:
         raise IrmaTaskError("Celery error - {0}".format(taskname))
