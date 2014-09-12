@@ -8,10 +8,13 @@ log = logging.getLogger(__name__)
 
 
 def sql_db_connect():
+    """Connection to DB
+    """
     try:
-        engine = config.brain_config['sql_brain'].engine
-        dbname = config.brain_config['sql_brain'].dbname
-        SQLDatabase.connect(engine, None, None, None, None, dbname)
+        uri_params = config.get_sql_db_uri_params()
+        # TODO args* style argument
+        SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
+                            uri_params[3], uri_params[4], uri_params[5])
     except Exception as e:
         msg = "SQL: can't connect"
         log.debug(msg + " [{0}]".format(e))
