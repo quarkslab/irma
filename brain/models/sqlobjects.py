@@ -20,49 +20,56 @@ from sqlalchemy import Column, Integer, String, \
 import config.parser as config
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 from lib.irma.common.utils import IrmaScanStatus
 from lib.common.compat import timestamp
+from lib.irma.database.sqlhandler import SQLDatabase
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 
 
 # SQLite fix for ForeignKey support
 # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+if config.get_sql_db_uri_params()[0] == 'sqlite':
+    @event.listens_for(Engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
-# Auto-create directory for sqlite db
-db_name = config.brain_config['sql_brain'].dbname
-dirname = os.path.dirname(db_name)
-dirname = os.path.abspath(dirname)
-if not os.path.exists(dirname):
-    print("SQL directory does not exist {0}"
-          "..creating".format(dirname))
-    os.makedirs(dirname)
-    os.chmod(dirname, 0777)
-elif not (os.path.isdir(dirname)):
-    print("Error. SQL directory is a not a dir {0}"
-          "".format(dirname))
-    raise IrmaDatabaseError("Can not create Frontend database dir")
+    # Auto-create directory for sqlite db
+    db_name = os.path.abspath(config.get_sql_db_uri_params()[5])
+    dirname = os.path.dirname(db_name)
+    if not os.path.exists(dirname):
+        print("SQL directory does not exist {0}"
+              "..creating".format(dirname))
+        os.makedirs(dirname)
+        os.chmod(dirname, 0777)
+    elif not (os.path.isdir(dirname)):
+        print("Error. SQL directory is a not a dir {0}"
+              "".format(dirname))
+        raise IrmaDatabaseError("Can not create Frontend database dir")
 
-if not os.path.exists(db_name):
-    # touch like method to create a rw-rw-rw- file for db
-    open(db_name, 'a').close()
-    os.chmod(db_name, 0666)
+    if not os.path.exists(db_name):
+        # touch like method to create a rw-rw-rw- file for db
+        open(db_name, 'a').close()
+        os.chmod(db_name, 0666)
 
 
 sql_db_connect()
 Base = declarative_base()
+tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
 
 
 class Scan(Base, SQLDatabaseObject):
-    __tablename__ = 'Scan'
+    __tablename__ = '{0}scan'.format(tables_prefix)
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
     # Fields
     id = Column(
         Integer,
@@ -71,53 +78,89 @@ class Scan(Base, SQLDatabaseObject):
         primary_key=True,
         name='id'
     )
-    timestamp = Column(
-        String,
-        nullable=False,
-        name='timestamp'
-    )
-    scanid = Column(
+    scan_id = Column(
         String,
         index=True,
         nullable=False,
-        name='scanid'
+        name='scan_id'
     )
-    nbfiles = Column(
+    status = Column(
         Integer,
-        name='nbfiles'
+        nullable=False,
+        name='status'
+    )
+    timestamp = Column(
+        Integer,
+        nullable=False,
+        name='timestamp'
+    )
+    nb_files = Column(
+        Integer,
+        nullable=False,
+        name='nb_files'
     )
     # Many to one Scan <-> User
     user_id = Column(
         Integer,
-        ForeignKey('user.id'),
+        ForeignKey('{0}user.id'.format(tables_prefix)),
+        index=True,
         nullable=False,
-        name="user_id"
     )
-    user = relationship("User")
+    jobs = relationship("Job", backref="scan")
 
-    def __repr__(self):
-        str_repr = (
-            "Scan {0}:".format(self.scanid) +
-            "\tdate: {0}".format(self.timestamp) +
-            "\t{0} file(s)".format(self.nbfiles) +
-            "\tstatus: '{0}'".format(IrmaScanStatus.label[self.status]) +
-            "\tuser_id: {0}\n".format(self.user_id))
-        return str_repr
+    def __init__(self, frontend_scanid, user_id, nb_files):
+        self.scan_id = frontend_scanid
+        self.status = IrmaScanStatus.empty
+        self.timestamp = timestamp()
+        self.nb_files = nb_files
+        self.user_id = user_id
 
     @staticmethod
-    def get_scan(scanid, user_id, session):
+    def get_scan(scan_id, user_id, session):
         try:
-            return session.query(User).filter(
-                Scan.scanid == scanid and Scan.user_id == user_id
+            return session.query(Scan).filter(
+                Scan.scan_id == scan_id and Scan.user_id == user_id
                 ).one()
         except NoResultFound as e:
             raise IrmaDatabaseResultNotFound(e)
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
+    @property
+    def nb_jobs(self):
+        return len(self.jobs)
+
+    def progress(self):
+        finished = success = total = 0
+        for job in self.jobs:
+            total += 1
+            if job.finished():
+                finished += 1
+                if job.status == Job.success:
+                    success += 1
+        return (total, finished, success)
+
+    def get_pending_jobs_taskid(self):
+        pending_jobs_taskid = []
+        for job in self.jobs:
+            if not job.finished():
+                pending_jobs_taskid.append(job.task_id)
+        return pending_jobs_taskid
+
+    def finished(self):
+        for job in self.jobs:
+            if not job.finished():
+                return False
+        return True
+
 
 class User(Base, SQLDatabaseObject):
-    __tablename__ = 'User'
+    __tablename__ = '{0}user'.format(tables_prefix)
+
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
     id = Column(
@@ -134,6 +177,7 @@ class User(Base, SQLDatabaseObject):
     )
     rmqvhost = Column(
         String,
+        index=True,
         nullable=False,
         name='rmqvhost'
     )
@@ -148,13 +192,11 @@ class User(Base, SQLDatabaseObject):
     )
     scans = relationship("Scan", backref="user")
 
-    def __repr__(self):
-        str_repr = (
-            "User {0}:".format(self.name) +
-            "\trmq_vhost: '{0}'".format(self.rmqvhost) +
-            "\t ftpuser: '{0}'".format(self.ftpuser) +
-            "\tquota: '{0}'\n".format(self.quota))
-        return str_repr
+    def __init__(self, name, rmqvhost, ftpuser, quota):
+        self.name = name
+        self.rmqvhost = rmqvhost
+        self.ftpuser = ftpuser
+        self.quota = quota
 
     @staticmethod
     def get_by_rmqvhost(rmqvhost, session):
@@ -163,7 +205,7 @@ class User(Base, SQLDatabaseObject):
             rmqvhost = config.brain_config['broker_frontend'].vhost
         try:
             return session.query(User).filter(
-                User.rmq_vhost == rmqvhost
+                User.rmqvhost == rmqvhost
                 ).one()
         except NoResultFound as e:
             raise IrmaDatabaseResultNotFound(e)
@@ -173,13 +215,87 @@ class User(Base, SQLDatabaseObject):
     def remaining_quota(self, session):
         if self.quota == 0:
             # quota=0 means quota disabled
-            quota = None
+            remaining = None
         else:
             # quota are per 24h
-            min_date = timestamp() - 24 * 60 * 60
-            files_consumed = session.query(Scan.nb_files).filter(
-                Scan.date >= min_date and Scan.user_id == self.id
-                ).all()
+            min_ts = timestamp() - 24 * 60 * 60
+            scan_list = session.query(Scan).filter(
+                Scan.user_id == self.id).filter(
+                Scan.timestamp >= min_ts).all()
+            consumed = 0
+            for scan in scan_list:
+                consumed += scan.nb_jobs
             # Quota are set per 24 hours
-            quota = self.quota - sum(files_consumed)
-        return quota
+            remaining = self.quota - consumed
+        return remaining
+
+
+class Job(Base, SQLDatabaseObject):
+    __tablename__ = '{0}job'.format(tables_prefix)
+    success = 1
+    running = 0
+    error = -1
+
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
+    # Fields
+    id = Column(
+        Integer,
+        autoincrement=True,
+        nullable=False,
+        primary_key=True,
+        name='id'
+    )
+    filename = Column(
+        String,
+        nullable=False,
+        index=True,
+        name='filename'
+    )
+    probename = Column(
+        String,
+        nullable=False,
+        index=True,
+        name='probename'
+    )
+    status = Column(
+        Integer,
+        nullable=False,
+        name='status'
+    )
+    ts_start = Column(
+        Integer,
+        nullable=False,
+        name='ts_start'
+    )
+    ts_end = Column(
+        Integer,
+        name='ts_end'
+    )
+    task_id = Column(
+        String,
+        name="task_id"
+    )
+    # Many to one Job <-> Scan
+    scan_id = Column(
+        Integer,
+        ForeignKey('{0}scan.id'.format(tables_prefix)),
+        index=True,
+        nullable=False,
+    )
+
+    def __init__(self, filename, probename, scanid):
+        self.filename = filename
+        self.probename = probename
+        self.ts_start = timestamp()
+        self.status = self.running
+        self.scan_id = scanid
+
+    def finished(self):
+        return self.status != self.running
+
+
+Base.metadata.create_all(SQLDatabase.get_engine())
