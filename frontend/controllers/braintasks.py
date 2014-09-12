@@ -54,7 +54,7 @@ def scan_cancel(scanid):
     """ send a task to the brain to cancel all remaining subtasks """
     return sync_call(brain_app,
                      "brain.tasks",
-                     "scan_progress",
+                     "scan_cancel",
                      timeout,
                      args=[scanid])
 
