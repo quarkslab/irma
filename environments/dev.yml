@@ -55,5 +55,8 @@ ansible_config:
       - brain.irma
     clamav:
       - clamav.irma
+    comodo:
+      - comodo.irma
     "probe:children":
       - clamav
+      - comodo
