@@ -1,6 +1,6 @@
 ---
 
-- name: install dependencies
+- name: ComodoCAVL | Install dependencies
   apt: pkg={{ item }} state=present
   with_items:
     - binutils
@@ -9,18 +9,20 @@
     - libqtgui4
 
 - name: ComodoCAVL | Download Package
-  get_url: 
-    url={{ deb_url }}
-    dest=/tmp/comodo.deb
+  get_url:
+    url: "{{ comodo_cavl_deb_url }}"
+    dest: /tmp/comodo.deb
   when: ansible_os_family == "Debian"
 
-- name: ComodoCAVL | Extract files
+- name: ComodoCAVL | Extract files
   shell: ar x /tmp/comodo.deb
-         creates=/tmp/data.tar.gz
-         chdir=/tmp/
+  args:
+    chdir: /tmp/
+    creates: /tmp/data.tar.gz
 
 - name: ComodoCAVL | Install files
   shell: tar xzf /tmp/data.tar.gz -C /
 
-- shell: chdir=/tmp/
-    rm control.tar.gz data.tar.gz debian-binary
+- shell: rm control.tar.gz data.tar.gz debian-binary
+  args:
+    chdir: /tmp/

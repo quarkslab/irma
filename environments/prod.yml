@@ -18,4 +18,3 @@ servers:
     ip: 172.16.1.33
     hostname: comodo.irma
     memory: 2048
-
