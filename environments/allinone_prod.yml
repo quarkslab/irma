@@ -6,9 +6,9 @@ servers:
     hostname: brain.irma
     memory: 2048
     share_code: false
+
 ansible_config:
   extra_vars:
-    user: vagrant
     vagrant: true
     vagrant_share: false
   groups:
