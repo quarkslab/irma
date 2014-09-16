@@ -66,10 +66,15 @@ template_brain_config = {
         ('port', TemplatedConfiguration.integer, 6379),
         ('db', TemplatedConfiguration.integer, None),
         ],
-    'sql_brain': [
-        ('engine', TemplatedConfiguration.string, None),
+    'sqldb': [
+        ('dbms', TemplatedConfiguration.string, None),
+        ('dialect', TemplatedConfiguration.string, None),
+        ('username', TemplatedConfiguration.string, None),
+        ('passwd', TemplatedConfiguration.string, None),
+        ('host', TemplatedConfiguration.string, None),
         ('dbname', TemplatedConfiguration.string, None),
-        ],
+        ('tables_prefix', TemplatedConfiguration.string, None),
+    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 21),
@@ -78,8 +83,13 @@ template_brain_config = {
         ]
     }
 
-cwd = os.path.abspath(os.path.dirname(__file__))
-cfg_file = "{0}/{1}".format(cwd, "brain.ini")
+config_path = os.environ.get('IRMA_BRAIN_CFG_PATH')
+if config_path is None:
+    # Fallback to default path that is
+    # current working directory
+    config_path = os.path.abspath(os.path.dirname(__file__))
+
+cfg_file = "{0}/{1}".format(config_path, "brain.ini")
 brain_config = TemplatedConfiguration(cfg_file, template_brain_config)
 
 
@@ -176,6 +186,10 @@ def get_frontend_broker_uri():
     return _get_broker_uri(brain_config.broker_frontend)
 
 
+def get_frontend_rmqvhost():
+    return brain_config.broker_frontend.vhost
+
+
 # ================
 #  Syslog helpers
 # ================
@@ -200,3 +214,22 @@ def setup_log(**args):
     hl.setFormatter(formatter)
     # add new handler to logger
     args['logger'].addHandler(hl)
+
+
+# ==================
+#  Database helpers
+# ==================
+
+def get_sql_db_uri_params():
+    return (
+        brain_config.sqldb.dbms,
+        brain_config.sqldb.dialect,
+        brain_config.sqldb.username,
+        brain_config.sqldb.passwd,
+        brain_config.sqldb.host,
+        brain_config.sqldb.dbname,
+    )
+
+
+def get_sql_db_tables_prefix():
+    return brain_config.sqldb.tables_prefix
