@@ -103,7 +103,7 @@ class VirusTotalPlugin(PluginBase):
                 results.status = self.VirusTotalResult.ERROR
                 results.error = "Network probably unreachable"
             elif (response['response_code'] == 204) or \
-               (response['response_code'] == 403):
+                 (response['response_code'] == 403):
                 results.status = self.VirusTotalResult.ERROR
                 results.error = response['results']['verbose_msg']
             elif (response['response_code'] == 200) and \
