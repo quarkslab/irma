@@ -3,7 +3,7 @@ DESTDIR = /
 DISTDIR = $(CURDIR)/deb_dist
 BUILDIR = $(CURDIR)/debian/irma-probe
 PROJECT = irma-probe
-VERSION = 1.0.4
+VERSION = 1.1.0
 
 all: help
 
