@@ -353,7 +353,7 @@ DATA_FILES = {
 
 setup(
     name='irma-brain-app',
-    version='1.0.4',
+    version='1.1.0',
     url='http://irma.quarkslab.com',
     author='Quarkslab',
     author_email='irma@quarkslab.com',
