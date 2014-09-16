@@ -49,10 +49,10 @@ Vagrant.configure("2") do |config|
       ansible.groups = ansible_config['groups']
       ansible.limit = 'all'
 
-      # ansible.tags = ['']
-      # ansible.skip_tags = ['']
-      # ansible.verbose = 'vvvv'
-      # ansible.raw_arguments = ['--check','--diff']
+      #ansible.tags = ['']
+      #ansible.skip_tags = ['']
+      #ansible.verbose = 'vvvv'
+      #ansible.raw_arguments = ['--check','--diff']
     end
   end
 end
