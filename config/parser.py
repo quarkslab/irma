@@ -95,6 +95,7 @@ def _conf_celery(app, broker, backend=None, queue=None):
                     )
     if backend is not None:
         app.conf.update(CELERY_RESULT_BACKEND=backend)
+        app.conf.update(CELERY_TASK_RESULT_EXPIRES=300)  # 5 minutes
     if queue is not None:
         app.conf.update(CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode
