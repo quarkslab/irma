@@ -83,11 +83,6 @@ template_frontend_config = {
         ('password', TemplatedConfiguration.string, None),
         ('queue', TemplatedConfiguration.string, None),
     ],
-    'backend_brain': [
-        ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 6379),
-        ('db', TemplatedConfiguration.integer, None),
-    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 21),
@@ -125,6 +120,7 @@ def _conf_celery(app, broker, backend=None, queue=None):
         )
     if backend is not None:
         app.conf.update(CELERY_RESULT_BACKEND=backend)
+        app.conf.update(CELERY_TASK_RESULT_EXPIRES=300)  # 5 minutes
 
     if queue is not None:
         app.conf.update(
@@ -138,9 +134,11 @@ def _conf_celery(app, broker, backend=None, queue=None):
 
 def conf_brain_celery(app):
     broker = get_brain_broker_uri()
+    # default backend for brain celery
+    # is amqp
     backend = get_brain_backend_uri()
     queue = frontend_config.broker_brain.queue
-    _conf_celery(app, broker, backend, queue)
+    _conf_celery(app, broker, backend=backend, queue=queue)
 
 
 def conf_frontend_celery(app):
@@ -174,28 +172,11 @@ def get_frontend_celery_timeout():
     return frontend_config.celery_admin.timeout
 
 
-# =================
-#  Backend helpers
-# =================
+# ========================
+#  Broker/Backend helpers
+# ========================
 
-def _get_backend_uri(backend_config):
-    host = backend_config.host
-    port = backend_config.port
-    db = backend_config.db
-    return "redis://{host}:{port}/{db}".format(host=host,
-                                               port=port,
-                                               db=db)
-
-
-def get_brain_backend_uri():
-    return _get_backend_uri(frontend_config.backend_brain)
-
-
-# ================
-#  Broker helpers
-# ================
-
-def _get_broker_uri(broker_config):
+def _get_amqp_uri(broker_config):
     user = broker_config.username
     pwd = broker_config.password
     host = broker_config.host
@@ -209,11 +190,15 @@ def _get_broker_uri(broker_config):
 
 
 def get_brain_broker_uri():
-    return _get_broker_uri(frontend_config.broker_brain)
+    return _get_amqp_uri(frontend_config.broker_brain)
+
+
+def get_brain_backend_uri():
+    return _get_amqp_uri(frontend_config.broker_brain)
 
 
 def get_frontend_broker_uri():
-    return _get_broker_uri(frontend_config.broker_frontend)
+    return _get_amqp_uri(frontend_config.broker_frontend)
 
 
 # ================
