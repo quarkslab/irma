@@ -39,11 +39,6 @@ template_probe_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None)
     ],
-    'backend_probe': [
-        ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 6379),
-        ('db', TemplatedConfiguration.integer, None),
-    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 21),
@@ -61,15 +56,13 @@ probe_config = TemplatedConfiguration(cfg_file, template_probe_config)
 #  Celery helpers
 # ================
 
-def _conf_celery(app, broker, backend=None, queue=None):
+def conf_probe_celery(app, queue=None):
+    broker = get_probe_broker_uri()
     app.conf.update(BROKER_URL=broker,
-                    CELERY_RESULT_BACKEND=backend,
                     CELERY_ACCEPT_CONTENT=['json'],
                     CELERY_TASK_SERIALIZER='json',
                     CELERY_RESULT_SERIALIZER='json'
                     )
-    if backend is not None:
-        app.conf.update(CELERY_RESULT_BACKEND=backend)
     if queue is not None:
         app.conf.update(CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode
@@ -77,28 +70,6 @@ def _conf_celery(app, broker, backend=None, queue=None):
                         CELERY_QUEUES=(Queue(queue, routing_key=queue),)
                         )
     return
-
-
-def conf_probe_celery(app):
-    broker = get_probe_broker_uri()
-    backend = get_probe_backend_uri()
-    _conf_celery(app, broker, backend=backend)
-
-
-# =================
-#  Backend helpers
-# =================
-
-def _get_backend_uri(backend_config):
-    host = backend_config.host
-    port = backend_config.port
-    db = backend_config.db
-    return "redis://{host}:{port}/{db}" \
-           "".format(host=host, port=port, db=db)
-
-
-def get_probe_backend_uri():
-    return _get_backend_uri(probe_config.backend_probe)
 
 
 # ================
