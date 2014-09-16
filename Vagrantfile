@@ -32,6 +32,13 @@ Vagrant.configure("2") do |config|
           machine.vm.synced_folder share["share_from"], share["share_to"], type: "rsync", owner: share['share_user'], group: share['share_group'], rsync__exclude: share["share_exclude"]
         end
       end
+
+      machine.vm.provider "virtualbox" do |v|
+        #v.gui = true
+        v.customize ["modifyvm", :id, "--cpus", server['cpus'] || 1]
+        v.customize ["modifyvm", :id, "--cpuexecutioncap", server['cpuexecutioncap'] || 50]
+        v.customize ["modifyvm", :id, "--memory", server['memory'] || 1024]
+      end
     end
   end
 
