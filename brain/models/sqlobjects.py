@@ -106,7 +106,7 @@ class Scan(Base, SQLDatabaseObject):
         index=True,
         nullable=False,
     )
-    jobs = relationship("Job", backref="scan")
+    jobs = relationship("Job", backref="scan", lazy='subquery')
 
     def __init__(self, frontend_scanid, user_id, nb_files):
         self.scan_id = frontend_scanid
