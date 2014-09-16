@@ -18,3 +18,7 @@ servers:
     ip: 172.16.1.33
     hostname: comodo.irma
     memory: 2048
+  - name: mcafee.irma
+    ip: 172.16.1.35
+    hostname: mcafee.irma
+    memory: 2048

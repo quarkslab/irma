@@ -20,6 +20,9 @@ ansible_config:
       - brain.irma
     comodo:
       - brain.irma
+    mcafee:
+      - brain.irma
     "probe:children":
       - clamav
       - comodo
+      - mcafee
