@@ -56,16 +56,6 @@ template_brain_config = {
         ('password', TemplatedConfiguration.string, None),
         ('queue', TemplatedConfiguration.string, None)
         ],
-    'backend_brain': [
-        ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 6379),
-        ('db', TemplatedConfiguration.integer, None),
-        ],
-    'backend_probe': [
-        ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 6379),
-        ('db', TemplatedConfiguration.integer, None),
-        ],
     'sqldb': [
         ('dbms', TemplatedConfiguration.string, None),
         ('dialect', TemplatedConfiguration.string, None),
@@ -99,13 +89,13 @@ brain_config = TemplatedConfiguration(cfg_file, template_brain_config)
 
 def _conf_celery(app, broker, backend=None, queue=None):
     app.conf.update(BROKER_URL=broker,
-                    CELERY_RESULT_BACKEND=backend,
                     CELERY_ACCEPT_CONTENT=['json'],
                     CELERY_TASK_SERIALIZER='json',
                     CELERY_RESULT_SERIALIZER='json'
                     )
     if backend is not None:
         app.conf.update(CELERY_RESULT_BACKEND=backend)
+        app.conf.update(CELERY_TASK_RESULT_EXPIRES=300)  # 5 minutes
     if queue is not None:
         app.conf.update(CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode
@@ -117,6 +107,8 @@ def _conf_celery(app, broker, backend=None, queue=None):
 
 def conf_brain_celery(app):
     broker = get_brain_broker_uri()
+    # default backend is amqp
+    # same as broker
     backend = get_brain_backend_uri()
     queue = brain_config.broker_brain.queue
     _conf_celery(app, broker, backend=backend, queue=queue)
@@ -124,47 +116,26 @@ def conf_brain_celery(app):
 
 def conf_probe_celery(app):
     broker = get_probe_broker_uri()
-    backend = get_probe_backend_uri()
-    _conf_celery(app, broker, backend=backend)
+    _conf_celery(app, broker, backend=False)
 
 
 def conf_frontend_celery(app):
     broker = get_frontend_broker_uri()
     queue = brain_config.broker_frontend.queue
-    _conf_celery(app, broker, queue=queue)
+    _conf_celery(app, broker, backend=False, queue=queue)
 
 
 def conf_results_celery(app):
     broker = get_probe_broker_uri()
     queue = brain_config.broker_probe.queue
-    _conf_celery(app, broker, queue=queue)
-
-
-# =================
-#  Backend helpers
-# =================
-
-def _get_backend_uri(backend_config):
-    host = backend_config.host
-    port = backend_config.port
-    db = backend_config.db
-    return "redis://{host}:{port}/{db}" \
-           "".format(host=host, port=port, db=db)
-
-
-def get_brain_backend_uri():
-    return _get_backend_uri(brain_config.backend_brain)
-
-
-def get_probe_backend_uri():
-    return _get_backend_uri(brain_config.backend_probe)
+    _conf_celery(app, broker, backend=False, queue=queue)
 
 
 # =================
 #  Brocker helpers
 # =================
 
-def _get_broker_uri(broker_config):
+def _get_amqp_uri(broker_config):
     user = broker_config.username
     pwd = broker_config.password
     host = broker_config.host
@@ -175,15 +146,19 @@ def _get_broker_uri(broker_config):
 
 
 def get_brain_broker_uri():
-    return _get_broker_uri(brain_config.broker_brain)
+    return _get_amqp_uri(brain_config.broker_brain)
+
+
+def get_brain_backend_uri():
+    return _get_amqp_uri(brain_config.broker_brain)
 
 
 def get_probe_broker_uri():
-    return _get_broker_uri(brain_config.broker_probe)
+    return _get_amqp_uri(brain_config.broker_probe)
 
 
 def get_frontend_broker_uri():
-    return _get_broker_uri(brain_config.broker_frontend)
+    return _get_amqp_uri(brain_config.broker_frontend)
 
 
 def get_frontend_rmqvhost():

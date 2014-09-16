@@ -32,11 +32,6 @@ Architecture: all
 Depends: ${misc:Depends}, debconf, pure-ftpd, openssl
 Description: FTPs server for IRMA Brain
 
-Package: irma-brain-redis
-Architecture: all
-Depends: ${misc:Depends}, redis-server
-Description: Redis server configuration for IRMA Brain
-
 Package: irma-brain-rabbitmq
 Architecture: all
 Depends: ${misc:Depends}, debconf, rabbitmq-server
@@ -44,6 +39,6 @@ Description: RabbitMQ server configuration for IRMA Brain
 
 Package: irma-brain
 Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}, irma-brain-redis, irma-brain-app, irma-brain-rabbitmq, irma-brain-ftpd
+Depends: ${shlibs:Depends}, ${misc:Depends}, irma-brain-app, irma-brain-rabbitmq, irma-brain-ftpd
 Recommends: irma-brain-rsyslog, irma-brain-logrotate
 Description: IRMA Brain meta-package

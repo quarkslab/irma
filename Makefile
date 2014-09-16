@@ -40,6 +40,5 @@ clean:
 	rm -rf $(CURDIR)/debian/irma-brain-logrotate
 	rm -rf $(CURDIR)/debian/irma-brain-rabbitmq
 	rm -rf $(CURDIR)/debian/irma-brain-ftpd
-	rm -rf $(CURDIR)/debian/irma-brain-redis
 	rm -rf build/ MANIFEST $(DISTDIR) $(BUILDIR) 
 	find . -name '*.pyc' -delete
