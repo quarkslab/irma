@@ -1,0 +1,19 @@
+---
+
+- file: path=/etc/nginx/certs state=directory
+
+- name: Generate dhparam
+  command: openssl dhparam -out {{ frontend_openssl_dh_param }} 2048
+  args:
+    creates: "{{ frontend_openssl_dh_param }}"
+  tags: ssl
+
+- name: Copy IRMA OpenSSL Certs
+  copy:
+    src: "{{ frontend_openssl_certificates[item].src }}"
+    dest: "{{ frontend_openssl_certificates[item].dst }}"
+    owner: www-data
+    group: www-data
+    mode: 644
+  with_items: frontend_openssl_certificates.keys()
+  tags: ssl

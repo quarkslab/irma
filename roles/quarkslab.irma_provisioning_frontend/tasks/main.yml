@@ -7,3 +7,7 @@
     owner: "{{ frontend_user }}"
     group: "{{ frontend_group }}"
     recurse: yes
+  notify: restart nginx
+
+- include: openssl_configuration.yml
+  when: frontend_openssl|default(False) == True
