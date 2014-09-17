@@ -214,3 +214,23 @@ class ScanApi(WebApi):
                 return IrmaFrontendReturn.warning("not finished")
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
+
+    def _info(self, scanid):
+        """ returns all info about scan
+
+        :route: /info/<scanid>
+        :param scanid: id returned by scan_new
+        :rtype: dict of 'code': int, 'msg': str [, optional 'scan_info':
+                'probelist': list,
+                'finished': bool,
+                'file_sha256': dict]
+        :return:
+            on success results are ready
+            on error 'msg' gives reason message
+        """
+        try:
+            validate_id(scanid)
+            scan_info = scan_ctrl.info(scanid)
+            return IrmaFrontendReturn.success(scan_info=scan_info)
+        except Exception as e:
+            return IrmaFrontendReturn.error(str(e))

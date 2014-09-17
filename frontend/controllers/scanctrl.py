@@ -418,3 +418,22 @@ def set_result(scanid, file_hash, probe, result):
             scan.set_status(IrmaScanStatus.finished, session)
             # launch flush celery task on brain
             celery_brain.scan_flush(scanid)
+
+
+def info(scanid):
+    with session_transaction() as session:
+        info = {}
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        info['ip'] = scan.ip
+        info['date'] = scan.date
+        info['status'] = IrmaScanStatus.label[scan.status]
+        info['finished'] = scan.finished()
+        info['files'] = dict()
+        if len(scan.files_web) != 0:
+            for file_web in scan.files_web:
+                info['files'][file_web.name] = file_web.file.sha256
+            # build probelist with last item of scan.files_web
+            info['probelist'] = list()
+            for pr in file_web.probe_results:
+                info['probelist'].append(pr.probe_name)
+        return info
