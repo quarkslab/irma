@@ -48,6 +48,7 @@ FILES = {'file1.bin': 'This is File1 binary data',
          'file4.scr': 'This is File4 binary data',
          'file5.sys': 'This is File5 binary data'
          }
+IP = "192.168.13.37"
 
 # ==================
 #  Mock Celery tasks
@@ -147,17 +148,17 @@ class TestScanController(scanctrlTestCase):
     # ==========
     def test_scan_new_id(self):
         # test we got an id
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         self.assertIsNotNone(scanid)
 
     def test_scan_new_status(self):
         # test we have a correct status
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         with session_query() as session:
             scan = Scan.load_from_ext_id(scanid, session)
             self.assertIsNotNone(scan.date)
             self.assertEqual(scan.status, IrmaScanStatus.empty)
-            # self.assertIsNotNone(scan.ip)
+            self.assertEqual(scan.ip, IP)
             self.assertFalse(scanctrl.finished(scanid))
 
     # ==========
@@ -168,7 +169,7 @@ class TestScanController(scanctrlTestCase):
             scanctrl.add_files(UUID.generate(), FILES)
 
     def test_scan_add_wrong_status(self):
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         for status in IrmaScanStatus.label.keys():
             if status <= IrmaScanStatus.ready:
                 continue
@@ -179,7 +180,7 @@ class TestScanController(scanctrlTestCase):
                 scanctrl.add_files(scanid, FILES)
 
     def test_scan_add(self):
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         res = scanctrl.add_files(scanid, FILES)
         self.assertEqual(res, NB_FILES)
 
@@ -200,7 +201,7 @@ class TestScanController(scanctrlTestCase):
             scanctrl.add_files(UUID.generate(), FILES)
 
     def test_scan_launch_wrong_status(self):
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         for status in IrmaScanStatus.label.keys():
             if status == IrmaScanStatus.ready:
                 continue
@@ -211,7 +212,7 @@ class TestScanController(scanctrlTestCase):
                 fake_scan_launch(scanid)
 
     def test_scan_launch(self):
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         self.assertEqual(scanctrl.add_files(scanid, FILES), len(FILES))
         self.assertEqual(fake_scan_launch(scanid), PROBES)
 
@@ -229,7 +230,7 @@ class TestScanController(scanctrlTestCase):
             self.assertFalse(scanctrl.finished(scanid))
 
     def test_scan_partial_results(self):
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         self.assertEqual(scanctrl.add_files(scanid, FILES),
                          len(FILES))
         self.assertEqual(fake_scan_launch(scanid), PROBES)
@@ -249,7 +250,7 @@ class TestScanController(scanctrlTestCase):
             self.assertEqual(len(results.keys()), NB_FILES)
 
     def test_scan_full_results(self):
-        scanid = scanctrl.new()
+        scanid = scanctrl.new(IP)
         self.assertEqual(scanctrl.add_files(scanid, FILES), len(FILES))
         self.assertEqual(fake_scan_launch(scanid), PROBES)
         files_sha256 = []
