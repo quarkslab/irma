@@ -50,6 +50,7 @@ class ScanApi(WebApi):
         self._app.route('/progress/<scanid>', callback=self._progress)
         self._app.route('/cancel/<scanid>', callback=self._cancel)
         self._app.route('/finished/<scanid>', callback=self._finished)
+        self._app.route('/info/<scanid>', callback=self._info)
 
     def _new(self):
         """ create new scan
