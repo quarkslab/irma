@@ -60,7 +60,8 @@ class ScanApi(WebApi):
             on error 'msg' gives reason message
         """
         try:
-            scan_id = scan_ctrl.new()
+            ip = request.remote_addr
+            scan_id = scan_ctrl.new(ip)
             return IrmaFrontendReturn.success(scan_id=scan_id)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
