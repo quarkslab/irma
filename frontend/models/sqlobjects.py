@@ -549,7 +549,10 @@ class FileWeb(Base, SQLDatabaseObject):
         self.scan = scan
 
     @classmethod
-    def find_by_name(cls, name, strict, session):
+    def find_by_name(cls,
+                     name, strict,  # query parameters
+                     page, page_size, order_by,  # pagination parameters
+                     session):
         """Find the object in the database
         :param name: the name to look for
         :param strict: boolean to check with partial name or strict name
@@ -558,17 +561,15 @@ class FileWeb(Base, SQLDatabaseObject):
         :return: the object thats corresponds to the partial name
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
         """
-        try:
-            if strict:
-                return session.query(cls).filter(
-                    cls.name == name
-                    ).all()
-            else:
-                return session.query(cls).filter(
-                    cls.name.like("%{0}%".format(name))
-                    ).all()
-        except NoResultFound as e:
-            raise IrmaDatabaseResultNotFound(e)
+        if strict:
+            query = session.query(cls).filter(
+                cls.name == name
+                )
+        else:
+            query = session.query(cls).filter(
+                cls.name.like("%{0}%".format(name))
+                )
+        return cls.paginate(query, page, page_size, order_by)
 
 
 class FileAgent(Base, SQLDatabaseObject):
