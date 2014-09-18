@@ -17,7 +17,7 @@
         if(data.data.code === -1){
           $timeout(function(){
             if(!options.noAlerts){ this.alerts.add({standard: 'apiErrorWithMsg', apiMsg: data.data.msg});}
-            deferred.reject(data.data); 
+            deferred.reject(data.data);
           }.bind(this), constants.fakeDelay);
         } else {
           $timeout(function(){
