@@ -347,6 +347,31 @@ class File(Base, SQLDatabaseObject):
             from_submission.append(os.path.split(fa.submission_path)[1])
         return list(set(from_web + from_submission))
 
+    @staticmethod
+    def find_by_name(name, strict,  # query parameters
+                     page, page_size, order_by,  # pagination parameters
+                     session):
+        """Find the object in the database
+        :param name: the name to look for
+        :param strict: boolean to check with partial name or strict name
+        :param session: the session to use
+        :rtype: cls
+        :return: the object thats corresponds to the partial name
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        """
+        if order_by is not None:
+            if order_by in FileWeb.__table__.columns.keys():
+                order_by = "{0}.{1}".format(FileWeb.__tablename__, order_by)
+            elif order_by not in File.__table__.columns.keys():
+                raise IrmaValueError("Unknown column name for order_by")
+        query = session.query(File.sha256, FileWeb.name).distinct()
+        query = query.join(FileWeb)
+        if strict:
+            query = query.filter(FileWeb.name == name)
+        else:
+            query = query.filter(FileWeb.name.like("%{0}%".format(name)))
+        return File.paginate(query, page, page_size, order_by)
+
 
 class ProbeResult(Base, SQLDatabaseObject):
     __tablename__ = '{0}probeResult'.format(tables_prefix)
@@ -547,29 +572,6 @@ class FileWeb(Base, SQLDatabaseObject):
         self.file = file
         self.name = name
         self.scan = scan
-
-    @classmethod
-    def find_by_name(cls,
-                     name, strict,  # query parameters
-                     page, page_size, order_by,  # pagination parameters
-                     session):
-        """Find the object in the database
-        :param name: the name to look for
-        :param strict: boolean to check with partial name or strict name
-        :param session: the session to use
-        :rtype: cls
-        :return: the object thats corresponds to the partial name
-        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
-        """
-        if strict:
-            query = session.query(cls).filter(
-                cls.name == name
-                )
-        else:
-            query = session.query(cls).filter(
-                cls.name.like("%{0}%".format(name))
-                )
-        return cls.paginate(query, page, page_size, order_by)
 
 
 class FileAgent(Base, SQLDatabaseObject):
