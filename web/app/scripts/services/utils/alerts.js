@@ -32,10 +32,9 @@
         status: 'debug'
       },
       'uploadError': {
-        message: '<strong>Info: </strong> The upload encountered errors',
-        type: 'info',
-        dismiss: 3000,
-        status: 'debug'
+        message: '<strong>Info: </strong> The upload encountered errors. Please retry later.',
+        type: 'danger',
+        dismiss: false,
       },
 
       'scanStart': {
@@ -70,7 +69,7 @@
     };
 
     this.autoDismiss = function(alert){
-    
+
       if(alert.dismiss === undefined || alert.dismiss !== false){
 
         alert.dismiss = (alert.dismiss !== parseInt(alert.dismiss))? 4000: parseInt(alert.dismiss);

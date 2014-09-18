@@ -60,7 +60,7 @@
 
 
 
-    
+
 
     /*
      *  Probes
@@ -116,7 +116,7 @@
     this.pingApi = function(){
       var deferred = $q.defer();
 
-      if(!this.settings.maintenance){ 
+      if(!this.settings.maintenance){
         // The status was already checked, maintenance mode is OFF
         deferred.resolve();
       } else {
@@ -185,14 +185,16 @@
       this.scan.cancelUpload();
     }.bind(this));
     this.$rootScope.$on('successUpload', function(){
+      this.$log.info('Upload was successful');
       if(this.lastAction === 'startUpload'){
         this.alerts.add({standard: 'uploadSuccess'});
         this.$rootScope.$broadcast('startScan');
       }
     }.bind(this));
     this.$rootScope.$on('errorUpload', function(){
-      this.alerts.add({standard: 'uploadError'});
+      this.$log.info('Upload encountered an error');
       this.goTo('selection');
+      this.alerts.add({standard: 'uploadError'});
     }.bind(this));
 
 
@@ -200,7 +202,7 @@
      * Scan events
      */
     this.$rootScope.$on('startScan', function(){
-      
+
       $timeout(function(){
         if(this.lastAction === 'startUpload'){
           this.alerts.add({standard: 'scanStart'});
