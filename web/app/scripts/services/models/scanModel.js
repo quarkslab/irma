@@ -102,15 +102,12 @@
       this.uploader.cancelAll();
     };
     ScanModel.prototype.errorUpload = function(){
-      $log.info('Upload encountered an error');
-      this.$rootScope.$broadcast('errorUpload');
+      $rootScope.$broadcast('errorUpload');
     };
     ScanModel.prototype.doneUpload = function(event, items){
       if(!!_.find(items, function(item){ return (!item.isSuccess || JSON.parse(item._xhr.response).code !== 0); })){
-        $log.info('Upload was done with errors');
-        $rootScope.$broadcast('errorUpload');
+        this.errorUpload();
       } else {
-        $log.info('Upload was successful');
         $rootScope.$broadcast('successUpload');
       }
     };

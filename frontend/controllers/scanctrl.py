@@ -51,7 +51,7 @@ def format_results(res_dict, filter_type):
 # ==================
 
 
-def new(ip=None):
+def new(ip):
     """ Create new scan
 
     :rtype: str
