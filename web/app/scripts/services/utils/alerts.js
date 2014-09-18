@@ -34,9 +34,8 @@
       'uploadError': {
         message: '<strong>Info: </strong> The upload encountered errors. Please retry later.',
         type: 'danger',
-        dismiss: false,
+        dismiss: false
       },
-
       'scanStart': {
         message: '<strong>Info: </strong> The scan has started',
         type: 'info',
