@@ -362,30 +362,40 @@ class File(Base, SQLDatabaseObject):
         """
         main_table = File
         joined_tables = [FileWeb]
+        res = {}
 
-        existing_fields = main_table.query_fields()
+        main_fields = main_table.query_fields()
+        all_fields = main_fields.copy()
         for table in joined_tables:
-            existing_fields.update(table.query_fields())
+            all_fields.update(table.query_fields())
+
+        # order_by
         if order_by is not None:
-            if order_by not in existing_fields.keys():
-                raise IrmaValueError("Unknown column name for order_by")
+            if order_by not in all_fields.keys():
+                reason = "Unknown column name {0} for order_by".format(order_by)
+                raise IrmaValueError(reason)
+
+        # fields
         if fields is not None:
-            sqlfields = []
+            # check for unknown field asked
             for f in fields:
-                if f not in existing_fields.keys():
-                    raise IrmaValueError("Unkown field name asked", f)
-                sqlfields.append(existing_fields[f])
+                if f not in all_fields.keys():
+                    reason = "Unknown field name asked {0}".format(f)
+                    raise IrmaValueError(reason)
+            fields = dict((f, all_fields[f]) for f in fields)
         else:
-            sqlfields = existing_fields.values()
-        sqlfields = tuple(sqlfields)
+            fields = all_fields
+
+        sqlfields = tuple(fields.values())
         query = session.query(*sqlfields)
-        for table in joined_tables:
-            query = query.join(table)
+        # for table in joined_tables:
+        #    query = query.join(table)
         if strict:
             query = query.filter(FileWeb.name == name)
         else:
             query = query.filter(FileWeb.name.like("%{0}%".format(name)))
-        return File.paginate(query, page, page_size, order_by)
+        res = File.paginate(query, page, page_size, order_by)
+        return res
 
 
 class ProbeResult(Base, SQLDatabaseObject):
