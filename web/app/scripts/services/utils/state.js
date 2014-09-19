@@ -194,7 +194,7 @@
     this.$rootScope.$on('errorUpload', function(event, msg) {
       this.$log.info('Upload encountered an error');
       this.goTo('selection');
-      this.alerts.add({standard: 'apiErrorWithMsg', apiMsg: msg});}
+      this.alerts.add({standard: 'apiErrorWithMsg', apiMsg: msg});
     }.bind(this));
 
 

@@ -279,8 +279,9 @@ class File(Base, SQLDatabaseObject):
                 if (PREFIX_NB * PREFIX_LEN) > len(sha256):
                     raise IrmaValueError("too much prefix for file storage")
                 path = base_path
-                for i in xrange(0, PREFIX_NB + 1, PREFIX_LEN):
-                    path = os.path.join(path, sha256[i:i + PREFIX_LEN])
+                for i in xrange(0, PREFIX_NB):
+                    prefix = sha256[i * PREFIX_LEN: (i + 1) * PREFIX_LEN]
+                    path = os.path.join(path, prefix)
                 if not os.path.exists(path):
                     os.makedirs(path)
                 if not os.path.isdir(path):
