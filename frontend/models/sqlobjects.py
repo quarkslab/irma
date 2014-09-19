@@ -368,8 +368,8 @@ class File(Base, SQLDatabaseObject):
         if order_by is not None:
             if order_by not in existing_fields.keys():
                 raise IrmaValueError("Unknown column name for order_by")
-        sqlfields = []
         if fields is not None:
+            sqlfields = []
             for f in fields:
                 if f not in existing_fields.keys():
                     raise IrmaValueError("Unkown field name asked", f)
