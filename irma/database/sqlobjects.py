@@ -90,6 +90,17 @@ class SQLDatabaseObject(object):
         session.add(self)
 
     @classmethod
+    def query_fields(cls):
+        fields = {}
+        for (name, column) in cls.__table__.columns.items():
+            if column.primary_key:
+                continue
+            if len(column.foreign_keys) > 0:
+                continue
+            fields[name] = column
+        return fields
+
+    @classmethod
     def load(cls, id, session):
         """Load an object from the database
         :param id: the id to look for
@@ -130,6 +141,34 @@ class SQLDatabaseObject(object):
             raise IrmaDatabaseResultNotFound(e)
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
+
+    @classmethod
+    def paginate(cls, query, page=None, page_size=None, order_by=None):
+        """Paginate query
+        :param query a sqlalchemy query with all filtering done
+        :param page skip page * page_size items in results
+        :param page_size nb of items returned
+        :param order_by results are sorted by this column
+               due to join not known, should be checked by caller
+        :rtype: cls
+        :return: a key:value dict with returned objects
+        :raise IrmaDatabaseError
+        """
+        res = dict()
+        res['total'] = query.count()
+        if order_by is not None:
+            query = query.order_by(order_by)
+        if page_size is not None:
+            page_size = int(page_size)
+            query = query.limit(page_size)
+        if page is not None and page > 0:
+            page = int(page) - 1
+            query = query.offset(page * page_size)
+        res['items'] = []
+        for row in query.all():
+            dict_row = dict((k, row[i]) for i, k in enumerate(row.keys()))
+            res['items'].append(dict_row)
+        return res
 
     def __repr__(self):
         return str(self.to_dict())
