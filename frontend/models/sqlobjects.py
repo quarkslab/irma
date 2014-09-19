@@ -19,7 +19,7 @@ from sqlalchemy import Table, Column, Integer, ForeignKey, String, \
     event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, Load
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
@@ -347,10 +347,10 @@ class File(Base, SQLDatabaseObject):
             from_submission.append(os.path.split(fa.submission_path)[1])
         return list(set(from_web + from_submission))
 
-    @staticmethod
-    def find_by_name(name, strict,  # query parameters
+    @classmethod
+    def find_by_name(cls, name, strict,  # query parameters
                      page, page_size, order_by,  # pagination parameters
-                     session):
+                     fields, session):
         """Find the object in the database
         :param name: the name to look for
         :param strict: boolean to check with partial name or strict name
@@ -359,13 +359,27 @@ class File(Base, SQLDatabaseObject):
         :return: the object thats corresponds to the partial name
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
         """
+        main_table = File
+        joined_tables = [FileWeb]
+
+        existing_fields = main_table.query_fields()
+        for table in joined_tables:
+            existing_fields.update(table.query_fields())
         if order_by is not None:
-            if order_by in FileWeb.__table__.columns.keys():
-                order_by = "{0}.{1}".format(FileWeb.__tablename__, order_by)
-            elif order_by not in File.__table__.columns.keys():
+            if order_by not in existing_fields.keys():
                 raise IrmaValueError("Unknown column name for order_by")
-        query = session.query(File.sha256, FileWeb.name).distinct()
-        query = query.join(FileWeb)
+        sqlfields = []
+        if fields is not None:
+            for f in fields:
+                if f not in existing_fields.keys():
+                    raise IrmaValueError("Unkown field name asked", f)
+                sqlfields.append(existing_fields[f])
+        else:
+            sqlfields = existing_fields.values()
+        sqlfields = tuple(sqlfields)
+        query = session.query(*sqlfields)
+        for table in joined_tables:
+            query = query.join(table)
         if strict:
             query = query.filter(FileWeb.name == name)
         else:

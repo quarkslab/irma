@@ -75,14 +75,11 @@ def init_by_md5(md5):
             raise IrmaTaskError(str(e))
 
 
-def find_by_name(name, strict, page, page_size, order_by):
+def find_by_name(name, strict, page, page_size, order_by, fields):
     with session_query() as session:
         try:
             res = File.find_by_name(name, strict, page, page_size,
-                                    order_by, session)
-            # remove duplicate hashes from list
-            # one file could have been submitted many
-            # time with same name
+                                    order_by, fields, session)
             return res
         except IrmaDatabaseError as e:
             raise IrmaTaskError(str(e))
