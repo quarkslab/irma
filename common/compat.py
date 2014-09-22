@@ -35,10 +35,11 @@ else:
 
 
 def timestamp():
-    """ On some systems, time.time() returns a float
-    instead of an int. This function always returns an int
+    """ On some systems, time.time() returns an int
+    instead of a float. This function always returns a float
+    rounded at 2 decimals
 
-    :rtype: int
+    :rtype: float
     :return: the current timestamp
     """
-    return int(time.time())
+    return round(time.time(), 2)
