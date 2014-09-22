@@ -382,14 +382,18 @@ class File(Base, SQLDatabaseObject):
                 if f not in all_fields.keys():
                     reason = "Unknown field name asked {0}".format(f)
                     raise IrmaValueError(reason)
+            if 'sha256' not in fields:
+                reason = "sha256 is a mandatory field".format(f)
+                raise IrmaValueError(reason)
             fields = dict((f, all_fields[f]) for f in fields)
         else:
             fields = all_fields
 
         sqlfields = tuple(fields.values())
         query = session.query(*sqlfields)
-        # for table in joined_tables:
-        #    query = query.join(table)
+        query = query.distinct(File.sha256)
+        for table in joined_tables:
+            query = query.join(table)
         if strict:
             query = query.filter(FileWeb.name == name)
         else:
