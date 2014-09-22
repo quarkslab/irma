@@ -362,7 +362,6 @@ class File(Base, SQLDatabaseObject):
         """
         main_table = File
         joined_tables = [FileWeb]
-        res = {}
 
         main_fields = main_table.query_fields()
         all_fields = main_fields.copy()
@@ -372,7 +371,8 @@ class File(Base, SQLDatabaseObject):
         # order_by
         if order_by is not None:
             if order_by not in all_fields.keys():
-                reason = "Unknown column name {0} for order_by".format(order_by)
+                reason = "Unknown column name "
+                reason += "{0} for order_by".format(order_by)
                 raise IrmaValueError(reason)
 
         # fields
