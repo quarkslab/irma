@@ -169,22 +169,28 @@ class FileApi(WebApi):
             on error 'msg' gives reason message
         """
         try:
-            # handle 'strict' parameter
+            # handle optional bool parameters
             strict = False
             if 'strict' in request.params:
                 if request.params['strict'].lower() == 'true':
                     strict = True
+            desc = False
+            if 'desc' in request.params:
+                if request.params['desc'].lower() == 'true':
+                    desc = True
+            # handle optional parameters
             page = request.params.get('page', None)
             page_size = request.params.get('page_size', None)
             order_by = request.params.get('order_by', None)
+            # handle list parameters
             fields = request.params.get('fields', None)
             if fields is not None:
                 fields = fields.split(",")
-            list_sha256 = file_ctrl.find_by_name(name, strict,
-                                                 page, page_size, order_by,
-                                                 fields)
-            if len(list_sha256) != 0:
-                return IrmaFrontendReturn.success(found=list_sha256)
+            list_items = file_ctrl.find_by_name(name, strict,
+                                                page, page_size, order_by,
+                                                fields, desc)
+            if len(list_items) != 0:
+                return IrmaFrontendReturn.success(found=list_items)
             else:
                 return IrmaFrontendReturn.error("name not found")
         except Exception as e:
