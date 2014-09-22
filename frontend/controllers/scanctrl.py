@@ -436,4 +436,8 @@ def info(scanid):
             info['probelist'] = list()
             for pr in file_web.probe_results:
                 info['probelist'].append(pr.probe_name)
+        info['events'] = {}
+        for event in scan.events:
+            status = IrmaScanStatus.label[event.status]
+            info['events'][status] = event.timestamp
         return info
