@@ -75,15 +75,12 @@ def init_by_md5(md5):
             raise IrmaTaskError(str(e))
 
 
-def find_by_name(name, strict):
+def find_by_name(name, strict, page, page_size, order_by, fields, desc):
     with session_query() as session:
         try:
-            f_list = FileWeb.find_by_name(name, strict, session)
-            sha256_list = [f.file.sha256 for f in f_list]
-            # remove duplicate hashes from list
-            # one file could have been submitted many
-            # time with same name
-            return list(set(sha256_list))
+            res = File.find_by_name(name, strict, page, page_size,
+                                    order_by, fields, desc, session)
+            return res
         except IrmaDatabaseError as e:
             raise IrmaTaskError(str(e))
 

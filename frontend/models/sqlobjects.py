@@ -19,7 +19,7 @@ from sqlalchemy import Table, Column, Integer, ForeignKey, String, \
     event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, Load
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
@@ -348,6 +348,59 @@ class File(Base, SQLDatabaseObject):
             from_submission.append(os.path.split(fa.submission_path)[1])
         return list(set(from_web + from_submission))
 
+    @classmethod
+    def find_by_name(cls, name, strict,  # query parameters
+                     page, page_size, order_by,  # pagination parameters
+                     fields, desc, session):
+        """Find the object in the database
+        :param name: the name to look for
+        :param strict: boolean to check with partial name or strict name
+        :param session: the session to use
+        :rtype: cls
+        :return: the object thats corresponds to the partial name
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        """
+        main_table = File
+        joined_tables = [FileWeb]
+
+        main_fields = main_table.query_fields()
+        all_fields = main_fields.copy()
+        for table in joined_tables:
+            all_fields.update(table.query_fields())
+
+        # order_by
+        if order_by is not None:
+            if order_by not in all_fields.keys():
+                reason = "Unknown column name "
+                reason += "{0} for order_by".format(order_by)
+                raise IrmaValueError(reason)
+
+        # fields
+        if fields is not None:
+            # check for unknown field asked
+            for f in fields:
+                if f not in all_fields.keys():
+                    reason = "Unknown field name asked {0}".format(f)
+                    raise IrmaValueError(reason)
+            if 'sha256' not in fields:
+                reason = "sha256 is a mandatory field".format(f)
+                raise IrmaValueError(reason)
+            fields = dict((f, all_fields[f]) for f in fields)
+        else:
+            fields = all_fields
+
+        sqlfields = tuple(fields.values())
+        query = session.query(*sqlfields)
+        query = query.distinct(File.sha256)
+        for table in joined_tables:
+            query = query.join(table)
+        if strict:
+            query = query.filter(FileWeb.name == name)
+        else:
+            query = query.filter(FileWeb.name.like("%{0}%".format(name)))
+        res = File.paginate(query, page, page_size, order_by, desc)
+        return res
+
 
 class ProbeResult(Base, SQLDatabaseObject):
     __tablename__ = '{0}probeResult'.format(tables_prefix)
@@ -548,28 +601,6 @@ class FileWeb(Base, SQLDatabaseObject):
         self.file = file
         self.name = name
         self.scan = scan
-
-    @classmethod
-    def find_by_name(cls, name, strict, session):
-        """Find the object in the database
-        :param name: the name to look for
-        :param strict: boolean to check with partial name or strict name
-        :param session: the session to use
-        :rtype: cls
-        :return: the object thats corresponds to the partial name
-        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
-        """
-        try:
-            if strict:
-                return session.query(cls).filter(
-                    cls.name == name
-                    ).all()
-            else:
-                return session.query(cls).filter(
-                    cls.name.like("%{0}%".format(name))
-                    ).all()
-        except NoResultFound as e:
-            raise IrmaDatabaseResultNotFound(e)
 
 
 class FileAgent(Base, SQLDatabaseObject):
