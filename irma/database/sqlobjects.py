@@ -13,7 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-
+import sqlalchemy
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from ..common.exceptions import IrmaValueError, IrmaDatabaseResultNotFound
 from ..common.exceptions import IrmaDatabaseError
@@ -143,26 +143,38 @@ class SQLDatabaseObject(object):
             raise IrmaDatabaseError(e)
 
     @classmethod
-    def paginate(cls, query, page=None, page_size=None, order_by=None):
+    def paginate(cls, query, page=None, page_size=None,
+                 order_by=None, desc=False):
         """Paginate query
         :param query a sqlalchemy query with all filtering done
         :param page skip page * page_size items in results
         :param page_size nb of items returned
         :param order_by results are sorted by this column
                due to join not known, should be checked by caller
-        :rtype: cls
+        :param rev_order boolean to switch order_by ordering
+        :rtype: dict
         :return: a key:value dict with returned objects
         :raise IrmaDatabaseError
         """
         res = dict()
         res['total'] = query.count()
         if order_by is not None:
+            if desc:
+                order_by = sqlalchemy.desc(order_by)
             query = query.order_by(order_by)
         if page_size is not None:
-            page_size = int(page_size)
-            query = query.limit(page_size)
+            try:
+                page_size = int(page_size)
+            except ValueError:
+                raise IrmaValueError("wrong argument for page_size")
+        else:
+            page_size = 25
+        query = query.limit(page_size)
         if page is not None and page > 0:
-            page = int(page) - 1
+            try:
+                page = int(page) - 1
+            except ValueError:
+                raise IrmaValueError("wrong argument for page")
             query = query.offset(page * page_size)
         res['items'] = []
         for row in query.all():
