@@ -351,7 +351,7 @@ class File(Base, SQLDatabaseObject):
     @classmethod
     def find_by_name(cls, name, strict,  # query parameters
                      page, page_size, order_by,  # pagination parameters
-                     fields, session):
+                     fields, desc, session):
         """Find the object in the database
         :param name: the name to look for
         :param strict: boolean to check with partial name or strict name
@@ -398,7 +398,7 @@ class File(Base, SQLDatabaseObject):
             query = query.filter(FileWeb.name == name)
         else:
             query = query.filter(FileWeb.name.like("%{0}%".format(name)))
-        res = File.paginate(query, page, page_size, order_by)
+        res = File.paginate(query, page, page_size, order_by, desc)
         return res
 
 
