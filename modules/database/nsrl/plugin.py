@@ -25,6 +25,7 @@ from lib.plugins import ModuleDependency, FileDependency
 from lib.plugins import PluginLoadError
 from lib.plugin_result import PluginResult
 from lib.common.hash import sha1sum
+from lib.irma.common.utils import IrmaProbeType
 
 
 class NSRLPlugin(PluginBase):
@@ -41,7 +42,7 @@ class NSRLPlugin(PluginBase):
     _plugin_name_ = "NSRL"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "database"
+    _plugin_category_ = IrmaProbeType.database
     _plugin_description_ = "Information plugin to query hashes on " \
                            "NRSL database"
     _plugin_dependencies_ = [

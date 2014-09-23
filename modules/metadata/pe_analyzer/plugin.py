@@ -23,6 +23,7 @@ from lib.common.utils import timestamp
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency
 from lib.plugin_result import PluginResult
+from lib.irma.common.utils import IrmaProbeType
 
 
 class PEAnalyzerPlugin(PluginBase):
@@ -39,7 +40,7 @@ class PEAnalyzerPlugin(PluginBase):
     _plugin_name_ = "StaticAnalyzer"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "metadata"
+    _plugin_category_ = IrmaProbeType.metadata
     _plugin_description_ = "Plugin to analyze PE files"
     _plugin_dependencies_ = [
         ModuleDependency(

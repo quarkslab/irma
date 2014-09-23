@@ -24,6 +24,7 @@ from lib.common.utils import timestamp
 from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
+from lib.irma.common.utils import IrmaProbeType
 
 
 class VirusTotalPlugin(PluginBase):
@@ -40,7 +41,7 @@ class VirusTotalPlugin(PluginBase):
     _plugin_name_ = "VirusTotal"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "external"
+    _plugin_category_ = IrmaProbeType.external
     _plugin_description_ = "Plugin to query VirusTotal API"
     _plugin_dependencies_ = [
         ModuleDependency(

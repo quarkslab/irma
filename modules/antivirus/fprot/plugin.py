@@ -18,6 +18,7 @@ from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase
 from lib.plugins import BinaryDependency, PlatformDependency
+from lib.irma.common.utils import IrmaProbeType
 
 
 class FProtPlugin(PluginBase, FProt, AntivirusPluginInterface):
@@ -29,7 +30,7 @@ class FProtPlugin(PluginBase, FProt, AntivirusPluginInterface):
     _plugin_name_ = "FProt"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "antivirus"
+    _plugin_category_ = IrmaProbeType.antivirus
     _plugin_description_ = "Plugin for FProt Antivirus for Linux"
     _plugin_dependencies_ = [
         PlatformDependency("linux"),

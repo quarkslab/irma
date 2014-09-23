@@ -19,6 +19,7 @@ from .vscl import McAfeeVSCL
 from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase, PluginLoadError
+from lib.irma.common.utils import IrmaProbeType
 
 
 class McAfeeVSCLPlugin(PluginBase, McAfeeVSCL, AntivirusPluginInterface):
@@ -30,7 +31,7 @@ class McAfeeVSCLPlugin(PluginBase, McAfeeVSCL, AntivirusPluginInterface):
     _plugin_name_ = "McAfeeVSCL"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "antivirus"
+    _plugin_category_ = IrmaProbeType.antivirus
     _plugin_description_ = "Plugin for McAfee VirusScan Command Line " \
                            "(VSCL) scanner"
     _plugin_dependencies_ = []

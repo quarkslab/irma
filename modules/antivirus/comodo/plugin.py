@@ -18,6 +18,7 @@ from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase
 from lib.plugins import BinaryDependency, PlatformDependency
+from lib.irma.common.utils import IrmaProbeType
 
 
 class ComodoCAVLPlugin(PluginBase, ComodoCAVL, AntivirusPluginInterface):
@@ -29,7 +30,7 @@ class ComodoCAVLPlugin(PluginBase, ComodoCAVL, AntivirusPluginInterface):
     _plugin_name_ = "ComodoCAVL"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "antivirus"
+    _plugin_category_ = IrmaProbeType.antivirus
     _plugin_description_ = "Plugin for Comodo Antivirus for Linux (CAVL)"
     _plugin_dependencies_ = [
         PlatformDependency('linux'),

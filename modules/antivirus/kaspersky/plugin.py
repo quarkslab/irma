@@ -20,6 +20,7 @@ from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase, PluginLoadError
 from lib.plugins import PlatformDependency
+from lib.irma.common.utils import IrmaProbeType
 
 
 class KasperskyPlugin(PluginBase, Kaspersky, AntivirusPluginInterface):
@@ -31,7 +32,7 @@ class KasperskyPlugin(PluginBase, Kaspersky, AntivirusPluginInterface):
     _plugin_name_ = "Kaspersky"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "antivirus"
+    _plugin_category_ = IrmaProbeType.antivirus
     _plugin_description_ = "Plugin for Kaspersky Antivirus on Windows"
     _plugin_dependencies_ = [
         PlatformDependency('win32')
