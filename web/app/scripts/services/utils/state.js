@@ -191,10 +191,10 @@
         this.$rootScope.$broadcast('startScan');
       }
     }.bind(this));
-    this.$rootScope.$on('errorUpload', function(event, msg) {
+    this.$rootScope.$on('errorUpload', function(){
       this.$log.info('Upload encountered an error');
       this.goTo('selection');
-      this.alerts.add({standard: 'apiErrorWithMsg', apiMsg: msg});
+      this.alerts.add({standard: 'uploadError'});
     }.bind(this));
 
 
