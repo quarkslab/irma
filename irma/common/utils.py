@@ -156,3 +156,29 @@ class IrmaLockMode:
         read: 'read',
         write: 'write'
     }
+
+
+# ======================
+#  Irma Probe Type Enum
+# ======================
+
+class IrmaProbeType:
+    unknown = "unknown"
+    antivirus = "antivirus"
+    database = "database"
+    external = "external"
+    metadata = "metadata"
+    from_label = {
+        "unknown": unknown,
+        "antivirus": antivirus,
+        "database": database,
+        "external": external,
+        "metadata": metadata
+        }
+
+    @staticmethod
+    def from_str(probe_type):
+        if probe_type not in IrmaProbeType.from_label.keys():
+            return IrmaProbeType.unknown
+        else:
+            return IrmaProbeType.from_label[probe_type]
