@@ -404,7 +404,7 @@ def set_result(scanid, file_hash, probe, result):
             )
             pr.nosql_id = prr.id
             pr.result = s_status
-            pr.type = s_type
+            pr.probe_type = IrmaProbeType.normalize(s_type)
             pr.update(session=session)
             probedone = []
             for pr in fw.probe_results:
