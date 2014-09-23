@@ -15,7 +15,7 @@
 import hashlib
 import os
 
-from sqlalchemy import Table, Column, Integer, ForeignKey, String, \
+from sqlalchemy import Table, Column, Integer, Float, ForeignKey, String, \
     event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -181,12 +181,12 @@ class File(Base, SQLDatabaseObject):
         name='md5'
     )
     timestamp_first_scan = Column(
-        String,
+        Float(precision=2),
         nullable=False,
         name='timestamp_first_scan'
     )
     timestamp_last_scan = Column(
-        String,
+        Float(precision=2),
         nullable=False,
         name='timestamp_last_scan'
     )
@@ -750,7 +750,7 @@ class ScanEvents(Base, SQLDatabaseObject):
         name='status'
     )
     timestamp = Column(
-        String,
+        Float(precision=2),
         nullable=False,
         name='timestamp'
     )
