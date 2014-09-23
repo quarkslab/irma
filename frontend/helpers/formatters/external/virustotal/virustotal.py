@@ -14,6 +14,7 @@
 # terms contained in the LICENSE file.
 
 from lib.plugins import PluginBase
+from lib.irma.common.utils import IrmaProbeType
 
 
 class VirusTotalFormatterPlugin(PluginBase):
@@ -25,7 +26,7 @@ class VirusTotalFormatterPlugin(PluginBase):
     _plugin_name_ = "VirusTotal"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "external"
+    _plugin_category_ = IrmaProbeType.external
     _plugin_description_ = "VirusTotal results Formatter"
     _plugin_dependencies_ = []
 

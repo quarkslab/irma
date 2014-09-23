@@ -18,11 +18,11 @@ import logging
 from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common import compat
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaProbeType
 from lib.irma.common.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError, \
     IrmaFtpError
-from frontend.format import IrmaFormatter
+from frontend.helpers.format import IrmaFormatter
 from frontend.helpers.sql import session_transaction, session_query
 import frontend.controllers.braintasks as celery_brain
 import frontend.controllers.ftpctrl as ftp_ctrl

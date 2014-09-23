@@ -14,6 +14,7 @@
 # terms contained in the LICENSE file.
 
 from lib.plugins import PluginBase
+from lib.irma.common.utils import IrmaProbeType
 
 
 class AntivirusFormatterPlugin(PluginBase):
@@ -25,7 +26,7 @@ class AntivirusFormatterPlugin(PluginBase):
     _plugin_name_ = "AntivirusDefault"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
-    _plugin_category_ = "antivirus"
+    _plugin_category_ = IrmaProbeType.antivirus
     _plugin_description_ = "Default Formatter for Antivirus category"
     _plugin_dependencies_ = []
 
@@ -36,7 +37,7 @@ class AntivirusFormatterPlugin(PluginBase):
     @staticmethod
     def can_handle_results(raw_result):
         # New probe result format (from version 1.0.4)
-        return raw_result.get('type', None) == "antivirus"
+        return raw_result.get('type', None) == IrmaProbeType.antivirus
 
     @staticmethod
     def format(raw_result):

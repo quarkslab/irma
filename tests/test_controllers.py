@@ -26,7 +26,7 @@ os.environ['IRMA_FRONTEND_CFG_PATH'] = cwd
 from frontend.helpers.sql import session_query, session_transaction
 
 
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
+from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaProbeType
 from lib.common.utils import UUID
 from lib.common.compat import timestamp
 
@@ -128,7 +128,7 @@ def get_fake_results(probe):
     fake_res['name'] = probe
     fake_res['version'] = 'FAKE-{0}'.format(timestamp())
     fake_res['duration'] = 0.2
-    fake_res['type'] = "antivirus"
+    fake_res['type'] = IrmaProbeType.antivirus
     fake_res['status'] = 1
     return fake_res
 

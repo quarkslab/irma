@@ -13,10 +13,11 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from frontend.models.sqlobjects import File, FileWeb
+from frontend.models.sqlobjects import File
 from frontend.models.nosqlobjects import ProbeRealResult
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaTaskError
+from lib.irma.common.utils import IrmaProbeType
 from .scanctrl import format_results
 from frontend.helpers.sql import session_query
 
@@ -120,7 +121,7 @@ def infected(sha256):
         returns detection score for
         file with given sha256 value
     """
-    av_results = result(sha256, filter_type=["antivirus"])
+    av_results = result(sha256, filter_type=[IrmaProbeType.antivirus])
     probe_res = av_results[sha256]['results']
     nb_scan = nb_detected = 0
     for res in probe_res.values():
