@@ -57,6 +57,11 @@ if not probes:
     log.error("No probe found, exiting application")
     sys.exit(1)
 
+# display successfully loaded plugin
+for p in probes:
+    log.warn(' *** [{category}] Plugin {name} successfully loaded'
+             .format(category=p.plugin_category, name=p.plugin_name))
+
 # instanciation of probes and queue creation
 probes = dict((probe.plugin_name, probe()) for probe in probes)
 queues = []
