@@ -758,6 +758,7 @@ class ScanEvents(Base, SQLDatabaseObject):
     id_scan = Column(
         Integer,
         ForeignKey('{0}scan.id'.format(tables_prefix)),
+        index=True,
         nullable=False
     )
     scan = relationship(
