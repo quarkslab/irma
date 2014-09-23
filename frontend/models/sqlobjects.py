@@ -230,42 +230,6 @@ class File(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
-    @classmethod
-    def load_from_sha1(cls, sha1, session):
-        """Find the object in the database
-        :param sha1: the sha1 to look for
-        :param session: the session to use
-        :rtype: cls
-        :return: the object that corresponds to the sha1
-        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
-        """
-        try:
-            return session.query(cls).filter(
-                cls.sha1 == sha1
-            ).one()
-        except NoResultFound as e:
-            raise IrmaDatabaseResultNotFound(e)
-        except MultipleResultsFound as e:
-            raise IrmaDatabaseError(e)
-
-    @classmethod
-    def load_from_md5(cls, md5, session):
-        """Find the object in the database
-        :param md5: the md5 to look for
-        :param session: the session to use
-        :rtype: cls
-        :return: the object that corresponds to the md5
-        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
-        """
-        try:
-            return session.query(cls).filter(
-                cls.md5 == md5
-            ).one()
-        except NoResultFound as e:
-            raise IrmaDatabaseResultNotFound(e)
-        except MultipleResultsFound as e:
-            raise IrmaDatabaseError(e)
-
     def save_file_to_fs(self, data):
         """Add a sample
         :param data: the sample file
@@ -347,6 +311,60 @@ class File(Base, SQLDatabaseObject):
         for fa in self.files_agent:
             from_submission.append(os.path.split(fa.submission_path)[1])
         return list(set(from_web + from_submission))
+
+    @classmethod
+    def find_by_hash(cls, hash_val, hash_type,  # query parameters
+                     page, page_size, order_by,  # pagination parameters
+                     fields, desc, session):
+        """Find the object in the database
+        :param hash_val: value of the hash to look for
+        :param hash_type: "sha1" "sha256" or "md5" are allowed
+        :param session: the session to use
+        :rtype: cls
+        :return: the object thats corresponds to the partial name
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        """
+        # check hash_type value
+        if hash_type not in ["sha256", "sha1", "md5"]:
+            raise IrmaValueError("Unknown hash_type to look for")
+
+        main_table = File
+        joined_tables = [FileWeb, FileAgent]
+
+        main_fields = main_table.query_fields()
+        all_fields = main_fields.copy()
+        for table in joined_tables:
+            all_fields.update(table.query_fields())
+
+        # order_by
+        if order_by is not None:
+            if order_by not in all_fields.keys():
+                reason = "Unknown column name "
+                reason += "{0} for order_by".format(order_by)
+                raise IrmaValueError(reason)
+
+        # fields
+        if fields is not None:
+            # check for unknown field asked
+            for f in fields:
+                if f not in all_fields.keys():
+                    reason = "Unknown field name asked {0}".format(f)
+                    raise IrmaValueError(reason)
+            if 'sha256' not in fields:
+                reason = "sha256 is a mandatory field".format(f)
+                raise IrmaValueError(reason)
+            fields = dict((f, all_fields[f]) for f in fields)
+        else:
+            fields = all_fields
+
+        sqlfields = tuple(fields.values())
+        query = session.query(*sqlfields)
+        query = query.distinct()
+        for table in joined_tables:
+            query = query.outerjoin(table)
+        query = query.filter(getattr(File, hash_type) == hash_val)
+        res = File.paginate(query, page, page_size, order_by, desc)
+        return res
 
     @classmethod
     def find_by_name(cls, name, strict,  # query parameters

@@ -76,6 +76,16 @@ def init_by_md5(md5):
             raise IrmaTaskError(str(e))
 
 
+def find_by_hash(hash_val, hash_type, page, page_size, order_by, fields, desc):
+    with session_query() as session:
+        try:
+            res = File.find_by_hash(hash_val, hash_type, page, page_size,
+                                    order_by, fields, desc, session)
+            return res
+        except IrmaDatabaseError as e:
+            raise IrmaTaskError(str(e))
+
+
 def find_by_name(name, strict, page, page_size, order_by, fields, desc):
     with session_query() as session:
         try:

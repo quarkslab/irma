@@ -51,11 +51,16 @@ class FileApi(WebApi):
     _app = Bottle()
 
     def __init__(self):
-        self._app.route('/exists/<sha256>', callback=self._exists)
-        self._app.route('/result/<sha256>', callback=self._result)
-        self._app.route('/infected/<sha256>', callback=self._infected)
-        self._app.route('/findByHash/<hashvalue>', callback=self._find_by_hash)
-        self._app.route('/findByName/<name:path>', callback=self._find_by_name)
+        self._app.route('/exists/<sha256>',
+                        callback=self._exists)
+        self._app.route('/result/<sha256>',
+                        callback=self._result)
+        self._app.route('/infected/<sha256>',
+                        callback=self._infected)
+        self._app.route('/findByHash/<hash_val>',
+                        callback=self._find_by_hash)
+        self._app.route('/findByName/<name:path>',
+                        callback=self._find_by_name)
 
     def _exists(self, sha256):
         """ lookup file by sha256 and tell if it exists
@@ -117,44 +122,55 @@ class FileApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-    def _find_by_hash(self, hashvalue):
+    def _find_by_hash(self, hash_val):
         """ lookup file by hash and returns sha256
-        :route: /findByHash/<hashvalue>
-        :param hashvalue of the file (sha1, sha256, md5 are supported)
+        :route: /findByHash/<hash_val:path>
+        :param hash_val of the file (sha1, sha256, md5 are supported)
         :rtype: dict of 'code': int, 'msg': str
-            [, optional 'found': list of (one) sha256 of file found]
+            [, optional 'found': dict of items]
         :return:
-            on success 'found' contains sha256 of files found
+            on success 'found' contains dict of files found
             on error 'msg' gives reason message
         """
         try:
+            hash_type = None
             try:
-                validate_sha256(hashvalue)
-                if file_ctrl.init_by_sha256(hashvalue) is not None:
-                    return IrmaFrontendReturn.success(found=[hashvalue])
-                else:
-                    return IrmaFrontendReturn.error("hash not found")
+                validate_sha256(hash_val)
+                hash_type = "sha256"
             except ValueError:
                 pass
             try:
-                validate_sha1(hashvalue)
-                sha256 = file_ctrl.init_by_sha1(hashvalue)
-                if sha256 is not None:
-                    return IrmaFrontendReturn.success(found=[sha256])
-                else:
-                    return IrmaFrontendReturn.error("hash not found")
+                validate_sha1(hash_val)
+                hash_type = "sha1"
             except ValueError:
                 pass
             try:
-                validate_md5(hashvalue)
-                sha256 = file_ctrl.init_by_md5(hashvalue)
-                if sha256 is not None:
-                    return IrmaFrontendReturn.success(found=[sha256])
-                else:
-                    return IrmaFrontendReturn.error("hash not found")
+                validate_md5(hash_val)
+                hash_type = "md5"
             except ValueError:
                 pass
-            return IrmaFrontendReturn.error("hash not supported")
+            if hash_type is None:
+                return IrmaFrontendReturn.error("hash not supported")
+            # handle optional bool parameters
+            desc = False
+            if 'desc' in request.params:
+                if request.params['desc'].lower() == 'true':
+                    desc = True
+            # handle optional parameters
+            page = request.params.get('page', None)
+            page_size = request.params.get('page_size', None)
+            order_by = request.params.get('order_by', None)
+            # handle list parameters
+            fields = request.params.get('fields', None)
+            if fields is not None:
+                fields = fields.split(",")
+            list_items = file_ctrl.find_by_hash(hash_val, hash_type,
+                                                page, page_size, order_by,
+                                                fields, desc)
+            if len(list_items) != 0:
+                return IrmaFrontendReturn.success(found=list_items)
+            else:
+                return IrmaFrontendReturn.error("name not found")
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
