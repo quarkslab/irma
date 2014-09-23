@@ -177,7 +177,7 @@ class IrmaProbeType:
         }
 
     @staticmethod
-    def from_str(probe_type):
+    def normalize(probe_type):
         if probe_type not in IrmaProbeType.from_label.keys():
             return IrmaProbeType.unknown
         else:
