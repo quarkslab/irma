@@ -23,7 +23,7 @@ import brain.controllers.jobctrl as job_ctrl
 import brain.controllers.probetasks as celery_probe
 import brain.controllers.frontendtasks as celery_frontend
 import brain.controllers.ftpctrl as ftp_ctrl
-from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
+from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, IrmaProbeType
 from lib.irma.common.exceptions import IrmaTaskError
 
 # Get celery's logger
@@ -169,16 +169,18 @@ def job_success(result, jobid):
 
 
 @results_app.task(ignore_result=True)
-def job_error(jobid):
+def job_error(parent_taskid, jobid):
     try:
-        log.info("{0}: job error".format(jobid))
-        (frontend_scanid, filename, probe) = scan_ctrl.job_info(jobid)
-        log.info("{0}: job error {1}".format(frontend_scanid, probe))
+        log.info("{0}: job error on {1}".format(jobid, parent_taskid))
+        (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
+        log.info("{0}: probe {1}".format(frontend_scanid, probe))
         job_ctrl.error(jobid)
         result = {}
-        result[probe] = {}
-        result[probe]['status'] = -1
-        result[probe]['name'] = probe
+        result['status'] = -1
+        result['name'] = probe
+        result['error'] = "Brain job error"
+        result['type'] = IrmaProbeType.unknown
+        result['duration'] = job_ctrl.duration(jobid)
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
     except IrmaTaskError as e:
         msg = "Brain: result error {0}".format(e)
