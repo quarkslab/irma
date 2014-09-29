@@ -13,11 +13,10 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from brain.models.sqlobjects import Scan, Job
+from brain.models.sqlobjects import Scan
 from brain.helpers.sql import session_query, session_transaction
 from lib.irma.common.utils import IrmaScanStatus
 from lib.irma.common.exceptions import IrmaValueError
-from lib.common.compat import timestamp
 
 
 def new(frontend_scan_id, user_id, nb_files):
@@ -38,15 +37,6 @@ def get_nbjobs(scan_id):
     with session_query() as session:
         scan = Scan.load(scan_id, session)
         return scan.nb_jobs
-
-
-def get_job_info(job_id):
-    with session_query() as session:
-        job = Job.load(job_id, session)
-        frontend_scan_id = job.scan.scan_id
-        filename = job.filename
-        probe = job.probename
-        return (frontend_scan_id, filename, probe)
 
 
 def _set_status(scan_id, code):
@@ -116,45 +106,3 @@ def error(scan_id, code):
     with session_transaction() as session:
         scan = Scan.load(scan_id, session)
         scan.status = code
-
-# ==========
-#  Job ctrl
-# ==========
-
-
-def job_new(scan_id, filename, probe):
-    with session_transaction() as session:
-        j = Job(filename, probe, scan_id)
-        j.save(session)
-        session.commit()
-        return j.id
-
-
-def _job_finish(job_id, status):
-    with session_transaction() as session:
-        job = Job.load(job_id, session)
-        job.status = status
-        job.ts_end = timestamp()
-        job.update(['status', 'ts_end'], session)
-        scan_id = job.scan.id
-    check_finished(scan_id)
-
-
-def job_success(job_id):
-    _job_finish(job_id, Job.success)
-
-
-def job_error(job_id):
-    _job_finish(job_id, Job.error)
-
-
-def job_set_taskid(job_id, task_id):
-    with session_transaction() as session:
-        job = Job.load(job_id, session)
-        job.task_id = task_id
-
-
-def job_info(job_id):
-    with session_transaction() as session:
-        job = Job.load(job_id, session)
-        return (job.scan.scan_id, job.filename, job.probename)

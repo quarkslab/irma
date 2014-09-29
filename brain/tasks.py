@@ -19,6 +19,7 @@ from celery import Celery
 from celery.utils.log import get_task_logger
 import brain.controllers.userctrl as user_ctrl
 import brain.controllers.scanctrl as scan_ctrl
+import brain.controllers.jobctrl as job_ctrl
 import brain.controllers.probetasks as celery_probe
 import brain.controllers.frontendtasks as celery_frontend
 import brain.controllers.ftpctrl as ftp_ctrl
@@ -92,13 +93,13 @@ def scan(frontend_scanid, scan_request):
                     break
                 else:
                     remaining -= 1
-            job_id = scan_ctrl.job_new(scan_id, filename, probe)
+            job_id = job_ctrl.new(scan_id, filename, probe)
             task_id = celery_probe.job_launch(ftpuser,
                                               frontend_scanid,
                                               filename,
                                               probe,
                                               job_id)
-            scan_ctrl.job_set_taskid(job_id, task_id)
+            job_ctrl.set_taskid(job_id, task_id)
     scan_ctrl.launched(scan_id)
     celery_frontend.scan_launched(frontend_scanid)
     log.info(
@@ -158,10 +159,10 @@ def scan_cancel(frontend_scanid):
 def job_success(result, jobid):
     try:
         log.info("{0}: job success".format(jobid))
-        (frontend_scanid, filename, probe) = scan_ctrl.job_info(jobid)
-        log.info("{0}: job success {1}".format(frontend_scanid, probe))
+        (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
+        log.info("{0}: probe {1}".format(frontend_scanid, probe))
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
-        scan_ctrl.job_success(jobid)
+        job_ctrl.success(jobid)
     except IrmaTaskError as e:
         msg = "Brain: result error {0}".format(e)
         return IrmaTaskReturn.error(msg)
@@ -173,12 +174,12 @@ def job_error(jobid):
         log.info("{0}: job error".format(jobid))
         (frontend_scanid, filename, probe) = scan_ctrl.job_info(jobid)
         log.info("{0}: job error {1}".format(frontend_scanid, probe))
+        job_ctrl.error(jobid)
         result = {}
         result[probe] = {}
         result[probe]['status'] = -1
         result[probe]['name'] = probe
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
-        scan_ctrl.job_error(jobid)
     except IrmaTaskError as e:
         msg = "Brain: result error {0}".format(e)
         return IrmaTaskReturn.error(msg)
