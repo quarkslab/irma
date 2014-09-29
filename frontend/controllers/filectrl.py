@@ -40,42 +40,6 @@ def init_by_sha256(sha256):
             raise IrmaTaskError(str(e))
 
 
-def init_by_sha1(sha1):
-    """ return results for file with given sha1 value
-
-    :rtype: boolean
-    :return:
-        if exists returns sha256 value else None
-    :raise: IrmaTaskError
-    """
-    with session_query() as session:
-        try:
-            f = File.load_from_sha1(sha1, session)
-            return f.sha256
-        except IrmaDatabaseResultNotFound:
-            return None
-        except IrmaDatabaseError as e:
-            raise IrmaTaskError(str(e))
-
-
-def init_by_md5(md5):
-    """ return results for file with given sha256 value
-
-    :rtype: boolean
-    :return:
-        if exists returns True else False
-    :raise: IrmaTaskError
-    """
-    with session_query() as session:
-        try:
-            f = File.load_from_md5(md5, session)
-            return f.sha256
-        except IrmaDatabaseResultNotFound:
-            return False
-        except IrmaDatabaseError as e:
-            raise IrmaTaskError(str(e))
-
-
 def find_by_hash(hash_val, hash_type, page, page_size, order_by, fields, desc):
     with session_query() as session:
         try:
