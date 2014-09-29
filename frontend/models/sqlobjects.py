@@ -19,7 +19,7 @@ from sqlalchemy import Table, Column, Integer, Float, ForeignKey, String, \
     event
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref, Load
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
