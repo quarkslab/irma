@@ -29,9 +29,6 @@ class PluginResult(dict):
         'platform'    : str() with the platform on which the probe is executed
 
         'duration'    : duration in milliseconds
-        'started'     : timestamp of the date when the probe has been started
-        'stopped'     : timestamp of the date when the probe has been stopped
-
         'status'      : return code (< 0 is error, 0 > is context specific)
         'error'       : None if no error (state > 0) else str() with the error
         'results'     : Probe results
