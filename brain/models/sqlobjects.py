@@ -15,7 +15,7 @@
 
 import os
 from brain.helpers.sql import sql_db_connect
-from sqlalchemy import Column, Integer, String, \
+from sqlalchemy import Column, Integer, Float, String, \
     event, ForeignKey
 import config.parser as config
 from sqlalchemy.engine import Engine
@@ -90,7 +90,7 @@ class Scan(Base, SQLDatabaseObject):
         name='status'
     )
     timestamp = Column(
-        Integer,
+        Float(precision=2),
         nullable=False,
         name='timestamp'
     )
