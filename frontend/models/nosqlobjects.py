@@ -50,7 +50,7 @@ class ProbeRealResult(NoSQLDatabaseObject):
         self.raw = raw
         super(ProbeRealResult, self).__init__(**kwargs)
 
-    def get_results(self, raw=False):
+    def get_results(self, raw):
             if not raw:
                 res = {
                     'status': self.status,
