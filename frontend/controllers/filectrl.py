@@ -60,9 +60,12 @@ def find_by_name(name, strict, page, page_size, order_by, fields, desc):
             raise IrmaTaskError(str(e))
 
 
-def result(sha256, filter_type=None):
+def result(sha256, raw, filter_type=None):
     """ return results for file with given sha256 value
+        results are filtered or not according to raw parameter
 
+    :param sha256: digest of the file
+    :param raw: boolean for filterting results or not
     :rtype: dict of sha256 value: dict of ['filename':str,
         'results':dict of [str probename: dict of [probe_type: str,
         status: int , duration: int, result: int, results of probe]]]]
@@ -79,10 +82,13 @@ def result(sha256, filter_type=None):
             probe_results[rr.probe_name] = ProbeRealResult(
                 id=rr.nosql_id
             ).get_results()
-        ref_res[f.sha256] = {
-            'filename': f.get_file_names(),
-            'results': format_results(probe_results, filter_type)
-        }
+        ref_res[f.sha256] = {}
+        ref_res[f.sha256]['filename'] = f.get_file_names()
+        if raw:
+            ref_res[f.sha256]['results'] = probe_results
+        else:
+            ref_res[f.sha256]['results'] = format_results(probe_results,
+                                                          filter_type)
         return ref_res
 
 

@@ -30,30 +30,36 @@ class ProbeRealResult(NoSQLDatabaseObject):
     _collection = '{0}probe_real_result'.format(cfg_coll_prefix)
 
     def __init__(self,
-                 probe_name=None,
-                 probe_type=None,
-                 probe_version=None,
+                 name=None,
+                 type=None,
+                 version=None,
                  status=None,
                  duration=None,
                  results=None,
+                 raw=None,
                  dbname=None,
                  **kwargs):
         if dbname:
             self._dbname = dbname
-        self.probe_name = probe_name
-        self.probe_type = probe_type
-        self.version = probe_version
+        self.name = name
+        self.type = type
+        self.version = version
         self.status = status
         self.duration = duration
         self.results = results
+        self.raw = raw
         super(ProbeRealResult, self).__init__(**kwargs)
 
-    def get_results(self):
-        return {
-            'status': self.status,
-            'name': self.probe_name,
-            'results': self.results,
-            'version': self.version,
-            'duration': self.duration,
-            'type': self.probe_type
-            }
+    def get_results(self, raw=False):
+            if not raw:
+                res = {
+                    'status': self.status,
+                    'name': self.name,
+                    'type': self.type,
+                    'results': self.results,
+                    'version': self.version,
+                    'duration': self.duration
+                    }
+            else:
+                res = self.raw
+            return res

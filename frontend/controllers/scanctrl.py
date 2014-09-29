@@ -204,10 +204,12 @@ def launch_asynchronous(scanid, force):
         return
 
 
-def result(scanid):
+def result(scanid, raw):
     """ get results from files of specified scan
+        results are filtered or not according to raw parameter
 
     :param scanid: id returned by scan_new
+    :param raw: boolean for filterting results or not
     :rtype: dict of sha256 value: dict of ['filename':str,
         'results':dict of [str probename: dict of [probe_type: str,
         status: int [, optional duration: int, optional result: int,
@@ -225,11 +227,14 @@ def result(scanid):
                 if pr.nosql_id is not None:
                     probe_results[pr.probe_name] = ProbeRealResult(
                         id=pr.nosql_id
-                    ).get_results()
-            res[fw.file.sha256] = {
-                'filename': fw.name,
-                'results': format_results(probe_results, None)
-            }
+                    ).get_results(raw=raw)
+            res[fw.file.sha256] = {}
+            res[fw.file.sha256]['filename'] = fw.name
+            if raw:
+                res[fw.file.sha256]['results'] = probe_results
+            else:
+                res[fw.file.sha256]['results'] = format_results(probe_results,
+                                                                None)
         return res
 
 
@@ -385,8 +390,7 @@ def set_result(scanid, file_hash, probe, result):
                     break
             fw.file.update(session=session)
 
-            # save the results
-            # TODO add remaining parameters
+            # save the handled results
             s_duration = sanitized_res.get('duration', None)
             s_type = sanitized_res.get('type', None)
             s_name = sanitized_res.get('name', None)
@@ -395,12 +399,14 @@ def set_result(scanid, file_hash, probe, result):
             s_status = sanitized_res.get('status', None)
 
             prr = ProbeRealResult(
-                probe_name=s_name,
-                probe_type=s_type,
-                probe_version=s_version,
+                name=s_name,
+                type=s_type,
+                version=s_version,
                 status=s_status,
                 duration=s_duration,
-                results=s_results
+                results=s_results,
+                # keep a copy of raw dict in raw key
+                raw=sanitized_res
             )
             pr.nosql_id = prr.id
             pr.result = s_status
