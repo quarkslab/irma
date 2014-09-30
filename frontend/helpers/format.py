@@ -30,7 +30,8 @@ class IrmaFormatter:
 
     def __init__(self):
         manager = PluginManager()
-        manager.discover("frontend/formatters", "frontend.formatters")
+        manager.discover("frontend/helpers/formatters",
+                         "frontend.helpers.formatters")
         # TODO add plugin type to distinguish between api/formatter plugin
         all_plugins = manager.get_all_plugins()
         self.formatters = filter(lambda x: not x.plugin_category == "api",
