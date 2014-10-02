@@ -19,7 +19,7 @@ CELERY_APP="probe.tasks"
 CELERYD_CHDIR="/opt/irma/irma-probe/"
 
 # Extra command-line arguments to the worker
-CELERYD_OPTS="--without-gossip --without-mingle --without-heartbeat "
+CELERYD_OPTS="--without-gossip --without-mingle --without-heartbeat --soft-time-limit=60 --time-limit=300"
 
 # %N will be replaced with the first part of the nodename.
 CELERYD_LOG_FILE="/var/log/celery/%N.log"
