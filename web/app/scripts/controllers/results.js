@@ -1,29 +1,28 @@
-'use strict';
-
 (function () {
+  'use strict';
 
-  var dependencies = ['$scope', '$routeParams', 'state'];
-  var Ctrl = function ($scope, $routeParams, state) {
+  angular
+    .module('irma')
+    .controller('ResultsCtrl', Results);
 
-    // Initialize controller
-    for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
+  Results.$inject = ['$scope', '$routeParams', 'state'];
 
-    // Init controller
-    if(this.state.status !== 'results'){
-      this.state.newScan($routeParams.scan);
-      this.state.scan.getResults();
+  function Results($scope, $routeParams, state) {
+    var vm = this;
+    vm.newScan = newScan;
+
+    activate();
+
+    function activate() {
+      if (state.status !== 'results') {
+        state.newScan($routeParams.scan);
+        state.scan.getResults();
+      }
     }
 
-    // Link the scan to the scope
-    this.$scope.newScan = this.newScan.bind(this);
-  };
-
-  Ctrl.prototype.newScan = function(){
-    this.state.newScan();
-    this.state.goTo('selection');
-  };
-
-
-  Ctrl.$inject = dependencies;
-  angular.module('irma').controller('ResultsCtrl', Ctrl);
-}());
+    function newScan() {
+      state.newScan();
+      state.goTo('selection');
+    }
+  }
+}) ();

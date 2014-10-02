@@ -46,11 +46,12 @@ class ScanApi(WebApi):
         self._app.route('/new', callback=self._new)
         self._app.route('/add/<scanid>', method='POST', callback=self._add)
         self._app.route('/launch/<scanid>', callback=self._launch)
-        self._app.route('/result/<scanid>', callback=self._result)
         self._app.route('/progress/<scanid>', callback=self._progress)
         self._app.route('/cancel/<scanid>', callback=self._cancel)
         self._app.route('/finished/<scanid>', callback=self._finished)
         self._app.route('/info/<scanid>', callback=self._info)
+        self._app.route('/<scanid>/results', callback=self._scan_results)
+        self._app.route('/<scanid>/results/<resultid>', callback=self._scan_result)
 
     def _new(self):
         """ create new scan
@@ -125,33 +126,6 @@ class ScanApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-    def _result(self, scanid):
-        """ get all results from files of specified scan
-
-        :route: /result/<scanid>
-        :param scanid: id returned by scan_new
-        :param raw boolean to get raw result or not
-        :rtype: dict of 'code': int, 'msg': str
-            [, optional 'scan_results': dict of [
-                sha256 value: dict of
-                    'filenames':list of filename,
-                    'results': dict of [str probename:
-                    dict [results of probe]]]]
-        :return:
-            on success 'scan_results' is the dict of
-                        results for each filename
-            on error 'msg' gives reason message
-        """
-        try:
-            validate_id(scanid)
-            raw = False
-            if 'raw' in request.params:
-                if request.params['raw'].lower() == 'true':
-                    raw = True
-            results = scan_ctrl.result(scanid, raw)
-            return IrmaFrontendReturn.success(scan_results=results)
-        except Exception as e:
-            return IrmaFrontendReturn.error(str(e))
 
     def _progress(self, scanid):
         """ get scan progress for specified scan
@@ -239,5 +213,48 @@ class ScanApi(WebApi):
             validate_id(scanid)
             scan_info = scan_ctrl.info(scanid)
             return IrmaFrontendReturn.success(scan_info=scan_info)
+        except Exception as e:
+            return IrmaFrontendReturn.error(str(e))
+
+    def _scan_results(self, scanid):
+        """ returns an array of results from a scan
+
+        :route: /scan/<scanid>/results
+        :param scanid: id returned by scan_new
+        :rtype: dict of 'code': int, 'msg': str [, optional 'scan_results':
+                'status': int,
+                'finished': int,
+                'total': int,
+                'files': list]
+        :return:
+            on success results are ready
+            on error 'msg' gives reason message
+        """
+        try:
+            validate_id(scanid)
+            results = scan_ctrl.result(scanid)
+            return IrmaFrontendReturn.success(scan_results=results)
+        except Exception as e:
+            return IrmaFrontendReturn.error(str(e))
+
+    def _scan_result(self, scanid, resultid):
+        """ returns a specified result from a scan
+
+        :route: /scan/<scanid>/results/<resultid>
+        :param scanid: id returned by scan_new
+        :param resultid: id returned by _scan_results
+        :rtype: dict of 'code': int, 'msg': str [, optional 'result':
+                'tools_finished': int,
+                'tools_total': int,
+                'file_infos': list,
+                'probe_results': list]
+        :return:
+            on success results are ready
+            on error 'msg' gives reason message
+        """
+        try:
+            validate_id(scanid)
+            result = scan_ctrl.get_result(scanid, resultid)
+            return IrmaFrontendReturn.success(result=result)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

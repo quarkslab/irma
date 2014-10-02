@@ -1,4 +1,4 @@
-<form class="selection" ng-submit="start()">
+<form class="selection" ng-submit="vm.start()">
 
   <div class="row">
     <div class="col-md-6">
@@ -48,13 +48,10 @@
         </li>
       </ul>
     </div>
-    
   </div>
 
-  
+
   <p>
     <input type="submit" class="action btn btn-lg btn-success" value="Scan for malwares" ng-disabled="!state.scan.hasFiles() || state.noActiveProbes()">
   </p>
-
 </form>
-

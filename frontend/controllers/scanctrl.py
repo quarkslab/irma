@@ -204,7 +204,7 @@ def launch_asynchronous(scanid, force):
         return
 
 
-def result(scanid, raw):
+def result(scanid):
     """ get results from files of specified scan
         results are filtered or not according to raw parameter
 
@@ -218,59 +218,107 @@ def result(scanid, raw):
         dict of results for each hash value
     :raise: IrmaDatabaseError
     """
-    with session_transaction() as session:
-        scan = Scan.load_from_ext_id(scanid, session=session)
-        res = {}
-        for fw in scan.files_web:
-            probe_results = {}
-            for pr in fw.probe_results:
-                if pr.nosql_id is not None:
-                    probe_results[pr.probe_name] = ProbeRealResult(
-                        id=pr.nosql_id
-                    ).get_results(raw=raw)
-            res[fw.file.sha256] = {}
-            res[fw.file.sha256]['filename'] = fw.name
-            if raw:
-                res[fw.file.sha256]['results'] = probe_results
-            else:
-                res[fw.file.sha256]['results'] = format_results(probe_results,
-                                                                None)
-        return res
 
-
-def progress(scanid):
-    """ get scan progress for specified scan
+    """ get results from files of specified scan
 
     :param scanid: id returned by scan_new
-    :rtype: 'status': label of status [optional dict of 'total':int,
-        'finished':int, 'successful':int]
+    :rtype: dict of sha256 value: dict of ['filename':str,
+        'results':dict of [str probename: dict of [probe_type: str,
+        status: int [, optional duration: int, optional result: int,
+        optional results of probe]]]]
     :return:
-        dict with total/finished/succesful jobs submitted by irma-brain
-    :raise: IrmaDatabaseError, IrmaTaskError
+        dict of results for each hash value
+    :raise: IrmaDatabaseError
     """
-    with session_query() as session:
+    scan_res = {}
+
+    with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
+
+        scan_result_finished = 0
+        scan_result_total = 0
+
+        res = {}
+        for fw in scan.files_web:
+            file_results_finished = 0
+            file_result_status = 0
+            for pr in fw.probe_results:
+                if pr.result is not None:
+                    file_results_finished += 1
+                    if file_result_status == 0:
+                        probe_result = ProbeRealResult(id=pr.nosql_id)
+                        file_result_status = probe_result.status
+
+            scan_result_finished += file_results_finished
+            scan_result_total += len(fw.probe_results)
+            res[fw.id] = {
+                'filename': fw.name,
+                'tools_total': len(fw.probe_results),
+                'tools_finished': file_results_finished,
+                'status': file_result_status,
+            }
+        scan_res = {
+            'total': scan_result_total,
+            'finished': scan_result_finished,
+            'status': scan.status,
+            'files': res,
+        }
+
         if scan.status != IrmaScanStatus.launched:
             if IrmaScanStatus.is_error(scan.status):
                 raise IrmaCoreError(IrmaScanStatus.label[scan.status])
             else:
-                return {'status': IrmaScanStatus.label[scan.status]}
-    # Else ask brain for job status
-    (retcode, res) = celery_brain.scan_progress(scanid)
-    with session_transaction() as session:
-        scan = Scan.load_from_ext_id(scanid, session=session)
+                return scan_res
+
+        # Ask brain for job status
+        (retcode, brain_res) = celery_brain.scan_progress(scanid)
         if retcode == IrmaReturnCode.success:
             s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
-            if res['status'] == s_processed and \
-               scan.status != IrmaScanStatus.launched:
+            if brain_res['status'] == s_processed and \
+                scan.status != IrmaScanStatus.launched:
                 # update only if status does not changed
-                # during synchronous progress task
+                # during synchronous progbrain_ress task
                 scan.set_status(IrmaScanStatus.processed, session)
-            return res
+                scan_res['status'] = scan.status
         else:
             # else take directly error string from brain and
             # pass it to the caller
-            raise IrmaTaskError(res)
+            raise IrmaTaskError(brain_res)
+
+        return scan_res
+
+
+def get_result(scanid, resultid):
+    with session_query() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        file_web = session.query(FileWeb).get(resultid)
+
+        if scan.id != file_web.scan.id:
+            return
+
+        probe_results = {}
+        tools_finished = 0
+        for pr in file_web.probe_results:
+            if pr.result is not None:
+                tools_finished += 1
+
+                if not probe_results.has_key(pr.probe_type):
+                    probe_results[pr.probe_type] = {}
+
+                probe_results[pr.probe_type][pr.id] = ProbeRealResult(
+                    id=pr.nosql_id
+                ).get_results(raw=True)
+
+        res = {
+            'tools_total': len(file_web.probe_results),
+            'tools_finished': tools_finished,
+            'file_infos': file_web.file.to_dict(),
+            'probe_results': probe_results,
+        }
+
+        res['file_infos']['name'] = file_web.name
+
+        return res
 
 
 def cancel(scanid):

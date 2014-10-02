@@ -5,14 +5,21 @@ angular.module('irma', [
   'ngSanitize',
   'ngRoute',
   'angularFileUpload',
-  'mgcrea.ngStrap'
+  'mgcrea.ngStrap',
+  'gd.ui.jsonexplorer',
+  'angular-capitalize-filter'
 ])
   .constant('constants', {
     fakeDelay: 0,
     baseApi: '/_api',
     speed: 1500,
     refresh: 1000,
-    forceScanDefault: true
+    forceScanDefault: true,
+    scanStatusCodes: {
+      STOPPED: 0,
+      STARTED: 1,
+      FINISHED: 2
+    }
   })
   .config(['$routeProvider', function ($routeProvider) {
 
@@ -20,6 +27,7 @@ angular.module('irma', [
       .when('/selection', {
         templateUrl: 'views/selection.html',
         controller: 'SelectionCtrl',
+        controllerAs: 'vm',
         location: 'selection',
         resolve: {
           maintenance: ['state', function(state){ return state.pingApi();}]
@@ -33,40 +41,32 @@ angular.module('irma', [
           maintenance: ['state', function(state){ return state.pingApi();}]
         }
       })
-      .when('/scan', {
+      .when('/scan/:scan', {
         templateUrl: 'views/scan.html',
         controller: 'ScanCtrl',
+        controllerAs: 'vm',
         location: 'scan',
         resolve: {
           maintenance: ['state', function(state){ return state.pingApi();}]
         }
       })
-      .when('/results', {
-        templateUrl: 'views/existing.html',
-        controller: 'ExistingCtrl',
-        location: 'results',
-        resolve: {
-          maintenance: ['state', function(state){ return state.pingApi();}]
-        }
-      })
-      .when('/results/:scan', {
-        templateUrl: 'views/results.html',
-        controller: 'ResultsCtrl',
-        location: 'results',
-        resolve: {
-          maintenance: ['state', function(state){ return state.pingApi();}]
-        }
-      })
-      .when('/results/:scan/file/:file', {
+      .when('/scan/:scanId/file/:resultId', {
         templateUrl: 'views/details.html',
         controller: 'DetailsCtrl',
-        controllerAs: 'detailsCtrl',
+        controllerAs: 'vm',
         location: 'results',
         resolve: {
           maintenance: ['state', function(state){ return state.pingApi();}]
         }
       })
-
+      .when('/search', {
+        templateUrl: 'views/existing.html',
+        controller: 'ExistingCtrl',
+        location: 'search',
+        resolve: {
+          maintenance: ['state', function(state){ return state.pingApi();}]
+        }
+      })
       .when('/maintenance',
        {
         templateUrl: 'views/maintenance.html',
@@ -75,6 +75,5 @@ angular.module('irma', [
           maintenance: ['state', function(state){ return state.noPingApi();}]
         }
       })
-
       .otherwise({ redirectTo: '/selection' });
   }]);

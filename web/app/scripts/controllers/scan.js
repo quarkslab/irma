@@ -1,26 +1,36 @@
-'use strict';
-
 (function () {
+  'use strict';
 
-  var dependencies = ['$scope', 'state'];
-  var Ctrl = function ($scope, state) {
+  angular
+    .module('irma')
+    .controller('ScanCtrl', Scan);
 
-    // Initialize controller
-    for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
+  Scan.$inject = ['$scope', '$routeParams', '$location', 'state', 'constants'];
 
-    if(!this.state.scan ||  this.state.status !== 'scan'){
-      this.state.goTo('selection');
+  function Scan($scope, $routeParams, $location, state, constants) {
+    var vm = this;
+    vm.scanStatusCodes = constants.scanStatusCodes;
+    vm.scanUrl = $location.path();
+    vm.cancel = cancel;
+    vm.newScan = newScan;
+
+    activate();
+
+    function activate() {
+      if(state.status !== 'scan') {
+        state.newScan($routeParams.scan);
+        state.scan.updateScan();
+      }
     }
-    
-    // Scope bindings
-    this.$scope.cancel = this.cancel.bind(this);
-  };
 
-  Ctrl.prototype.cancel = function(){
-    this.state.lastAction = 'cancelScan';
-    this.$scope.$emit('cancelScan');
-  };
+    function cancel() {
+      state.lastAction = 'cancelScan';
+      $scope.$emit('cancelScan');
+    }
 
-  Ctrl.$inject = dependencies;
-  angular.module('irma').controller('ScanCtrl', Ctrl);
-}());
+    function newScan() {
+      state.newScan();
+      state.goTo('selection');
+    }
+  }
+}) ();

@@ -58,7 +58,7 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
         print("SQL directory does not exist {0}"
               "..creating".format(dirname))
         os.makedirs(dirname)
-        os.chmod(dirname, 0777)
+        os.chmod(dirname, "0777")
     elif not (os.path.isdir(dirname)):
         print("Error. SQL directory is a not a dir {0}"
               "".format(dirname))
@@ -67,7 +67,7 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
     if not os.path.exists(db_name):
         # touch like method to create a rw-rw-rw- file for db
         open(db_name, 'a').close()
-        os.chmod(db_name, 0666)
+        os.chmod(db_name, "0666")
 
 
 sql_db_connect()
@@ -457,7 +457,8 @@ class ProbeResult(Base, SQLDatabaseObject):
     files_web = relationship(
         'FileWeb',
         secondary=probe_result_file_web,
-        backref='probe_results'
+        backref='probe_results',
+        lazy='dynamic',
     )
     # Many to many ProbeResult <-> File
     id_file = Column(

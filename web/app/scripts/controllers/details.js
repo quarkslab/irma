@@ -1,27 +1,43 @@
-'use strict';
-
 (function () {
+  'use strict';
 
-  var dependencies = ['$scope', '$routeParams', 'state'];
-  var Ctrl = function ($scope, $routeParams, state) {
+  angular
+    .module('irma')
+    .controller('DetailsCtrl', Details);
 
-    // Initialize controller
-    for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
+  Details.$inject = ['$rootScope', '$scope', '$routeParams', 'state', 'resultsManager'];
 
-    this.fetchDetails();
-  };
+  function Details($rootScope, $scope, $routeParams, state, resultManager) {
+    var vm = this;
+    vm.result = undefined;
+    vm.filterByProbeType = filterByProbeType;
 
-  Ctrl.prototype.fetchDetails = function(){
-    if(this.state.scan && this.state.scan.results){
-      this.details = this.state.scan.results[this.$routeParams.file];
-    } else {
-      this.state.newScan(this.$routeParams.scan);
-      this.state.scan.getResults().then(function(){
-        this.details = this.state.scan.results[this.$routeParams.file];
-      }.bind(this));
+    activate();
+
+    function activate() {
+      fetchDetails();
     }
-  };
 
-  Ctrl.$inject = dependencies;
-  angular.module('irma').controller('DetailsCtrl', Ctrl);
-}());
+    function fetchDetails() {
+      if(!state.scan) {
+        state.newScan($routeParams.scanId);
+      }
+
+      resultManager.getResult($routeParams.scanId, $routeParams.resultId).then(function(result) {
+        vm.result = result;
+      });
+    }
+
+    function filterByProbeType(items) {
+      var result = {}
+
+      angular.forEach(items, function(value, key) {
+        if (key != "antivirus") {
+          result[key] = value;
+        }
+      });
+
+      return result;
+    }
+  }
+}) ();

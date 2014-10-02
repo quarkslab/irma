@@ -1,247 +1,262 @@
-'use strict';
-
 (function () {
+  'use strict';
 
-  var dependencies = ['$q', '$rootScope', '$route', '$location', '$timeout', '$log', 'alerts', 'api', 'constants', 'scanModel'];
-  var State = function ($q, $rootScope, $route, $location, $timeout, $log, alerts, api, constants, Scan) {
+  angular
+    .module('irma')
+    .service('state', State);
 
-    // Initialize controller
-    for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
+  State.$inject = ['$q', '$rootScope', '$route', '$location', '$timeout', '$log', 'alerts', 'api', 'constants', 'scanModel'];
 
-
-    // Variables initialisation
-    this.scan = undefined;
-    this.probes = [];
-    this.settings = {
+  function State($q, $rootScope, $route, $location, $timeout, $log, alerts, api, constants, Scan) {
+    var vm = this;
+    // Controller Functions definitions
+    vm.goTo = goTo;
+    vm.getLaunchParams = getLaunchParams;
+    vm.newScan = newScan;
+    vm.nbFiles = nbFiles;
+    vm.loadProbes = loadProbes;
+    vm.noActiveProbes = noActiveProbes;
+    vm.probesForScan = probesForScan;
+    vm.checkForMaintenance = checkForMaintenance;
+    vm.pingApi = pingApi;
+    vm.noPingApi = noPingApi;
+    // Controller variables definitions
+    vm.scan = undefined;
+    vm.location = undefined;
+    vm.status = undefined;
+    vm.lastAction = undefined;
+    vm.probes = [];
+    vm.settings = {
       force: true,
       maintenance: true,
       loading: true
     };
-    this.location = undefined;
-    this.status = undefined;
-    this.lastAction = undefined;
 
-    // Make state available in all scopes
-    $rootScope.state = this;
+    // Init function
+    activate();
+
+    function activate() {
+      $rootScope.state = vm;
+      vm.loadProbes();
+    }
 
     // Switch to a new location
-    this.goTo = function(path, tail){
-      this.status = path;
-      this.$location.path('/'+path+((tail)? '/'+tail: ''));
-    };
+    function goTo(path, tail) {
+      vm.status = path;
+      $location.path('/' + path + ((tail) ? '/' + tail : ''));
+    }
 
     // Returns the launch params
-    this.getLaunchParams = function(){
+    function getLaunchParams() {
       var params = {};
-      if(this.settings.force){ params.force = true; }
-      if(!!_.find(this.probes, {active: false})){ params.probe = _.pluck(_.filter(this.probes, {active: true}), 'name').join(','); }
+
+      if(vm.settings.force) {
+        params.force = true;
+      }
+
+      if(!!_.find(vm.probes, {active: false})) {
+        params.probe = _.pluck(_.filter(vm.probes, {active: true}), 'name').join(',');
+      }
+
       return params;
-    };
+    }
 
     // Creates new scan
-    this.newScan = function(id){
-      this.scan = new Scan(id);
-      this.scan.setState(this);
-    };
+    function newScan(id) {
+      vm.scan = new Scan(id);
+      vm.scan.setState(vm);
+    }
 
     // Retrieves the number of files
-    this.nbFiles = function(){
-      if(!this.scan){
+    function nbFiles() {
+      if(!vm.scan){
         return 0;
-      } else if(!this.scan.results){
-        return this.scan.uploader.queue.length;
+      } else if(!vm.scan.results){
+        return vm.scan.uploader.queue.length;
       } else {
-        return _.size(this.scan.results);
+        return _.size(vm.scan.results);
       }
-    };
+    }
 
+    function loadProbes() {
+      return api.getProbes().then(function(response) {
 
-
-
-
-
-
-
-    /*
-     *  Probes
-     */
-    this.loadProbes = function(){
-      return api.getProbes().then(function(response){
-
-        if(response.probe_list.length > 0){
-          _.forEach(response.probe_list, function(probe){
-            this.probes.push({
+        if(response.probe_list.length > 0) {
+          _.forEach(response.probe_list, function(probe) {
+            vm.probes.push({
               name: probe,
               active: true,
               tag: 'Gentille',
               version: 'No version information available'
             });
-          }.bind(this));
+          });
         } else {
-          this.$rootScope.$broadcast('maintenance');
+          $rootScope.$broadcast('maintenance');
         }
-      }.bind(this), function(){
-        this.$rootScope.$broadcast('maintenance');
+      }, function() {
+        $rootScope.$broadcast('maintenance');
       });
-    };
-    this.noActiveProbes = function(){
-      return !_.find(this.probes, 'active');
-    };
-    this.probesForScan = function(scan){
+    }
+
+    function noActiveProbes() {
+      return !_.find(vm.probes, 'active');
+    }
+
+    function probesForScan(scan) {
       if(!scan.probes){
-        console.log('No probes');
+        $log.info('No probes');
       } else {
         return scan.probes;
       }
-    };
-    this.loadProbes();
-
-
-
-
-
-
+    }
 
     /*
      *  Maintenance check
      */
-    this.checkForMaintenance = function(){
-      return api.ping().then(function(){
-        this.settings.maintenance = false;
-        this.settings.loading = false;
-      }.bind(this), function(){
-        this.settings.loading = false;
-      }.bind(this));
-    };
-    this.pingApi = function(){
+    function checkForMaintenance() {
+      return api.ping().then(function() {
+        vm.settings.maintenance = false;
+        vm.settings.loading = false;
+      }, function() {
+        vm.settings.loading = false;
+      });
+    }
+
+    function pingApi() {
       var deferred = $q.defer();
 
-      if(!this.settings.maintenance){
+      if(!vm.settings.maintenance) {
         // The status was already checked, maintenance mode is OFF
         deferred.resolve();
       } else {
         // Checking API status
-        this.checkForMaintenance().then(function(){
+        vm.checkForMaintenance().then(function() {
           // Successfully pinged the API
           deferred.resolve();
-        }.bind(this), function(){
+        }, function() {
           // Switching to maintenance mode
           deferred.reject();
-          this.goTo('maintenance');
-        }.bind(this));
+          vm.goTo('maintenance');
+        });
       }
 
       return deferred.promise;
-    };
-    this.noPingApi = function(){
+    }
+
+    function noPingApi() {
       var deferred = $q.defer();
 
-      if(!this.settings.maintenance){
+      if(!vm.settings.maintenance){
         // The status was already checked, maintenance mode is OFF
         deferred.reject();
-        this.goTo('selection');
-      } else if(this.settings.maintenance && !this.settings.loading){
+        vm.goTo('selection');
+      } else if(vm.settings.maintenance && !vm.settings.loading) {
         deferred.resolve();
       } else {
         // Checking API status
-        this.checkForMaintenance().then(function(){
+        vm.checkForMaintenance().then(function() {
           // Successfully pinged the API
           deferred.reject();
-          this.goTo('selection');
-        }.bind(this), function(){
+          vm.goTo('selection');
+        }, function() {
           // Switching to maintenance mode
           deferred.resolve();
-        }.bind(this));
+        });
       }
 
       return deferred.promise;
-    };
+    }
 
+    /**
+     * Route events
+     */
+    $rootScope.$on('$routeChangeStart', function(event, newOne, oldOne) {
+      $log.debug('route change started from ' + oldOne.originalPath + ' to ' + newOne.originalPath);
+    });
 
+    $rootScope.$on('$routeChangeSuccess', function(event, newOne) {
+      $log.debug('route change success to '+ newOne.originalPath);
+      vm.location = newOne.location;
+    });
 
-    this.$rootScope.$on('$routeChangeStart', function(event, newOne, oldOne){
-      //this.$log.debug('route change started from '+oldOne.originalPath+' to '+newOne.originalPath);
-    }.bind(this));
-    this.$rootScope.$on('$routeChangeSuccess', function(event, newOne){
-      this.$log.debug('route change success to '+newOne.originalPath);
-      this.location = newOne.location;
-    }.bind(this));
-    this.$rootScope.$on('$routeChangeError', function(event, newOne){
-      //this.$log.debug('route change error to '+newOne.originalPath);
-    }.bind(this));
-
+    $rootScope.$on('$routeChangeError', function(event, newOne) {
+      $log.debug('route change error to ' + newOne.originalPath);
+    });
 
     /*
      * Upload events
      */
-    this.$rootScope.$on('startUpload', function(){
-      this.alerts.add({standard: 'uploadStart'});
-      this.scan.startUpload();
-      this.goTo('upload');
-    }.bind(this));
-    this.$rootScope.$on('cancelUpload', function(){
-      this.alerts.add({standard: 'uploadCancel'});
-      this.goTo('selection');
-      this.scan.cancelUpload();
-    }.bind(this));
-    this.$rootScope.$on('successUpload', function(){
-      this.$log.info('Upload was successful');
-      if(this.lastAction === 'startUpload'){
-        this.alerts.add({standard: 'uploadSuccess'});
-        this.$rootScope.$broadcast('startScan');
-      }
-    }.bind(this));
-    this.$rootScope.$on('errorUpload', function(){
-      this.$log.info('Upload encountered an error');
-      this.goTo('selection');
-      this.alerts.add({standard: 'uploadError'});
-    }.bind(this));
+    $rootScope.$on('startUpload', function() {
+      $log.debug('Start upload');
 
+      alerts.add({standard: 'uploadStart'});
+      vm.scan.startUpload();
+      vm.goTo('upload');
+    });
+
+    $rootScope.$on('cancelUpload', function() {
+      $log.debug('Cancel upload');
+
+      alerts.add({standard: 'uploadCancel'});
+      vm.goTo('selection');
+      vm.scan.cancelUpload();
+    });
+
+    $rootScope.$on('successUpload', function() {
+      $log.info('Upload was successful');
+
+      if(vm.lastAction === 'startUpload'){
+        alerts.add({standard: 'uploadSuccess'});
+        $rootScope.$broadcast('startScan');
+      }
+    });
+
+    $rootScope.$on('errorUpload', function(event, msg) {
+      $log.info('Upload encountered an error');
+      vm.goTo('selection');
+      alerts.add({standard: 'apiErrorWithMsg', apiMsg: msg});
+    });
 
     /*
      * Scan events
      */
-    this.$rootScope.$on('startScan', function(){
-
+    $rootScope.$on('startScan', function() {
       $timeout(function(){
-        if(this.lastAction === 'startUpload'){
-          this.alerts.add({standard: 'scanStart'});
-          this.scan.startScan();
-          this.goTo('scan');
+        if(vm.lastAction === 'startUpload') {
+          alerts.add({standard: 'scanStart'});
+          vm.scan.startScan();
+          vm.goTo('scan', vm.scan.id);
         } else {
-          this.$rootScope.$broadcast('cancelScan');
+          $rootScope.$broadcast('cancelScan');
         }
-      }.bind(this), this.constants.speed);
-    }.bind(this));
-    this.$rootScope.$on('cancelScan', function(){
-      this.alerts.add({standard: 'scanCancel'});
-      this.goTo('selection');
-      this.scan.cancelScan();
-    }.bind(this));
-    this.$rootScope.$on('successScan', function(){
-      this.alerts.add({standard: 'scanSuccess'});
-      this.goTo('results', this.scan.id);
-      this.scan.getResults();
-    }.bind(this));
-    this.$rootScope.$on('errorScan', function(){
+      }, constants.speed);
+    });
 
-    }.bind(this));
+    $rootScope.$on('cancelScan', function() {
+      alerts.add({standard: 'scanCancel'});
+      vm.goTo('selection');
+      vm.scan.cancelScan();
+    });
 
+    $rootScope.$on('successScan', function() {
+      alerts.add({standard: 'scanSuccess'});
+    });
 
+    $rootScope.$on('errorScan', function() {
+      $log.info('Error during scan…');
+    });
 
+    $rootScope.$on('newScan', function() {
+      $log.info('New scan launched');
+    });
 
-    this.$rootScope.$on('newScan', function(){
+    $rootScope.$on('errorResults', function(event, data) {
+      vm.goTo('selection');
+    });
 
-    }.bind(this));
-    this.$rootScope.$on('errorResults', function(event, data){
-      this.goTo('selection');
-    }.bind(this));
-    this.$rootScope.$on('maintenance', function(){
-      this.settings.maintenance = true;
-      this.goTo('maintenance');
-    }.bind(this));
-  };
-
-  State.$inject = dependencies;
-  angular.module('irma').service('state', State);
-}());
+    $rootScope.$on('maintenance', function(){
+      vm.settings.maintenance = true;
+      vm.goTo('maintenance');
+    });
+  }
+}) ();

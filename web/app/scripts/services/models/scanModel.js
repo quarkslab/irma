@@ -1,20 +1,22 @@
-'use strict';
-
-/*
- *  SCAN MODEL
- */
 (function () {
+  'use strict';
 
-  var dependencies = ['$rootScope', '$fileUploader', '$timeout', '$log', 'api', 'constants'];
-  var Scan = function ($rootScope, $fileUploader, $timeout, $log, api, constants) {
+  angular
+    .module('irma')
+    .factory('scanModel', Scan);
 
-    var ScanModel = function(id){
+  Scan.$inject = ['$rootScope', '$fileUploader', '$timeout', '$log', 'api', 'constants'];
+
+  function Scan($rootScope, $fileUploader, $timeout, $log, api, constants) {
+    function ScanModel(id) {
       this.id = id;
       this.state = undefined;
       this.api = api;
       this.task = undefined;
       this.base = undefined;
       this.uploader = $fileUploader.create();
+      this.status = constants.scanStatusCodes.STOPPED;
+      this.results = undefined;
       this.scanProgress = {
         progress: 0,
         total: 0,
@@ -25,15 +27,39 @@
       // Bind uploader events
       this.uploader.bind('error',       this.errorUpload.bind(this));
       this.uploader.bind('completeall', this.doneUpload.bind(this));
+    }
+
+    ScanModel.prototype = {
+      setState: setState,
+      hasFiles: hasFiles,
+      buildProbes: buildProbes,
+      getPopover: getPopover,
+      startUpload: startUpload,
+      cancelUpload: cancelUpload,
+      errorUpload: errorUpload,
+      doneUpload: doneUpload,
+      startScan: startScan,
+      cancelScan: cancelScan,
+      updateScan: updateScan,
+      setProgress: setProgress,
+      getResults: getResults,
+      getResult: getResult,
+      populateResults: populateResults,
+      buildAntivirus: buildAntivirus
     };
 
-    ScanModel.prototype.setState = function(state){
+    return ScanModel;
+
+    // Functions binded to ScanModel
+    function setState(state) {
       this.state = state;
-    };
-    ScanModel.prototype.hasFiles = function(){
+    }
+
+    function hasFiles() {
       return this.uploader.queue.length > 0;
-    };
-    ScanModel.prototype.buildProbes = function(data){
+    }
+
+    function buildProbes(data) {
       var base = {};
 
       if(data){
@@ -52,8 +78,9 @@
       }
 
       this.base = base;
-    };
-    ScanModel.prototype.getPopover = function(probe, results){
+    }
+
+    function getPopover(probe, results) {
       if(results.status === 0 || results.status === '0'){
         return {
           title: probe,
@@ -75,8 +102,7 @@
           content: 'An error occured'
         };
       }
-    };
-
+    }
 
     /*
      *  Upload handling:
@@ -85,7 +111,7 @@
      *  - Error:   Broadcasts the event
      *  - Done:    Checks for errors, broadcasts the appropriate event
      */
-    ScanModel.prototype.startUpload = function(){
+    function startUpload() {
       this.buildProbes();
       this.api.scan.getNewId().then(function(response){
         this.id = response.scan_id;
@@ -96,83 +122,89 @@
         $log.info('Upload has started');
         this.uploader.uploadAll();
       }.bind(this));
-    };
-    ScanModel.prototype.cancelUpload = function(){
+    }
+
+    function cancelUpload() {
       $log.info('Upload was cancelled');
       this.uploader.cancelAll();
-    };
-    ScanModel.prototype.errorUpload = function(){
+    }
+
+    function errorUpload() {
       $rootScope.$broadcast('errorUpload');
-    };
-    ScanModel.prototype.doneUpload = function(event, items){
+    }
+
+    function doneUpload(event, items) {
       if(!!_.find(items, function(item){ return (!item.isSuccess || JSON.parse(item._xhr.response).code !== 0); })){
         this.errorUpload();
       } else {
         $rootScope.$broadcast('successUpload');
       }
-    };
+    }
 
-
-
-
-
-    ScanModel.prototype.startScan = function(){
+    function startScan() {
       var params = this.state.getLaunchParams();
       $log.info('Scan was launched');
+
+      this.status = constants.scanStatusCodes.STARTED;
       this.api.scan.launch(this, params).then(function(response){
         this.updateScan();
       }.bind(this));
-    };
-    ScanModel.prototype.cancelScan = function(){
+    }
+
+    function cancelScan() {
       $log.info('Scan was cancelled');
       $timeout.cancel(this.task);
       if(this.id){
         this.api.scan.cancel(this);
       }
-    };
-    ScanModel.prototype.updateScan = function(){
-      if(this.state.lastAction !== 'startUpload'){
-        return false;
-      }
+    }
 
-      this.api.scan.getProgress(this).then(function(data){
-        if(data.code === 0){
-          if(data.progress_details.finished !== this.scanProgress.finished){
-            this.setProgress(data);
-            this.getResults();
-          }
-          this.task = $timeout(this.updateScan.bind(this), constants.refresh);
-        } else {
-          if(data.msg === 'finished'){
-            $log.info('Scan was successful');
-            this.scanProgress.progress = 100;
-            this.scanProgress.successful = this.scanProgress.total;
-            this.scanProgress.finished = this.scanProgress.total;
-            $rootScope.$broadcast('successScan');
-          } else {
+    function updateScan() {
+      this.api.scan.getResults(this).then(function(data) {
+        if(data.code === 0) {
+          this.setProgress(data.scan_results.total, data.scan_results.finished);
+          this.results = data.scan_results.files;
+
+          if (data.scan_results.status != 50) {
             this.task = $timeout(this.updateScan.bind(this), constants.refresh);
+          } else {
+            $log.info('Scan was successful');
+            $rootScope.$broadcast('successScan');
+
+            this.status = constants.scanStatusCodes.FINISHED;
           }
+        } else {
+            this.task = $timeout(this.updateScan.bind(this), constants.refresh);
         }
       }.bind(this));
-    };
-    ScanModel.prototype.setProgress = function(data){
+    }
+
+    function setProgress(total, finished) {
       this.scanProgress = {
-        progress: Math.round(100*data.progress_details.finished / data.progress_details.total),
-        total: data.progress_details.total,
-        successful: data.progress_details.successful,
-        finished: data.progress_details.finished
+        progress: Math.round(100 * finished / total),
+        total: total,
+        successful: finished,
+        finished: finished
       };
-    };
-    ScanModel.prototype.getResults = function(){
+    }
+
+    function getResults() {
       $log.info('Updating results');
-      return this.api.scan.getResults(this).then(function(data){
+
+      return this.api.scan.getResults(this).then(function(data) {
         this.results = data.scan_results; //this.populateResults(data.scan_results);
-        this.buildAntivirus();
-      }.bind(this), function(data){
+      }.bind(this), function(data) {
         $rootScope.$broadcast('errorResults', data);
       }.bind(this));
-    };
-    ScanModel.prototype.populateResults = function(data){
+    }
+
+    function getResult(resultid) {
+      $log.info('Retrieve file result ' + resultid);
+
+      return api.scan.getResult(this, resultid);
+    }
+
+    function populateResults(data) {
       if(!this.base){
         this.buildProbes(data);
       }
@@ -183,8 +215,9 @@
         }
       }
       return data;
-    };
-    ScanModel.prototype.buildAntivirus = function(){
+    }
+
+    function buildAntivirus() {
       this.antivirus = {};
       this.antivirusProbes = {};
       _.forOwn(this.results, function(fileData, fileId){
@@ -206,13 +239,6 @@
           }
         }, this);
       }, this);
-    };
-
-    return ScanModel;
-  };
-
-  Scan.$inject = dependencies;
-  angular.module('irma').factory('scanModel', Scan);
-}());
-
-
+    }
+  }
+}) ();

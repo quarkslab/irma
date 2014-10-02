@@ -12,7 +12,8 @@
     <link rel="icon" type="image/png" href="resources/ball.png" />
 
     <!-- build:css styles/combined.css -->
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="components/ng-json-explorer/src/gd-ui-jsonexplorer.css" />
     <!-- endbuild -->
   </head>
   <body konami>
@@ -20,18 +21,18 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    
+
     <!--[if lt IE 9]>
     <!-- build:js scripts/ie.js -->
       <script src="components/es5-shim/es5-shim.min.js"></script>
       <script src="components/json3/lib/json3.min.js"></script>
     <!-- endbuild -->
     <![endif]-->
-    
+
 
     <div class="container">
 
-      <div class="head">
+      <div class="head" id="top">
         <h1><img src="resources/logo.jpg" alt="IRMA"></h1>
         <h2>Incident Response<br />Malware Analysis</h2>
       </div>
@@ -42,8 +43,8 @@
         <li class="{{(state.location=='upload')?'active':''}}">Upload</li>
         <li>&gt;</li>
         <li class="{{(state.location=='scan')?'active':''}}">Scan</li>
-        <li>&gt;</li>
-        <li class="{{(state.location=='results')?'active':''}}"><a href="#/results">Results</a></li>
+        <li>|</li>
+        <li class="{{(state.location=='search')?'active':''}}"><a href="#/search">Search</a></li>
       </ul>
 
       <div class="spinner main" ng-if="state.settings.loading">
@@ -68,6 +69,8 @@
     <script src="components/angular-file-upload/angular-file-upload.min.js"></script>
     <script src="components/angular-strap/dist/angular-strap.min.js"></script>
     <script src="components/angular-strap/dist/angular-strap.tpl.min.js"></script>
+    <script src="components/ng-json-explorer/src/gd-ui-jsonexplorer.js"></script>
+    <script src="components/angular-capitalize-filter/capitalize.js"></script>
     <!-- endbuild -->
 
     <!-- build:js scripts/combined.js -->
@@ -85,6 +88,8 @@
     <script src="scripts/directives/booleanDisplay.js"></script>
     <script src="scripts/directives/konami-ponies.js"></script>
     <script src="scripts/services/models/scanModel.js"></script>
+    <script src="scripts/services/models/resultModel.js"></script>
+    <script src="scripts/services/managers/resultsManager.js"></script>
     <script src="scripts/services/utils/bridge.js"></script>
     <script src="scripts/services/utils/state.js"></script>
     <script src="scripts/services/utils/alerts.js"></script>

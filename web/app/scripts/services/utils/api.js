@@ -15,8 +15,9 @@
       getNewId:       function() {                 return bridge.get({url: '/scan/new'}); },
       launch:         function(scan, params) {     return bridge.get({url: '/scan/launch/'+scan.id, payload: params}); },
       cancel:         function(scan) {             return bridge.get({url: '/scan/cancel/'+scan.id}); },
-      getProgress:    function(scan) {             return bridge.get({url: '/scan/progress/'+scan.id}); }, 
-      getResults:     function(scan) {             return bridge.get({url: '/scan/result/'+scan.id}); },
+      getProgress:    function(scan) {             return bridge.get({url: '/scan/progress/'+scan.id}); },
+      getResults:     function(scan) {             return bridge.get({url: '/scan/' + scan.id + '/results' }); },
+      getResult:      function(scan, resultid) {   return bridge.get({url: '/scan/' + scan.id + '/results/' + resultid}); },
 
       // Returns an url
       getAddUrl:      function(scan){              return bridge.rootUrl+'/scan/add/'+scan.id; }

@@ -1,33 +1,29 @@
-'use strict';
-
 (function () {
+  'use strict';
 
-  var dependencies = ['$scope', 'alerts', 'state'];
-  var Ctrl = function ($scope, alerts, state) {
+  angular
+    .module('irma')
+    .controller('SelectionCtrl', Selection);
 
-    // Initialize controller
-    for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
+  Selection.$inject = ['$scope', 'alerts', 'state'];
 
-    this.state.newScan();
+  function Selection($scope, alerts, state) {
+    var vm = this;
+    vm.start = start;
 
-    // Bind things to scope
-    this.$scope.start = this.start.bind(this);
-    this.$scope.toggle = this.toggle.bind(this);
-  };
+    activate();
 
-  Ctrl.prototype.start = function(){
-    if(this.state.noActiveProbes()){
-      this.alerts.add({standard: 'noProbes'});
-    } else {
-      this.state.lastAction = 'startUpload';
-      this.$scope.$emit('startUpload');
+    function activate() {
+      state.newScan();
     }
-  };
 
-  Ctrl.prototype.toggle = function(probe){
-    probe.active = !probe.active;
-  };
-
-  Ctrl.$inject = dependencies;
-  angular.module('irma').controller('SelectionCtrl', Ctrl);
-}());
+    function start() {
+      if(state.noActiveProbes()) {
+        alerts.add({standard: 'noProbes'});
+      } else {
+        state.lastAction = 'startUpload';
+        $scope.$emit('startUpload');
+      }
+    }
+  }
+}) ();
