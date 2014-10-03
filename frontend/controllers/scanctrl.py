@@ -236,8 +236,8 @@ def get_results(scanid, formatted):
             res.append({
                 'filename': fw.name,
                 'sha256': fw.file.sha256,
-                'tools_total': len(fw.probe_results),
-                'tools_finished': file_results_finished,
+                'probe_total': len(fw.probe_results),
+                'probe_finished': file_results_finished,
                 'status': file_result_status,
             })
         scan_res = {
@@ -278,10 +278,10 @@ def get_result(scanid, sha256, formatted):
         file_web = files_web.pop()
 
         probe_results = {}
-        tools_finished = 0
+        probe_finished = 0
         for pr in file_web.probe_results:
             if pr.status is not None:
-                tools_finished += 1
+                probe_finished += 1
                 if pr.type not in probe_results:
                     probe_results[pr.type] = {}
                 probe_res = ProbeRealResult(
@@ -289,8 +289,8 @@ def get_result(scanid, sha256, formatted):
                 ).to_json(formatted)
                 probe_results[pr.type][pr.name] = probe_res
         res = {
-            'tools_total': len(file_web.probe_results),
-            'tools_finished': tools_finished,
+            'probe_total': len(file_web.probe_results),
+            'probe_finished': probe_finished,
             'file_infos': file_web.file.to_json(),
             'probe_results': probe_results,
         }
