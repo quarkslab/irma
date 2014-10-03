@@ -22,8 +22,8 @@
     </div>
 
     <p>
-    <button class="action btn btn-lg btn-warning" ng-disabled="state.scan.status == vm.scanStatusCodes.FINISHED" ng-click="vm.cancel()">Cancel</button>
-     <button class="action btn btn-lg btn-success" ng-click="vm.newScan()">New Scan</button>
+      <button class="action btn btn-lg btn-warning" ng-disabled="state.scan.status == vm.scanStatusCodes.FINISHED" ng-click="vm.cancel()">Cancel</button>
+      <button class="action btn btn-lg btn-success" ng-click="vm.newScan()">New Scan</button>
     </p>
   </div>
 
@@ -37,7 +37,7 @@
     <tbody>
       <tr ng-repeat="(id, infos) in state.scan.results">
         <td>
-          <a href="#/scan/{{state.scan.id}}/file/{{id}}">{{infos.filename}}</a>
+          <a href="/scan/{{state.scan.id}}/file/{{id}}">{{infos.filename}}</a>
         </td>
         <td>
           <span class="label" ng-class="(infos.status == 0) ? 'label-success' : 'label-danger'">{{infos.tools_finished}} / {{infos.tools_total}}</span>

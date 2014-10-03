@@ -13,7 +13,7 @@ function resultsManager($http, $q, $log, Result) {
   };
 
   function _load(scanId, resultId, deferred) {
-    $http.get('_api/scan/' + scanId + '/results/' + resultId)
+    $http.get('/_api/scan/' + scanId + '/results/' + resultId)
       .success(_loadComplete)
       .catch(_loadFailed);
 

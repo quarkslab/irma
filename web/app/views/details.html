@@ -1,66 +1,64 @@
-<div ng-show="vm.result">
-  <div class="row">
-    <div class="col-md-9" role="main">
-      <p><a href="#/scan/{{state.scan.id}}">Back to the scan summary</a></p>
+<div class="row">
+  <div class="col-md-9" role="main">
+    <p><a href="/scan/{{state.scan.id}}">Back to the scan summary</a></p>
 
-      <h2 id="file-informations">File informations</h2>
-      <table class="table table-bordered table-striped">
+    <h2 id="file-informations">File informations</h2>
+    <table class="table table-bordered table-striped">
+      <tbody>
+        <tr ng-repeat="(key, value) in vm.result.file_infos">
+          <th>{{key}}</th>
+          <td>{{value}}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div ng-if="vm.result.probe_results.antivirus">
+      <h2 id="antivirus">Antivirus</h2>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Duration (in sec)</th>
+            <th>Result</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr ng-repeat="(key, value) in vm.result.file_infos">
-            <th>{{key}}</th>
-            <td>{{value}}</td>
+          <tr ng-repeat="(id, output) in vm.result.probe_results.antivirus" ng-class="(output.status == 0) ? 'success' : 'danger'">
+            <th>{{output.name}}</th>
+            <td>{{output.version}}</td>
+            <td>{{output.duration}}</td>
+            <td>{{output.results}}</td>
           </tr>
         </tbody>
       </table>
-
-      <div ng-if="vm.result.probe_results.antivirus">
-        <h2 id="antivirus">Antivirus</h2>
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Version</th>
-              <th>Duration (in sec)</th>
-              <th>Result</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr ng-repeat="(id, output) in vm.result.probe_results.antivirus" ng-class="(output.status == 0) ? 'success' : 'danger'">
-              <th>{{output.name}}</th>
-              <td>{{output.version}}</td>
-              <td>{{output.duration}}</td>
-              <td>{{output.results}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.result.probe_results)">
-        <h2 id="{{probe_type_name}}">{{probe_type_name | capitalize:'first'}}</h2>
-
-        <div ng-repeat="(id, output) in results">
-          <h3 id="{{output.name}}">{{output.name}} <small>{{output.version}}</small></h3>
-          <pre>
-            <json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer>
-          </pre>
-        </div>
-      </div>
     </div>
 
-    <div class="col-md-3">
-      <div class="bs-sidebar hidden-print hidden-sm hidden-xs" role="complementary" data-offset-top="-80" bs-affix>
-        <ul class="nav" bs-scrollspy-list>
-          <li><a href="#file-informations">File informations</a></li>
-          <li ng-if="vm.result.probe_results.antivirus"><a href="#antivirus">Antivirus</a></li>
-          <li ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.result.probe_results)">
-            <a href="#{{probe_type_name}}">{{probe_type_name| capitalize:'first'}}</a>
-            <ul class="nav">
-              <li ng-repeat="probe in results"><a href="#{{probe.name}}">{{probe.name}}</a></li>
-            </ul>
-          </li>
-        </ul>
-        <a href="#top" class="back-to-top">Back to top</a>
+    <div ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.result.probe_results)">
+      <h2 id="{{probe_type_name}}">{{probe_type_name | capitalize:'first'}}</h2>
+
+      <div ng-repeat="(id, output) in results">
+        <h3 id="{{output.name}}">{{output.name}} <small>{{output.version}}</small></h3>
+        <pre>
+          <json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer>
+        </pre>
       </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="bs-sidebar hidden-print hidden-sm hidden-xs" role="complementary" data-offset-top="-80" bs-affix>
+      <ul class="nav" bs-scrollspy-list>
+        <li><a href="#file-informations">File informations</a></li>
+        <li ng-if="vm.result.probe_results.antivirus"><a href="#antivirus">Antivirus</a></li>
+        <li ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.result.probe_results)">
+          <a href="#{{probe_type_name}}">{{probe_type_name| capitalize:'first'}}</a>
+          <ul class="nav">
+            <li ng-repeat="probe in results"><a href="#{{probe.name}}">{{probe.name}}</a></li>
+          </ul>
+        </li>
+      </ul>
+      <a href="#top" class="back-to-top">Back to top</a>
     </div>
   </div>
 </div>
