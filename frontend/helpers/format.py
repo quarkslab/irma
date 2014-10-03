@@ -54,6 +54,10 @@ class IrmaFormatter:
                 res.pop('results', None)
             else:
                 res.pop('error', None)
+            duration = res.pop('duration', None)
+            if duration is not None:
+                # Round duration to 2 decimals
+                res['duration'] = round(duration, 2)
         except Exception as e:
             res.pop('results', None)
             res.status = -1
