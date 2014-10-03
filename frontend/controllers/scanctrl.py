@@ -305,10 +305,11 @@ def get_result(scanid, resultid):
                 if not probe_results.has_key(pr.probe_type):
                     probe_results[pr.probe_type] = {}
 
-                probe_results[pr.probe_type][pr.id] = ProbeRealResult(
+                probe_res = ProbeRealResult(
                     id=pr.nosql_id
                 ).get_results(raw=True)
-
+                res = IrmaFormatter.format(pr.probe_name, probe_res)
+                probe_results[pr.probe_type][pr.id] = res
         res = {
             'tools_total': len(file_web.probe_results),
             'tools_finished': tools_finished,
