@@ -187,12 +187,12 @@ def launch_asynchronous(scanid, force):
         return
 
 
-def result(scanid, raw):
+def result(scanid, formatted):
     """ get results from files of specified scan
         results are filtered or not according to raw parameter
 
     :param scanid: id returned by scan_new
-    :param raw: boolean for filterting results or not
+    :param formatted: boolean for formatted results or not
     :rtype: dict of sha256 value: dict of ['filename':str,
         'results':dict of [str probename: dict of [type: str,
         status: int [, optional duration: int, optional result: int,
@@ -210,7 +210,7 @@ def result(scanid, raw):
                 if pr.nosql_id is not None:
                     probe_results[pr.name] = ProbeRealResult(
                         id=pr.nosql_id
-                    ).get_results(raw)
+                    ).get_results(formatted)
             res[fw.file.sha256] = {}
             res[fw.file.sha256]['filename'] = fw.name
             res[fw.file.sha256]['results'] = probe_results

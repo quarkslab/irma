@@ -84,7 +84,8 @@ class FileApi(WebApi):
         """ lookup file by sha256
         :route: /file/search/<scanid>
         :param sha256 of the file
-        :param raw boolean to get raw result or not
+        :param formatted boolean to get formatted result or not
+               (default to True)
         :rtype: dict of 'code': int, 'msg': str
             [, optional 'scan_results': dict of [
                 sha256 value: dict of
@@ -97,11 +98,11 @@ class FileApi(WebApi):
         """
         try:
             validate_sha256(sha256)
-            raw = False
-            if 'raw' in request.params:
-                if request.params['raw'].lower() == 'true':
-                    raw = True
-            res = file_ctrl.result(sha256, raw)
+            formatted = True
+            if 'formatted' in request.params:
+                if request.params['formatted'].lower() == 'false':
+                    formatted = False
+            res = file_ctrl.result(sha256, formatted)
             return IrmaFrontendReturn.success(scan_results=res)
         # handle all errors/warning as errors
         # file existence should be tested before calling this route
