@@ -18,7 +18,7 @@
     "es5-shim": "~3.0.2",
     "json3": "~3.3.1",
     "bootstrap": "~3.1.1",
-    "angular-strap": "~2.0.2",
+    "angular-strap": "~2.1.1",
     "ng-json-explorer": "Goldark/ng-json-explorer#master",
     "angular-capitalize-filter": "~2.0.0"
   },

@@ -6,6 +6,7 @@ angular.module('irma', [
   'ngRoute',
   'angularFileUpload',
   'mgcrea.ngStrap',
+  'mgcrea.ngStrap.helpers.dimensions',
   'gd.ui.jsonexplorer',
   'angular-capitalize-filter'
 ])
@@ -21,11 +22,12 @@ angular.module('irma', [
       FINISHED: 2
     }
   })
-  .config(['$routeProvider', function ($routeProvider) {
+  .config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
+    $locationProvider.html5Mode(true);
 
     $routeProvider
       .when('/selection', {
-        templateUrl: 'views/selection.html',
+        templateUrl: '/views/selection.html',
         controller: 'SelectionCtrl',
         controllerAs: 'vm',
         location: 'selection',
@@ -34,7 +36,7 @@ angular.module('irma', [
         }
       })
       .when('/upload', {
-        templateUrl: 'views/upload.html',
+        templateUrl: '/views/upload.html',
         controller: 'UploadCtrl',
         location: 'upload',
         resolve: {
@@ -42,7 +44,7 @@ angular.module('irma', [
         }
       })
       .when('/scan/:scan', {
-        templateUrl: 'views/scan.html',
+        templateUrl: '/views/scan.html',
         controller: 'ScanCtrl',
         controllerAs: 'vm',
         location: 'scan',
@@ -51,7 +53,7 @@ angular.module('irma', [
         }
       })
       .when('/scan/:scanId/file/:resultId', {
-        templateUrl: 'views/details.html',
+        templateUrl: '/views/details.html',
         controller: 'DetailsCtrl',
         controllerAs: 'vm',
         location: 'results',
@@ -60,7 +62,7 @@ angular.module('irma', [
         }
       })
       .when('/search', {
-        templateUrl: 'views/existing.html',
+        templateUrl: '/views/existing.html',
         controller: 'ExistingCtrl',
         location: 'search',
         resolve: {
@@ -69,11 +71,34 @@ angular.module('irma', [
       })
       .when('/maintenance',
        {
-        templateUrl: 'views/maintenance.html',
+        templateUrl: '/views/maintenance.html',
         controller: 'MaintenanceCtrl',
         resolve: {
           maintenance: ['state', function(state){ return state.noPingApi();}]
         }
       })
       .otherwise({ redirectTo: '/selection' });
+  }])
+  .run(['$window', '$rootScope', '$location', '$anchorScroll', function($window, $rootScope, $location, $anchorScroll) {
+
+    var bodyElement = angular.element($window.document.body);
+    var targetElement = bodyElement;
+
+    targetElement.on('click', function(evt) {
+      var el = angular.element(evt.target);
+      var hash = el.attr('href');
+
+      if(!hash || hash[0] !== '#') { return; }
+      if(hash.length > 1 && hash[1] === '/') { return; }
+      if(evt.which !== 1) { return; }
+
+      evt.preventDefault();
+
+      $location.hash(hash.substr(1));
+      $anchorScroll();
+    });
+
+    setTimeout(function() {
+      $anchorScroll();
+    }, 0);
   }]);

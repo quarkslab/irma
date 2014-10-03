@@ -29,10 +29,10 @@
     }
 
     function filterByProbeType(items) {
-      var result = {}
+      var result = {};
 
       angular.forEach(items, function(value, key) {
-        if (key != "antivirus") {
+        if (key !== 'antivirus') {
           result[key] = value;
         }
       });
