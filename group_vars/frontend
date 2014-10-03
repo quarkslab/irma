@@ -55,7 +55,7 @@ supervisor_programs_frontend:
   - name: frontend_app
     command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --loglevel=INFO"
     directory: "{{ frontend_install_dir }}"
-    user: nobody
+    user: irma
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_app.log
     stderr_logfile: /var/log/supervisor/frontend_app.log
@@ -66,8 +66,8 @@ supervisor_programs_frontend:
     command: >
       /usr/local/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
       --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
-      --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/web/api.py
-    user: nobody
+      --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/api/base.py
+    user: irma
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_api.log
     stderr_logfile: /var/log/supervisor/frontend_api.log

@@ -45,7 +45,6 @@
   sudo: yes
   roles:
     - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_brain }}" }
-    - { role: DavidWittman.redis, tags: 'redis' }
     - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
     - { role: quarkslab.pureftpd, tags: 'pureftpd' }
     - { role: quarkslab.irma_provisioning_brain, tags: 'brain' }

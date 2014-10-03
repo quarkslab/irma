@@ -37,3 +37,15 @@
     state=present
   when: hostvars[item].ansible_eth1.ipv4.address is defined and vagrant|default(False) == True
   with_items: groups['all']
+
+- name: Create IRMA directories
+  file:
+    path: "{{ item }}"
+    owner: "{{ brain_user }}"
+    group: "{{ brain_group }}"
+    mode: 0755
+    state: directory
+  sudo: yes
+  with_items:
+    - /var/log/irma
+    - /var/irma
