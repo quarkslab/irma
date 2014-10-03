@@ -221,6 +221,8 @@ class ScanApi(WebApi):
 
         :route: /scan/<scanid>/results
         :param scanid: id returned by scan_new
+        :param formatted boolean to get formatted get_results or not
+               (default to True)
         :rtype: dict of 'code': int, 'msg': str [, optional 'scan_results':
                 'status': int,
                 'finished': int,
@@ -232,18 +234,24 @@ class ScanApi(WebApi):
         """
         try:
             validate_id(scanid)
-            results = scan_ctrl.result(scanid)
+            formatted = True
+            if 'formatted' in request.params:
+                if request.params['formatted'].lower() == 'false':
+                    formatted = False
+            results = scan_ctrl.get_results(scanid, formatted)
             return IrmaFrontendReturn.success(scan_results=results)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
     def _scan_result(self, scanid, resultid):
-        """ returns a specified result from a scan
+        """ returns a specified get_results from a scan
 
         :route: /scan/<scanid>/results/<resultid>
         :param scanid: id returned by scan_new
         :param resultid: id returned by _scan_results
-        :rtype: dict of 'code': int, 'msg': str [, optional 'result':
+        :param formatted boolean to get formatted get_results or not
+               (default to True)
+        :rtype: dict of 'code': int, 'msg': str [, optional 'get_results':
                 'tools_finished': int,
                 'tools_total': int,
                 'file_infos': list,
@@ -254,7 +262,12 @@ class ScanApi(WebApi):
         """
         try:
             validate_id(scanid)
-            result = scan_ctrl.get_result(scanid, resultid)
-            return IrmaFrontendReturn.success(result=result)
+            formatted = True
+            if 'formatted' in request.params:
+                if request.params['formatted'].lower() == 'false':
+                    formatted = False
+            results = scan_ctrl.get_results(scanid, formatted, formatted)
+            get_results = scan_ctrl.get_result(scanid, resultid)
+            return IrmaFrontendReturn.success(get_results=get_results)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

@@ -187,7 +187,7 @@ def launch_asynchronous(scanid, force):
         return
 
 
-def result(scanid, formatted):
+def get_results(scanid, formatted):
     """ get results from files of specified scan
         results are filtered or not according to raw parameter
 
@@ -213,8 +213,6 @@ def result(scanid, formatted):
         dict of results for each hash value
     :raise: IrmaDatabaseError
     """
-    scan_res = {}
-
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
 
@@ -229,7 +227,8 @@ def result(scanid, formatted):
                 if pr.nosql_id is not None:
                     file_results_finished += 1
                     if file_result_status == 0:
-                        probe_result = ProbeRealResult(id=pr.nosql_id).get_results(formatted)
+                        prr = ProbeRealResult(id=pr.nosql_id)
+                        probe_result = prr.get_results(formatted)
                         file_result_status = probe_result.status
 
             scan_result_finished += file_results_finished
@@ -258,7 +257,7 @@ def result(scanid, formatted):
         if retcode == IrmaReturnCode.success:
             s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
             if brain_res['status'] == s_processed and \
-                scan.status != IrmaScanStatus.launched:
+               scan.status != IrmaScanStatus.launched:
                 # update only if status does not changed
                 # during synchronous progbrain_ress task
                 scan.set_status(IrmaScanStatus.processed, session)
@@ -271,7 +270,7 @@ def result(scanid, formatted):
         return scan_res
 
 
-def get_result(scanid, resultid):
+def get_result(scanid, resultid, formatted):
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
         file_web = session.query(FileWeb).get(resultid)
@@ -285,14 +284,13 @@ def get_result(scanid, resultid):
             if pr.result is not None:
                 tools_finished += 1
 
-                if not probe_results.has_key(pr.probe_type):
+                if pr.probe_type not in probe_results:
                     probe_results[pr.probe_type] = {}
 
                 probe_res = ProbeRealResult(
                     id=pr.nosql_id
-                ).get_results(raw=True)
-                res = IrmaFormatter.format(pr.probe_name, probe_res)
-                probe_results[pr.probe_type][pr.id] = res
+                ).get_results(formatted)
+                probe_results[pr.probe_type][pr.id] = probe_res
         res = {
             'tools_total': len(file_web.probe_results),
             'tools_finished': tools_finished,

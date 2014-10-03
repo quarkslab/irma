@@ -59,7 +59,7 @@ def find_by_name(name, strict, page, page_size, order_by, fields, desc):
             raise IrmaTaskError(str(e))
 
 
-def result(sha256, formatted, filter_type=None):
+def get_results(sha256, formatted, filter_type=None):
     """ return results for file with given sha256 value
         results are formatted or not according to formatted parameter
 
@@ -96,7 +96,7 @@ def infected(sha256):
         returns detection score for
         file with given sha256 value
     """
-    av_results = result(sha256, filter_type=[IrmaProbeType.antivirus])
+    av_results = get_results(sha256, filter_type=[IrmaProbeType.antivirus])
     probe_res = av_results[sha256]['results']
     nb_scan = nb_detected = 0
     for res in probe_res.values():

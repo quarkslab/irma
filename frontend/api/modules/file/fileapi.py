@@ -102,7 +102,7 @@ class FileApi(WebApi):
             if 'formatted' in request.params:
                 if request.params['formatted'].lower() == 'false':
                     formatted = False
-            res = file_ctrl.result(sha256, formatted)
+            res = file_ctrl.get_results(sha256, formatted)
             return IrmaFrontendReturn.success(scan_results=res)
         # handle all errors/warning as errors
         # file existence should be tested before calling this route
