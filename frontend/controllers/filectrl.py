@@ -18,7 +18,6 @@ from frontend.models.nosqlobjects import ProbeRealResult
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaTaskError
 from lib.irma.common.utils import IrmaProbeType
-from .scanctrl import format_results
 from frontend.helpers.sql import session_query
 
 
@@ -60,12 +59,12 @@ def find_by_name(name, strict, page, page_size, order_by, fields, desc):
             raise IrmaTaskError(str(e))
 
 
-def result(sha256, raw, filter_type=None):
+def result(sha256, formatted, filter_type=None):
     """ return results for file with given sha256 value
-        results are filtered or not according to raw parameter
+        results are formatted or not according to formatted parameter
 
     :param sha256: digest of the file
-    :param raw: boolean for filterting results or not
+    :param formatted: boolean for filterting results or not
     :rtype: dict of sha256 value: dict of ['filename':str,
         'results':dict of [str probename: dict of [probe_type: str,
         status: int , duration: int, result: int, results of probe]]]]
@@ -79,16 +78,12 @@ def result(sha256, raw, filter_type=None):
         ref_res = {}
         probe_results = {}
         for rr in f.ref_results:
-            probe_results[rr.probe_name] = ProbeRealResult(
+            probe_results[rr.name] = ProbeRealResult(
                 id=rr.nosql_id
-            ).get_results()
+            ).get_results(formatted)
         ref_res[f.sha256] = {}
         ref_res[f.sha256]['filename'] = f.get_file_names()
-        if raw:
-            ref_res[f.sha256]['results'] = probe_results
-        else:
-            ref_res[f.sha256]['results'] = format_results(probe_results,
-                                                          filter_type)
+        ref_res[f.sha256]['results'] = probe_results
         return ref_res
 
 

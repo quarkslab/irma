@@ -436,22 +436,22 @@ class ProbeResult(Base, SQLDatabaseObject):
         primary_key=True,
         name='id'
     )
-    probe_type = Column(
+    type = Column(
         String,
-        name='probe_type'
+        name='type'
     )
-    probe_name = Column(
+    name = Column(
         String,
         nullable=False,
-        name='probe_name'
+        name='name'
     )
     nosql_id = Column(
         String,
         name='nosql_id'
     )
-    result = Column(
+    status = Column(
         Integer,
-        name='result'
+        name='status'
     )
     # Many to many ProbeResult <-> FileWeb
     files_web = relationship(
@@ -471,17 +471,17 @@ class ProbeResult(Base, SQLDatabaseObject):
     )
 
     def __init__(self,
-                 probe_type,
-                 probe_name,
+                 type,
+                 name,
                  nosql_id,
-                 result,
+                 status,
                  file_web=None):
         super(ProbeResult, self).__init__()
 
-        self.probe_type = probe_type
-        self.probe_name = probe_name
+        self.type = type
+        self.name = name
         self.nosql_id = nosql_id
-        self.result = result
+        self.status = status
         self.files_web = [file_web]
 
 

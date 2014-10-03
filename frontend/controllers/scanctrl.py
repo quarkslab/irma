@@ -22,34 +22,17 @@ from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaProbeType
 from lib.irma.common.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError, \
     IrmaFtpError
-from frontend.helpers.format import IrmaFormatter
 from frontend.helpers.sql import session_transaction, session_query
 import frontend.controllers.braintasks as celery_brain
 import frontend.controllers.ftpctrl as ftp_ctrl
 
 
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
 
-
-# =========
-#  Helpers
-# =========
-
-def format_results(res_dict, filter_type):
-    # - filter type is list of type returned
-    res = {}
-    for (name, results) in res_dict.items():
-        res[name] = IrmaFormatter.format(name, results)
-    # filter by type
-    if filter_type is not None:
-        res = dict((k, v) for k, v in res.items() if v['type'] in filter_type)
-    return res
 
 # ==================
 #  Public functions
 # ==================
-
 
 def new(ip):
     """ Create new scan
@@ -164,16 +147,16 @@ def launch_asynchronous(scanid, force):
             probes_to_do = []
             for pr in fw.probe_results:
                 # init with all probes asked
-                probes_to_do.append(pr.probe_name)
+                probes_to_do.append(pr.name)
 
             if not force:
                 # Fetch the ref results for the file
                 for rr in fw.file.ref_results:
-                    if rr.probe_name not in probes_to_do:
+                    if rr.name not in probes_to_do:
                         continue
                     # if not force
                     # remove results already present
-                    probes_to_do.remove(rr.probe_name)
+                    probes_to_do.remove(rr.name)
                     # and link results to request
                     fw.probe_results.append(rr)
                 fw.update(session=session)
@@ -204,14 +187,14 @@ def launch_asynchronous(scanid, force):
         return
 
 
-def result(scanid):
+def result(scanid, formatted):
     """ get results from files of specified scan
         results are filtered or not according to raw parameter
 
     :param scanid: id returned by scan_new
-    :param raw: boolean for filterting results or not
+    :param formatted: boolean for formatted results or not
     :rtype: dict of sha256 value: dict of ['filename':str,
-        'results':dict of [str probename: dict of [probe_type: str,
+        'results':dict of [str probename: dict of [type: str,
         status: int [, optional duration: int, optional result: int,
         optional results of probe]]]]
     :return:
@@ -243,10 +226,10 @@ def result(scanid):
             file_results_finished = 0
             file_result_status = 0
             for pr in fw.probe_results:
-                if pr.result is not None:
+                if pr.nosql_id is not None:
                     file_results_finished += 1
                     if file_result_status == 0:
-                        probe_result = ProbeRealResult(id=pr.nosql_id)
+                        probe_result = ProbeRealResult(id=pr.nosql_id).get_results(formatted)
                         file_result_status = probe_result.status
 
             scan_result_finished += file_results_finished
@@ -424,47 +407,36 @@ def set_result(scanid, file_hash, probe, result):
         for fw in fws:
             # Update main reference results with fresh results
             pr = None
-            ref_res_names = [rr.probe_name for rr in fw.file.ref_results]
+            ref_res_names = [rr.name for rr in fw.file.ref_results]
             for probe_result in fw.probe_results:
-                if probe_result.probe_name == probe:
+                if probe_result.name == probe:
                     pr = probe_result
-                    if probe_result.probe_name not in ref_res_names:
+                    if probe_result.name not in ref_res_names:
                         fw.file.ref_results.append(probe_result)
                     else:
                         for rr in fw.file.ref_results:
-                            if probe_result.probe_name == rr.probe_name:
+                            if probe_result.name == rr.name:
                                 fw.file.ref_results.remove(rr)
                                 fw.file.ref_results.append(probe_result)
                                 break
                     break
             fw.file.update(session=session)
 
-            # save the handled results
-            s_duration = sanitized_res.get('duration', None)
-            s_type = sanitized_res.get('type', None)
-            s_name = sanitized_res.get('name', None)
-            s_version = sanitized_res.get('version', None)
-            s_results = sanitized_res.get('results', None)
-            s_status = sanitized_res.get('status', None)
-
-            prr = ProbeRealResult(
-                name=s_name,
-                type=s_type,
-                version=s_version,
-                status=s_status,
-                duration=s_duration,
-                results=s_results,
-                # keep a copy of raw dict in raw key
-                raw=sanitized_res
-            )
+            # init empty NoSql record to get
+            # all mandatory fields initialized
+            prr = ProbeRealResult()
+            # and fill with probe raw results
+            prr.update(sanitized_res)
+            # link it to Sql record
             pr.nosql_id = prr.id
-            pr.result = s_status
-            pr.probe_type = IrmaProbeType.normalize(s_type)
+            pr.result = sanitized_res.get('status', None)
+            s_type = sanitized_res.get('type', None)
+            pr.type = IrmaProbeType.normalize(s_type)
             pr.update(session=session)
             probedone = []
             for pr in fw.probe_results:
                 if pr.nosql_id is not None:
-                    probedone.append(pr.probe_name)
+                    probedone.append(pr.name)
             print("Scanid {0}".format(scanid) +
                   "Result from {0} ".format(probe) +
                   "probedone {0}".format(probedone))
@@ -490,7 +462,7 @@ def info(scanid):
             # build probelist with last item of scan.files_web
             info['probelist'] = list()
             for pr in file_web.probe_results:
-                info['probelist'].append(pr.probe_name)
+                info['probelist'].append(pr.name)
         info['events'] = {}
         for event in scan.events:
             status = IrmaScanStatus.label[event.status]
