@@ -18,7 +18,6 @@ from frontend.models.nosqlobjects import ProbeRealResult
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaTaskError
 from lib.irma.common.utils import IrmaProbeType
-from .scanctrl import format_results
 from frontend.helpers.sql import session_query
 
 
@@ -79,16 +78,12 @@ def result(sha256, raw, filter_type=None):
         ref_res = {}
         probe_results = {}
         for rr in f.ref_results:
-            probe_results[rr.probe_name] = ProbeRealResult(
+            probe_results[rr.name] = ProbeRealResult(
                 id=rr.nosql_id
-            ).get_results()
+            ).get_results(raw)
         ref_res[f.sha256] = {}
         ref_res[f.sha256]['filename'] = f.get_file_names()
-        if raw:
-            ref_res[f.sha256]['results'] = probe_results
-        else:
-            ref_res[f.sha256]['results'] = format_results(probe_results,
-                                                          filter_type)
+        ref_res[f.sha256]['results'] = probe_results
         return ref_res
 
 

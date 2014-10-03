@@ -15,6 +15,7 @@
 
 import config.parser as config
 from lib.irma.database.nosqlobjects import NoSQLDatabaseObject
+from frontend.helpers.format import IrmaFormatter
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
@@ -36,7 +37,6 @@ class ProbeRealResult(NoSQLDatabaseObject):
                  status=None,
                  duration=None,
                  results=None,
-                 raw=None,
                  dbname=None,
                  **kwargs):
         if dbname:
@@ -47,19 +47,12 @@ class ProbeRealResult(NoSQLDatabaseObject):
         self.status = status
         self.duration = duration
         self.results = results
-        self.raw = raw
         super(ProbeRealResult, self).__init__(**kwargs)
 
     def get_results(self, raw):
+            res = self.to_dict()
+            res.pop("_id")
+            # apply or not IrmaFormatter
             if not raw:
-                res = {
-                    'status': self.status,
-                    'name': self.name,
-                    'type': self.type,
-                    'results': self.results,
-                    'version': self.version,
-                    'duration': self.duration
-                    }
-            else:
-                res = self.raw
+                res = IrmaFormatter.format(self.name, res)
             return res
