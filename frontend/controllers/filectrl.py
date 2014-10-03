@@ -78,9 +78,11 @@ def get_results(sha256, formatted, filter_type=None):
         ref_res = {}
         probe_results = {}
         for rr in f.ref_results:
+            if filter_type is not None and rr.type not in filter_type:
+                continue
             probe_results[rr.name] = ProbeRealResult(
                 id=rr.nosql_id
-            ).get_results(formatted)
+            ).to_json(formatted)
         ref_res[f.sha256] = {}
         ref_res[f.sha256]['filename'] = f.get_file_names()
         ref_res[f.sha256]['results'] = probe_results

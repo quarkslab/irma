@@ -212,6 +212,12 @@ class File(Base, SQLDatabaseObject):
         self.timestamp_last_scan = timestamp_last_scan
         self.tags = tags
 
+    def to_json(self):
+        # return only these keys
+        keys = ["md5", "sha1", "sha256", "size",
+                "timestamp_first_scan", "timestamp_last_scan"]
+        return dict((k, v) for (k, v) in self.to_dict().items() if k in keys)
+
     @classmethod
     def load_from_sha256(cls, sha256, session):
         """Find the object in the database

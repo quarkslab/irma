@@ -49,10 +49,10 @@ class ProbeRealResult(NoSQLDatabaseObject):
         self.results = results
         super(ProbeRealResult, self).__init__(**kwargs)
 
-    def get_results(self, formatted):
-            res = self.to_dict()
-            res.pop("_id")
-            # apply or not IrmaFormatter
-            if formatted:
-                res = IrmaFormatter.format(self.name, res)
-            return res
+    def to_json(self, formatted):
+        res = self.to_dict()
+        res.pop("_id")
+        # apply or not IrmaFormatter
+        if formatted:
+            res = IrmaFormatter.format(self.name, res)
+        return res

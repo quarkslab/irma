@@ -219,7 +219,7 @@ def get_results(scanid, formatted):
         scan_result_finished = 0
         scan_result_total = 0
 
-        res = {}
+        res = []
         for fw in scan.files_web:
             file_results_finished = 0
             file_result_status = 0
@@ -228,17 +228,18 @@ def get_results(scanid, formatted):
                     file_results_finished += 1
                     if file_result_status == 0:
                         prr = ProbeRealResult(id=pr.nosql_id)
-                        probe_result = prr.get_results(formatted)
+                        probe_result = prr.to_json(formatted)
                         file_result_status = probe_result.status
 
             scan_result_finished += file_results_finished
             scan_result_total += len(fw.probe_results)
-            res[fw.id] = {
+            res.append({
                 'filename': fw.name,
+                'sha256': fw.file.sha256,
                 'tools_total': len(fw.probe_results),
                 'tools_finished': file_results_finished,
                 'status': file_result_status,
-            }
+            })
         scan_res = {
             'total': scan_result_total,
             'finished': scan_result_finished,
@@ -270,31 +271,27 @@ def get_results(scanid, formatted):
         return scan_res
 
 
-def get_result(scanid, resultid, formatted):
+def get_result(scanid, sha256, formatted):
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-        file_web = session.query(FileWeb).get(resultid)
-
-        if scan.id != file_web.scan.id:
-            return
+        files_web = filter(lambda x: x.file.sha256 == sha256, scan.files_web)
+        file_web = files_web.pop()
 
         probe_results = {}
         tools_finished = 0
         for pr in file_web.probe_results:
-            if pr.result is not None:
+            if pr.status is not None:
                 tools_finished += 1
-
-                if pr.probe_type not in probe_results:
-                    probe_results[pr.probe_type] = {}
-
+                if pr.type not in probe_results:
+                    probe_results[pr.type] = {}
                 probe_res = ProbeRealResult(
                     id=pr.nosql_id
-                ).get_results(formatted)
-                probe_results[pr.probe_type][pr.id] = probe_res
+                ).to_json(formatted)
+                probe_results[pr.type][pr.name] = probe_res
         res = {
             'tools_total': len(file_web.probe_results),
             'tools_finished': tools_finished,
-            'file_infos': file_web.file.to_dict(),
+            'file_infos': file_web.file.to_json(),
             'probe_results': probe_results,
         }
 
@@ -427,7 +424,7 @@ def set_result(scanid, file_hash, probe, result):
             prr.update(sanitized_res)
             # link it to Sql record
             pr.nosql_id = prr.id
-            pr.result = sanitized_res.get('status', None)
+            pr.status = sanitized_res.get('status', None)
             s_type = sanitized_res.get('type', None)
             pr.type = IrmaProbeType.normalize(s_type)
             pr.update(session=session)

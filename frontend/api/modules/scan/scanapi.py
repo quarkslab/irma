@@ -14,6 +14,7 @@
 # terms contained in the LICENSE file.
 
 import os
+import re
 from bottle import Bottle, request
 from frontend.api.modules.webapi import WebApi
 from lib.common.utils import UUID
@@ -35,6 +36,11 @@ def validate_id(scanid):
         raise ValueError("Malformed Scanid")
 
 
+def validate_sha256(sha256):
+    """ check hashvalue format - should be a sha256 hexdigest"""
+    if not re.match(r'^[0-9a-fA-F]{64}$', sha256):
+        raise ValueError("Malformed Sha256")
+
 # ==========
 #  Scan api
 # ==========
@@ -50,8 +56,8 @@ class ScanApi(WebApi):
         self._app.route('/cancel/<scanid>', callback=self._cancel)
         self._app.route('/finished/<scanid>', callback=self._finished)
         self._app.route('/info/<scanid>', callback=self._info)
-        self._app.route('/<scanid>/results', callback=self._scan_results)
-        self._app.route('/<scanid>/results/<resultid>', callback=self._scan_result)
+        self._app.route('/<scanid>/results', callback=self._results)
+        self._app.route('/<scanid>/results/<sha256>', callback=self._result)
 
     def _new(self):
         """ create new scan
@@ -216,12 +222,12 @@ class ScanApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-    def _scan_results(self, scanid):
+    def _results(self, scanid):
         """ returns an array of results from a scan
 
         :route: /scan/<scanid>/results
         :param scanid: id returned by scan_new
-        :param formatted boolean to get formatted get_results or not
+        :param formatted boolean to get formatted results or not
                (default to True)
         :rtype: dict of 'code': int, 'msg': str [, optional 'scan_results':
                 'status': int,
@@ -243,15 +249,15 @@ class ScanApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-    def _scan_result(self, scanid, resultid):
-        """ returns a specified get_results from a scan
+    def _result(self, scanid, sha256):
+        """ returns a specified results from a scan
 
-        :route: /scan/<scanid>/results/<resultid>
+        :route: /scan/<scanid>/results/<sha256>
         :param scanid: id returned by scan_new
-        :param resultid: id returned by _scan_results
-        :param formatted boolean to get formatted get_results or not
+        :param sha256: sha256 of  returned by _scan_results
+        :param formatted boolean to get formatted results or not
                (default to True)
-        :rtype: dict of 'code': int, 'msg': str [, optional 'get_results':
+        :rtype: dict of 'code': int, 'msg': str [, optional 'results':
                 'tools_finished': int,
                 'tools_total': int,
                 'file_infos': list,
@@ -262,12 +268,12 @@ class ScanApi(WebApi):
         """
         try:
             validate_id(scanid)
+            validate_sha256(sha256)
             formatted = True
             if 'formatted' in request.params:
                 if request.params['formatted'].lower() == 'false':
                     formatted = False
-            results = scan_ctrl.get_results(scanid, formatted, formatted)
-            get_results = scan_ctrl.get_result(scanid, resultid)
-            return IrmaFrontendReturn.success(get_results=get_results)
+            results = scan_ctrl.get_result(scanid, sha256, formatted)
+            return IrmaFrontendReturn.success(results=results)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
