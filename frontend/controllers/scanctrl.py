@@ -310,6 +310,41 @@ def get_result(scanid, sha256, formatted):
         return res
 
 
+def progress(scanid):
+    """ get scan progress for specified scan
+
+    :param scanid: id returned by scan_new
+    :rtype: 'status': label of status [optional dict of 'total':int,
+        'finished':int, 'successful':int]
+    :return:
+        dict with total/finished/succesful jobs submitted by irma-brain
+    :raise: IrmaDatabaseError, IrmaTaskError
+    """
+    with session_query() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        if scan.status != IrmaScanStatus.launched:
+            if IrmaScanStatus.is_error(scan.status):
+                raise IrmaCoreError(IrmaScanStatus.label[scan.status])
+            else:
+                return {'status': IrmaScanStatus.label[scan.status]}
+    # Else ask brain for job status
+    (retcode, res) = celery_brain.scan_progress(scanid)
+    with session_transaction() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        if retcode == IrmaReturnCode.success:
+            s_processed = IrmaScanStatus.label[IrmaScanStatus.processed]
+            if res['status'] == s_processed and \
+               scan.status != IrmaScanStatus.launched:
+                # update only if status does not changed
+                # during synchronous progress task
+                scan.set_status(IrmaScanStatus.processed, session)
+            return res
+        else:
+            # else take directly error string from brain and
+            # pass it to the caller
+            raise IrmaTaskError(res)
+
+
 def cancel(scanid):
     """ cancel all remaining jobs for specified scan
 
