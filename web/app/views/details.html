@@ -42,7 +42,7 @@
               <tr>
                 <th>Name</th>
                 <th>Version</th>
-                <th>Duration (in sec)</th>
+                <th>Duration (in secs)</th>
                 <th>Result</th>
               </tr>
             </thead>
@@ -59,14 +59,17 @@
 
         <div ng-switch-when="metadata">
           <h3 id="{{output.name}}" ng-repeat-start="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
+          <h5>Responded in {{output.duration}} s with status: {{output.status}}</h5>
 
-          <pre ng-repeat-end>
-            <json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer>
-          </pre>
+          <div ng-switch on="output.status" ng-repeat-end>
+            <pre ng-switch-when="0"><json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer></pre>
+            <pre ng-switch-when="-1">{{output.error}}</pre>
+          </div>
         </div>
 
         <div ng-switch-default>
           <h3 id="{{output.name}}" ng-repeat="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
+          <h5>Responded in {{output.duration}} s with status: {{output.status}}</h5>
 
           <pre ng-repeat-end>
             {{output.results}}
