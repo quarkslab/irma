@@ -120,7 +120,7 @@ class ScanApi(WebApi):
                                                          force,
                                                          in_probelist)
             # launch_asynchronous scan via frontend task
-            celery_frontend.scan_launch(scanid, force)
+            celery_frontend.scan_launch(scanid)
             return IrmaFrontendReturn.success(probe_list=out_probelist)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

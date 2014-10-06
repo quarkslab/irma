@@ -37,9 +37,9 @@ config.configure_syslog(scan_app)
 
 
 @frontend_app.task(acks_late=True)
-def scan_launch(scanid, force):
+def scan_launch(scanid):
     try:
-        scan_ctrl.launch_asynchronous(scanid, force)
+        scan_ctrl.launch_asynchronous(scanid)
     except IrmaDatabaseError as e:
         print "Exception has occurred:{0}".format(e)
         raise scan_launch.retry(countdown=2, max_retries=3, exc=e)

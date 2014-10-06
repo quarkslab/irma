@@ -120,21 +120,33 @@ def launch_synchronous(scanid, force, probelist):
 
         for fw in scan.files_web:
             for probe_name in probelist:
-                # TODO probe types
-                probe_result = ProbeResult(
-                    None,
-                    probe_name,
-                    None,
-                    None,
-                    file_web=fw
-                )
-                probe_result.save(session=session)
+                # Fetch the ref results for the file
+                ref_result = filter(lambda x: x.name == probe_name,
+                                    fw.file.ref_results)
+                if len(ref_result) == 1 and not force:
+                    # we ask for results already present
+                    # and we found one use it
+                    probe_result = ref_result.pop()
+                    fw.probe_results.append(probe_result)
+                    fw.update(session=session)
+                else:
+                    # results is not known or analysis is forced
+                    # create empty result
+                    # TODO probe types
+                    probe_result = ProbeResult(
+                        None,
+                        probe_name,
+                        None,
+                        None,
+                        file_web=fw
+                    )
+                    probe_result.save(session=session)
         return probelist
 
 
-def launch_asynchronous(scanid, force):
+def launch_asynchronous(scanid):
     with session_transaction() as session:
-        log.info("{0}: Launching with force={1}".format(scanid, force))
+        log.info("{0}: Launching asynchronously".format(scanid))
         scan = Scan.load_from_ext_id(scanid, session=session)
         IrmaScanStatus.filter_status(scan.status,
                                      IrmaScanStatus.ready,
@@ -146,21 +158,9 @@ def launch_asynchronous(scanid, force):
         for fw in scan.files_web:
             probes_to_do = []
             for pr in fw.probe_results:
-                # init with all probes asked
-                probes_to_do.append(pr.name)
-
-            if not force:
-                # Fetch the ref results for the file
-                for rr in fw.file.ref_results:
-                    if rr.name not in probes_to_do:
-                        continue
-                    # if not force
-                    # remove results already present
-                    probes_to_do.remove(rr.name)
-                    # and link results to request
-                    fw.probe_results.append(rr)
-                fw.update(session=session)
-
+                # init with all probes asked not already present
+                if pr.nosql_id is None:
+                    probes_to_do.append(pr.name)
             if len(probes_to_do) > 0:
                 scan_request[fw.file.sha256] = probes_to_do
 
