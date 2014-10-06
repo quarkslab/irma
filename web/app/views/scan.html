@@ -35,12 +35,12 @@
       </tr>
     </thead>
     <tbody>
-      <tr ng-repeat="(id, infos) in state.scan.results">
+      <tr ng-repeat="infos in state.scan.results">
         <td>
-          <a href="/scan/{{state.scan.id}}/file/{{id}}">{{infos.filename}}</a>
+          <a href="/scan/{{state.scan.id}}/file/{{infos.sha256}}">{{infos.filename}}</a>
         </td>
         <td>
-          <span class="label" ng-class="(infos.status == 0) ? 'label-success' : 'label-danger'">{{infos.tools_finished}} / {{infos.tools_total}}</span>
+          <span class="label" ng-class="(infos.status == 0) ? 'label-success' : 'label-danger'">{{infos.probe_finished}} / {{infos.probe_total}}</span>
         </td>
       </tr>
     </tbody>

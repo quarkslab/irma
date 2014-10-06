@@ -18,8 +18,8 @@ function resultsManager($http, $q, $log, Result) {
       .catch(_loadFailed);
 
     function _loadComplete(response) {
-      var result = _retrieveInstance(response.result);
-      deferred.resolve(result);
+      var results = _retrieveInstance(response.results);
+      deferred.resolve(results);
     }
 
     function _loadFailed(error) {

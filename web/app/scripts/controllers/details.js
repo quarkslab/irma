@@ -9,7 +9,7 @@
 
   function Details($rootScope, $scope, $routeParams, state, resultManager) {
     var vm = this;
-    vm.result = undefined;
+    vm.results = undefined;
     vm.filterByProbeType = filterByProbeType;
 
     activate();
@@ -23,21 +23,21 @@
         state.newScan($routeParams.scanId);
       }
 
-      resultManager.getResult($routeParams.scanId, $routeParams.resultId).then(function(result) {
-        vm.result = result;
+      resultManager.getResult($routeParams.scanId, $routeParams.resultId).then(function(results) {
+        vm.results = results;
       });
     }
 
     function filterByProbeType(items) {
-      var result = {};
+      var probes = {};
 
       angular.forEach(items, function(value, key) {
         if (key !== 'antivirus') {
-          result[key] = value;
+          probes[key] = value;
         }
       });
 
-      return result;
+      return probes;
     }
   }
 }) ();

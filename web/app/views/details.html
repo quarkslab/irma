@@ -5,14 +5,14 @@
     <h2 id="file-informations">File informations</h2>
     <table class="table table-bordered table-striped">
       <tbody>
-        <tr ng-repeat="(key, value) in vm.result.file_infos">
+        <tr ng-repeat="(key, value) in vm.results.file_infos">
           <th>{{key}}</th>
           <td>{{value}}</td>
         </tr>
       </tbody>
     </table>
 
-    <div ng-if="vm.result.probe_results.antivirus">
+    <div ng-if="vm.results.probe_results.antivirus">
       <h2 id="antivirus">Antivirus</h2>
       <table class="table table-bordered">
         <thead>
@@ -24,7 +24,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="(id, output) in vm.result.probe_results.antivirus" ng-class="(output.status == 0) ? 'success' : 'danger'">
+          <tr ng-repeat="(id, output) in vm.results.probe_results.antivirus" ng-class="(output.status == 0) ? 'success' : 'danger'">
             <th>{{output.name}}</th>
             <td>{{output.version}}</td>
             <td>{{output.duration}}</td>
@@ -34,7 +34,7 @@
       </table>
     </div>
 
-    <div ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.result.probe_results)">
+    <div ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.results.probe_results)">
       <h2 id="{{probe_type_name}}">{{probe_type_name | capitalize:'first'}}</h2>
 
       <div ng-repeat="(id, output) in results">
@@ -50,8 +50,8 @@
     <div class="bs-sidebar hidden-print hidden-sm hidden-xs" role="complementary" data-offset-top="-80" bs-affix>
       <ul class="nav" bs-scrollspy-list>
         <li><a href="#file-informations">File informations</a></li>
-        <li ng-if="vm.result.probe_results.antivirus"><a href="#antivirus">Antivirus</a></li>
-        <li ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.result.probe_results)">
+        <li ng-if="vm.results.probe_results.antivirus"><a href="#antivirus">Antivirus</a></li>
+        <li ng-repeat="(probe_type_name, results) in vm.filterByProbeType(vm.results.probe_results)">
           <a href="#{{probe_type_name}}">{{probe_type_name| capitalize:'first'}}</a>
           <ul class="nav">
             <li ng-repeat="probe in results"><a href="#{{probe.name}}">{{probe.name}}</a></li>
