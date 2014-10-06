@@ -189,28 +189,26 @@ def launch_asynchronous(scanid, force):
 
 def get_results(scanid, formatted):
     """ get results from files of specified scan
-        results are filtered or not according to raw parameter
+        results are formatted or not according to formatted parameter
 
     :param scanid: id returned by scan_new
     :param formatted: boolean for formatted results or not
-    :rtype: dict of sha256 value: dict of ['filename':str,
-        'results':dict of [str probename: dict of [type: str,
-        status: int [, optional duration: int, optional result: int,
-        optional results of probe]]]]
+    :rtype:
+        dict
     :return:
-        dict of results for each hash value
-    :raise: IrmaDatabaseError
-    """
-
-    """ get results from files of specified scan
-
-    :param scanid: id returned by scan_new
-    :rtype: dict of sha256 value: dict of ['filename':str,
-        'results':dict of [str probename: dict of [probe_type: str,
-        status: int [, optional duration: int, optional result: int,
-        optional results of probe]]]]
-    :return:
-        dict of results for each hash value
+        dict of {
+            'total': total job nb,
+            'finished': finished job nb,
+            'status': scan status,
+            'files': list of file results,
+        }
+        file result are dict of {
+            'filename':str,
+            'sha256':sha256 value,
+            'probe_total': total job nb for this file,
+            'probe_finished': total finished job for this file,
+            'status': -1 error / 0 success / 1 ( suspiciopus file for AV)
+        }
     :raise: IrmaDatabaseError
     """
     with session_transaction() as session:
@@ -226,10 +224,16 @@ def get_results(scanid, formatted):
             for pr in fw.probe_results:
                 if pr.nosql_id is not None:
                     file_results_finished += 1
+                    # if status not set
                     if file_result_status == 0:
+                        # fetch the NoSql result
                         prr = ProbeRealResult(id=pr.nosql_id)
                         probe_result = prr.to_json(formatted)
-                        file_result_status = probe_result.status
+                        # if its an av result and status is infected
+                        # update status
+                        if probe_result.type == IrmaProbeType.antivirus and \
+                           probe_result.status == 1:
+                            file_result_status = probe_result.status
 
             scan_result_finished += file_results_finished
             scan_result_total += len(fw.probe_results)
@@ -274,9 +278,16 @@ def get_results(scanid, formatted):
 def get_result(scanid, sha256, formatted):
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-        files_web = filter(lambda x: x.file.sha256 == sha256, scan.files_web)
+        # retrieve file result from fileweb
+        # first retrieve file object that should be unique
+        files_web = set(filter(lambda x: x.file.sha256 == sha256,
+                               scan.files_web))
+        if len(files_web != 1):
+            raise IrmaCoreError("More than one file with same sha256")
         file_web = files_web.pop()
-
+        # It means that multiple files scanned at the same time
+        # with same sha256 will be scanned only once as it is
+        # done per sha256
         probe_results = {}
         probe_finished = 0
         for pr in file_web.probe_results:
@@ -294,7 +305,6 @@ def get_result(scanid, sha256, formatted):
             'file_infos': file_web.file.to_json(),
             'probe_results': probe_results,
         }
-
         res['file_infos']['name'] = file_web.name
 
         return res

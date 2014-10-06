@@ -132,7 +132,6 @@ class ScanApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-
     def _progress(self, scanid):
         """ get scan progress for specified scan
 
