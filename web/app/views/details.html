@@ -33,7 +33,7 @@
     </table>
 
     <div ng-repeat="(probe_type_name, results) in vm.results.probe_results">
-      <h2 id="{{probe_type_name}}">{{probe_type_name | capitalize:'first'}}</h2>
+      <h2 id="{{probe_type_name | lowercase}}">{{probe_type_name | capitalize:'first'}}</h2>
 
       <div ng-switch on="probe_type_name">
         <div ng-switch-when="antivirus">
@@ -58,7 +58,7 @@
         </div>
 
         <div ng-switch-when="metadata">
-          <h3 id="{{output.name}}" ng-repeat-start="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
+          <h3 id="{{output.name | lowercase}}" ng-repeat-start="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
           <h5>Responded in {{output.duration}} s with status: {{output.status}}</h5>
 
           <div ng-switch on="output.status" ng-repeat-end>
@@ -68,12 +68,10 @@
         </div>
 
         <div ng-switch-default>
-          <h3 id="{{output.name}}" ng-repeat="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
+          <h3 id="{{output.name | lowercase}}" ng-repeat-start="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
           <h5>Responded in {{output.duration}} s with status: {{output.status}}</h5>
 
-          <pre ng-repeat-end>
-            {{output.results}}
-          </pre>
+          <pre ng-repeat-end>{{output.results}}</pre>
         </div>
       </div>
     </div>
@@ -85,9 +83,9 @@
         <li><a href="#file-informations">File informations</a></li>
 
         <li ng-repeat="(probe_type_name, results) in vm.results.probe_results">
-          <a href="#{{probe_type_name}}">{{probe_type_name| capitalize:'first'}}</a>
+          <a href="#{{probe_type_name | lowercase}}">{{probe_type_name| capitalize:'first'}}</a>
           <ul class="nav">
-            <li ng-repeat="probe in results"><a href="#{{probe.name}}">{{probe.name}}</a></li>
+            <li ng-repeat="probe in results"><a href="#{{probe.name | lowercase}}">{{probe.name}}</a></li>
           </ul>
         </li>
       </ul>
