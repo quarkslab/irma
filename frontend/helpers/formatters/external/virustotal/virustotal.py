@@ -56,8 +56,8 @@ class VirusTotalFormatterPlugin(PluginBase):
     @staticmethod
     def format(raw_result):
         status = raw_result.get('status', -1)
-        vt_result = raw_result.get('results', {})
         if status != -1:
+            vt_result = raw_result.pop('results', {})
             av_result = vt_result.get('results', {})
         if status == 1:
             # get ratios from virustotal results
@@ -65,14 +65,7 @@ class VirusTotalFormatterPlugin(PluginBase):
             nb_total = av_result.get('total', 0)
             raw_result['results'] = "detected by {0}/{1}" \
                                     "".format(nb_detect, nb_total)
-            # get antivirus results
-            av_probes = ['ClamAV', 'Kaspersky', 'Symantec', 'McAfee',
-                         'Sophos', 'Comodo', 'ESET-NOD32', 'F-Prot']
-            results = filter(lambda (k, v): k in av_probes,
-                             av_result.get('scans', {}).items())
-            results = dict(map(lambda (k, v): (k, v.get('result', None)),
-                               results))
-            raw_result.update(results)
+            raw_result['external_url'] = av_result.get('permalink', None)
         elif status == 0:
             raw_result['results'] = av_result.get('verbose_msg', None)
         return raw_result
