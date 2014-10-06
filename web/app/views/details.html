@@ -3,7 +3,7 @@
     <p><a href="/scan/{{state.scan.id}}">Back to the scan summary</a></p>
 
     <h2 id="file-informations">File informations</h2>
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered">
       <tbody>
         <tr>
           <th>Filename</th>
@@ -59,19 +59,45 @@
 
         <div ng-switch-when="metadata">
           <h3 id="{{output.name | lowercase}}" ng-repeat-start="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
-          <h5>Responded in {{output.duration}} s with status: {{output.status}}</h5>
+          <h5>Responded in {{output.duration}} s</h5>
 
           <div ng-switch on="output.status" ng-repeat-end>
-            <pre ng-switch-when="0"><json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer></pre>
-            <pre ng-switch-when="-1">{{output.error}}</pre>
+            <pre class="pre-scrollable" ng-switch-when="0"><json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer></pre>
+
+            <div ng-switch-when="-1" class="bs-callout bs-callout-danger">
+              <h4>Error:</h4>
+              <samp>"{{output.error}}"</samp>
+            </div>
+          </div>
+        </div>
+
+        <div ng-switch-when="external">
+          <h3 id="{{output.name | lowercase}}" ng-repeat-start="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
+          <h5>Responded in {{output.duration}} s</h5>
+          <h5 ng-show="output.external_url">Full result is available <a href="{{output.external_url}}">here <span class="glyphicon glyphicon-new-window"></span></a>.</h5>
+
+          <div ng-switch on="output.status" ng-repeat-end>
+            <div ng-switch-when="-1" class="bs-callout bs-callout-danger">
+              <h4>Error:</h4>
+              <samp>"{{output.error}}"</samp>
+            </div>
+
+            <pre ng-switch-default>{{output.results}}</pre>
           </div>
         </div>
 
         <div ng-switch-default>
           <h3 id="{{output.name | lowercase}}" ng-repeat-start="(id, output) in results">{{output.name}} <small>{{output.version}}</small></h3>
-          <h5>Responded in {{output.duration}} s with status: {{output.status}}</h5>
+          <h5>Responded in {{output.duration}} s</h5>
 
-          <pre ng-repeat-end>{{output.results}}</pre>
+          <div ng-switch on="output.status" ng-repeat-end>
+            <div ng-switch-when="-1" class="bs-callout bs-callout-danger">
+              <h4>Error:</h4>
+              <samp>"{{output.error}}"</samp>
+            </div>
+
+            <pre ng-switch-default>{{output.results}}</pre>
+          </div>
         </div>
       </div>
     </div>
