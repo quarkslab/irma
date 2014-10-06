@@ -8,7 +8,8 @@ angular.module('irma', [
   'mgcrea.ngStrap',
   'mgcrea.ngStrap.helpers.dimensions',
   'gd.ui.jsonexplorer',
-  'angular-capitalize-filter'
+  'angular-capitalize-filter',
+  'angularMoment'
 ])
   .constant('constants', {
     fakeDelay: 0,
@@ -21,6 +22,9 @@ angular.module('irma', [
       STARTED: 1,
       FINISHED: 2
     }
+  })
+  .constant('angularMomentConfig', {
+    preprocess: 'unix'
   })
   .config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
     $locationProvider.html5Mode(true);
