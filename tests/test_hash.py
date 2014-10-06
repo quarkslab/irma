@@ -19,7 +19,7 @@ import unittest
 import tempfile
 import os
 import random
-from ..common.hash import md5sum, sha1sum, sha224sum, sha256sum, sha384sum, \
+from common.hash import md5sum, sha1sum, sha224sum, sha256sum, sha384sum, \
     sha512sum
 
 

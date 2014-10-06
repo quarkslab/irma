@@ -18,8 +18,8 @@ import hashlib
 import unittest
 import tempfile
 import os
-from ..irma.ftp.handler import FtpTls
-from ..irma.common.exceptions import IrmaFtpError
+from irma.ftp.handler import FtpTls
+from irma.common.exceptions import IrmaFtpError
 
 
 # =================

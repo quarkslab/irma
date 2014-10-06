@@ -18,7 +18,7 @@ import logging
 import libvirt
 import unittest
 
-from ..virt.core.connection import ConnectionManager
+from virt.core.connection import ConnectionManager
 
 
 # =================

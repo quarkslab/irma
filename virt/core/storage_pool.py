@@ -16,8 +16,8 @@
 import logging
 import libvirt
 
-from ...common.utils import UUID
-from ...common.oopatterns import ParametricSingleton
+from common.utils import UUID
+from common.oopatterns import ParametricSingleton
 from .connection import ConnectionManager
 from .exceptions import StoragePoolManagerError
 
@@ -238,7 +238,7 @@ class StoragePoolManager(ParametricSingleton):
         :returns: (state, a string description) tuple if pool is
             a label, a uuid, a virStoragePool.
         """
-        result = (None, None)
+        get_results = (None, None)
         if isinstance(pool, basestring):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
@@ -246,11 +246,11 @@ class StoragePoolManager(ParametricSingleton):
             try:
                 state, capacity, allocation, available = pool.info()
                 descr = StoragePoolManager.state_desc[state]
-                result = (state, descr)
+                get_results = (state, descr)
             except libvirt.libvirtError as e:
                 log.exception(e)
                 raise StoragePoolManagerError(e)
-        return result
+        return get_results
 
     def start(self, pool, flags=0):
         """start specified pool
@@ -311,50 +311,50 @@ class StoragePoolManager(ParametricSingleton):
 
         :param pools: either a label, uuid, a virStoragePool
         """
-        result = None
+        get_results = None
         if isinstance(pool, basestring):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirt.virStoragePool):
             try:
-                result = pool.autostart()
+                get_results = pool.autostart()
                 if autostart is not None:
-                    if result != autostart:
+                    if get_results != autostart:
                         pool.setAutostart(autostart)
-                        result = autostart
+                        get_results = autostart
                     else:
                         log.warn("Pool {0} already have".format(pool) +
-                                 " autostart set to '{0}'".format(result))
+                                 " autostart set to '{0}'".format(get_results))
             except libvirt.libvirtError as e:
                 log.exception(e)
                 raise StoragePoolManagerError(e)
-        return result
+        return get_results
 
     def active(self, pool):
-        result = None
+        get_results = None
         if isinstance(pool, basestring):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirtError.virStoragePool):
             try:
-                result = pool.isActive()
+                get_results = pool.isActive()
             except libvirt.libvirtError as e:
                 log.exception(e)
                 raise StoragePoolManagerError(e)
-        return result
+        return get_results
 
     def persistent(self, pool):
-        result = None
+        get_results = None
         if isinstance(pool, basestring):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirtError.virStoragePool):
             try:
-                result = pool.isPersistent()
+                get_results = pool.isPersistent()
             except libvirt.libvirtError as e:
                 log.exception(e)
                 raise StoragePoolManagerError(e)
-        return result
+        return get_results
 
     def refresh(self, pool, flags=0):
         if isinstance(pool, basestring):

@@ -16,18 +16,17 @@
 import logging
 import libvirt
 import time
-import random
 import os.path
 
-from ...virt.core.domain import DomainManager
-from ...virt.core.storage_pool import StoragePoolManager
-from ...virt.core.storage_volume import StorageVolumeManager
-from ...virt.core.connection import ConnectionManager
-from ...virt.core.exceptions import DomainManagerError
+from virt.core.domain import DomainManager
+from virt.core.storage_pool import StoragePoolManager
+from virt.core.storage_volume import StorageVolumeManager
+from virt.core.connection import ConnectionManager
+from virt.core.exceptions import DomainManagerError
 
-from ...common.utils import UUID, MAC
-from ...common.oopatterns import ParametricSingleton
-from ..common.exceptions import IrmaMachineManagerError
+from common.utils import UUID, MAC
+from common.oopatterns import ParametricSingleton
+from irma.common.exceptions import IrmaMachineManagerError
 from .manager import VirtualMachineManager
 
 log = logging.getLogger(__name__)
@@ -49,7 +48,7 @@ class LibVirtMachineManager(VirtualMachineManager, ParametricSingleton):
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
         if not isinstance(handler, libvirt.virConnect):
-            what = type(connection)
+            what = type(handler)
             reason = "Invalid type for 'connection' field: {0}".format(what)
             raise DomainManagerError(reason)
 

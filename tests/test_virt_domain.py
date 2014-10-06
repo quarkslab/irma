@@ -18,9 +18,9 @@ import logging
 import libvirt
 import unittest
 
-from ..virt.core.connection import ConnectionManager
-from ..virt.core.domain import DomainManager
-from ..virt.core.exceptions import DomainManagerError
+from virt.core.connection import ConnectionManager
+from virt.core.domain import DomainManager
+from virt.core.exceptions import DomainManagerError
 
 
 # =================

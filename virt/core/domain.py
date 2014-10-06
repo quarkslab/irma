@@ -18,11 +18,10 @@ import libvirt
 import xmltodict
 import tempfile
 import mimetypes
-import os
 import binascii
 
-from ...common.utils import UUID, MAC
-from ...common.oopatterns import ParametricSingleton
+from common.utils import UUID, MAC
+from common.oopatterns import ParametricSingleton
 
 from .mapper.domain import Domain
 
@@ -320,23 +319,23 @@ class DomainManager(ParametricSingleton):
                 description) if domains is a list. If an error (state, a
                 string description) equals to (None, None).
         """
-        result = (None, None)
+        get_results = (None, None)
         if isinstance(domains, libvirt.virDomain):
             try:
                 # extra flags; not used yet, so callers should always pass 0
                 state, reason = domains.state(flags=0)
                 descr = DomainManager.state_desc[state]
-                result = (state, descr)
+                get_results = (state, descr)
             except libvirt.libvirtError as e:
                 log.error('{0}'.format(e))
         elif isinstance(domains, (basestring, int)):
-            result = self.state(self.lookup(domains))
+            get_results = self.state(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.state(domain))
-            result = tuple(result)
-        return result
+                get_results.append(self.state(domain))
+            get_results = tuple(get_results)
+        return get_results
 
     def start(self, domains, flags=0):
         """start specified domains
@@ -349,28 +348,28 @@ class DomainManager(ParametricSingleton):
             an uuid, an id, a virDomain or a tuple if domains is a list.
             When domain is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and not domains.isActive():
                     domains.createWithFlags(flags)
-                    result = True
+                    get_results = True
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 flags = domains.get('flags', flags)
-                result = self.start(domain, flags)
+                get_results = self.start(domain, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.start(self.lookup(domains), flags)
+            get_results = self.start(self.lookup(domains), flags)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.start(domain, flags))
-            result = tuple(result)
-        return result
+                get_results.append(self.start(domain, flags))
+            get_results = tuple(get_results)
+        return get_results
 
     def stop(self, domains, force=False, flags=0):
         """stop specified domains
@@ -386,7 +385,7 @@ class DomainManager(ParametricSingleton):
             an id, a virDomain or a tuple if domains is a list. When domain
             is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
@@ -394,24 +393,24 @@ class DomainManager(ParametricSingleton):
                         domains.shutdownFlags(flags)
                     else:
                         domains.destroyFlags(flags)
-                    result = True
+                    get_results = True
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 flags = domains.get('flags', flags)
                 force = domains.get('force', force)
-                result = self.stop(domain, force, flags)
+                get_results = self.stop(domain, force, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.stop(self.lookup(domains), force, flags)
+            get_results = self.stop(self.lookup(domains), force, flags)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.stop(domain, force, flags))
-            result = tuple(result)
-        return result
+                get_results.append(self.stop(domain, force, flags))
+            get_results = tuple(get_results)
+        return get_results
 
     def autostart(self, domains, autostart=True):
         """set autostart on specified domains
@@ -424,28 +423,28 @@ class DomainManager(ParametricSingleton):
                   uuid, an id, a virDomain or a tuple if domains is a list.
                   When domain is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.autostart() != autostart:
                     domains.setAutostart(autostart)
-                    result = True
+                    get_results = True
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 autostart = domains.get('autostart', autostart)
-                result = self.autostart(domain, autostart)
+                get_results = self.autostart(domain, autostart)
         elif isinstance(domains, (basestring, int)):
-            result = self.autostart(self.lookup(domains), autostart)
+            get_results = self.autostart(self.lookup(domains), autostart)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.autostart(domain, autostart))
-            result = tuple(result)
-        return result
+                get_results.append(self.autostart(domain, autostart))
+            get_results = tuple(get_results)
+        return get_results
 
     def reboot(self, domains, flags=0):
         """reboot specified domains
@@ -458,28 +457,28 @@ class DomainManager(ParametricSingleton):
             an uuid, an id, a virDomain or a tuple if domains is a list.
             When domain is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
                     domains.reboot(flags)
-                    result = True
+                    get_results = True
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 autostart = domains.get('flags', flags)
-                result = self.reboot(domain, flags)
+                get_results = self.reboot(domain, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.reboot(self.lookup(domains), flags)
+            get_results = self.reboot(self.lookup(domains), flags)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.reboot(domain, flags))
-            result = tuple(result)
-        return result
+                get_results.append(self.reboot(domain, flags))
+            get_results = tuple(get_results)
+        return get_results
 
     def reset(self, domains):
         """reset specified domains
@@ -491,29 +490,29 @@ class DomainManager(ParametricSingleton):
             is a label, an uuid, an id, a virDomain or a tuple
             if domains is a list. When domain is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
                     # extra flags; not used yet,
                     # so callers should always pass 0
                     domains.reset(flags=0)
-                    result = True
+                    get_results = True
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
-                result = self.reset(domain)
+                get_results = self.reset(domain)
         elif isinstance(domains, (basestring, int)):
-            result = self.reset(self.lookup(domains))
+            get_results = self.reset(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.reset(domain))
-            result = tuple(result)
-        return result
+                get_results.append(self.reset(domain))
+            get_results = tuple(get_results)
+        return get_results
 
     def resume(self, domains):
         """resume specified domains
@@ -525,29 +524,29 @@ class DomainManager(ParametricSingleton):
             a label, an uuid, an id, a virDomain or a tuple if
             domains is a list. When domain is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and not domains.isActive():
                     # extra flags; not used yet,
                     # so callers should always pass 0
                     domains.resume()
-                    result = True
+                    get_results = True
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
-                result = self.resume(domain)
+                get_results = self.resume(domain)
         elif isinstance(domains, (basestring, int)):
-            result = self.reset(self.lookup(domains))
+            get_results = self.reset(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.resume(domain))
-            result = tuple(result)
-        return result
+                get_results.append(self.resume(domain))
+            get_results = tuple(get_results)
+        return get_results
 
     def suspend(self, domains):
         """suspend specified domains
@@ -559,29 +558,29 @@ class DomainManager(ParametricSingleton):
             an uuid, an id, a virDomain or a tuple if domains is a list.
             When domain is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
                     # extra flags; not used yet,
                     # so callers should always pass 0
                     domains.suspend()
-                    result = True
+                    get_results = True
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
-                result = self.suspend(domain)
+                get_results = self.suspend(domain)
         elif isinstance(domains, (basestring, int)):
-            result = self.suspend(self.lookup(domains))
+            get_results = self.suspend(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.suspend(domain))
-            result = tuple(result)
-        return result
+                get_results.append(self.suspend(domain))
+            get_results = tuple(get_results)
+        return get_results
 
     def screenshot(self, domains, name=None, screen=0):
         """perform screenshot on specified domains
@@ -595,7 +594,7 @@ class DomainManager(ParametricSingleton):
             an uuid, an id, a virDomain or a tuple if domains is a list.
             When domain sis None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
@@ -614,24 +613,24 @@ class DomainManager(ParametricSingleton):
                                    fdes: fdes.write(data), temp)
                     stream.finish()
                     temp.close()
-                    result = temp.name
+                    get_results = temp.name
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 name = domains.get('name', None)
                 screen = domains.get('screen', screen)
-                result = self.screenshot(domain, name, screen)
+                get_results = self.screenshot(domain, name, screen)
         elif isinstance(domains, (basestring, int)):
-            result = self.screenshot(self.lookup(domains), name, screen)
+            get_results = self.screenshot(self.lookup(domains), name, screen)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.screenshot(domain), name, screen)
-            result = tuple(result)
-        return result
+                get_results.append(self.screenshot(domain), name, screen)
+            get_results = tuple(get_results)
+        return get_results
 
     def coredump(self, domains, name=None, flags=DUMP_LIVE):
         """perform a core dump on specified domains
@@ -645,7 +644,7 @@ class DomainManager(ParametricSingleton):
              an uuid, an id, a virDomain or a tuple if domains is a list.
              When domain is None, returns None.
         """
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
@@ -655,27 +654,27 @@ class DomainManager(ParametricSingleton):
                         name = file.name
                         file.close()
                     domains.coreDump(name, flags)
-                    result = name
+                    get_results = name
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 name = domains.get('name', name)
                 flags = domains.get('flags', flags)
-                result = self.coredump(domain, name, flags)
+                get_results = self.coredump(domain, name, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.coredump(self.lookup(domains), name, flags)
+            get_results = self.coredump(self.lookup(domains), name, flags)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.coredump(domain, name, flags))
-            result = tuple(result)
-        return result
+                get_results.append(self.coredump(domain, name, flags))
+            get_results = tuple(get_results)
+        return get_results
 
     def memdump(self, domains, start=None, size=None, flags=MEMORY_PHYSICAL):
-        result = (None, None)
+        get_results = (None, None)
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and domains.isActive():
@@ -690,9 +689,9 @@ class DomainManager(ParametricSingleton):
                         else:
                             size = 16 * 1024 * 1024
                     data = domains.memoryPeek(start, size, flags)
-                    result = (len(data), data)
+                    get_results = (len(data), data)
             except libvirt.libvirtError as e:
-                result = (False, None)
+                get_results = (False, None)
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
@@ -700,15 +699,15 @@ class DomainManager(ParametricSingleton):
                 start = domains.get('start', start)
                 size = domains.get('size', size)
                 flags = domains.get('flags', flags)
-                result = self.memdump(domain, start, size, flags)
+                get_results = self.memdump(domain, start, size, flags)
         elif isinstance(domains, (basestring, int)):
-            result = self.memdump(self.lookup(domains), start, size, flags)
+            get_results = self.memdump(self.lookup(domains), start, size, flags)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.memdump(domain, start, size, flags))
-            result = tuple(result)
-        return result
+                get_results.append(self.memdump(domain, start, size, flags))
+            get_results = tuple(get_results)
+        return get_results
 
     # TODO: add return value checking
     # TODO: autogenerate name and allow name to be none
@@ -729,7 +728,7 @@ class DomainManager(ParametricSingleton):
             reason = "'name' field value '{0}' is invalid".format(name)
             raise DomainManagerError(reason)
 
-        result = None
+        get_results = None
         if isinstance(domains, libvirt.virDomain):
             try:
                 if domains and not domains.isActive():
@@ -779,21 +778,21 @@ class DomainManager(ParametricSingleton):
                                 disk['source']['@file'] = new_vol.path()
                     self.create(clone_dict)
             except libvirt.libvirtError as e:
-                result = False
+                get_results = False
                 log.error('{0}'.format(e))
         elif isinstance(domains, dict):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 name = domains.get('name', None)
-                result = self.clone(domain, name)
+                get_results = self.clone(domain, name)
         elif isinstance(domains, (basestring, int)):
-            result = self.clone(self.lookup(domains), name)
+            get_results = self.clone(self.lookup(domains), name)
         elif isinstance(domains, (list, tuple)):
-            result = list()
+            get_results = list()
             for domain in domains:
-                result.append(self.clone(domain), name)
-            result = tuple(result)
-        return result
+                get_results.append(self.clone(domain), name)
+            get_results = tuple(get_results)
+        return get_results
 
     def delete(self,
                label,

@@ -15,8 +15,8 @@
 
 import logging
 import unittest
-from ..common.utils import UUID, MAC, humanize_time, humanize_time_str
-from ..irma.common.utils import IrmaFrontendReturn, IrmaTaskReturn, \
+from common.utils import UUID, MAC, humanize_time, humanize_time_str
+from irma.common.utils import IrmaFrontendReturn, IrmaTaskReturn, \
     IrmaReturnCode
 
 

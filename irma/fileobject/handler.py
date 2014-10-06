@@ -14,8 +14,8 @@
 # terms contained in the LICENSE file.
 
 from bson import ObjectId
-from ..database.nosqlhandler import NoSQLDatabase
-from ..common.exceptions import IrmaDatabaseError
+from irma.database.nosqlhandler import NoSQLDatabase
+from irma.common.exceptions import IrmaDatabaseError
 
 
 class FileObject(object):

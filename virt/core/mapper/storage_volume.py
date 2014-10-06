@@ -16,7 +16,7 @@
 import logging
 import xmltodict
 
-from ..exceptions import StorageVolumeError
+from virt.core.exceptions import StorageVolumeError
 
 log = logging.getLogger(__name__)
 

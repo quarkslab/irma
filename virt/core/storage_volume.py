@@ -19,7 +19,7 @@ import os.path
 
 from multiprocessing import Array, Process as Task
 
-from ...common.oopatterns import ParametricSingleton
+from common.oopatterns import ParametricSingleton
 from .connection import ConnectionManager
 from .storage_pool import StoragePoolManager
 from .mapper.storage_volume import StorageVolume
