@@ -25,9 +25,9 @@ config.conf_frontend_celery(frontend_app)
 # ============
 
 
-def scan_launch(scanid, force):
+def scan_launch(scanid):
     """ send a task to launch the scan """
     return async_call(frontend_app,
                       "frontend.tasks",
                       "scan_launch",
-                      args=(scanid, force))
+                      args=(scanid,))
