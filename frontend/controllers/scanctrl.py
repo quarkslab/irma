@@ -282,7 +282,7 @@ def get_result(scanid, sha256, formatted):
         # first retrieve file object that should be unique
         files_web = set(filter(lambda x: x.file.sha256 == sha256,
                                scan.files_web))
-        if len(files_web != 1):
+        if len(files_web) != 1:
             raise IrmaCoreError("More than one file with same sha256")
         file_web = files_web.pop()
         # It means that multiple files scanned at the same time
