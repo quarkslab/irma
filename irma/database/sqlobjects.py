@@ -15,8 +15,8 @@
 
 import sqlalchemy
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
-from ..common.exceptions import IrmaValueError, IrmaDatabaseResultNotFound
-from ..common.exceptions import IrmaDatabaseError
+from irma.common.exceptions import IrmaValueError, IrmaDatabaseResultNotFound
+from irma.common.exceptions import IrmaDatabaseError
 
 
 class SQLDatabaseObject(object):

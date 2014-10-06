@@ -17,7 +17,7 @@ import logging
 import xmltodict
 
 from collections import OrderedDict
-from ..exceptions import DomainError
+from virt.core.exceptions import DomainError
 
 log = logging.getLogger(__name__)
 

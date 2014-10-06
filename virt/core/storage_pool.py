@@ -16,8 +16,8 @@
 import logging
 import libvirt
 
-from ...common.utils import UUID
-from ...common.oopatterns import ParametricSingleton
+from common.utils import UUID
+from common.oopatterns import ParametricSingleton
 from .connection import ConnectionManager
 from .exceptions import StoragePoolManagerError
 

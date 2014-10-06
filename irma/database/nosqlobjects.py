@@ -13,11 +13,10 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from ...common.compat import timestamp
 from nosqlhandler import NoSQLDatabase
 from bson import ObjectId
 from bson.errors import InvalidId
-from ..common.exceptions import IrmaDatabaseError, IrmaValueError
+from irma.common.exceptions import IrmaDatabaseError, IrmaValueError
 
 
 class NoSQLDatabaseObjectList(object):

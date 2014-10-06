@@ -19,8 +19,8 @@ import gridfs
 
 from pymongo import Connection
 
-from ...common.oopatterns import Singleton
-from ..common.exceptions import IrmaDatabaseError
+from common.oopatterns import Singleton
+from irma.common.exceptions import IrmaDatabaseError
 
 log = logging.getLogger(__name__)
 

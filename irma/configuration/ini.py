@@ -19,7 +19,7 @@ except ImportError:
     # ConfigParser module has been renamed to configparser in python 3
     from configparser import ConfigParser
 
-from ..common.exceptions import IrmaConfigurationError
+from irma.common.exceptions import IrmaConfigurationError
 from .config import Configuration, ConfigurationSection
 
 

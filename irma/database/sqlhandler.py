@@ -16,7 +16,7 @@
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from ..common.exceptions import IrmaDatabaseError
+from irma.common.exceptions import IrmaDatabaseError
 
 DEBUG = False
 # FIXME take this filename from config

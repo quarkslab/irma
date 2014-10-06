@@ -18,11 +18,10 @@ import libvirt
 import xmltodict
 import tempfile
 import mimetypes
-import os
 import binascii
 
-from ...common.utils import UUID, MAC
-from ...common.oopatterns import ParametricSingleton
+from common.utils import UUID, MAC
+from common.oopatterns import ParametricSingleton
 
 from .mapper.domain import Domain
 

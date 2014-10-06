@@ -15,7 +15,7 @@
 
 import logging
 import hashlib
-from ..common.exceptions import IrmaFtpError
+from irma.common.exceptions import IrmaFtpError
 from ftplib import FTP_TLS
 import ssl
 

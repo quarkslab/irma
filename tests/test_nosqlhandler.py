@@ -15,7 +15,7 @@
 
 import logging
 import unittest
-from ..irma.database.nosqlhandler import NoSQLDatabase
+from irma.database.nosqlhandler import NoSQLDatabase
 from pymongo import Connection
 
 # Test config
