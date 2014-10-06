@@ -15,13 +15,11 @@
 
 import logging
 import unittest
-from irma.common.exceptions import IrmaDatabaseError, IrmaLockError, \
-    IrmaValueError
+from irma.common.exceptions import IrmaDatabaseError, IrmaValueError
 from irma.database.nosqlhandler import NoSQLDatabase
 from irma.database.nosqlobjects import NoSQLDatabaseObject
 from datetime import datetime
 from bson import ObjectId
-from irma.common.utils import IrmaLock, IrmaLockMode
 
 # Test config
 test_db_uri = "mongodb://localhost"
@@ -38,7 +36,6 @@ class TestObject(NoSQLDatabaseObject):
     def __init__(self,
                  dbname=None,
                  id=None,
-                 mode=IrmaLockMode.read,
                  save=True):
         if dbname is not None:
             self._dbname = dbname
@@ -46,7 +43,7 @@ class TestObject(NoSQLDatabaseObject):
         self.date = datetime.now()
         self.dict = {}
         self.list = []
-        super(TestObject, self).__init__(id=id, mode=mode, save=save)
+        super(TestObject, self).__init__(id=id, save=save)
 
     @classmethod
     def has_lock_timed_out(cls, id):
@@ -100,12 +97,9 @@ class CheckSingleton(DbTestCase):
 
 
 class TestNoSQLDatabaseObject(DbTestCase):
-    def test_constructor(self):
+    def test_virtualconstructor(self):
         with self.assertRaises(IrmaValueError):
             NoSQLDatabaseObject()
-        t1 = TestObject(mode=IrmaLockMode.write)
-        with self.assertRaises(IrmaValueError):
-            t2 = TestObject(mode='a')
 
     def test_add_testobject(self):
         t1 = TestObject()
@@ -213,51 +207,6 @@ class TestNoSQLDatabaseObject(DbTestCase):
         self.assertIsInstance(t1.__repr__(), str)
         self.assertIsInstance(t1.__str__(), str)
 
-
-class TestLockObject(DbTestCase):
-    def test_is_lock_free(self):
-        t = TestObject()
-        self.assertTrue(TestObject.is_lock_free(t.id))
-        t.take()
-        self.assertFalse(TestObject.is_lock_free(t.id))
-
-        with self.assertRaises(NotImplementedError):
-            NoSQLDatabaseObject.is_lock_free(0)
-
-    def test_has_lock_timed_out(self):
-        t = TestObject()
-        t.take()
-        self.assertFalse(TestObject.has_lock_timed_out(t.id))
-        t._lock_time = 0
-        t.update()
-        self.assertTrue(TestObject.has_lock_timed_out(t.id))
-
-        with self.assertRaises(NotImplementedError):
-            NoSQLDatabaseObject.has_lock_timed_out(0)
-
-    def test_has_state_changed(self):
-        t = TestObject()
-        t2 = TestObject(id=t.id)
-        # the instantiation of t2 has changed the value of date in the db
-        t.date = t2.date
-        self.assertFalse(t.has_state_changed())
-        t2.list.append(1)
-        t2.list.append(2)
-        t2.list.append(3)
-        t2.update()
-        self.assertTrue(t.has_state_changed())
-
-    def test_take_release(self):
-        t = TestObject()
-        self.assertEqual(t._lock, IrmaLock.free)
-        t.take()
-        self.assertEqual(t._lock, IrmaLock.locked)
-        with self.assertRaises(IrmaLockError):
-            t.take()
-        t.release()
-        self.assertEqual(t._lock, IrmaLock.free)
-        with self.assertRaises(IrmaValueError):
-            t.take(mode='a')
 
 if __name__ == '__main__':
     enable_logging()
