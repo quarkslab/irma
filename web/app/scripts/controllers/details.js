@@ -22,7 +22,7 @@
         state.newScan($routeParams.scanId);
       }
 
-      resultManager.getResult($routeParams.scanId, $routeParams.resultId).then(function(results) {
+      resultManager.getResult($routeParams.scanId, $routeParams.fileIdx).then(function(results) {
         vm.results = results;
       });
     }

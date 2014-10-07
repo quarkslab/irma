@@ -12,8 +12,8 @@ function resultsManager($q, $log, Result, bridge) {
     getResult: getResult
   };
 
-  function _load(scanId, resultId, deferred) {
-    bridge.get({url: '/scan/' + scanId + '/results/' + resultId})
+  function _load(scanId, fileIdx, deferred) {
+    bridge.get({url: '/scan/' + scanId + '/results/' + fileIdx})
       .then(_loadComplete);
 
     function _loadComplete(response) {
@@ -28,10 +28,10 @@ function resultsManager($q, $log, Result, bridge) {
     return new Result(resultData);
   }
 
-  function getResult(scanId, resultId) {
+  function getResult(scanId, fileIdx) {
     $log.info('Retrieve result');
     var deferred = $q.defer();
-    _load(scanId, resultId, deferred);
+    _load(scanId, fileIdx, deferred);
 
     return deferred.promise;
   }

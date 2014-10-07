@@ -56,7 +56,7 @@ angular.module('irma', [
           maintenance: ['state', function(state){ return state.pingApi();}]
         }
       })
-      .when('/scan/:scanId/file/:resultId', {
+      .when('/scan/:scanId/file/:fileIdx', {
         templateUrl: '/views/details.html',
         controller: 'DetailsCtrl',
         controllerAs: 'vm',

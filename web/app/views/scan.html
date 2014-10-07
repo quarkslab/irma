@@ -37,7 +37,7 @@
     <tbody>
       <tr ng-repeat="infos in state.scan.results">
         <td>
-          <a href="/scan/{{state.scan.id}}/file/{{infos.sha256}}">{{infos.filename}}</a>
+          <a href="/scan/{{state.scan.id}}/file/{{infos.scan_file_idx}}">{{infos.filename}}</a>
         </td>
         <td>
           <span class="label" ng-class="(infos.status == 0) ? 'label-success' : 'label-danger'">{{infos.probe_finished}} / {{infos.probe_total}}</span>
