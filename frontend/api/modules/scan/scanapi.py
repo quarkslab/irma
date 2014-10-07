@@ -36,14 +36,10 @@ def validate_id(scanid):
         raise ValueError("Malformed Scanid")
 
 
-def validate_sha256(sha256):
-    """ check hashvalue format - should be a sha256 hexdigest"""
-    if not re.match(r'^[0-9a-fA-F]{64}$', sha256):
-        raise ValueError("Malformed Sha256")
-
 # ==========
 #  Scan api
 # ==========
+
 class ScanApi(WebApi):
     _mountpath = "/scan"
     _app = Bottle()
@@ -57,7 +53,7 @@ class ScanApi(WebApi):
         self._app.route('/finished/<scanid>', callback=self._finished)
         self._app.route('/info/<scanid>', callback=self._info)
         self._app.route('/<scanid>/results', callback=self._results)
-        self._app.route('/<scanid>/results/<sha256>', callback=self._result)
+        self._app.route('/<scanid>/results/<file_idx>', callback=self._result)
 
     def _new(self):
         """ create new scan
@@ -248,12 +244,12 @@ class ScanApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-    def _result(self, scanid, sha256):
+    def _result(self, scanid, file_idx):
         """ returns a specified results from a scan
 
-        :route: /scan/<scanid>/results/<sha256>
+        :route: /scan/<scanid>/results/<file_idx>
         :param scanid: id returned by scan_new
-        :param sha256: sha256 of  returned by _scan_results
+        :param file_idx: file index in scan returned by _scan_results
         :param formatted boolean to get formatted results or not
                (default to True)
         :rtype: dict of 'code': int, 'msg': str [, optional 'results':
@@ -267,12 +263,12 @@ class ScanApi(WebApi):
         """
         try:
             validate_id(scanid)
-            validate_sha256(sha256)
             formatted = True
             if 'formatted' in request.params:
                 if request.params['formatted'].lower() == 'false':
                     formatted = False
-            results = scan_ctrl.get_result(scanid, sha256, formatted)
+            file_idx = int(file_idx)
+            results = scan_ctrl.get_result(scanid, file_idx, formatted)
             return IrmaFrontendReturn.success(results=results)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

@@ -21,7 +21,7 @@ from lib.common import compat
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaProbeType
 from lib.irma.common.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaValueError, IrmaTaskError, \
-    IrmaFtpError
+    IrmaFtpError, IrmaDatabaseError
 from frontend.helpers.sql import session_transaction, session_query
 import frontend.controllers.braintasks as celery_brain
 import frontend.controllers.ftpctrl as ftp_ctrl
@@ -68,6 +68,8 @@ def add_files(scanid, files):
             # on first file added update status to 'ready'
             scan.set_status(IrmaScanStatus.ready, session)
             session.commit()
+
+        idx_file = len(scan.files_web)
         for (name, data) in files.items():
             try:
                 # The file exists
@@ -80,9 +82,10 @@ def add_files(scanid, files):
                 file.save(session)
                 file.save_file_to_fs(data)
                 file.update(session=session)
-            file_web = FileWeb(file, name, scan)
+            file_web = FileWeb(file, name, scan, idx_file)
             file_web.save(session)
-            nb_files = len(scan.files_web)
+            idx_file += 1
+        nb_files = len(scan.files_web)
     return nb_files
 
 
@@ -239,7 +242,7 @@ def get_results(scanid, formatted):
             scan_result_total += len(fw.probe_results)
             res.append({
                 'filename': fw.name,
-                'sha256': fw.file.sha256,
+                'scan_file_idx': fw.scan_file_idx,
                 'probe_total': len(fw.probe_results),
                 'probe_finished': file_results_finished,
                 'status': file_result_status,
@@ -275,15 +278,19 @@ def get_results(scanid, formatted):
         return scan_res
 
 
-def get_result(scanid, sha256, formatted):
+def get_result(scanid, scan_file_idx, formatted):
     with session_query() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
         # retrieve file result from fileweb
         # first retrieve file object that should be unique
-        files_web = set(filter(lambda x: x.file.sha256 == sha256,
-                               scan.files_web))
-        if len(files_web) != 1:
-            raise IrmaCoreError("More than one file with same sha256")
+        files_web = filter(lambda x: x.scan_file_idx == scan_file_idx,
+                           scan.files_web)
+        if len(files_web) == 0:
+            reason = "No fileweb found with this index"
+            raise IrmaDatabaseError(reason)
+        elif len(files_web) > 1:
+            reason = "More than one fileweb with same file index"
+            raise IrmaDatabaseError(reason)
         file_web = files_web.pop()
         # It means that multiple files scanned at the same time
         # with same sha256 will be scanned only once as it is
@@ -305,7 +312,11 @@ def get_result(scanid, sha256, formatted):
             'file_infos': file_web.file.to_json(),
             'probe_results': probe_results,
         }
-        res['file_infos']['name'] = file_web.name
+        if len(files_web) > 1:
+            names = ",".join([fw.name for fw in files_web])
+            res['file_infos']['name'] = names
+        else:
+            res['file_infos']['name'] = file_web.name
 
         return res
 

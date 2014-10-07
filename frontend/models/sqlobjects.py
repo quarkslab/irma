@@ -16,7 +16,7 @@ import hashlib
 import os
 
 from sqlalchemy import Table, Column, Integer, Float, ForeignKey, String, \
-    event
+    event, UniqueConstraint
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
@@ -58,7 +58,7 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
         print("SQL directory does not exist {0}"
               "..creating".format(dirname))
         os.makedirs(dirname)
-        os.chmod(dirname, "0777")
+        os.chmod(dirname, 0777)
     elif not (os.path.isdir(dirname)):
         print("Error. SQL directory is a not a dir {0}"
               "".format(dirname))
@@ -67,7 +67,7 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
     if not os.path.exists(db_name):
         # touch like method to create a rw-rw-rw- file for db
         open(db_name, 'a').close()
-        os.chmod(db_name, "0666")
+        os.chmod(db_name, 0666)
 
 
 sql_db_connect()
@@ -590,6 +590,11 @@ class FileWeb(Base, SQLDatabaseObject):
         primary_key=True,
         name='id'
     )
+    scan_file_idx = Column(
+        Integer,
+        nullable=False,
+        name='scan_file_idx'
+    )
     # Many to one FileWeb <-> File as part of the primary key
     id_file = Column(
         Integer,
@@ -619,13 +624,15 @@ class FileWeb(Base, SQLDatabaseObject):
         "Scan",
         backref=backref('files_web')
     )
+    # insure there are no dup scan_file_idx
+    UniqueConstraint('id_scan', 'scan_file_idx', name='uix_1')
 
-    def __init__(self, file, name, scan):
+    def __init__(self, file, name, scan, idx):
         super(FileWeb, self).__init__()
-
         self.file = file
         self.name = name
         self.scan = scan
+        self.scan_file_idx = idx
 
 
 class FileAgent(Base, SQLDatabaseObject):
