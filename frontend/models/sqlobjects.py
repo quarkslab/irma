@@ -625,7 +625,7 @@ class FileWeb(Base, SQLDatabaseObject):
         backref=backref('files_web')
     )
     # insure there are no dup scan_file_idx
-    UniqueConstraint('id_scan', 'scan_file_idx', name='uix_1')
+    __table_args__ = (UniqueConstraint('id_scan', 'scan_file_idx'),)
 
     def __init__(self, file, name, scan, idx):
         super(FileWeb, self).__init__()
