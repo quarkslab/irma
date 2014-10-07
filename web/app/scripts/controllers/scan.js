@@ -17,7 +17,7 @@
     activate();
 
     function activate() {
-      if(state.status !== 'scan') {
+      if(state.status !== 'scan' || state.scan === undefined || state.scan.id !== $routeParams.scan) {
         state.newScan($routeParams.scan);
         state.scan.updateScan();
       }

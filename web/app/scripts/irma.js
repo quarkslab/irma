@@ -66,8 +66,9 @@ angular.module('irma', [
         }
       })
       .when('/search', {
-        templateUrl: '/views/existing.html',
-        controller: 'ExistingCtrl',
+        templateUrl: '/views/search.html',
+        controller: 'SearchCtrl',
+        controllerAs: 'vm',
         location: 'search',
         resolve: {
           maintenance: ['state', function(state){ return state.pingApi();}]

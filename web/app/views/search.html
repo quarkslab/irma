@@ -1,10 +1,9 @@
-<form class="settings" ng-submit="goToScan(existingId)">
+<form class="settings" ng-submit="vm.goToScan(existingId)">
   <div class="row">
     <div class="col-md-6 col-md-offset-3 existing">
       <p>You can view the results of an existing scan by providing the id provided at the time</p>
       <div class="form-group">
         <input type="text" class="form-control" ng-model="existingId" value="53762930aca33b36e879bc83">
-        
       </div>
     </div>
   </div>
@@ -12,4 +11,3 @@
     <button class="action btn btn-lg btn-success" type="submit" ng-disabled="!existingId">View Scan</button>
   </p>
 </form>
-
