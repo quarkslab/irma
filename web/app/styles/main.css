@@ -6042,6 +6042,7 @@ h1 {
   margin: 60px 0 20px;
   border-bottom: 1px solid #eee;
   padding-bottom: 9px;
+  font-weight: bold;
 }
 .scan .progress {
   width: 700px;
