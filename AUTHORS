@@ -5,14 +5,15 @@ IRMA is a project co-funded by the following actors:
     * GOVCERT.LU (governmental CERT of Luxembourg)
     * Airbus Group
     * QuarksLab
-    * Orange DSI Groupe
+    * Orange Group IS&T
 
 The PRIMARY AUTHORS are (and/or have been):
 
     * Alexandre Quint - Lead Developer, QuarksLab
     * Fernand Lone-Sang - QuarksLab
-    * Bruno Dorsemaine - Orange DSI Groupe
+    * Bruno Dorsemaine - Orange Group IS&T
     * David Carle - QuarksLab
+    * Guillaume Dedrie - QuarksLab
 
 And here is an inevitably incomplete list of MUCH-APPRECIATED CONTRIBUTORS --
 people who have submitted patches, reported bugs, helped answer newbie questions, 

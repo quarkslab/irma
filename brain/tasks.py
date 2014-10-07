@@ -13,158 +13,29 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import uuid
-import time
 import config.parser as config
 
 from celery import Celery
 from celery.utils.log import get_task_logger
-from datetime import datetime, timedelta
-from brain.objects import User, Scan
+import brain.controllers.userctrl as user_ctrl
+import brain.controllers.scanctrl as scan_ctrl
+import brain.controllers.jobctrl as job_ctrl
+import brain.controllers.probetasks as celery_probe
+import brain.controllers.frontendtasks as celery_frontend
+import brain.controllers.ftpctrl as ftp_ctrl
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
-from lib.irma.common.exceptions import IrmaTaskError, IrmaDatabaseError
-from lib.irma.database.sqlhandler import SQLDatabase
-from lib.irma.ftp.handler import FtpTls
+from lib.irma.common.exceptions import IrmaTaskError
 
 # Get celery's logger
 log = get_task_logger(__name__)
-
-# Time to cache the probe list
-# to avoid asking to rabbitmq
-PROBELIST_CACHE_TIME = 60
-cache_probelist = {'list': None, 'time': None}
 
 scan_app = Celery('scantasks')
 config.conf_brain_celery(scan_app)
 config.configure_syslog(scan_app)
 
-probe_app = Celery('probetasks')
-config.conf_probe_celery(probe_app)
-config.configure_syslog(probe_app)
-
-results_app = Celery('restasks')
+results_app = Celery('resultstasks')
 config.conf_results_celery(results_app)
 config.configure_syslog(results_app)
-
-frontend_app = Celery('frontendtasks')
-config.conf_frontend_celery(frontend_app)
-config.configure_syslog(frontend_app)
-
-
-# =============
-#  SQL Helpers
-# =============
-
-def get_quota(sql, user):
-    if user.quota == 0:
-        # quota=0 means quota disabled
-        quota = None
-    else:
-        # Quota are set per 24 hours
-        delta = timedelta(hours=24)
-        what = ("user_id={0} ".format(user.id) +
-                "and date >= '{0}'".format(datetime.now() - delta))
-        quota = user.quota - sql.sum(Scan.nbfiles, what)
-    return quota
-
-
-def get_groupresult(taskid):
-    if not taskid:
-        msg = "SQL: task_id not set"
-        log.debug(msg)
-        raise IrmaTaskError()
-    gr = probe_app.GroupResult.restore(taskid)
-    if not gr:
-        msg = "SQL: taskid not valid"
-        log.debug(msg + " [{0}]".format(taskid))
-        raise IrmaTaskError(msg)
-    return gr
-
-
-def sql_connect(engine, dbname):
-    try:
-        return SQLDatabase(engine + dbname)
-    except Exception as e:
-        msg = "SQL: can't connect"
-        log.debug(msg + " [{0}]".format(e))
-        raise IrmaTaskError(msg)
-
-
-def sql_get_user(sql, rmqvhost=None):
-    # FIXME: get rmq_vhost dynamically
-    try:
-        if rmqvhost is None:
-            rmqvhost = config.brain_config['broker_frontend'].vhost
-        return sql.one_by(User, rmqvhost=rmqvhost)
-    except Exception as e:
-        msg = "SQL: user not found"
-        log.debug(msg + " [{0}]".format(e))
-        raise IrmaTaskError(msg)
-
-
-def sql_get_scan(sql, scanid, user):
-    try:
-        return sql.one_by(Scan, scanid=scanid, user_id=user.id)
-    except Exception as e:
-        msg = "SQL: scan id not found"
-        log.debug(msg + " [{0}]".format(e))
-        raise IrmaTaskError(msg)
-
-
-# ================
-#  Celery Helpers
-# ================
-
-def route(sig):
-    options = sig.app.amqp.router.route(
-        sig.options, sig.task, sig.args, sig.kwargs,
-    )
-    try:
-        queue = options.pop('queue')
-    except KeyError:
-        pass
-    else:
-        options.update(exchange=queue.exchange.name,
-                       routing_key=queue.routing_key)
-    sig.set(**options)
-    return sig
-
-
-# ===============
-#  Tasks Helpers
-# ===============
-
-def get_probelist():
-    now = time.time()
-    result_queue = config.brain_config['broker_probe'].queue
-    if cache_probelist['time'] is not None:
-        cache_time = now - cache_probelist['time']
-    if cache_probelist['time'] is None or cache_time > PROBELIST_CACHE_TIME:
-        slist = list()
-        i = probe_app.control.inspect()
-        queues = i.active_queues()
-        if queues:
-            for infolist in queues.values():
-                for info in infolist:
-                    if info['name'] not in slist:
-                        # exclude only predefined result queue
-                        if info['name'] != result_queue:
-                            slist.append(info['name'])
-        if len(slist) != 0:
-            # activate cache only on non empty list
-            cache_probelist['time'] = now
-        cache_probelist['list'] = slist
-    return cache_probelist['list']
-
-
-def flush_dir(ftpuser, scanid):
-    print("Flushing dir {0}".format(scanid))
-    conf_ftp = config.brain_config['ftp_brain']
-    with FtpTls(conf_ftp.host,
-                conf_ftp.port,
-                conf_ftp.username,
-                conf_ftp.password) as ftps:
-        ftps.deletepath("{0}/{1}".format(ftpuser, scanid), deleteParent=True)
 
 
 # ===================
@@ -173,223 +44,158 @@ def flush_dir(ftpuser, scanid):
 
 @scan_app.task()
 def probe_list():
-    probe_list = get_probelist()
+    probe_list = celery_probe.get_probelist()
     if len(probe_list) > 0:
-        return IrmaTaskReturn.success(get_probelist())
+        return IrmaTaskReturn.success(probe_list)
     else:
         return IrmaTaskReturn.error("No probe available")
 
 
 @scan_app.task(ignore_result=True)
-def scan(scanid, scan_request):
-    engine = config.brain_config['sql_brain'].engine
-    dbname = config.brain_config['sql_brain'].dbname
-    sql = sql_connect(engine, dbname)
-    available_probelist = get_probelist()
-    jobs_list = []
+def scan(frontend_scanid, scan_request):
+    log.info("{0}: scan launched".format(frontend_scanid))
+    # TODO user should be identified by RMQ vhost
+    # read vhost from config as workaround
+    rmqvhost = config.get_frontend_rmqvhost()
+    user_id = user_ctrl.get_userid(rmqvhost)
+    ftpuser = user_ctrl.get_ftpuser(user_id)
     # create an initial entry to track future errors
-    scan = Scan(scanid=scanid,
-                status=IrmaScanStatus.empty,
-                date=datetime.now())
-    sql.add(scan)
-    sql.commit()
-    try:
-        # tell frontend that scanid is now known to brain
-        # progress available
-        frontend_app.send_task("frontend.tasks.scan_launched",
-                               args=[scanid])
-        user = sql_get_user(sql)
-        quota = get_quota(sql, user)
-        if quota is not None:
-            log.debug("{0} : Found user {1} ".format(scanid, user.name) +
-                      "quota remaining {0}/{1}".format(quota, user.quota))
-        else:
-            log.debug("{0} : Found user {1} quota disabled"
-                      "".format(scanid, user.name))
-        scan.user_id = user.id
-        sql.commit()
+    # tell frontend that frontend_scanid is now known to brain
+    # progress available
+    scan_id = scan_ctrl.new(frontend_scanid, user_id, len(scan_request))
+    # send a scan launched event to frontend
+    (remaining, quota) = user_ctrl.get_quota(user_id)
+    log.info("{0}: Found user".format(frontend_scanid) +
+             "quota remaining {0}/{1}".format(remaining, quota))
+    if remaining <= 0:
+        scan_ctrl.error(scan_id, IrmaScanStatus.error)
 
-        for (filename, probelist) in scan_request:
-            if probelist is None:
-                scan.status = IrmaScanStatus.error_probe_missing
-                sql.commit()
-                log.debug("{0}: Empty probe list".format(scanid))
-                return IrmaTaskReturn.error("BrainTask: Empty probe list")
-            # first check probelist
-            for p in probelist:
-                # check if probe exists
-                if p not in available_probelist:
-                    scan.status = IrmaScanStatus.error_probe_na
-                    sql.commit()
-                    msg = "BrainTask: Unknown probe {0}".format(p)
-                    log.debug("{0}: Unknown probe {1}".format(scanid, p))
-                    return IrmaTaskReturn.error(msg)
+    available_probelist = celery_probe.get_probelist()
+    for (filename, probe_list) in scan_request.items():
+        if probe_list is None:
+            scan_ctrl.error(scan_id, IrmaScanStatus.error_probe_missing)
+            log.info("{0}: Empty probe list".format(frontend_scanid))
+            return IrmaTaskReturn.error("BrainTask: Empty probe list")
+        # first check probe_list
+        for p in probe_list:
+            # check if probe exists
+            if p not in available_probelist:
+                scan_ctrl.error(scan_id, IrmaScanStatus.error_probe_missing)
+                msg = "BrainTask: Unknown probe {0}".format(p)
+                log.info("{0}: Unknown probe {1}".format(frontend_scanid, p))
+                return IrmaTaskReturn.error(msg)
 
-            # Now, create one subtask per file to scan per probe according to quota
-            for probe in probelist:
-                if quota is not None and quota <= 0:
+        # Now, create one subtask per file to
+        # scan per probe according to quota
+        for probe in probe_list:
+            if remaining is not None:
+                if remaining <= 0:
                     break
-                if quota:
-                    quota -= 1
-                callback_signature = route(
-                    results_app.signature("brain.tasks.scan_result",
-                                          (user.ftpuser, scanid, filename, probe)))
-                jobs_list.append(
-                    probe_app.send_task("probe.tasks.probe_scan",
-                                        args=(user.ftpuser, scanid, filename),
-                                        queue=probe,
-                                        link=callback_signature))
-
-        if len(jobs_list) != 0:
-            # Build a result set with all job AsyncResult
-            # for progress/cancel operations
-            groupid = str(uuid.uuid4())
-            groupres = probe_app.GroupResult(id=groupid, results=jobs_list)
-            # keep the groupresult object for task status/cancel
-            groupres.save()
-
-            scan.taskid = groupid
-            scan.nbfiles = len(jobs_list)
-            scan.status = IrmaScanStatus.launched
-            sql.commit()
-
-        log.debug(
-            "{0}: ".format(scanid) +
-            "{0} files receives / ".format(len(scan_request)) +
-            "{0} active probe / ".format(len(available_probelist)) +
-            "{0} probe used / ".format(len(probelist)) +
-            "{0} jobs launched".format(len(jobs_list)))
-
-    except Exception as e:
-        scan_flush(scanid)
-        scan.status = IrmaScanStatus.error
-        sql.commit()
-        log.debug("{0} : Error {1}".format(scanid, e))
-        return
+                else:
+                    remaining -= 1
+            job_id = job_ctrl.new(scan_id, filename, probe)
+            task_id = celery_probe.job_launch(ftpuser,
+                                              frontend_scanid,
+                                              filename,
+                                              probe,
+                                              job_id)
+            job_ctrl.set_taskid(job_id, task_id)
+    scan_ctrl.launched(scan_id)
+    celery_frontend.scan_launched(frontend_scanid)
+    log.info(
+        "{0}: ".format(frontend_scanid) +
+        "{0} files receives / ".format(len(scan_request)) +
+        "{0} active probe / ".format(len(available_probelist)) +
+        "{0} probe used / ".format(len(probe_list)) +
+        "{0} jobs launched".format(scan_ctrl.get_nbjobs(scan_id)))
 
 
 @scan_app.task()
-def scan_progress(scanid):
-    log.debug("{0}: scan progress".format(scanid))
-    engine = config.brain_config['sql_brain'].engine
-    dbname = config.brain_config['sql_brain'].dbname
+def scan_progress(frontend_scanid):
     try:
-        sql = sql_connect(engine, dbname)
-        user = sql_get_user(sql)
-        scan = sql_get_scan(sql, scanid, user)
+        log.info("{0}: scan progress".format(frontend_scanid))
+        rmqvhost = config.get_frontend_rmqvhost()
+        user_id = user_ctrl.get_userid(rmqvhost)
+        scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
+        (status, progress_details) = scan_ctrl.progress(scan_id)
         res = {}
-        if IrmaScanStatus.is_error(scan.status):
-            status_str = IrmaScanStatus.label[scan.status]
-            msg = "Brain: scan error ({0})".format(status_str)
-            return IrmaTaskReturn.error(msg)
-        res['status'] = IrmaScanStatus.label[scan.status]
-        res['progress_details'] = None
-        if scan.status == IrmaScanStatus.launched:
-            if not scan.taskid:
-                log.debug("{0}: sql no task_id".format(scanid))
-                msg = "Brain: task id not set (SQL)"
-                return IrmaTaskReturn.error(msg)
-            gr = get_groupresult(scan.taskid)
-            nbcompleted = nbsuccessful = 0
-            for j in gr:
-                if j.ready():
-                    nbcompleted += 1
-                if j.successful():
-                    nbsuccessful += 1
-            res['progress_details'] = {}
-            res['progress_details']['total'] = len(gr)
-            res['progress_details']['finished'] = nbcompleted
-            res['progress_details']['successful'] = nbsuccessful
+        res['status'] = status
+        res['progress_details'] = progress_details
         return IrmaTaskReturn.success(res)
-    except IrmaTaskError as e:
+    except Exception as e:
         msg = "Brain: progress error {0}".format(e)
         return IrmaTaskReturn.error(msg)
 
 
 @scan_app.task()
-def scan_cancel(scanid):
+def scan_cancel(frontend_scanid):
     try:
-        engine = config.brain_config['sql_brain'].engine
-        dbname = config.brain_config['sql_brain'].dbname
-        sql = sql_connect(engine, dbname)
-        user = sql_get_user(sql)
-        scan = sql_get_scan(sql, scanid, user)
+        log.info("{0}: scan cancel".format(frontend_scanid))
+        rmqvhost = config.get_frontend_rmqvhost()
+        user_id = user_ctrl.get_userid(rmqvhost)
+        scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
+        (status, progress_details) = scan_ctrl.progress(scan_id)
+        scan_ctrl.cancelling(scan_id)
+        pending_jobs = scan_ctrl.get_pending_jobs(scan_id)
+        cancel_details = None
+        if len(pending_jobs) != 0:
+            celery_probe.job_cancel(pending_jobs)
+            cancel_details = {}
+            cancel_details['total'] = progress_details['total']
+            cancel_details['finished'] = progress_details['finished']
+            cancel_details['cancelled'] = len(pending_jobs)
+        scan_ctrl.cancelled(scan_id)
+        scan_flush(frontend_scanid)
         res = {}
-        res['status'] = IrmaScanStatus.label[scan.status]
-        res['cancel_details'] = None
-        if IrmaScanStatus.is_error(scan.status):
-            scan_flush(scanid)
-        if scan.status == IrmaScanStatus.launched:
-            scan.status = IrmaScanStatus.cancelling
-            # commit as soon as possible to avoid cancelling again
-            sql.commit()
-            gr = get_groupresult(scan.taskid)
-            nbcompleted = nbcancelled = 0
-            # iterate over jobs in groupresult
-            for j in gr:
-                if j.ready():
-                    nbcompleted += 1
-                else:
-                    j.revoke(terminate=True)
-                    nbcancelled += 1
-            scan.status = IrmaScanStatus.cancelled
-            sql.commit()
-            scan_flush(scanid)
-            res['cancel_details'] = {}
-            res['cancel_details']['total'] = len(gr)
-            res['cancel_details']['finished'] = nbcompleted
-            res['cancel_details']['cancelled'] = nbcancelled
+        res['status'] = status
+        res['cancel_details'] = cancel_details
         return IrmaTaskReturn.success(res)
-    except IrmaTaskError as e:
+    except Exception as e:
         msg = "Brain: cancel error {0}".format(e)
         return IrmaTaskReturn.error(msg)
 
 
 @results_app.task(ignore_result=True)
-def scan_result(result, ftpuser, scanid, filename, probe):
+def job_success(result, jobid):
     try:
-        frontend_app.send_task("frontend.tasks.scan_result",
-                               args=(scanid, filename, probe, result))
-        log.debug("{0} sent result {1}".format(scanid, probe))
-        engine = config.brain_config['sql_brain'].engine
-        dbname = config.brain_config['sql_brain'].dbname
-        sql = sql_connect(engine, dbname)
-        user = sql_get_user(sql)
-        scan = sql_get_scan(sql, scanid, user)
-        gr = get_groupresult(scan.taskid)
-        nbtotal = len(gr)
-        nbcompleted = nbsuccessful = 0
-        for j in gr:
-            if j.ready():
-                nbcompleted += 1
-            if j.successful():
-                nbsuccessful += 1
-        if nbtotal == nbcompleted:
-            # update scan status
-            scan.status = IrmaScanStatus.processed
-            sql.commit()
+        log.info("{0}: job success".format(jobid))
+        (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
+        log.info("{0}: probe {1}".format(frontend_scanid, probe))
+        celery_frontend.scan_result(frontend_scanid, filename, probe, result)
+        job_ctrl.success(jobid)
     except IrmaTaskError as e:
         msg = "Brain: result error {0}".format(e)
         return IrmaTaskReturn.error(msg)
 
 
 @results_app.task(ignore_result=True)
-def scan_flush(scanid):
+def job_error(parent_taskid, jobid):
     try:
-        log.debug("{0} scan flush requested".format(scanid))
-        engine = config.brain_config['sql_brain'].engine
-        dbname = config.brain_config['sql_brain'].dbname
-        sql = sql_connect(engine, dbname)
-        user = sql_get_user(sql)
-        scan = sql_get_scan(sql, scanid, user)
-        if not IrmaScanStatus.is_error(scan.status):
-            log.debug("{0} deleting group results entry".format(scanid))
-            gr = get_groupresult(scan.taskid)
-            # delete groupresult
-            gr.delete()
-            # remove directory
-        log.debug("{0} deleting files".format(scanid))
-        flush_dir(user.ftpuser, scanid)
+        log.info("{0}: job error on {1}".format(jobid, parent_taskid))
+        (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
+        log.info("{0}: probe {1}".format(frontend_scanid, probe))
+        job_ctrl.error(jobid)
+        result = {}
+        result['status'] = -1
+        result['name'] = probe
+        result['error'] = "Brain job error"
+        result['duration'] = job_ctrl.duration(jobid)
+        celery_frontend.scan_result(frontend_scanid, filename, probe, result)
+    except IrmaTaskError as e:
+        msg = "Brain: result error {0}".format(e)
+        return IrmaTaskReturn.error(msg)
+
+
+@results_app.task(ignore_result=True)
+def scan_flush(frontend_scanid):
+    try:
+        log.info("{0} scan flush requested".format(frontend_scanid))
+        rmqvhost = config.get_frontend_rmqvhost()
+        user_id = user_ctrl.get_userid(rmqvhost)
+        scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
+        scan_ctrl.flush(scan_id)
+        ftpuser = user_ctrl.get_ftpuser(user_id)
+        ftp_ctrl.flush_dir(ftpuser, frontend_scanid)
     except Exception as e:
-        log.debug("{0} flush error {1}".format(scanid, e))
+        log.info("{0} flush error {1}".format(scan_id, e))
         return
