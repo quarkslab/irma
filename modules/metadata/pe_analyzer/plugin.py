@@ -30,7 +30,8 @@ class PEAnalyzerPlugin(PluginBase):
 
     class StaticAnalyzerResults:
         ERROR = -1
-        SUCCESS = 0
+        SUCCESS = 1
+        FAILURE = 0
 
     # =================
     #  plugin metadata
@@ -98,8 +99,8 @@ class PEAnalyzerPlugin(PluginBase):
             results.duration = stopped - started
             # update results
             if not response:
-                results.status = self.StaticAnalyzerResults.ERROR
-                results.error = "Not a PE file"
+                results.status = self.StaticAnalyzerResults.FAILURE
+                results.results = "Not a PE file"
             else:
                 results.status = self.StaticAnalyzerResults.SUCCESS
                 results.results = response
