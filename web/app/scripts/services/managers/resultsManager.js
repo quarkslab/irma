@@ -4,26 +4,23 @@ angular
   .module('irma')
   .factory('resultsManager', resultsManager);
 
-resultsManager.$inject = ['$http', '$q', '$log', 'Result'];
+resultsManager.$inject = ['$q', '$log', 'Result', 'bridge'];
 
-function resultsManager($http, $q, $log, Result) {
+function resultsManager($q, $log, Result, bridge) {
 
   return {
     getResult: getResult
   };
 
   function _load(scanId, resultId, deferred) {
-    $http.get('/_api/scan/' + scanId + '/results/' + resultId)
-      .success(_loadComplete)
-      .catch(_loadFailed);
+    bridge.get({url: '/scan/' + scanId + '/results/' + resultId})
+      .then(_loadComplete);
 
     function _loadComplete(response) {
-      var results = _retrieveInstance(response.results);
-      deferred.resolve(results);
-    }
-
-    function _loadFailed(error) {
-      $log.error('XHR failed for _load result:' + error.data);
+      if (response.code !== -1) {
+        var results = _retrieveInstance(response.results);
+        deferred.resolve(results);
+      }
     }
   }
 
