@@ -23,15 +23,15 @@ import sys
 cwd = os.path.dirname(__file__)
 sys.path.append(os.path.join(cwd, os.pardir))
 from frontend.cli.irma import _scan_new, _scan_add, _scan_launch, \
-    _scan_progress, _scan_cancel, IrmaScanStatus, _scan_result, IrmaError
+    _scan_progress, _scan_cancel, IrmaScanStatus, _scan_result, \
+    _scan_file_result, IrmaError
 import time
 
 RES_PATH = "."
 SRC_PATH = "."
 
-DEBUG = True
-BEFORE_NEXT_PROGRESS = 2
 DEBUG = False
+BEFORE_NEXT_PROGRESS = 2
 Probelist = [u'ClamAV', u'VirusTotal', u'Kaspersky', u'Sophos',
              u'McAfeeVSCL', u'Symantec', u'StaticAnalyzer']
 
@@ -100,14 +100,21 @@ class Scanner(object):
                 except:
                     pass
                 raise ScannerError("Results Timeout")
-        return _scan_result(self.scanid, DEBUG)
+        scan_results = _scan_result(self.scanid, DEBUG)
+        scan_files = scan_results.get('files', None)
+        res = []
+        for scan_file in scan_files:
+            file_idx = scan_file['scan_file_idx']
+            res.append(_scan_file_result(scanid, file_idx, DEBUG))
+        return res
 
-    def _write_result(self, res):
+    def _write_result(self, res_list):
         print "Writing results"
-        for (sha256, results) in res.items():
+        for res in res_list:
+            sha256 = res['file_infos']['sha256']
             res_file = os.path.join(self.res_dir, sha256)
             with open(res_file, "w") as dst:
-                dst.write(json.dumps(results))
+                dst.write(json.dumps(res['probe_results']))
         return
 
     def _write_timeout_result(self, file_list):

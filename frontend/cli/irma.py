@@ -107,8 +107,13 @@ def _scan_cancel(scanid, verbose=False):
 
 
 def _scan_result(scanid, verbose=False):
-    url = ADDRESS + '/scan/result/' + scanid
+    url = "{0}/scan/{1}/results".format(ADDRESS, scanid)
     return _generic_get_call(url, 'scan_results', verbose)
+
+
+def _scan_file_result(scanid, scan_file_idx, verbose=False):
+    url = "{0}/scan/{1}/results/{2}".format(ADDRESS, scanid, scan_file_idx)
+    return _generic_get_call(url, 'results', verbose)
 
 
 def _scan_new(verbose=False):
@@ -200,28 +205,42 @@ def scan_progress(scanid=None, partial=None, verbose=False):
     return
 
 
-def print_results(list_res, justify=12):
-    for (hashval, info) in list_res.items():
-        name = info['filename']
-        res = info['results']
-        print "{0}\n[SHA256: {1}]".format(name, hashval)
-        for av in res:
-            print "\t%s" % (av.ljust(justify)),
-            avres = res[av].get('results', "No result")
-            if type(avres) == str:
-                print(avres.strip())
-            elif type(avres) == list:
-                print("\n\t " + " " * justify).join(avres)
-            elif avres is None:
-                print('clean')
-            elif type(avres) == dict:
-                print "[...]"
-            else:
-                print(avres)
+def print_results(results_dict, justify=12):
+
+        for (filename, fileres) in results_dict.items():
+            if 'probe_results' not in fileres:
+                print "Wrong return format"
+                print results_dict
+                return
+            res = fileres['probe_results']
+            hashval = fileres['file_infos']['sha256']
+            print "{0}\n[SHA256: {1}]".format(filename, hashval)
+            for probe_list in res.values():
+                for probe in probe_list.values():
+                    name = probe['name']
+                    print "\t%s" % (name.ljust(justify)),
+                    probe_res = probe.get('results', "No result")
+                    if type(probe_res) == str:
+                        print(probe_res.strip())
+                    elif type(probe_res) == list:
+                        print("\n\t " + " " * justify).join(probe_res)
+                    elif probe_res is None:
+                        print('clean')
+                    elif type(probe_res) == dict:
+                        print "[...]"
+                    else:
+                        print(probe_res)
 
 
 def scan_results(scanid=None, verbose=False):
-    print_results(_scan_result(scanid, verbose))
+    scan_results = _scan_result(scanid, verbose)
+    scan_files = scan_results.get('files', None)
+    res = {}
+    for scan_file in scan_files:
+        name = scan_file['filename']
+        file_idx = scan_file['scan_file_idx']
+        res[name] = _scan_file_result(scanid, file_idx, verbose)
+    print_results(res)
     return
 
 
