@@ -2,37 +2,39 @@
   <div class="col-md-9" role="main">
     <p><a href="/scan/{{state.scan.id}}">Back to the scan summary</a></p>
 
-    <h2 id="file-informations">File informations</h2>
-    <table class="table table-bordered">
-      <tbody>
-        <tr>
-          <th>Filename</th>
-          <td>{{vm.results.file_infos.name}}</td>
-        </tr>
-        <tr>
-          <th>Size (bytes)</th>
-          <td>{{vm.results.file_infos.size}}</td>
-        </tr>
-        <tr>
-          <th>MD5</th>
-          <td>{{vm.results.file_infos.md5}}</td>
-        </tr>
-        <tr>
-          <th>SHA256</th>
-          <td>{{vm.results.file_infos.sha256}}</td>
-        </tr>
-        <tr>
-          <th>First Scan</th>
-          <td>{{vm.results.file_infos.timestamp_first_scan | amDateFormat:'lll'}}</td>
-        </tr>
-        <tr>
-          <th>Last Scan</th>
-          <td>{{vm.results.file_infos.timestamp_last_scan | amDateFormat:'lll'}}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="result-section">
+      <h2 id="file-informations">File informations</h2>
+      <table class="table table-bordered">
+        <tbody>
+          <tr>
+            <th>Filename</th>
+            <td>{{vm.results.file_infos.name}}</td>
+          </tr>
+          <tr>
+            <th>Size (bytes)</th>
+            <td>{{vm.results.file_infos.size}}</td>
+          </tr>
+          <tr>
+            <th>MD5</th>
+            <td>{{vm.results.file_infos.md5}}</td>
+          </tr>
+          <tr>
+            <th>SHA256</th>
+            <td>{{vm.results.file_infos.sha256}}</td>
+          </tr>
+          <tr>
+            <th>First Scan</th>
+            <td>{{vm.results.file_infos.timestamp_first_scan | amDateFormat:'lll'}}</td>
+          </tr>
+          <tr>
+            <th>Last Scan</th>
+            <td>{{vm.results.file_infos.timestamp_last_scan | amDateFormat:'lll'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <div ng-repeat="(probe_type_name, results) in vm.results.probe_results">
+    <div ng-repeat="(probe_type_name, results) in vm.results.probe_results" class="result-section">
       <h2 id="{{probe_type_name | lowercase}}">{{probe_type_name | capitalize:'first'}}</h2>
 
       <div ng-switch on="probe_type_name">

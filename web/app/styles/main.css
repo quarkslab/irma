@@ -6038,28 +6038,10 @@ h1 {
   bottom: 35px;
   text-align: center;
 }
-.details {
-  width: 800px;
-  margin: auto;
-}
-.details h2 {
-  text-align: center;
-  margin-bottom: 0px;
-  font-weight: normal;
-  color: #666;
-}
-.details h2 span {
-  font-weight: bold;
-  color: #333;
-}
-.details .probe {
-  margin-bottom: 20px;
-}
-.details .probe .badge {
-  position: relative;
-  top: 5px;
-  right: 3px;
-  background-color: #aaa;
+.result-section h2 {
+  margin: 60px 0 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 9px;
 }
 .scan .progress {
   width: 700px;
