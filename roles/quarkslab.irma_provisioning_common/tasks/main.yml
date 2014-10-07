@@ -41,8 +41,8 @@
 - name: Create IRMA directories
   file:
     path: "{{ item }}"
-    owner: "{{ brain_user }}"
-    group: "{{ brain_group }}"
+    owner: "{{ default_user }}"
+    group: "{{ default_group }}"
     mode: 0755
     state: directory
   sudo: yes
