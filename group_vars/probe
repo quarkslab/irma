@@ -11,6 +11,16 @@ probe_venv_dir: "{{ probe_install_dir }}/venv"
 
 ## Deployment
 probe_deployment_repository: "https://github.com/quarkslab/irma-probe.git"
+probe_configs:
+  - section: broker_probe
+    option: host
+    value: brain.irma
+  - section: backend_probe
+    option: host
+    value: brain.irma
+  - section: ftp_brain
+    option: host
+    value: brain.irma
 
 
 ## Supervisor Role
