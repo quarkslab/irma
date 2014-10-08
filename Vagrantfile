@@ -18,6 +18,11 @@ Vagrant.configure("2") do |config|
 
   config.ssh.forward_agent = true
 
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :machine
+    config.cache.auto_detect = false
+  end
+
   servers.each do |server|
     config.vm.define server['name'] do |machine|
       machine.vm.hostname = server['hostname']
