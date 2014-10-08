@@ -203,6 +203,16 @@ Then, provision or reprovision your infrastructure. Ansible will only change
 file related to OpenSSL and Nginx configurations.
 
 
+Speed up your Vagrant VMs
+-------------------------
+
+Install this softwares:
+- [vagrant-cachier](https://github.com/fgrehm/vagrant-cachier): `vagrant plugin
+  install vagrant-cachier`
+- [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest): `vagrant plugin
+  install vagrant-vbguest`
+
+
 Contributing
 ------------
 
