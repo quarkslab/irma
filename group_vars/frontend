@@ -12,6 +12,19 @@ frontend_venv_dir: "{{ frontend_install_dir }}/venv"
 
 ## Deployment
 frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
+frontend_configs:
+  - section: broker_brain
+    option: host
+    value: brain.irma
+  - section: broker_frontend
+    option: host
+    value: brain.irma
+  - section: backend_brain
+    option: host
+    value: brain.irma
+  - section: ftp_brain
+    option: host
+    value: brain.irma
 
 
 ## HTTPs

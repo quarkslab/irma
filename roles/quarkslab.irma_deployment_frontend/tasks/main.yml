@@ -42,13 +42,13 @@
 # Copy previous config file
 #
 # If error with copy, generate it
-#- name: Configure {{ frontend_install_dir }}/config/frontend.ini file
-  #ini_file:
-    #dest="{{ frontend_install_dir }}/config/frontend.ini"
-    #section={{ item.section }}
-    #option={{ item.option }}
-    #value={{ item.value }}
-  #with_items: frontend_configs
+- name: Configure config/frontend.ini file
+  ini_file:
+    dest: "{{ frontend_deployment_dir }}/config/frontend.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items: frontend_configs
 
 - name: Create symlink release -> current
   file:
