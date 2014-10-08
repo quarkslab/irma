@@ -1,10 +1,7 @@
 ---
 
 default_ssh_keys:
-  # Guillaume Dedrie @Quarkslab
-  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQD7LneB8UyjfvV8Z0vGUP7HPLrfgElCmjJUKC4fHYngyVsB9eMUfMYCz5YcovFldMeHJNc4G9QbQRvNvFx8glW06x+Bm9yDu58eJK3pQ2Mh2lUS4ecmUJZJDMMDvYNahi/1PITmLyrchreohwRCy60ruWik2oH7RVuwRE7fIURnh+ZAmz/ba2kYmA3/FPvrZrqlm6I70D5x36qEqB00M0TVqG4SKos/E8t27/HxwdlF7vEd08DbNhOSp7BnUCc4UmCofwhJKRKzB44Cb+D9HmQGL/1XGdmLAHNkVfHLkgB2+CaY4YhRYDjvepPocraeLacv4y6xZfyR+iAc8OPXyyMP gdedrie@quarkslab.com"
-  # Vagrant insecure key
-  - "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp9eWW6A8YVr+kz4TjGYe7gHzIw+niNltGEFHzD8+v1I2YJ6oXevct1YeS0o9HZyN1Q9qgCgzUFtdOKLv6IedplqoPkcmF0aYet2PkEDo3MlTBckFXPITAMzF8dJSIFo9D8HfdOV0IAdx4O7PtixWKn5y2hMNG0zQPyUecp4pzC6kivAIhyfHilFR61RGL+GPXQ2MWZWFYbAGjyiYJnAmCP3NOTd0jMZEnDkbUvxhMmBYSdETk1rRgm+R4LOzFUGaHqHDLKLX+FIPKcF96hrucXzcWyLbIbEgE98OHlnVYCzRdK8jlqm8tehUc9c9WhQ== vagrant insecure public key"
+  - "{{ lookup('file', 'files/ssh_keys/vagrant.pub') }}"   # Vagrant
 
 default_user: irma
 default_group: irma
@@ -21,5 +18,5 @@ sudo_users:
 
 
 ## Deployment
-irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else 'HEAD' }}"
+irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else '1.1.0' }}"
 irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
