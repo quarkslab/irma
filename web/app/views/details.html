@@ -43,17 +43,19 @@
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Result</th>
                 <th>Version</th>
                 <th>Duration (in secs)</th>
-                <th>Result</th>
               </tr>
             </thead>
             <tbody>
-              <tr ng-repeat="(id, output) in results" ng-class="(output.status == 0) ? 'success' : 'danger'">
+              <tr ng-repeat="(id, output) in results" ng-class="(output.status == 0) ? 'success' : (output.status == 1) ? 'danger' : 'warning' ">
                 <th>{{output.name}}</th>
+                <td ng-if="output.status == 1">{{output.results}}</td>
+                <td ng-if="output.status == 0"></td>
+                <td ng-if="output.status == -1"><i style="text-align: center;" class="glyphicon glyphicon-exclamation-sign" title="Antivirus scan ended up in an error state :("></i></td>
                 <td>{{output.version}}</td>
                 <td>{{output.duration}}</td>
-                <td>{{output.results}}</td>
               </tr>
             </tbody>
           </table>
