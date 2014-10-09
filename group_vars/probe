@@ -11,16 +11,31 @@ probe_venv_dir: "{{ probe_install_dir }}/venv"
 
 ## Deployment
 probe_deployment_repository: "https://github.com/quarkslab/irma-probe.git"
-probe_configs:
+probe_deployment_configs:
   - section: broker_probe
     option: host
-    value: brain.irma
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_probe
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.probe.vhost}}"
+  - section: broker_probe
+    option: username
+    value: "{{irma_configurations.rabbitmq.probe.user}}"
+  - section: broker_probe
+    option: password
+    value: "{{irma_configurations.rabbitmq.probe.password}}"
   - section: backend_probe
     option: host
-    value: brain.irma
+    value: "{{irma_configurations.brain_addr}}"
   - section: ftp_brain
     option: host
-    value: brain.irma
+    value: "{{irma_configurations.brain_addr}}"
+  - section: ftp_brain
+    option: username
+    value: "{{irma_configurations.pureftpd.probe.username}}"
+  - section: ftp_brain
+    option: password
+    value: "{{irma_configurations.pureftpd.probe.password}}"
 
 
 virustotal_configs:
