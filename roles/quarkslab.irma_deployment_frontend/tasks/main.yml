@@ -23,11 +23,27 @@
     requirements: "{{ frontend_deployment_dir }}/requirements.txt"
     virtualenv: "{{ frontend_deployment_dir }}/venv"
 
+- name: Copy previous Npm files
+  shell: "cp -R {{frontend_install_dir}}/web/node_modules {{frontend_deployment_dir}}/web/node_modules"
+  args:
+    remotes: "{{frontend_install_dir}}/web/node_modules"
+    creates: "{{frontend_deployment_dir}}/web/node_modules"
+  # Errors when current does not exists (first deployment)
+  ignore_errors: yes
+
 - name: Install NPM dependencies
   npm:
     path: "{{ frontend_deployment_dir }}/web"
     state: present
   register: npm_install
+
+- name: Copy previous Bower files
+  shell: "cp -R {{frontend_install_dir}}/web/app/components {{frontend_deployment_dir}}/web/app/components"
+  args:
+    remotes: "{{frontend_install_dir}}/web/app/components"
+    creates: "{{frontend_deployment_dir}}/web/app/components"
+  # Errors when current does not exists (first deployment)
+  ignore_errors: yes
 
 - name: Install Bower dependencies
   command: node_modules/.bin/bower install --config.interactive=false
