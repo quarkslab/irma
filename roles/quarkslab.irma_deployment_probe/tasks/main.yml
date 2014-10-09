@@ -26,13 +26,13 @@
 # Copy previous config file
 #
 # If error with copy, generate it
-#- name: Configure {{ probe_install_dir }}/config/probe.ini file
-  #ini_file:
-    #dest="{{ probe_install_dir }}/config/probe.ini"
-    #section={{ item.section }}
-    #option={{ item.option }}
-    #value={{ item.value }}
-  #with_items: probe_configs
+- name: Configure config/probe.ini file
+  ini_file:
+    dest="{{ probe_deployment_dir }}/config/probe.ini"
+    section={{ item.section }}
+    option={{ item.option }}
+    value={{ item.value }}
+  with_items: probe_configs
 
 - name: Create symlink release -> current
   file:

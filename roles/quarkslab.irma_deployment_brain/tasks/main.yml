@@ -32,7 +32,7 @@
     state: directory
 
 - name: Generate datbase
-  command: "{{ brain_deployment_dir }}/venv/bin/python -m brain.objects pepito mqfrontend frontend"
+  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito mqfrontend frontend"
   args:
     chdir: "{{ brain_deployment_dir }}"
     creates: "{{ brain_deployment_dir }}/db/irma_scan.db"
@@ -46,16 +46,21 @@
     recurse: yes
     state: directory
 
-# Copy previous config file
-#
-# If error with copy, generate it
-#- name: Configure {{ brain_install_dir }}/config/brain.ini file
-  #ini_file:
-    #dest="{{ brain_install_dir }}/config/brain.ini"
-    #section={{ item.section }}
-    #option={{ item.option }}
-    #value={{ item.value }}
-  #with_items: brain_configs
+- name: Update logs rights
+  file:
+    path: "/var/log/irma/sqlalchemy.log"
+    owner: "{{ brain_user }}"
+    group: "{{ brain_group }}"
+    mode: 0777
+    state: file
+
+- name: Configure config/brain.ini file
+  ini_file:
+    dest: "{{ brain_deployment_dir }}/config/brain.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items: brain_configs
 
 - name: Create symlink release -> current
   file:

@@ -1,13 +1,36 @@
 IRMA Ansible Provisioning
 =========================
 
+This is a set of [Ansible](http://www.ansible.com) roles and playbooks that
+can be used to build/install/maintain different setups for [IRMA](http://irma.quarkslab.com/)
+platform.
+
+
+Table of contents
+-----------------
+
+- [Quick start](#quick-start)
+- [What You’ll need?](#what-you-ll-need)
+- [Getting started](#getting-started)
+- [Contributing to IRMA](#contributing-to-irma)
+- [Community](#community)
+- [Copyright and license](#copyright-and-license)
+
+
+Quick start
+-----------
+
+Three quick start options are available:
+- Testing IRMA using virtual machines installed locally
+- Installing IRMA in production
+- Developing IRMA using virtual machines installed locally
 
 What You’ll need?
 -----------------
 
-- [Ansible](http://www.ansible.com) 1.6 or higher
+- [Ansible](http://www.ansible.com) 1.6 or higher;
 - One or multiple 64-bit [Debian](https://www.debian.org) 7 servers. They should
-  have been configured as mentionned in the Prerequisites section
+  have been configured as mentioned in the prerequisites Section.
 
 For *test or development* purposes (optional):
 
@@ -16,26 +39,58 @@ For *test or development* purposes (optional):
   you’ll need to install it
 - [Vagrant VBGuest](https://github.com/dotless-de/vagrant-vbguest) to speed up
   your VM
-- [Rsync](https://rsync.samba.org/) for directories copy between host and VMs
+- [Rsync](https://rsync.samba.org/) to synchronize directories from host to VMs
 - Read the [Ansible introduction](http://docs.ansible.com/intro.html)
 
 
 Getting Started
 ---------------
 
-### 1. Prep servers
+### Testing IRMA, the easiest way
+
+If you want to test IRMA, simply run in the `Vagrantfile` directory:
+
+```
+$ vagrant up
+```
+
+Vagrant will launch a VM and install IRMA on it. It can take a while
+(from 15 to 30 min) depending on the amount of RAM you have on your computer
+and the hard disk drive I/O speed.
+
+Then, for proper use, update your `/etc/hosts` file and add:
+
+```
+172.16.1.30    www.frontend.irma
+```
+
+IRMA allinone is available at [www.frontend.irma](http://www.frontend.irma).
+
+
+N.B.: If you want to test IRMA using multiple VMs, run:
+
+```
+$ VM_ENV=prod vagrant up
+```
+
+And then update your `/etc/hosts` file as mentioned above.
+
+
+### Production environment
+
+#### 1. Prep servers
 
 Create an account for Ansible provisioning, or use one which has already been
 created. For speed up provisioning, you can:
 
-- Authorize you SSH key for password less authentication (optional):
+- Authorize you SSH key for password-less authentication (optional):
 
   ```
   *On your local machine*
   $ ssh-copy-id user@hostname # -i if you want to select your identity file
   ```
 
-- If you don’t want to have to type your password for sudo command execution,
+- If you don’t want to have to type your password for `sudo` command execution,
   add your user to sudoers, using `visudo` command (optional):
 
   ```
@@ -54,23 +109,22 @@ $ git clone --recursive
 ### 3. Configure you installation
 
 Modify settings in `group_vars/*` especially the `default_ssh_keys:` section,
-you’ll need to add private keys from user for passwordless connection to the
-default irma server user. *Be carreful, you’ll need to change all passwords from
-this configuration files (`changeme` variables).*
+you’ll need to add private keys from user for password-less connection to the
+default irma server user. *Be careful, you’ll need to change all passwords
+from this configuration files (`password` variables for most of them).*
 
 You’ll need to custom the `hosts` file and adapt it with you own server
 infrastructure. There is three sections, one for each server role (frontend,
-brain, probe). If you want to have all your
+brain, probe). 
 
 
 ### 4. Install Ansible dependencies
 
-Dependencies are availabe via [Ansible Galaxy](https://galaxy.ansible.com/)
+Dependencies are available via [Ansible Galaxy](https://galaxy.ansible.com/)
 repository. Installation has been made easy using:
 
 ```
-$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already
-                                                  # install it
+$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already installed it
 ```
 
 
@@ -83,7 +137,7 @@ $ ansible-playbook -i ./hosts playbook.yml -u <your_sudo_username> -K
 Ansible will ask you the sudo password (`-K` option),
 
 To run one or more specific actions you can use tags. For example, if you want
-to re-provision NGinx, run the same command, but add `--tags=nginx`. You can
+to re-provision Nginx, run the same command, but add `--tags=nginx`. You can
 combine multiple tags.
 
 
@@ -127,12 +181,12 @@ the following directory layout:
  +--- irma-frontend
  +--- irma-probe
  +--- irma-brain
-[…]
+ [...]
  +--- irma-ansible-provisioning
 ```
 
 Note: This directory layout can be modified, see `share_*` from
-`environments/dev.yml` file.
+`environments/dev.yml` and `environments/allinone_dev.yml` files.
 
 
 ### 2. Run Vagrant and create your VMs
@@ -162,7 +216,7 @@ configuration generation.
 
 ### 4. Provision your VMs
 
-Due to Ansible limit using parallel execution, you’ll need to launch the
+Due to Ansible limitations using parallel execution, you’ll need to launch the
 provision Vagrant command only for one VM:
 ```
 $ vagrant provision frontend
@@ -199,8 +253,18 @@ If you want to activate SSL on the frontend server, you’ll need:
 - Uncomment (and customize) the `nginx_sites` variable in the
   `group_vars/frontend`, a commented example is available.
 
-Then, provision or reprovision your infrastructure. Ansible will only change
+Then, provision or re-provision your infrastructure. Ansible will only change
 file related to OpenSSL and Nginx configurations.
+
+
+Speed up your Vagrant VMs
+-------------------------
+
+Install this softwares:
+- [vagrant-cachier](https://github.com/fgrehm/vagrant-cachier): `vagrant plugin
+  install vagrant-cachier`
+- [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest): `vagrant plugin
+  install vagrant-vbguest`
 
 
 Contributing

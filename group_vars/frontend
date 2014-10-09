@@ -12,6 +12,19 @@ frontend_venv_dir: "{{ frontend_install_dir }}/venv"
 
 ## Deployment
 frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
+frontend_configs:
+  - section: broker_brain
+    option: host
+    value: brain.irma
+  - section: broker_frontend
+    option: host
+    value: brain.irma
+  - section: backend_brain
+    option: host
+    value: brain.irma
+  - section: ftp_brain
+    option: host
+    value: brain.irma
 
 
 ## HTTPs
@@ -55,7 +68,7 @@ supervisor_programs_frontend:
   - name: frontend_app
     command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --loglevel=INFO"
     directory: "{{ frontend_install_dir }}"
-    user: nobody
+    user: irma
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_app.log
     stderr_logfile: /var/log/supervisor/frontend_app.log
@@ -66,8 +79,8 @@ supervisor_programs_frontend:
     command: >
       /usr/local/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
       --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
-      --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/web/api.py
-    user: nobody
+      --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/api/base.py
+    user: irma
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_api.log
     stderr_logfile: /var/log/supervisor/frontend_api.log
@@ -96,6 +109,9 @@ nginx_configs:
     - gzip_buffers 16 8k
     - gzip_http_version 1.1
     - gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript
+  http:
+    - types_hash_max_size 2048
+    - server_names_hash_bucket_size 64
 
 nginx_sites:
   itsatrap:
@@ -117,8 +133,11 @@ nginx_sites:
         uwsgi_pass 127.0.0.1:8081;
       }
     - location / {
-        alias {{ frontend_install_dir }}/web/dist/;
-        index index.html;
+        expires -1;
+        add_header Pragma "no-cache";
+        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        root /var/www/prod.project.local/current/web/dist;
+        try_files $uri $uri/ /index.html =404;
       }
     - error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
     - access_log {{ nginx_log_dir }}/{{ hostname }}.access.log

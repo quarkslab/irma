@@ -9,11 +9,11 @@
       apt: update_cache=yes
     - name: Install Uncomplicated Firewall software
       apt: pkg=ufw state=present
+    - name: Open OpenSSH port
+      ufw: rule=allow port=ssh
     - name: Close all ports for Prod server
       ufw: state=enabled policy=deny
       when: vagrant|default(False) == False
-    - name: Open OpenSSH port
-      ufw: rule=allow port=ssh
   roles:
     - { role: mivok0.users, tags: 'users' }
     - { role: quarkslab.irma_provisioning_common, tags: 'common' }
@@ -45,7 +45,6 @@
   sudo: yes
   roles:
     - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_brain }}" }
-    - { role: DavidWittman.redis, tags: 'redis' }
     - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
     - { role: quarkslab.pureftpd, tags: 'pureftpd' }
     - { role: quarkslab.irma_provisioning_brain, tags: 'brain' }
