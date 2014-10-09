@@ -18,5 +18,5 @@ sudo_users:
 
 
 ## Deployment
-irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else '1.1.0' }}"
+irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else 'v1.1.0' }}"
 irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
