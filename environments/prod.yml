@@ -22,3 +22,22 @@ servers:
     ip: 172.16.1.35
     hostname: mcafee.irma
     memory: 2048
+
+ansible_config:
+  extra_vars:
+    vagrant: true
+  groups:
+    frontend:
+      - frontend.irma
+    brain:
+      - brain.irma
+    clamav:
+      - clamav.irma
+    comodo:
+      - comodo.irma
+    mcafee:
+      - mcafee.irma
+    "probe:children":
+      - clamav
+      - comodo
+      - mcafee
