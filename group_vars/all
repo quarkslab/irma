@@ -17,6 +17,30 @@ sudo_users:
   - { name: "{{ default_user }}", nopasswd: yes }
 
 
+irma_configurations:
+  brain_addr: 127.0.0.1
+  rabbitmq:
+    brain:
+      vhost: mqbrain
+      user: brain
+      password: brain
+    frontend:
+      vhost: mqfrontend
+      user: frontend
+      password: frontend
+    probe:
+      vhost: mqprobe
+      user: probe
+      password: probe
+  pureftpd:
+    frontend:
+      username: frontend
+      password: frontend
+    probe:
+      username: probe
+      password: probe
+
+
 ## Deployment
-irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else 'v1.1.0' }}"
+irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else 'HEAD' }}"
 irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"

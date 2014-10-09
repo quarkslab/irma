@@ -60,7 +60,7 @@
     section: "{{ item.section }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"
-  with_items: brain_configs
+  with_items: brain_deployment_configs
 
 - name: Create symlink release -> current
   file:

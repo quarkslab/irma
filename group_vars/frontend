@@ -12,19 +12,43 @@ frontend_venv_dir: "{{ frontend_install_dir }}/venv"
 
 ## Deployment
 frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
-frontend_configs:
+frontend_deployment_configs:
   - section: broker_brain
     option: host
-    value: brain.irma
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_brain
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.brain.vhost}}"
+  - section: broker_brain
+    option: username
+    value: "{{irma_configurations.rabbitmq.brain.user}}"
+  - section: broker_brain
+    option: password
+    value: "{{irma_configurations.rabbitmq.brain.password}}"
   - section: broker_frontend
     option: host
-    value: brain.irma
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_frontend
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.frontend.vhost}}"
+  - section: broker_frontend
+    option: username
+    value: "{{irma_configurations.rabbitmq.frontend.user}}"
+  - section: broker_frontend
+    option: password
+    value: "{{irma_configurations.rabbitmq.frontend.password}}"
   - section: backend_brain
     option: host
-    value: brain.irma
+    value: "{{irma_configurations.brain_addr}}"
   - section: ftp_brain
     option: host
-    value: brain.irma
+    value: "{{irma_configurations.brain_addr}}"
+  - section: ftp_brain
+    option: username
+    value: "{{irma_configurations.pureftpd.frontend.username}}"
+  - section: ftp_brain
+    option: password
+    value: "{{irma_configurations.pureftpd.frontend.password}}"
 
 
 ## HTTPs

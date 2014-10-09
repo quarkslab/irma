@@ -11,27 +11,72 @@ brain_group: "{{ default_group }}"
 
 ## Deployment
 brain_deployment_repository: "https://github.com/quarkslab/irma-brain.git"
-brain_configs: []
+brain_deployment_configs:
+  - section: broker_brain
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_brain
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.brain.vhost}}"
+  - section: broker_brain
+    option: username
+    value: "{{irma_configurations.rabbitmq.brain.user}}"
+  - section: broker_brain
+    option: password
+    value: "{{irma_configurations.rabbitmq.brain.password}}"
+  - section: broker_probe
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_probe
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.probe.vhost}}"
+  - section: broker_probe
+    option: username
+    value: "{{irma_configurations.rabbitmq.probe.user}}"
+  - section: broker_probe
+    option: password
+    value: "{{irma_configurations.rabbitmq.probe.password}}"
+  - section: broker_frontend
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_frontend
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.frontend.vhost}}"
+  - section: broker_frontend
+    option: username
+    value: "{{irma_configurations.rabbitmq.frontend.user}}"
+  - section: broker_frontend
+    option: password
+    value: "{{irma_configurations.rabbitmq.frontend.password}}"
+  - section: ftp_brain
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: ftp_brain
+    option: username
+    value: "{{irma_configurations.pureftpd.probe.username}}"
+  - section: ftp_brain
+    option: password
+    value: "{{irma_configurations.pureftpd.probe.password}}"
 
 
 ## RabbitMQ role
 rabbitmq_ssl: false
 
 rabbitmq_vhost_definitions:
-  - mqbrain
-  - mqfrontend
-  - mqprobe
+  - "{{irma_configurations.rabbitmq.brain.vhost}}"
+  - "{{irma_configurations.rabbitmq.frontend.vhost}}"
+  - "{{irma_configurations.rabbitmq.probe.vhost}}"
 
 rabbitmq_users_definitions:
-  - vhost: mqbrain
-    user: brain
-    password: brain
-  - vhost: mqfrontend
-    user: frontend
-    password: frontend
-  - vhost: mqprobe
-    user: probe
-    password: probe
+  - vhost: "{{irma_configurations.rabbitmq.brain.vhost}}"
+    user: "{{irma_configurations.rabbitmq.brain.user}}"
+    password: "{{irma_configurations.rabbitmq.brain.password}}"
+  - vhost: "{{irma_configurations.rabbitmq.frontend.vhost}}"
+    user: "{{irma_configurations.rabbitmq.frontend.user}}"
+    password: "{{irma_configurations.rabbitmq.frontend.password}}"
+  - vhost: "{{irma_configurations.rabbitmq.probe.vhost}}"
+    user: "{{irma_configurations.rabbitmq.probe.user}}"
+    password: "{{irma_configurations.rabbitmq.probe.password}}"
 
 
 ## Pure-FTPD role
@@ -43,8 +88,14 @@ pureftpd_options:
 
 # Brain role
 brain_pureftpd_virtual_users:
-  - { username: "frontend", virtual_user: "ftpuser", virtual_home: "/home/ftpuser/frontend", password: "frontend" }
-  - { username: "probe", virtual_user: "ftpuser", virtual_home: "/home/ftpuser", password: "probe" }
+  - username: "{{irma_configurations.pureftpd.frontend.username}}"
+    virtual_user: "ftpuser"
+    virtual_home: "/home/ftpuser/frontend"
+    password: "{{irma_configurations.pureftpd.frontend.password}}"
+  - username: "{{irma_configurations.pureftpd.probe.username}}"
+    virtual_user: "ftpuser"
+    virtual_home: "/home/ftpuser"
+    password: "{{irma_configurations.pureftpd.probe.password}}"
 
 brain_pureftpd_openssl_subj: "/C=FR/ST=Paris/L=Paris/O=IRMA"
 
