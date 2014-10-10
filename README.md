@@ -10,11 +10,11 @@ Table of contents
 -----------------
 
 - [Quick start](#quick-start)
-- [What You’ll need?](#what-you-ll-need)
+- [What You’ll need?](#what-youll-need)
 - [Getting started](#getting-started)
-- [Contributing to IRMA](#contributing-to-irma)
-- [Community](#community)
-- [Copyright and license](#copyright-and-license)
+- [Contributing](#contributing)
+- [IRMA Community](#irma-community)
+- [Credits](#credits)
 
 
 Quick start
@@ -219,7 +219,7 @@ configuration generation.
 Due to Ansible limitations using parallel execution, you’ll need to launch the
 provision Vagrant command only for one VM:
 ```
-$ vagrant provision frontend
+$ vagrant provision frontend.irma
 ```
 
 The provisioning and deployment will apply to all of your VMs.
@@ -229,11 +229,11 @@ The provisioning and deployment will apply to all of your VMs.
 
 Then, for proper use, update your `/etc/hosts` file and add:
 ```
-172.16.1.30    www.frontend.irma.local
+172.16.1.30    www.frontend.irma
 ```
 
 Then, with your web browser, IRMA allinone is available at
-[www.frontend.irma.local](http://www.frontend.irma.local).
+[www.frontend.irma](http://www.frontend.irma).
 
 
 Enable SSL using OpenSSL
@@ -274,8 +274,8 @@ Check the ”Test or develop IRMA using Vagrant” and feel free to submit pull
 requests.
 
 
-IRMA on IRC
------------
+IRMA Community
+--------------
 
 Feel free to check out our IRC channel on Freenode #qb_irma, if you have
 questions or any technical issues.
@@ -289,7 +289,6 @@ Some of roles from [Ansible Galaxy](https://galaxy.ansible.com/) used here:
 - NodeJS role from [JasonGiedymin/nodejs](https://github.com/AnsibleShipyard/ansible-nodejs)
 - Nginx role from [jdauphant/ansible-role-nginx](https://github.com/jdauphant/ansible-role-nginx)
 - OpenSSH role from [Ansibles/openssh](https://github.com/Ansibles/openssh)
-- Redis role from [DavidWittman/ansible-redis](https://github.com/DavidWittman/ansible-redis)
 - Sudo role from [weareinteractive/ansible-sudo](https://github.com/weareinteractive/ansible-sudo)
 - Users role from [mivok/ansible-users](https://github.com/mivok/ansible-users)
 - uWSGI role from [gdamjan/ansible-uwsgi](https://github.com/gdamjan/ansible-uwsgi)
