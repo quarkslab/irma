@@ -1,0 +1,35 @@
+---
+
+# configure debian security
+- name: Debian Security
+  apt_repository:
+    repo: "{{ item[0] }} {{ item[1] }} {{ item[2] }} {{ item[3] }}"
+    state: present
+  with_nested:
+    - [ 'deb', 'deb-src' ]
+    - [ 'http://security.debian.org/' ]
+    - [ 'wheezy/updates' ]
+    - apt_repositories.sources
+  notify: update APT cache
+
+# configure mirrors with specified sources
+- name: deb for specified mirrors and specified sources
+  apt_repository:
+    repo: "{{ item[0] }} {{ item[1] }} {{ item[2] }} {{ item[3] }}"
+    state: present
+  with_nested:
+    - [ 'deb', 'deb-src' ]
+    - apt_repositories.mirrors
+    - apt_repositories.code_names
+    - apt_repositories.sources
+  notify: update APT cache
+
+# perform an apt-get cache if one day old
+# From https://coderwall.com/p/0xtstw
+- name: Check Apt last update
+  stat: path=/var/cache/apt
+  register: apt_cache_stat
+
+- name: Update Apt if needed
+  apt: update_cache=yes
+  when: ansible_date_time.epoch|float - apt_cache_stat.stat.mtime > 60*60*24 and ansible_os_family == "Debian"
