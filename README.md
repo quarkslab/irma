@@ -182,7 +182,7 @@ the following directory layout:
  +--- irma-probe
  +--- irma-brain
  [...]
- +--- irma-ansible-provisioning
+ +--- irma-ansible
 ```
 
 Note: This directory layout can be modified, see `share_*` from
