@@ -634,6 +634,19 @@ class FileWeb(Base, SQLDatabaseObject):
         self.scan = scan
         self.scan_file_idx = idx
 
+    @classmethod
+    def query_find_by_name(cls, name, strict, session):
+        query = session.query(FileWeb)\
+            .join(File)\
+            .group_by(File.id)
+
+        if strict:
+            query = query.filter(FileWeb.name == name)
+        else:
+            query = query.filter(FileWeb.name.like("%{0}%".format(name)))
+
+        return query
+
 
 class FileAgent(Base, SQLDatabaseObject):
     __tablename__ = '{0}fileAgent'.format(tables_prefix)

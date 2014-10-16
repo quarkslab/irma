@@ -3,3 +3,4 @@ redis>=2.9.1
 pymongo>=2.6.3
 bottle>=0.12.5
 sqlalchemy>=0.9.6
+marshmallow==0.7.0

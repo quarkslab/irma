@@ -17,6 +17,8 @@ import re
 from bottle import Bottle, request
 from frontend.api.modules.webapi import WebApi
 from lib.irma.common.utils import IrmaFrontendReturn
+from lib.irma.common.exceptions import IrmaValueError
+from frontend.helpers.serializers import FileWebSerializer
 import frontend.controllers.filectrl as file_ctrl
 
 
@@ -61,6 +63,8 @@ class FileApi(WebApi):
                         callback=self._find_by_hash)
         self._app.route('/findByName/<name:path>',
                         callback=self._find_by_name)
+        self._app.route('/search',
+                       callback=self._search)
 
     def _exists(self, sha256):
         """ lookup file by sha256 and tell if it exists
@@ -215,5 +219,42 @@ class FileApi(WebApi):
                 return IrmaFrontendReturn.success(found=list_items)
             else:
                 return IrmaFrontendReturn.error("name not found")
+        except Exception as e:
+            return IrmaFrontendReturn.error(str(e))
+
+    def _search(self):
+        """ Search a file using query filters
+        """
+        try:
+            name = request.query.name or None
+            strict = True if request.query.strict.lower() == 'true' else False
+            page = int(request.query.page) if request.query.page else 1
+            per_page = int(request.query.per_page) if request.query.per_page else 25
+
+            if name is not None:
+                base_query = file_ctrl.query_find_by_name(name, strict)
+            else:
+                raise IrmaValueError("Cannot find name in query attributes")
+
+            # TODO: Find a way to move pagination as a BaseQuery like in flask_sqlalchemy
+            # https://github.com/mitsuhiko/flask-sqlalchemy/blob/master/flask_sqlalchemy/__init__.py#L422
+            if page < 1:
+                raise IrmaValueError("page attribute cannot be < 1")
+            items = base_query.limit(per_page).offset((page - 1) * per_page).all()
+            print(items)
+
+            if page == 1 and len(items) < per_page:
+                total = len(items)
+            else:
+                total = base_query.count()
+
+            items_serializes = FileWebSerializer(items, many=True)
+
+            return {
+                'total': total,
+                'per_page': per_page,
+                'page': page,
+                'items': items_serializes.data,
+            }
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
