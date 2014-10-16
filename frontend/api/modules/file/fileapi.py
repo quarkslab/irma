@@ -222,6 +222,7 @@ class FileApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
+
     def _search(self):
         """ Search a file using query filters
         """
@@ -241,20 +242,17 @@ class FileApi(WebApi):
             if page < 1:
                 raise IrmaValueError("page attribute cannot be < 1")
             items = base_query.limit(per_page).offset((page - 1) * per_page).all()
-            print(items)
 
             if page == 1 and len(items) < per_page:
                 total = len(items)
             else:
                 total = base_query.count()
 
-            items_serializes = FileWebSerializer(items, many=True)
-
             return {
                 'total': total,
                 'per_page': per_page,
                 'page': page,
-                'items': items_serializes.data,
+                'items': FileWebSerializer(items, many=True).data,
             }
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

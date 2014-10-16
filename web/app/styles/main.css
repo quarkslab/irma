@@ -6279,3 +6279,6 @@ h1 {
 .bs-callout-info h4 {
   color: #5bc0de;
 }
+#search #results {
+  margin-top: 40px;
+}

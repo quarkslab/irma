@@ -5,14 +5,29 @@
     .module('irma')
     .controller('SearchCtrl', Search);
 
-  Search.$inject = ['$scope', 'state'];
+  Search.$inject = ['$scope', 'state', 'ngTableParams', 'dataservice'];
 
-  function Search($scope, state) {
+  function Search($scope, state, ngTableParams, dataservice) {
     var vm = this;
-    vm.goToScan = goToScan;
+    vm.searchedStr = undefined;
+    vm.searchedType = "name";
+    vm.tableParams = new ngTableParams({
+      page: 1,            // show first page
+      count: 25           // count per page
+    }, {
+      total: 0,
+      getData: getData
+    });
 
-    function goToScan(id) {
-      state.goTo('scan', id);
+    function getData($defer, params) {
+      if (typeof vm.searchedStr === 'undefined') {
+        $defer.resolve([]);
+      } else {
+        dataservice.searchFiles(vm.searchedType, vm.searchedStr, params.page(), params.count()).then(function(data) {
+          params.total(data.total);
+          $defer.resolve(data.items);
+        });
+      }
     }
   }
 }) ();
