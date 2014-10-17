@@ -59,10 +59,6 @@ class FileApi(WebApi):
                         callback=self._result)
         self._app.route('/infected/<sha256>',
                         callback=self._infected)
-        self._app.route('/findByHash/<hash_val>',
-                        callback=self._find_by_hash)
-        self._app.route('/findByName/<name:path>',
-                        callback=self._find_by_name)
         self._app.route('/search',
                        callback=self._search)
 
@@ -132,116 +128,60 @@ class FileApi(WebApi):
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-    def _find_by_hash(self, hash_val):
-        """ lookup file by hash and returns sha256
-        :route: /findByHash/<hash_val:path>
-        :param hash_val of the file (sha1, sha256, md5 are supported)
-        :rtype: dict of 'code': int, 'msg': str
-            [, optional 'found': dict of items]
-        :return:
-            on success 'found' contains dict of files found
-            on error 'msg' gives reason message
-        """
-        try:
-            hash_type = None
-            try:
-                validate_sha256(hash_val)
-                hash_type = "sha256"
-            except ValueError:
-                pass
-            try:
-                validate_sha1(hash_val)
-                hash_type = "sha1"
-            except ValueError:
-                pass
-            try:
-                validate_md5(hash_val)
-                hash_type = "md5"
-            except ValueError:
-                pass
-            if hash_type is None:
-                return IrmaFrontendReturn.error("hash not supported")
-            # handle optional bool parameters
-            desc = False
-            if 'desc' in request.params:
-                if request.params['desc'].lower() == 'true':
-                    desc = True
-            # handle optional parameters
-            page = request.params.get('page', None)
-            page_size = request.params.get('page_size', None)
-            order_by = request.params.get('order_by', None)
-            # handle list parameters
-            fields = request.params.get('fields', None)
-            if fields is not None:
-                fields = fields.split(",")
-            list_items = file_ctrl.find_by_hash(hash_val, hash_type,
-                                                page, page_size, order_by,
-                                                fields, desc)
-            if len(list_items) != 0:
-                return IrmaFrontendReturn.success(found=list_items)
-            else:
-                return IrmaFrontendReturn.error("name not found")
-        except Exception as e:
-            return IrmaFrontendReturn.error(str(e))
-
-    def _find_by_name(self, name):
-        """ lookup file by name
-        :route: /findByName/<name:path>
-        :param name of the file (partial supported)
-        :rtype: dict of 'code': int, 'msg': str
-            [, optional 'found': list of sha256 of file(s) found]
-        :return:
-            on success 'found' contains sha256 of files found
-            on error 'msg' gives reason message
-        """
-        try:
-            # handle optional bool parameters
-            strict = False
-            if 'strict' in request.params:
-                if request.params['strict'].lower() == 'true':
-                    strict = True
-            desc = False
-            if 'desc' in request.params:
-                if request.params['desc'].lower() == 'true':
-                    desc = True
-            # handle optional parameters
-            page = request.params.get('page', None)
-            page_size = request.params.get('page_size', None)
-            order_by = request.params.get('order_by', None)
-            # handle list parameters
-            fields = request.params.get('fields', None)
-            if fields is not None:
-                fields = fields.split(",")
-            list_items = file_ctrl.find_by_name(name, strict,
-                                                page, page_size, order_by,
-                                                fields, desc)
-            if len(list_items) != 0:
-                return IrmaFrontendReturn.success(found=list_items)
-            else:
-                return IrmaFrontendReturn.error("name not found")
-        except Exception as e:
-            return IrmaFrontendReturn.error(str(e))
-
 
     def _search(self):
-        """ Search a file using query filters
+        """ Search a file using query filters (hash or name). Support
+            pagination.
+        :param all params are send using query method
+        :rtype: dict of 'total': int, 'page': int, 'per_page': int,
+            'items': list of file(s) found
+        :return:
+            on success 'items' contains a list of files found
+            on error 'msg' gives reason message
         """
         try:
             name = request.query.name or None
+            hash_value = request.query.hash or None
+            # Options query
             strict = True if request.query.strict.lower() == 'true' else False
             page = int(request.query.page) if request.query.page else 1
-            per_page = int(request.query.per_page) if request.query.per_page else 25
+            per_page = int(request.query.per_page) if request.query.per_page\
+                else 25
 
             if name is not None:
                 base_query = file_ctrl.query_find_by_name(name, strict)
+            elif hash_value is not None:
+                hash_type = None
+                try:
+                    validate_sha256(hash_value)
+                    hash_type = 'sha256'
+                except ValueError:
+                    pass
+                try:
+                    validate_sha1(hash_value)
+                    hash_type = 'sha1'
+                except ValueError:
+                    pass
+                try:
+                    validate_md5(hash_value)
+                    hash_type = 'md5'
+                except ValueError:
+                    pass
+                if hash_type is None:
+                    return IrmaFrontendReturn.error("hash not supported")
+
+                base_query = file_ctrl.query_find_by_hash(hash_type, hash_value)
             else:
                 raise IrmaValueError("Cannot find name in query attributes")
 
-            # TODO: Find a way to move pagination as a BaseQuery like in flask_sqlalchemy
+            # TODO: Find a way to move pagination as a BaseQuery like in
+            #       flask_sqlalchemy.
             # https://github.com/mitsuhiko/flask-sqlalchemy/blob/master/flask_sqlalchemy/__init__.py#L422
             if page < 1:
                 raise IrmaValueError("page attribute cannot be < 1")
-            items = base_query.limit(per_page).offset((page - 1) * per_page).all()
+
+            items = base_query.limit(per_page).offset((page - 1) * per_page)\
+                .all()
 
             if page == 1 and len(items) < per_page:
                 total = len(items)
@@ -250,8 +190,8 @@ class FileApi(WebApi):
 
             return {
                 'total': total,
-                'per_page': per_page,
                 'page': page,
+                'per_page': per_page,
                 'items': FileWebSerializer(items, many=True).data,
             }
         except Exception as e:
