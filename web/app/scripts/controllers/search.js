@@ -5,9 +5,9 @@
     .module('irma')
     .controller('SearchCtrl', Search);
 
-  Search.$inject = ['$scope', 'state', 'ngTableParams', 'dataservice'];
+  Search.$inject = ['ngTableParams', 'dataservice', 'alerts'];
 
-  function Search($scope, state, ngTableParams, dataservice) {
+  function Search(ngTableParams, dataservice, alerts) {
     var vm = this;
     vm.searchedStr = undefined;
     vm.searchedType = "name";

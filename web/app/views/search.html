@@ -4,6 +4,7 @@
             <div class="form-group">
                 <select class="form-control" id="type" ng-model="vm.searchedType">
                     <option value="name">By name</option>
+                    <option value="hash">By hash</option>
                 </select>
             </div>
             <div class="form-group">
@@ -21,7 +22,7 @@
             <tr ng-repeat="item in $data">
                 <td data-title="'Name'">{{item.name}}</td>
                 <td data-title="'Last seen'">{{item.file.timestamp_last_scan | amDateFormat:'lll'}}</td>
-                <td data-title="'SHA1'">{{item.file.sha1}}</td>
+                <td data-title="'SHA256'">{{item.file.sha256}}</td>
                 <td data-title="'Size'">{{item.file.size}}</td>
             </tr>
         </table>
