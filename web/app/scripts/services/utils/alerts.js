@@ -1,18 +1,16 @@
-'use strict';
-
 (function () {
+  'use strict';
 
-  var dependencies = ['$timeout'];
-  var Alerts = function ($timeout) {
+  angular
+    .module('irma')
+    .factory('alerts', Alerts);
 
-    // Initialize controller
-    for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
+  Alerts.$inject = ['$timeout'];
 
+  function Alerts($timeout) {
     // The array that stores the currently displayed alerts
-    this.messages = [];
-
-    this.map = {
-
+    var messages = [];
+    var map = {
       'uploadStart': {
         message: '<strong>Info: </strong> The upload has started',
         type: 'info',
@@ -54,7 +52,6 @@
         dismiss: 3000,
         status: 'debug'
       },
-
       'apiError': {
         message: '<strong>Error:</strong> An error occured',
         type: 'danger',
@@ -67,55 +64,63 @@
       }
     };
 
-    this.autoDismiss = function(alert){
-    
-      if(alert.dismiss === undefined || alert.dismiss !== false){
-
-        alert.dismiss = (alert.dismiss !== parseInt(alert.dismiss))? 4000: parseInt(alert.dismiss);
-
-        $timeout(function(){
-          this.remove(alert);
-        }.bind(this), alert.dismiss);
-      }
+    var service = {
+      add: add,
+      autoDismiss: autoDismiss,
+      list: list,
+      remove: remove,
+      removeAll: removeAll
     };
 
-    this.add = function(alert){
+    return service;
+
+    function autoDismiss(alert) {
+      if (alert.dismiss === undefined || alert.dismiss !== false) {
+        alert.dismiss = (alert.dismiss !== parseInt(alert.dismiss)) ? 4000 : parseInt(alert.dismiss);
+
+        $timeout(function(){
+          remove(alert);
+        }, alert.dismiss);
+      }
+    }
+
+    function add(alert) {
       // Tries to populate the alert with a standard one
-      if(alert.standard && this.map[alert.standard]){
-        alert = _.extend(alert, this.map[alert.standard]);
-        if(alert.apiMsg){ alert.message += alert.apiMsg; }
+      if (alert.standard && map[alert.standard]) {
+        alert = _.extend(alert, map[alert.standard]);
+        if (alert.apiMsg) { alert.message += alert.apiMsg; }
       }
 
-      if(alert.standard && !this.map[alert.standard]){
+      if (alert.standard && !map[alert.standard]) {
         alert = {
-          message: '<strong>Missing alert:</strong> '+alert.standard,
+          message: '<strong>Missing alert:</strong> '+ alert.standard,
           type: 'warning',
           dismiss: 5000
         };
       }
 
       // Adds a type if missing
-      if(['info', 'warning', 'success', 'danger'].indexOf(alert.type) === -1){ alert.type = 'info';}
+      if (['info', 'warning', 'success', 'danger'].indexOf(alert.type) === -1) { alert.type = 'info'; }
 
-      if(alert.status !== 'debug'){
-        this.messages.push(alert);
-        this.autoDismiss(alert);
+      if (alert.status !== 'debug') {
+        messages.push(alert);
+        autoDismiss(alert);
       }
-    };
+    }
 
-    this.remove = function(alert){
-      var index = this.messages.indexOf(alert);
+    function remove(alert) {
+      var index = messages.indexOf(alert);
       if(index !== -1){
-        this.messages.splice(index, 1);
+        messages.splice(index, 1);
       }
-    };
+    }
 
-    this.list = function(){
-      return this.messages;
-    };
+    function removeAll() {
+      _(messages).map(function (item) { remove(item); });
+    }
 
-  };
-
-  Alerts.$inject = dependencies;
-  angular.module('irma').service('alerts', Alerts);
-}());
+    function list() {
+      return messages;
+    }
+  }
+}) ();
