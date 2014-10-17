@@ -20,6 +20,8 @@
     });
 
     function getData($defer, params) {
+      alerts.removeAll();
+
       if (typeof vm.searchedStr === 'undefined') {
         $defer.resolve([]);
       } else {
