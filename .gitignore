@@ -3,13 +3,12 @@ hosts
 vagrant_ansible_inventory_default
 group_vars/
 roles/Ansibles.openssh/
-roles/DavidWittman.redis/
 roles/franklinkim.sudo/
-/*roles/gdamjan.uwsgi/*/
 roles/JasonGiedymin.nodejs/
 roles/jdauphant.nginx/
 roles/Mayeu.RabbitMQ/
 roles/mivok0.users/
 roles/Stouts.mongodb/
+roles/ANXS.postgresql/
 files/*
 !files/.gitkeep
