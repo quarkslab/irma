@@ -31,6 +31,7 @@
   "resolutions": {
     "es5-shim": "~3.0.2",
     "bootstrap": "~3.1.1",
-    "json3": "~3.3.1"
+    "json3": "~3.3.1",
+    "angular": "~1.2.16"
   }
 }
