@@ -38,6 +38,14 @@ probe_deployment_configs:
     value: "{{irma_configurations.pureftpd.probe.password}}"
 
 
+virustotal_configs:
+  - section: VirusTotal
+    option: private
+    value: False
+  - section: VirusTotal
+    option: apikey
+    value: 88eb8e2f869e98ea9b0367cb47c143cb438a5e8d8dfd3b6e3fb6c898374b8fb6
+
 ## Supervisor Role
 supervisor_programs_probe:
   - name: probe_app
