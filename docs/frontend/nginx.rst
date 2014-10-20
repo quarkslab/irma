@@ -64,7 +64,7 @@ soft-link into the ``sites-enabled`` folder:
     .. code-block:: bash
 
         $ sudo openssl dhparam -out dhparam.pem 4096
-    
+
     Finally, generate a self signed certificate:
 
     .. code-block:: bash

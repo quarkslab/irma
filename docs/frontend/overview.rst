@@ -13,5 +13,5 @@ multiple technologies with each a specific purpose:
 * a worker that will handle scan submission to the **Brain** and store the
   results of analyzes scheduled by the **Brain**. The worker relies on Celery,
   a python-based distributed task queue.
-* a mongodb server is used to store results of analyzes made on each file
-  submitted either by the web graphical interface or the CLI client. 
+* an hybrid database server (SQL/mongodb) is used to store results of analyzes made on each file
+  submitted either by the web graphical interface or the CLI client.
