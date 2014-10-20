@@ -26,7 +26,7 @@ probe_configs:
 ## Supervisor Role
 supervisor_programs_probe:
   - name: probe_app
-    command: "{{ probe_venv_dir }}/bin/celery worker -A probe.tasks --loglevel=INFO --without-gossip --without-mingle --without-heartbeat"
+    command: "{{ probe_venv_dir }}/bin/celery worker -A probe.tasks --hostname=probe_app.%%h {{default_celery_options}}"
     directory: "{{ probe_install_dir }}"
     user: nobody
     numprocs: 1

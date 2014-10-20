@@ -66,7 +66,7 @@ nodejs_global_packages:
 ## Supervisor role
 supervisor_programs_frontend:
   - name: frontend_app
-    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --loglevel=INFO"
+    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}}"
     directory: "{{ frontend_install_dir }}"
     user: irma
     numprocs: 1
