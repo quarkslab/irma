@@ -83,4 +83,10 @@
   roles:
     - { role: quarkslab.static_analyzer, tags: 'static-analyzer' }
 
+- name: VirusTotal provisioning
+  hosts: virustotal
+  sudo: yes
+  roles:
+    - { role: quarkslab.virustotal, tags: 'virustotal' }
+
 # vim: sw=2
