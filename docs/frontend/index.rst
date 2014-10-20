@@ -12,6 +12,7 @@ user interface or via the command line interface.
    configuration.rst
    daemon.rst
    mongodb.rst
+   sql.rst
    uwsgi.rst
    nginx.rst
    checks.rst
