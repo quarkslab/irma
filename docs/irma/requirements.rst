@@ -2,10 +2,10 @@ Hardware requirements
 =====================
 
 IRMA platform is divided in three major components: the **Frontend**, the
-**Brain** and one or multiple **Probes**. 
+**Brain** and one or multiple **Probes**.
 
 These three components can be installed on a unique host or on multiple hosts,
-according to the kind of probes you are using. 
+according to the kind of probes you are using.
 
 The **Frontend** and the **Brain** must be installed on a GNU/Linux
 system [#]_. We recommend to use a Debian Stable distribution which is
@@ -16,15 +16,22 @@ installed on a separate hosts or share the same host as far as they do not
 interfere with each other [#]_. So forth, only Debian Stable and Microsoft
 Windows 7 hosts have been tested.
 
+We can not give you any specific numbers. On one hand we managed to run the
+whole IRMA platform on a single machine by hosting it with multiple systems
+inside virtual machines: this setup gives fairly high throughput as long as
+it has reasonable IO (ideally, SSDs), and a good amount of memory (our setup
+was an i7 cpu with 16 GB ram on regular drives (at least 200 GB required),
+on the other hand, a lighter version of the system with the three parts together
+[#]_  was successfully installed on a single virtual machine (1 GB of Ram and
+4 virtual processors).
+
 We do not have any real numbers to tell you what kind of hardware you are going
 to need. We managed to run off the whole IRMA platform a single machine [#]_ by
-hosting with multiple systems inside virtual machines. 
+hosting with multiple systems inside virtual machines.
 
-
-This setup gives fairly high throughput as long as it has reasonable IO
-(ideally, SSDs), and a good amount of memory. For a large company, in theory,
-given a single high-memory machine, with 16+ cores, and SSDs, you could run
-IRMA platform and bear the workload load with reasonable response time.
+For a large company, in theory, given a single high-memory machine, with 16+ cores,
+and SSDs, you could run IRMA platform and bear the workload load with reasonable
+response time.
 
 .. rubric:: Footnotes
 
@@ -35,5 +42,5 @@ IRMA platform and bear the workload load with reasonable response time.
        unique probe by preventing it to launch daemons at startup. This is
        difficult for Microsoft systems on which it is not recommended to
        install multiple anti-viruses on a single host.
-.. [#] For the proof-of-concept, we even managed to run the whole platform,
-       with a limited set of probes, on a single virtual machine.
+.. [#] the system with the three parts together
+       with a limited set of probes

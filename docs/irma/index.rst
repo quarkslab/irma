@@ -17,4 +17,5 @@ installing the IRMA's components.
    process.rst
    infrastructure.rst
    requirements.rst
-   install-order.rst
+   install.rst
+   manual-install.rst
