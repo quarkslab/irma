@@ -19,9 +19,18 @@ servers:
     hostname: comodo.irma
     memory: 2048
   - name: mcafee.irma
-    ip: 172.16.1.35
+    ip: 172.16.1.34
     hostname: mcafee.irma
     memory: 2048
+  - name: static-analyzer.irma
+    ip: 172.16.1.35
+    hostname: static-analyzer.irma
+    memory: 2048
+  - name: virustotal.irma
+    ip: 172.16.1.36
+    hostname: virustotal.irma
+    memory: 2048
+
 
 ansible_config:
   extra_vars:
@@ -37,7 +46,14 @@ ansible_config:
       - comodo.irma
     mcafee:
       - mcafee.irma
+    static-analyzer:
+      - static-analyzer.irma
+    virustotal:
+      - virustotal.irma
     "probe:children":
       - clamav
       - comodo
       - mcafee
+      - virustotal
+      - static-analyzer
+

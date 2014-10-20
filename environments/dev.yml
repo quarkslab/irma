@@ -32,7 +32,7 @@ servers:
           - db/
   - name: clamav.irma
     ip: 172.16.1.32
-    hostname: probe.irma
+    hostname: clamav.irma
     memory: 2048
     shares:
       - share_from: ../irma-probe
@@ -42,6 +42,55 @@ servers:
         share_exclude:
           - .git/
           - venv/
+  - name: comodo.irma
+    ip: 172.16.1.33
+    hostname: comodo.irma
+    memory: 2048
+    shares:
+      - share_from: ../irma-probe
+        share_to: /opt/irma/irma-probe/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
+  - name: mcafee.irma
+    ip: 172.16.1.34
+    hostname: mcafee.irma
+    memory: 2048
+    shares:
+      - share_from: ../irma-probe
+        share_to: /opt/irma/irma-probe/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
+  - name: static-analyzer.irma
+    ip: 172.16.1.35
+    hostname: static-analyzer.irma
+    memory: 2048
+    shares:
+      - share_from: ../irma-probe
+        share_to: /opt/irma/irma-probe/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
+  - name: virustotal.irma
+    ip: 172.16.1.36
+    hostname: virustotal.irma
+    memory: 2048
+    shares:
+      - share_from: ../irma-probe
+        share_to: /opt/irma/irma-probe/current
+        share_user: irma
+        share_group: irma
+        share_exclude:
+          - .git/
+          - venv/
+
 
 ansible_config:
   extra_vars:
@@ -58,7 +107,13 @@ ansible_config:
       - comodo.irma
     mcafee:
       - mcafee.irma
+    static-analyzer:
+      - static-analyzer.irma
+    virustotal:
+      - virustotal.irma
     "probe:children":
       - clamav
       - comodo
       - mcafee
+      - static-analyzer
+      - virustotal
