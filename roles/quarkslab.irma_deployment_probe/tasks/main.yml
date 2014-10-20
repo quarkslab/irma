@@ -22,6 +22,7 @@
   pip:
     requirements: "{{ probe_deployment_dir }}/requirements.txt"
     virtualenv: "{{ probe_deployment_dir }}/venv"
+    virtualenv_site_packages: "yes"
 
 # Copy previous config file
 #
