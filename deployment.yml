@@ -17,3 +17,11 @@
   remote_user: irma
   roles:
     - { role: quarkslab.irma_deployment_probe, tags: 'deployment_probe' }
+
+- name: Virustotal deployment
+  hosts: virustotal
+  sudo: yes
+  roles:
+    - { role: quarkslab.virustotal, virustotal_deployment: True, tags: 'virustotal' }
+
+# vim: sw=2
