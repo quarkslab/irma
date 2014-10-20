@@ -23,16 +23,13 @@
     requirements: "{{ probe_deployment_dir }}/requirements.txt"
     virtualenv: "{{ probe_deployment_dir }}/venv"
 
-# Copy previous config file
-#
-# If error with copy, generate it
 - name: Configure config/probe.ini file
   ini_file:
-    dest="{{ probe_deployment_dir }}/config/probe.ini"
-    section={{ item.section }}
-    option={{ item.option }}
-    value={{ item.value }}
-  with_items: probe_configs
+    dest: "{{ probe_deployment_dir }}/config/probe.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items: probe_deployment_configs
 
 - name: Create symlink release -> current
   file:
