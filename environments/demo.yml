@@ -1,0 +1,29 @@
+---
+
+servers:
+  - name: brain.irma
+    ip: 172.16.1.30
+    hostname: brain.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+    share_code: false
+
+ansible_config:
+  extra_vars:
+    vagrant: true
+    vagrant_share: false
+    irma_release: v1.1.0
+    build_environment: demo
+  groups:
+    frontend-demo:
+      - brain.irma
+    brain:
+      - brain.irma
+    clamav:
+      - brain.irma
+    static-analyzer:
+      - static-analyzer.irma
+    "probe:children":
+      - clamav
+      - static-analyzer
