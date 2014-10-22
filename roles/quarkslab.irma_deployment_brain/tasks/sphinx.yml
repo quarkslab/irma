@@ -1,0 +1,12 @@
+---
+
+- name: Install sphinx in a virtualenv
+  pip:
+    name: sphinx
+    virtualenv: "{{ brain_deployment_dir }}/venv"
+
+- name: Build documentation
+  command: "{{ brain_deployment_dir }}/venv/bin/sphinx-build -b html -d _build/doctrees . _build/html"
+  args:
+    chdir: "{{ brain_deployment_dir }}/docs"
+    creates: "{{ brain_deployment_dir }}/docs/_build/html"
