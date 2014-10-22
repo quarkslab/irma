@@ -21,8 +21,13 @@ class FileSerializer(Serializer):
                   "timestamp_last_scan", "size")
 
 
+class ScanSerializer(Serializer):
+    class Meta:
+        fields = ["external_id"]
+
 class FileWebSerializer(Serializer):
     file = fields.Nested(FileSerializer)
+    scan = fields.Nested(ScanSerializer)
 
     class Meta:
-        fields = ("name", "file")
+        fields = ("name", "scan_file_idx", "file", "scan")

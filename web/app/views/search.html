@@ -20,7 +20,7 @@
     <div class="row" id="results">
         <table ng-table="vm.tableParams" class="table table-bordered">
             <tr ng-repeat="item in $data">
-                <td data-title="'Name'">{{item.name}}</td>
+                <td data-title="'Name'"><a href="/scan/{{item.scan.external_id}}/file/{{item.scan_file_idx}}">{{item.name}}</a></td>
                 <td data-title="'Last seen'">{{item.file.timestamp_last_scan | amDateFormat:'lll'}}</td>
                 <td data-title="'SHA256'">{{item.file.sha256}}</td>
                 <td data-title="'Size'">{{item.file.size}}</td>
