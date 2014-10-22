@@ -63,6 +63,10 @@
     value: "{{ item.value }}"
   with_items: frontend_deployment_configs
 
+- name: Generate documentation for frontend
+  include: sphinx.yml
+  when: "{{ 'frontend-demo' in group_names }}"
+
 - name: Create symlink release -> current
   file:
     src: "{{ frontend_deployment_dir }}"
