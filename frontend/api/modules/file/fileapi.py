@@ -44,6 +44,29 @@ def validate_md5(md5):
         raise ValueError("Malformed md5")
 
 
+def guess_hash_type(value):
+    """ guess which kind of hash is given as parameter """
+    hash_type = None
+
+    # We use hash length as hash index to speed up lookups
+    hash_dict = {
+        32: ("md5", validate_md5),
+        40: ("sha1", validate_sha1),
+        64: ("sha256", validate_sha256),
+    }
+
+    str_length = len(str(value))
+    if str_length in hash_dict.keys():
+        validate = hash_dict[str_length][1]
+        hash_str = hash_dict[str_length][0]
+        try:
+            validate(value)
+            hash_type = hash_str
+        except ValueError:
+            pass
+    return hash_type
+
+
 # ==========
 #  File api
 # ==========
@@ -141,36 +164,20 @@ class FileApi(WebApi):
         """
         try:
             name = request.query.name or None
-            hash_value = request.query.hash or None
+            h_value = request.query.hash or None
             # Options query
-            strict = True if request.query.strict.lower() == 'true' else False
-            page = int(request.query.page) if request.query.page else 1
-            per_page = int(request.query.per_page) if request.query.per_page\
-                else 25
+            strict = request.query.strict.lower() == 'true'
+            page = int(request.query.page) or 1
+            per_page = int(request.query.per_page) or 25
 
             if name is not None:
                 base_query = file_ctrl.query_find_by_name(name, strict)
-            elif hash_value is not None:
-                hash_type = None
-                try:
-                    validate_sha256(hash_value)
-                    hash_type = 'sha256'
-                except ValueError:
-                    pass
-                try:
-                    validate_sha1(hash_value)
-                    hash_type = 'sha1'
-                except ValueError:
-                    pass
-                try:
-                    validate_md5(hash_value)
-                    hash_type = 'md5'
-                except ValueError:
-                    pass
-                if hash_type is None:
+            elif h_value is not None:
+                h_type = guess_hash_type(h_value)
+                if h_type is None:
                     return IrmaFrontendReturn.error("hash not supported")
 
-                base_query = file_ctrl.query_find_by_hash(hash_type, hash_value)
+                base_query = file_ctrl.query_find_by_hash(h_type, h_value)
             else:
                 raise IrmaValueError("Cannot find name in query attributes")
 
