@@ -56,4 +56,3 @@ ansible_config:
       - mcafee
       - virustotal
       - static-analyzer
-
