@@ -15,6 +15,7 @@
 
 from marshmallow import Serializer, fields
 
+
 class FileSerializer(Serializer):
     class Meta:
         fields = ("sha256", "sha1", "md5", "timestamp_first_scan",
@@ -24,6 +25,7 @@ class FileSerializer(Serializer):
 class ScanSerializer(Serializer):
     class Meta:
         fields = ["external_id"]
+
 
 class FileWebSerializer(Serializer):
     file = fields.Nested(FileSerializer)

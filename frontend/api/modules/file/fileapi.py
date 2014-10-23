@@ -83,7 +83,7 @@ class FileApi(WebApi):
         self._app.route('/infected/<sha256>',
                         callback=self._infected)
         self._app.route('/search',
-                       callback=self._search)
+                        callback=self._search)
 
     def _exists(self, sha256):
         """ lookup file by sha256 and tell if it exists
@@ -150,7 +150,6 @@ class FileApi(WebApi):
             return file_ctrl.infected(sha256)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
-
 
     def _search(self):
         """ Search a file using query filters (hash or name). Support
