@@ -1,0 +1,9 @@
+---
+
+# As the repositories are not cloned yet, we cannot use requirements.txt
+- name: "Installing dependencies with pip system-wide"
+  pip:
+    name: "{{ item }}"
+    state: "latest"
+  with_items:
+     - virustotal-api

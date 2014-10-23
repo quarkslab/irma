@@ -3,43 +3,11 @@
 - set_fact:
     probe_deployment_dir: "{{ probe_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
 
-- name: Ensure that releases directory has been created
-  file:
-    path: "{{ probe_project_dir }}/releases"
-    state: directory
-    owner: "{{ probe_user }}"
-    group: "{{ probe_group }}"
+# Install Probe
+- include: probe_deployment.yml
 
-- name: Clone irma-probe repository
-  git:
-    repo: "{{ probe_deployment_repository }}"
-    dest: "{{ probe_deployment_dir }}"
-    version: "{{ irma_deployment_code_version }}"
-    accept_hostkey: yes
-  when: irma_deployment_code_version != 'local'
-
-- name: Install requirements in a virtualenv
-  pip:
-    requirements: "{{ probe_deployment_dir }}/requirements.txt"
-    virtualenv: "{{ probe_deployment_dir }}/venv"
-
-- name: Configure config/probe.ini file
-  ini_file:
-    dest: "{{ probe_deployment_dir }}/config/probe.ini"
-    section: "{{ item.section }}"
-    option: "{{ item.option }}"
-    value: "{{ item.value }}"
-  with_items: probe_deployment_configs
-
-- name: Create symlink release -> current
-  file:
-    src: "{{ probe_deployment_dir }}"
-    dest: "{{ probe_install_dir }}"
-    state: link
-  when: irma_deployment_code_version != 'local'
-
-- name: Restart Supervisor
-  service:
-    name: supervisord
-    state: restarted
-  sudo: true
+# Configure (enventually) VirusTotal module
+#
+# ref: https://github.com/quarkslab/irma-ansible/pull/8
+- include: modules_configurations.yml
+  when: "'virustotal' in group_names"
