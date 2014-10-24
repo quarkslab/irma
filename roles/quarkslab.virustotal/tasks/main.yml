@@ -6,4 +6,4 @@
     name: "{{ item }}"
     state: "latest"
   with_items:
-     - virustotal-api
+    - virustotal-api
