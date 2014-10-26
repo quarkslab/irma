@@ -75,4 +75,28 @@
   when: pure_ftpd_users | changed
   notify: Restart Pure-FTPD daemon
 
+# Open additional network ports on the Brain
+- name: Allow access to FTP port 21
+  ufw:
+    rule: allow
+    port: 21
+    proto: tcp
+
+# TODO: make the port to be computed from the group_vars configuration
+- name: Allow acces to FTP passive ports
+  ufw:
+     rule: allow
+     port: 65435:65535
+     proto: tcp
+  tags:
+    - ufw
+
+- name: Allow access to RabbitMQ
+  ufw:
+    rule: allow
+    port: 5672
+    proto: tcp
+  tags:
+    - ufw
+
 # vim: sw=2
