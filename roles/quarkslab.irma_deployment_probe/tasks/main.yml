@@ -6,6 +6,10 @@
 # Install Probe
 - include: probe_deployment.yml
 
+# Generate documentation
+- include: sphinx.yml
+  when: "'frontend-demo' in group_names"
+
 # Configure (enventually) VirusTotal module
 #
 # ref: https://github.com/quarkslab/irma-ansible/pull/8
