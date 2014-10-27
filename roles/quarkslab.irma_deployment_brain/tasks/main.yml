@@ -64,7 +64,7 @@
 
 - name: Generate documentation for brain
   include: sphinx.yml
-  when: "{{ 'frontend-demo' in group_names }}"
+  when: "'frontend-demo' in group_names"
 
 - name: Create symlink release -> current
   file:
