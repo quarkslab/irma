@@ -1,7 +1,6 @@
 .vagrant/
 hosts
 vagrant_ansible_inventory_default
-group_vars/
 roles/Ansibles.openssh/
 roles/DavidWittman.redis/
 roles/franklinkim.sudo/
