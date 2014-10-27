@@ -166,6 +166,7 @@
           this.results = data.scan_results.files;
 
           if (data.scan_results.status !== 50) {
+            this.status = constants.scanStatusCodes.RUNNING;
             this.task = $timeout(this.updateScan.bind(this), constants.refresh);
           } else {
             $log.info('Scan was successful');

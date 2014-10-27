@@ -1,11 +1,36 @@
-
-
 .scan {
-  .progress {
-    width: 700px;
-    margin: 5px auto 20px;
-    .progress-bar {
-      background-color: #333;
+  #result-table {
+    margin-top: 20px;
+  }
+
+  #scan-infos {
+    .label {
+      font-size: 100%;
     }
+  }
+
+  .progress-wrapper {
+    font-size: 30px;
+    margin: auto;
+    position: relative;
+    text-align: center;
+
+    .progress-rounded-text {
+      font-size: 1em;
+      font-weight: 500;
+      line-height: 3em;
+      color: #777777;
+      height: 100%;
+      width: 100%;
+
+      position: absolute;
+      text-align: center;
+      margin-top: 50px;
+    }
+  }
+
+  .form-control[readonly] {
+    cursor: text;
+    background-color: white;
   }
 }
