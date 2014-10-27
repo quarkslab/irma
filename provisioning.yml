@@ -77,4 +77,16 @@
   roles:
     - { role: quarkslab.mcafee_vscl, tags: 'mcafee_vscl' }
 
+- name: StaticAnalyzer provisioning
+  hosts: static-analyzer
+  sudo: yes
+  roles:
+    - { role: quarkslab.static_analyzer, tags: 'static-analyzer' }
+
+- name: VirusTotal provisioning
+  hosts: virustotal
+  sudo: yes
+  roles:
+    - { role: quarkslab.virustotal, tags: 'virustotal' }
+
 # vim: sw=2

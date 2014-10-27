@@ -11,11 +11,11 @@
 - name: Configuration | Add file with content in /etc/pure-ftpd/conf/ directory
   template:
     src=pureftpd_conf.j2
-    dest=/etc/pure-ftpd/conf/{{ item.name }}
+    dest=/etc/pure-ftpd/conf/{{ item.key }}
     owner=root
     group=root
     mode=0644
-  with_items: pureftpd_options
+  with_dict: pureftpd_options
 
 - name: Daemon | Ensure Pure-FTPD is started
   service: name=pure-ftpd state=started

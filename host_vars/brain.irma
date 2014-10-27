@@ -1,0 +1,11 @@
+---
+
+# VirusTotal module configuration
+# Uncomment this to set an apikey to a specific hostname
+# virustotal_configs:
+#   - section: VirusTotal
+#     option: private
+#     value: False
+#   - section: VirusTotal
+#     option: apikey
+#     value: 88eb8e2f869e98ea9b0367cb47c143cb438a5e8d8dfd3b6e3fb6c898374b8fb6

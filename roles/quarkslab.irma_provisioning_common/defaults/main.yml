@@ -1,0 +1,6 @@
+---
+
+apt_repositories:
+  mirrors: [ 'http://ftp.debian.org/debian/' ]
+  code_names: [ 'wheezy', 'wheezy-updates' ]
+  sources: [ 'main' ]

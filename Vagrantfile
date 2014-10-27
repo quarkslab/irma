@@ -19,8 +19,11 @@ Vagrant.configure("2") do |config|
   config.ssh.forward_agent = true
 
   if Vagrant.has_plugin?("vagrant-cachier")
-    config.cache.scope = :machine
-    config.cache.auto_detect = false
+    config.cache.scope = :box
+  end
+
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    #config.vbguest.no_install = true
   end
 
   servers.each do |server|

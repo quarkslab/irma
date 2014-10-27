@@ -1,0 +1,13 @@
+---
+
+# Configure (enventually) VirusTotal module
+#
+# ref: https://github.com/quarkslab/irma-ansible/pull/8
+- name: "Setting virustotal analyzer configuration"
+  ini_file:
+    dest: "{{ probe_deployment_dir }}/modules/external/virustotal/config.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items: virustotal_configs
+  notify: Restart Supervisor

@@ -82,9 +82,10 @@ rabbitmq_users_definitions:
 ## Pure-FTPD role
 # Standalone role
 pureftpd_options:
-  - { name: "CreateHomeDir", value: "yes"}
-  - { name: "PAMAuthentication", value: "no"}
-  - { name: "TLS", value: "2"}
+  CreateHomeDir: "yes"
+  PAMAuthentication: "no"
+  TLS: "2"
+  PassivePortRange: "65435 65535"
 
 # Brain role
 brain_pureftpd_virtual_users:
