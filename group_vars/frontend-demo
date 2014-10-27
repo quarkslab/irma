@@ -152,23 +152,23 @@ nginx_sites:
         rewrite ^/_api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
-    - location /docs/frontend {
+    - location /docs/frontend/ {
         rewrite ^/docs/frontend/(.+) /$1 break;
         expires -1;
         add_header Pragma "no-cache";
         add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        root /var/www/prod.project.local/current/docs/_build/html/;
+        root /var/www/prod.project.local/current/docs/_build/html;
         try_files $uri $uri/ /index.html =404;
       }
-    - location /docs/brain {
+    - location /docs/brain/ {
         rewrite ^/docs/brain/(.+) /$1 break;
         expires -1;
         add_header Pragma "no-cache";
         add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        root /opt/irma/irma-brain/current/docs/_build/html/;
+        root /opt/irma/irma-brain/current/docs/_build/html;
         try_files $uri $uri/ /index.html =404;
       }
-    - location /docs/probe {
+    - location /docs/probe/ {
         rewrite ^/docs/probe/(.+) /$1 break;
         expires -1;
         add_header Pragma "no-cache";
