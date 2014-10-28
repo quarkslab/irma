@@ -22,7 +22,7 @@ On GNU/Linux:
     - ** ---------- [config]
     - ** ---------- .> app:         scantasks:0x1f4c2d0
     - ** ---------- .> transport:   amqp://brain:**@127.0.0.1:5672/mqbrain
-    - ** ---------- .> results:     redis://127.0.0.1:6379/0
+    - ** ---------- .> results:     amqp://brain:brain@127.0.0.1:5672/mqbrain
     - *** --- * --- .> concurrency: 4 (prefork)
     -- ******* ---- 
     --- ***** ----- [queues]

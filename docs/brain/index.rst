@@ -9,7 +9,6 @@ task framework for Python.
 .. toctree::
 
    overview.rst
-   redis.rst
    rabbitmq.rst
    ftpd.rst
    install.rst
