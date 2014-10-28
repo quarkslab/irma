@@ -35,8 +35,6 @@ For GNU/Linux systems:
     > What is the vhost defined for the frontend on your RabbitMQ server? mqfrontend
     > What is the username for this vhost on your RabbitMQ server? frontend-rmq
     > What is the password for this vhost on your RabbitMQ server? frontend-rmq-password
-    > What is the hostname of your Redis server? [brain.irma] brain.irma
-    > Which database id is used for brain on your Redis server? [0]
     > What is the hostname of your FTPs server? [brain.irma] brain.irma
     > What is the username defined for the frontend on your FTP server? frontend-ftp
     > What is the password defined for the frontend on your FTP server? frontend-ftp-password
@@ -94,12 +92,6 @@ For GNU/Linux systems:
      |                |   password  | ``string`` |                |  password used for this frontend on the RabbitMQ server |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |     queue   | ``string`` |                |  queue to poll new tasks on the RabbitMQ server         |
-     +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |     host    | ``string`` |                | hostname for the Redis server                           |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
-     |  backend_brain |     port    |``integer`` |   6379         | port for the Redis server                               |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |      db     |``integer`` |                | id of the database to use on Redis                      |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |     host    | ``string`` |                | hostname for the FTP server                             |
      |                +-------------+------------+----------------+---------------------------------------------------------+
