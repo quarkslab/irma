@@ -1,5 +1,5 @@
-IRMA Brain
-==========
+Brain - Manual Install
+======================
 
 The **Brain** is a python-based application that only dispatches analysis
 requests from different frontends [#]_ to the available **Probes**. Analyses
