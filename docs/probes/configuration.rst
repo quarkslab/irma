@@ -30,11 +30,11 @@ For Microsoft Windows systems:
 
     > Do you want to enable syslog logging? (experimental) (y/N) N
     > Which name would you like to give to your probe? [irma-probe]           
-    > What is the hostname of your RabbitMQ server? [brain.irma] brain.irma.qb
+    > What is the hostname of your RabbitMQ server? [brain.irma] brain.irma
     > What is the vhost defined for probes on your RabbitMQ server? mqbrain
     > What is the username for this vhost on your RabbitMQ server? brain-rmq
     > What is the password for this vhost on your RabbitMQ server? brain-rmq-password
-    > What is the hostname of your FTPs server? [brain.irma] brain.irma.qb
+    > What is the hostname of your FTPs server? [brain.irma] brain.irma
     > What is the username defined for probes on your FTP server? probe-ftp
     > What is the password defined for probes on your FTP server? probe-ftp-password
 
