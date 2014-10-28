@@ -1,5 +1,5 @@
-Manual Installation
--------------------
+Installation
+------------
 
 Currently, a quick install through vagrant and ansible scripts is supported.
 It is the recommended way to proceed but if you want to go more into the details,

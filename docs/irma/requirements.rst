@@ -25,10 +25,6 @@ on the other hand, a lighter version of the system with the three parts together
 [#]_  was successfully installed on a single virtual machine (1 GB of Ram and
 4 virtual processors).
 
-We do not have any real numbers to tell you what kind of hardware you are going
-to need. We managed to run off the whole IRMA platform a single machine [#]_ by
-hosting with multiple systems inside virtual machines.
-
 For a large company, in theory, given a single high-memory machine, with 16+ cores,
 and SSDs, you could run IRMA platform and bear the workload load with reasonable
 response time.
@@ -42,5 +38,4 @@ response time.
        unique probe by preventing it to launch daemons at startup. This is
        difficult for Microsoft systems on which it is not recommended to
        install multiple anti-viruses on a single host.
-.. [#] the system with the three parts together
-       with a limited set of probes
+.. [#] with a limited set of probes

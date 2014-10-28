@@ -1,5 +1,5 @@
-IRMA Install
-============
+Automatic Install
+=================
 
 IRMA platform is easily installed thanks to a set of `ansible <http://www.ansible.com>`_ roles and playbooks. It will allow you to build, install or maintain different setups.
 
@@ -246,6 +246,7 @@ Due to Ansible limitations using parallel execution, you’ll need to launch the
 provision Vagrant command only for one VM:
 
 .. code-block:: bash
+
 	$ vagrant provision frontend.irma
 
 
@@ -259,12 +260,23 @@ Then, for proper use, update your `/etc/hosts` file and add:
 
 
 .. code-block:: bash
+
 	172.16.1.30    www.frontend.irma
 
 
 Then, with your web browser, IRMA allinone is available at
 `www.frontend.irma <http://www.frontend.irma>`_.
 
+6. Sync files between host and guest
+````````````````````````````````````
+
+Once rsync is installed inside your virtual machine and your environment is correctly set. You could easily sync your code with:
+
+.. code-block:: bash
+
+	$ vagrant rsync
+
+Then reload the modified application.
 
 Enable SSL using OpenSSL
 ------------------------

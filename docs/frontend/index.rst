@@ -1,5 +1,5 @@
-IRMA Frontend
-=============
+Frontend - Manual Install
+=========================
 
 The **Frontend** handles scan submission to the **Brain**, stores the results
 of the scanned files. These results can be displayed through a web graphical
