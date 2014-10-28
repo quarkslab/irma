@@ -23,7 +23,9 @@ Vagrant.configure("2") do |config|
   end
 
   if Vagrant.has_plugin?("vagrant-vbguest")
-    #config.vbguest.no_install = true
+    if ["demo"].include? env
+      config.vbguest.no_install = true
+    end
   end
 
   servers.each do |server|

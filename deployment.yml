@@ -1,7 +1,7 @@
 ---
 
 - name: Frontend deployment
-  hosts: frontend
+  hosts: [ "frontend", "frontend-demo"]
   remote_user: www-data
   roles:
     - { role: quarkslab.irma_deployment_frontend, tags: 'deployment_frontend' }
@@ -17,11 +17,5 @@
   remote_user: irma
   roles:
     - { role: quarkslab.irma_deployment_probe, tags: 'deployment_probe' }
-
-- name: Virustotal deployment
-  hosts: virustotal
-  sudo: yes
-  roles:
-    - { role: quarkslab.virustotal, virustotal_deployment: True, tags: 'virustotal' }
 
 # vim: sw=2

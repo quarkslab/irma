@@ -62,6 +62,10 @@
     value: "{{ item.value }}"
   with_items: brain_deployment_configs
 
+- name: Generate documentation for brain
+  include: sphinx.yml
+  when: "'frontend-demo' in group_names"
+
 - name: Create symlink release -> current
   file:
     src: "{{ brain_deployment_dir }}"

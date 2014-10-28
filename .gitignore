@@ -1,7 +1,6 @@
 .vagrant/
 hosts
 vagrant_ansible_inventory_default
-group_vars/
 roles/Ansibles.openssh/
 roles/DavidWittman.redis/
 roles/franklinkim.sudo/
@@ -13,3 +12,9 @@ roles/mivok0.users/
 roles/Stouts.mongodb/
 files/*
 !files/.gitkeep
+
+# Ignore only stable group_vars
+group_vars/all
+group_vars/brain
+group_vars/frontend
+group_vars/probe

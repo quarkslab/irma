@@ -22,7 +22,7 @@
 
 
 - name: Frontend provisioning
-  hosts: frontend
+  hosts: ["frontend", "frontend-demo"]
   sudo: yes
   roles:
     - { role: mivok0.users, tags: 'users', users: "{{ frontend_users }}" }
