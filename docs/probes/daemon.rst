@@ -181,7 +181,7 @@ check the documentation if you want to solve this issue and to enable the
     - ** ---------- [config]
     - ** ---------- .> app:         probe.tasks:0x2f08ff0
     - ** ---------- .> transport:   amqp://probe:**@brain:5672/mqprobe
-    - ** ---------- .> results:     redis://brain:6379/1
+    - ** ---------- .> results:     amqp://probe:**@brain:5672/mqprobe
     - *** --- * --- .> concurrency: 1 (prefork)
     -- ******* ----
     --- ***** ----- [queues]
