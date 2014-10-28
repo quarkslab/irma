@@ -219,12 +219,6 @@ class configure(Command):
         configuration['broker_frontend']['username'] = None
         configuration['broker_frontend']['password'] = None
         configuration['broker_frontend']['queue'] = 'frontend'
-        configuration['backend_brain'] = OrderedDict()
-        configuration['backend_brain']['host'] = 'localhost'
-        configuration['backend_brain']['db'] = 0
-        configuration['backend_probe'] = OrderedDict()
-        configuration['backend_probe']['host'] = 'localhost'
-        configuration['backend_probe']['db'] = 1
         configuration['sql_brain'] = OrderedDict()
         configuration['sql_brain']['engine'] = 'sqlite:///'
         configuration['sql_brain']['dbname'] = 'quotas.db'
@@ -293,17 +287,6 @@ needed by the application. To abort the configuration, press CTRL+D.
         configuration['broker_frontend']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
                 answer_type=str)
-        # backend configuration
-        configuration['backend_brain']['host'] = \
-            ask('What is the hostname of your Redis server?',
-                answer_type=str,
-                default=configuration['backend_brain']['host'])
-        configuration['backend_brain']['db'] = \
-            ask('Which database id is used for brain on your Redis server?',
-                answer_type=int, default=configuration['backend_brain']['db'])
-        configuration['backend_probe']['db'] = \
-            ask('Which database id is used for probes on your Redis server?',
-                answer_type=int, default=configuration['backend_probe']['db'])
         # ftp brain configuration
         configuration['ftp_brain']['host'] = \
             ask('What is the hostname of your FTPs server?',
