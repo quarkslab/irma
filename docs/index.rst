@@ -12,7 +12,8 @@ Table of Contents
 
 .. toctree::
 
-   irma/index.rst
+   intro/index.rst
+   install/index.rst
    probes/index.rst
    references/index.rst
    irma/faq.rst
