@@ -156,6 +156,10 @@ nginx_sites:
         rewrite ^/_api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
+    - location /api-doc {
+        alias {{ frontend_install_dir }}/docs/api/swagger-ui/;
+        index index.html;
+      }
     - location / {
         expires -1;
         add_header Pragma "no-cache";
