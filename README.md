@@ -235,6 +235,16 @@ Then, for proper use, update your `/etc/hosts` file and add:
 Then, with your web browser, IRMA allinone is available at
 [www.frontend.irma](http://www.frontend.irma).
 
+### 6. Sync files between host and guest
+
+Once rsync is installed inside your virtual machine and your environment is
+correctly set. You could easily sync your code with:
+
+```
+$ vagrant rsync
+```
+
+Then reload the modified application.
 
 Enable SSL using OpenSSL
 ------------------------
