@@ -6,18 +6,6 @@ Configuration
 The configuration file is ``config/probe.ini`` located in the installation
 directory. 
 
-From the package manager
-````````````````````````
-
-The debian package can show dialog boxes to the user and query for require
-configuration values. To configure the python application installed with
-``apt-get`` command, one can do:
-
-.. code-block:: bash
-
-    $ sudo dpkg-reconfigure irma-probe-app
-    [...]
-
 From the sources
 ````````````````
 
@@ -46,8 +34,6 @@ For Microsoft Windows systems:
     > What is the vhost defined for probes on your RabbitMQ server? mqbrain
     > What is the username for this vhost on your RabbitMQ server? brain-rmq
     > What is the password for this vhost on your RabbitMQ server? brain-rmq-password
-    > What is the hostname of your Redis server? [brain.irma] brain.irma.qb
-    > Which database id is used for probes on your Redis server? [1] 
     > What is the hostname of your FTPs server? [brain.irma] brain.irma.qb
     > What is the username defined for probes on your FTP server? probe-ftp
     > What is the password defined for probes on your FTP server? probe-ftp-password
@@ -85,12 +71,6 @@ modified with values we typed.
      |                |   password  | ``string`` |           | password used for probes on the RabbitMQ server |
      |                +-------------+------------+-----------+-------------------------------------------------+
      |                |     queue   | ``string`` |           | queue to poll new tasks on the RabbitMQ server  |
-     +----------------+-------------+------------+-----------+-------------------------------------------------+
-     |                |     host    | ``string`` |           | hostname for the Redis server                   |
-     |                +-------------+------------+-----------+-------------------------------------------------+
-     |  backend probe |     port    |``integer`` |   6379    | port for the Redis server                       |
-     |                +-------------+------------+-----------+-------------------------------------------------+
-     |                |      db     |``integer`` |     1     | id of the database to use on Redis              |
      +----------------+-------------+------------+-----------+-------------------------------------------------+
      |                |     host    | ``string`` |           | hostname for the FTP server                     |
      |                +-------------+------------+-----------+-------------------------------------------------+
