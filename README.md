@@ -11,6 +11,7 @@ Table of contents
 
 - [Quick start](#quick-start)
 - [What You’ll need?](#what-youll-need)
+- [Installation](#installation)
 - [Getting started](#getting-started)
 - [Contributing](#contributing)
 - [IRMA Community](#irma-community)
@@ -37,10 +38,31 @@ For *test or development* purposes (optional):
 - [Vagrant](http://www.vagrantup.com/) 1.5 or higher has to be installed
 - As the installation work only for [Virtualbox](https://www.virtualbox.org/),
   you’ll need to install it
-- [Vagrant VBGuest](https://github.com/dotless-de/vagrant-vbguest) to speed up
-  your VM
 - [Rsync](https://rsync.samba.org/) to synchronize directories from host to VMs
 - Read the [Ansible introduction](http://docs.ansible.com/intro.html)
+
+Tips: Read the [Speed up your Vagrant VMs](#speed-up-your-vagrant-vms) section.
+
+
+Installation
+------------
+
+### Clone IRMA repository
+
+Using [Git](http://git-scm.com/) software, clone the repository:
+```
+$ git clone --recursive
+```
+
+
+### Install Ansible dependencies
+
+Dependencies are available via [Ansible Galaxy](https://galaxy.ansible.com/)
+repository. Installation has been made easy using:
+
+```
+$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already installed it
+```
 
 
 Getting Started
@@ -97,16 +119,7 @@ created. For speed up provisioning, you can:
   user ALL=(ALL) NOPASSWD: ALL
   ```
 
-
-### 2. Clone IRMA repository
-
-Using [Git](http://git-scm.com/) software, clone the repository:
-```
-$ git clone --recursive
-```
-
-
-### 3. Configure you installation
+#### 2. Configure you installation
 
 Modify settings in `group_vars/*` especially the `default_ssh_keys:` section,
 you’ll need to add private keys from user for password-less connection to the
@@ -118,17 +131,8 @@ infrastructure. There is three sections, one for each server role (frontend,
 brain, probe). 
 
 
-### 4. Install Ansible dependencies
 
-Dependencies are available via [Ansible Galaxy](https://galaxy.ansible.com/)
-repository. Installation has been made easy using:
-
-```
-$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already installed it
-```
-
-
-### 5. Run the Ansible Playbook
+#### 3. Run the Ansible Playbook
 
 To run the whole thing:
 ```
@@ -141,7 +145,7 @@ to re-provision Nginx, run the same command, but add `--tags=nginx`. You can
 combine multiple tags.
 
 
-### 6. Modify .ini files
+#### 4. Modify .ini files
 
 You’ll need to connect on each server you’ve just used, and modify manually .ini
 files.
@@ -150,7 +154,7 @@ In next release of this playbook, there’ll be more convenient way to automate
 configuration generation.
 
 
-### 7. Deploy new version of IRMA
+#### 5. Deploy new version of IRMA
 
 As your servers have been provision and deploy in step 5, when you want to upgrade
 it, you’ll need to run the deployment script:
@@ -162,7 +166,7 @@ $ ansible-playbook -i ./hosts deployment.yml -u irma
 `group_vars/all` file.
 
 
-### 8. Access to your IRMA installation
+#### 6. Access to your IRMA installation
 
 Access to your installation using the hostname you’ve used as frontend hostname.
 
@@ -170,7 +174,7 @@ Access to your installation using the hostname you’ve used as frontend hostnam
 Test or develop IRMA using Vagrant
 ----------------------------------
 
-### 1. Create the right environment
+#### 1. Create the right environment
 
 If you’re interested in using [Vagrant](http://vagrantup.com), be sure to have
 the following directory layout:
@@ -189,7 +193,7 @@ Note: This directory layout can be modified, see `share_*` from
 `environments/dev.yml` and `environments/allinone_dev.yml` files.
 
 
-### 2. Run Vagrant and create your VMs
+#### 2. Run Vagrant and create your VMs
 
 To initialize and provision the Virtualbox VM, run in the
 irma-ansible-provisioning directory `vagrant up --no-provision`. VM will be
@@ -201,7 +205,7 @@ directory and run:
 $ VM_ENV=your_environment_name vagrant up --no-provision
 ```
 
-### 3. Configure your .ini files
+#### 3. Configure your .ini files
 
 /!\ You can bypass this step, as this provisioning is sync with default username
 and password used in (frontend|brain|probe) config files.
@@ -214,7 +218,7 @@ In next release of this playbook, there’ll be more convenient way to automate
 configuration generation.
 
 
-### 4. Provision your VMs
+#### 4. Provision your VMs
 
 Due to Ansible limitations using parallel execution, you’ll need to launch the
 provision Vagrant command only for one VM:
@@ -225,7 +229,7 @@ $ vagrant provision frontend.irma
 The provisioning and deployment will apply to all of your VMs.
 
 
-### 5. Modify your host and open IRMA frontend
+#### 5. Modify your host and open IRMA frontend
 
 Then, for proper use, update your `/etc/hosts` file and add:
 ```
@@ -235,16 +239,19 @@ Then, for proper use, update your `/etc/hosts` file and add:
 Then, with your web browser, IRMA allinone is available at
 [www.frontend.irma](http://www.frontend.irma).
 
-### 6. Sync files between host and guest
+
+#### 6. Sync files between host and guest
 
 Once rsync is installed inside your virtual machine and your environment is
 correctly set. You could easily sync your code with:
 
 ```
-$ vagrant rsync
+$ vagrant rsync # or vagrant rsync-auto to automatically initiates an rsync
+                # transfer when changes are detected
 ```
 
 Then reload the modified application.
+
 
 Enable SSL using OpenSSL
 ------------------------
