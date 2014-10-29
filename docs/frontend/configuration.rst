@@ -25,19 +25,20 @@ For GNU/Linux systems:
     Please answer to the following questions so this script can generate the files
     needed by the application. To abort the configuration, press CTRL+D.
 
-    > Do you want to enable syslog logging? (experimental) (y/N) N
+    > Do you want to enable syslog logging? (experimental) (y/N)
     > What is the hostname of your mongodb server? [127.0.0.1]
     > What is the port used by your mongodb server? [27017]
-    > What is the hostname of your RabbitMQ server? [brain.irma] brain.irma
+    > What is the sample storage path? [/var/irma/samples/]
+    > What is the hostname of your RabbitMQ server? [brain.irma]
     > What is the vhost defined for the brain on your RabbitMQ server? mqbrain
-    > What is the username for this vhost on your RabbitMQ server? brain-rmq
-    > What is the password for this vhost on your RabbitMQ server? brain-rmq-password
+    > What is the username for this vhost on your RabbitMQ server? brain
+    > What is the password for this vhost on your RabbitMQ server? brain
     > What is the vhost defined for the frontend on your RabbitMQ server? mqfrontend
-    > What is the username for this vhost on your RabbitMQ server? frontend-rmq
-    > What is the password for this vhost on your RabbitMQ server? frontend-rmq-password
-    > What is the hostname of your FTPs server? [brain.irma] brain.irma
-    > What is the username defined for the frontend on your FTP server? frontend-ftp
-    > What is the password defined for the frontend on your FTP server? frontend-ftp-password
+    > What is the username for this vhost on your RabbitMQ server? frontend
+    > What is the password for this vhost on your RabbitMQ server? frontend
+    > What is the hostname of your FTPs server? [brain.irma]
+    > What is the username defined for the frontend on your FTP server? frontend
+    > What is the password defined for the frontend on your FTP server? frontend
 
     When finished, one can note that the ``config/frontend.ini`` file has been
     modified with values we typed.
@@ -53,17 +54,30 @@ For GNU/Linux systems:
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |     host    | ``string`` |                | hostname of the mongodb server                          |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |  mongodb       |     port    |``integer`` |   27017        | port on which the mongodb server listens                |
+     |                |     port    |``integer`` |    27017       | port on which the mongodb server listens                |
+     |  mongodb       +-------------+------------+----------------+---------------------------------------------------------+
+     |                |    dbname   | ``string`` |    irma        | name of the database for IRMA                           |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |    dbname   | ``string`` | irma           | name of the database for IRMA                           |
+     |                | collections_|            |                |                                                         |
+     |                | prefix      | ``string`` |    irma        | prefix for mongodb collections                          |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |  scan_info  | ``string`` |                | name of the collection to store scan info               |
+     |                |    dbms     | ``string`` |    sqlite      | dbapi engine                                            |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                | scan_results| ``string`` |                | name of the collection to store scan results            |
-     | collections    +-------------+------------+----------------+---------------------------------------------------------+
-     |                |  scan_files | ``string`` |                | name of the collection to store file metadata           |
+     |                |   dialect   | ``string`` |                | sqlalchemy dialect                                      |
+     |  sqldb         +-------------+------------+----------------+---------------------------------------------------------+
+     |                |  username   | ``string`` |                | database username                                       |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                | scan_file_fs| ``string`` |                | name of the collection used by gridfs to store files    |
+     |                |  password   | ``string`` |                | database password                                       |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |    host     | ``string`` |                | database host                                           |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |   dbname    | ``string`` | /var/irma/db/  |                                                         |
+     |                |             |            | frontend.db    | database name                                           |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |tables_prefix| ``string`` |                | database tables prefix                                  |
+     +----------------+-------------+------------+----------------+---------------------------------------------------------+
+     | samples_storage|     path    | ``string`` | /var/irma/     |                                                         |
+     |                |             |            | samples        | Samples storage path                                    |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |celery_brain    |    timeout  | ``integer``|  10 (sec)      | time before considering that the brain has timed-out    |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
@@ -101,18 +115,15 @@ For GNU/Linux systems:
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   password  | ``string`` |                | password used by this frontend on the FTP server        |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_scan| ``integer``|    100         |                                                         |
-     |                |_info_max_age|            | (in days)      |                                                         |
+     |                |clean_db_file| ``integer``|     2          | remove file after X days                                |
+     |                |_max_age     |            | (in days)      |                                                         |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_scan| ``integer``|     2          |                                                         |
-     |                |_file_max_age|            | (in days)      |                                                         |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
-     | cron_frontend  |clean_db_cron| ``integer``|     0          |                                                         |
+     |                |clean_db_cron| ``integer``|     0          | cron hour settings                                      |
      |                |_hour        |            |                |                                                         |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_cron| ``integer``|     0          |                                                         |
+     |  cron_frontend +-------------+------------+----------------+---------------------------------------------------------+
+     |                |clean_db_cron| ``integer``|     0          | cron minute settings                                    |
      |                |_minute      |            |                |                                                         |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_scan| ``integer``|     \*         |                                                         |
+     |                |clean_db_scan| ``integer``|     \*         | cron day of week settings                               |
      |                |_day_of_week |            |                |                                                         |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
