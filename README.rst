@@ -78,6 +78,7 @@ some useful commands with vagrant:
 	$ vagrant up brain.irma        # start the machine
 	$ vagrant destroy brain.irma   # delete the machine
 
+for advanced usage of vagrant be sure to check `extras <docs/install_extras.rst>`_
 
 Credits
 -------
