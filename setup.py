@@ -221,7 +221,7 @@ class configure(Command):
         configuration['broker_frontend']['queue'] = 'frontend'
         configuration['sql_brain'] = OrderedDict()
         configuration['sql_brain']['engine'] = 'sqlite:///'
-        configuration['sql_brain']['dbname'] = 'quotas.db'
+        configuration['sql_brain']['dbname'] = 'db/brain.db'
         configuration['ftp_brain'] = OrderedDict()
         configuration['ftp_brain']['host'] = 'localhost'
         configuration['ftp_brain']['username'] = 'probe'

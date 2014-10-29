@@ -94,7 +94,7 @@ modified with values we typed.
      +----------------+-------------+------------+-----------+---------------------------------------------------+
      |                |     engine  | ``string`` |sqlite:/// | hostname for the FTP server                       |
      |  sql_brain     +-------------+------------+-----------+---------------------------------------------------+
-     |                |     dbname  |``string``  | quota.db  | port for the FTP server                           |
+     |                |     dbname  |``string``  |db/brain.db| port for the FTP server                           |
      +----------------+-------------+------------+-----------+---------------------------------------------------+
      |                |     host    | ``string`` |           | hostname for the FTP server                       |
      |                +-------------+------------+-----------+---------------------------------------------------+
@@ -142,5 +142,5 @@ launch as many analyzes as you want.
 
     .. code-block:: bash
 
-        $ sudo chown irma:irma quota.db
+        $ sudo chown irma:irma db/brain.db
         $ sudo chmod a+w /opt/irma/irma-brain
