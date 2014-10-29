@@ -31,7 +31,7 @@
     mode: 0766
     state: directory
 
-- name: Generate datbase
+- name: Generate database
   command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito mqfrontend frontend"
   args:
     chdir: "{{ brain_deployment_dir }}"
