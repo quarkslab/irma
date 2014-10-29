@@ -30,19 +30,19 @@ For GNU/Linux systems:
     needed by the application. To abort the configuration, press CTRL+D.
 
     > Do you want to enable syslog logging? (experimental) (y/N)
-    > What is the hostname of your RabbitMQ server? [localhost]
-    > What is the vhost defined for the brain on your RabbitMQ server? mqbrain
-    > What is the username for this vhost on your RabbitMQ server? brain-rmq
-    > What is the password for this vhost on your RabbitMQ server? brain-rmq-password
-    > What is the vhost defined for the probes on your RabbitMQ server? mqprobe
-    > What is the username for this vhost on your RabbitMQ server? probe-rmq
-    > What is the password for this vhost on your RabbitMQ server? probe-rmq-password
-    > What is the vhost defined for the frontend on your RabbitMQ server? mqfrontend
-    > What is the username for this vhost on your RabbitMQ server? frontend-rmq
-    > What is the password for this vhost on your RabbitMQ server? frontend-rmq-password
-    > What is the hostname of your FTPs server? [localhost]
-    > What is the username defined for the probes on your FTP server? probe-ftp
-    > What is the password defined for the probes on your FTP server? probe-ftp-password
+    > What is the hostname of your RabbitMQ server? [127.0.0.1]
+    > What is the vhost defined for the brain on your RabbitMQ server? [mqbrain]
+    > What is the username for this vhost on your RabbitMQ server? [brain]
+    > What is the password for this vhost on your RabbitMQ server? brain
+    > What is the vhost defined for the probes on your RabbitMQ server? [mqprobe]
+    > What is the username for this vhost on your RabbitMQ server? [probe]
+    > What is the password for this vhost on your RabbitMQ server? probe
+    > What is the vhost defined for the frontend on your RabbitMQ server? [mqfrontend]
+    > What is the username for this vhost on your RabbitMQ server? [frontend]
+    > What is the password for this vhost on your RabbitMQ server? frontend
+    > What is the hostname of your FTPs server? [127.0.0.1]
+    > What is the username defined for the probes on your FTP server? probe
+    > What is the password defined for the probes on your FTP server? probe
 
 When finished, one can note that the ``config/brain.ini`` file has been
 modified with values we typed.
@@ -92,9 +92,20 @@ modified with values we typed.
      |                +-------------+------------+-----------+---------------------------------------------------+
      |                |     queue   | ``string`` |           | queue to poll new tasks on the RabbitMQ server    |
      +----------------+-------------+------------+-----------+---------------------------------------------------+
-     |                |     engine  | ``string`` |sqlite:/// | hostname for the FTP server                       |
-     |  sql_brain     +-------------+------------+-----------+---------------------------------------------------+
-     |                |     dbname  |``string``  |db/brain.db| port for the FTP server                           |
+     |                |    dbms     | ``string`` |  sqlite   | dbapi engine                                      |
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |   dialect   | ``string`` |           | sqlalchemy dialect                                |
+     |  sqldb         +-------------+------------+-----------+---------------------------------------------------+
+     |                |  username   | ``string`` |           | database username                                 |
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |  password   | ``string`` |           | database password                                 |
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |    host     | ``string`` |           | database host                                     |
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |   dbname    | ``string`` |/var/irma/ |                                                   |
+     |                |             |            |db/brain.db| database name                                     |
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |tables_prefix| ``string`` |           | database tables prefix                            |
      +----------------+-------------+------------+-----------+---------------------------------------------------+
      |                |     host    | ``string`` |           | hostname for the FTP server                       |
      |                +-------------+------------+-----------+---------------------------------------------------+
