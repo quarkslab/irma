@@ -60,7 +60,7 @@ template_brain_config = {
         ('dbms', TemplatedConfiguration.string, None),
         ('dialect', TemplatedConfiguration.string, None),
         ('username', TemplatedConfiguration.string, None),
-        ('passwd', TemplatedConfiguration.string, None),
+        ('password', TemplatedConfiguration.string, None),
         ('host', TemplatedConfiguration.string, None),
         ('dbname', TemplatedConfiguration.string, None),
         ('tables_prefix', TemplatedConfiguration.string, None),
@@ -200,7 +200,7 @@ def get_sql_db_uri_params():
         brain_config.sqldb.dbms,
         brain_config.sqldb.dialect,
         brain_config.sqldb.username,
-        brain_config.sqldb.passwd,
+        brain_config.sqldb.password,
         brain_config.sqldb.host,
         brain_config.sqldb.dbname,
     )
