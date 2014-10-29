@@ -19,7 +19,6 @@ from frontend.helpers.format import IrmaFormatter
 
 cfg_dburi = config.get_db_uri()
 cfg_dbname = config.frontend_config['mongodb'].dbname
-cfg_coll = config.frontend_config['collections']
 
 
 cfg_coll_prefix = '{0}_'.format(config.get_nosql_db_collections_prefix())

@@ -41,14 +41,6 @@ template_frontend_config = {
         ('dbname', TemplatedConfiguration.string, None),
         ('collections_prefix', TemplatedConfiguration.string, None),
     ],
-    'collections': [
-        ('scan_info', TemplatedConfiguration.string, None),
-        ('scan_results', TemplatedConfiguration.string, None),
-        ('scan_ref_results', TemplatedConfiguration.string, None),
-        ('scan_files', TemplatedConfiguration.string, None),
-        ('scan_filedata', TemplatedConfiguration.string, None),
-        ('scan_file_fs', TemplatedConfiguration.string, None),
-    ],
     'sqldb': [
         ('dbms', TemplatedConfiguration.string, None),
         ('dialect', TemplatedConfiguration.string, None),

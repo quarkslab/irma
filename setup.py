@@ -205,13 +205,6 @@ class configure(Command):
         configuration['mongodb']['port'] = '27017'
         configuration['mongodb']['dbname'] = 'irma'
         configuration['mongodb']['collections_prefix'] = 'irma'
-        configuration['collections'] = OrderedDict()
-        configuration['collections']['scan_info'] = 'scan_info'
-        configuration['collections']['scan_results'] = 'scan_res'
-        configuration['collections']['scan_ref_results'] = 'scan_ref_res'
-        configuration['collections']['scan_files'] = 'scan_files'
-        configuration['collections']['scan_filedata'] = 'scan_filedata'
-        configuration['collections']['scan_file_fs'] = 'fs'
         configuration['sqldb'] = OrderedDict()
         configuration['sqldb']['dbms'] = 'sqlite'
         configuration['sqldb']['dialect'] = ''
