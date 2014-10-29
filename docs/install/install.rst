@@ -15,6 +15,16 @@ There are 3 different types of IRMA setup:
 - `Production environment`_ (install on physical servers)
 - `Development environment`_ (everything in one vm with sources rsync'd between host and vm)
 
+Common requirements
+-------------------
+
+- `Ansible <http://www.ansible.com>`_ 1.6 or higher;
+
+Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ repository. Installation has been made easy using:
+
+.. code-block:: bash
+
+	$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already installed it
 
 
 Testing IRMA, the easiest way
@@ -25,7 +35,6 @@ Everything will be installed in the same virtual machine.
 Requirements
 ````````````
 
-- `Ansible <http://www.ansible.com>`_ 1.6 or higher;
 - `Vagrant <http://www.vagrantup.com/>`_ 1.5 or higher has to be installed
 - As the installation work only for `Virtualbox <https://www.virtualbox.org/>`_,
   you’ll need to install it
@@ -63,7 +72,6 @@ IRMA will be installed on physical servers.
 Requirements
 ````````````
 
-- `Ansible <http://www.ansible.com>`_ 1.6 or higher;
 - One or multiple 64-bit `Debian <https://www.debian.org>`_ 7 servers.
 
 1. Prep servers
@@ -181,7 +189,6 @@ If you want to modify IRMA, this is the recommended way of installing it.
 Requirements
 ````````````
 
-- `Ansible <http://www.ansible.com>`_ 1.6 or higher;
 - `Vagrant <http://www.vagrantup.com/>`_ 1.5 or higher has to be installed
 - As the installation work only for `Virtualbox <https://www.virtualbox.org/>`_,
   you’ll need to install it
@@ -192,6 +199,15 @@ Requirements
 
 1. Create the right environment
 ```````````````````````````````
+
+
+Clone IRMA repositories:
+
+.. code-block:: bash
+
+	$ git clone --recursive https://github.com/quarkslab/irma-frontend
+	$ git clone --recursive https://github.com/quarkslab/irma-brain
+	$ git clone --recursive https://github.com/quarkslab/irma-probe
 
 If you’re interested in using `Vagrant <http://vagrantup.com>`_, be sure to have
 the following directory layout:
@@ -274,7 +290,9 @@ Once rsync is installed inside your virtual machine and your environment is corr
 
 .. code-block:: bash
 
-	$ vagrant rsync
+	$ vagrant rsync # or vagrant rsync-auto to automatically initiates an rsync
+                        # transfer when changes are detected
+
 
 Then reload the modified application.
 
