@@ -9,7 +9,8 @@ angular.module('irma', [
   'mgcrea.ngStrap.helpers.dimensions',
   'gd.ui.jsonexplorer',
   'angular-capitalize-filter',
-  'angularMoment'
+  'angularMoment',
+  'ngTable'
 ])
   .constant('constants', {
     fakeDelay: 0,

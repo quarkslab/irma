@@ -171,6 +171,7 @@
      * Route events
      */
     $rootScope.$on('$routeChangeStart', function(event, newOne, oldOne) {
+      alerts.removeAll();
       $log.debug('route change started from ' + oldOne.originalPath + ' to ' + newOne.originalPath);
     });
 

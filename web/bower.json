@@ -22,7 +22,8 @@
     "ng-json-explorer": "Goldark/ng-json-explorer#master",
     "angular-capitalize-filter": "~2.0.0",
     "moment": "~2.8.3",
-    "angular-moment": "~0.8.2"
+    "angular-moment": "~0.8.2",
+    "ng-table": "~0.3.3"
   },
   "devDependencies": {
     "angular-mocks": "~1.2.0",
@@ -31,6 +32,7 @@
   "resolutions": {
     "es5-shim": "~3.0.2",
     "bootstrap": "~3.1.1",
-    "json3": "~3.3.1"
+    "json3": "~3.3.1",
+    "angular": "~1.2.16"
   }
 }

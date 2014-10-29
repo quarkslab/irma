@@ -1,13 +1,30 @@
-<form class="settings" ng-submit="vm.goToScan(existingId)">
-  <div class="row">
-    <div class="col-md-6 col-md-offset-3 existing">
-      <p>You can view the results of an existing scan by providing the id provided at the time</p>
-      <div class="form-group">
-        <input type="text" class="form-control" ng-model="existingId" value="53762930aca33b36e879bc83">
-      </div>
+<div id="search">
+    <div class="row">
+        <form class="form-inline" ng-submit="vm.tableParams.reload()" role="form">
+            <div class="form-group">
+                <select class="form-control" id="type" ng-model="vm.searchedType">
+                    <option value="name">By name</option>
+                    <option value="hash">By hash</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <input type="text" id="search" class="form-control" ng-model="vm.searchedStr" placeholder="Type your search here">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-primary" ng-disabled="!vm.searchedStr">Go!</button>
+                    </span>
+                </div>
+            </div>
+        </form>
     </div>
-  </div>
-  <p>
-    <button class="action btn btn-lg btn-success" type="submit" ng-disabled="!existingId">View Scan</button>
-  </p>
-</form>
+    <div class="row" id="results">
+        <table ng-table="vm.tableParams" class="table table-bordered">
+            <tr ng-repeat="item in $data">
+                <td data-title="'Name'"><a href="/scan/{{item.scan.external_id}}/file/{{item.scan_file_idx}}">{{item.name}}</a></td>
+                <td data-title="'Last seen'">{{item.file.timestamp_last_scan | amDateFormat:'lll'}}</td>
+                <td data-title="'SHA256'">{{item.file.sha256}}</td>
+                <td data-title="'Size'">{{item.file.size}}</td>
+            </tr>
+        </table>
+    </div>
+</div>

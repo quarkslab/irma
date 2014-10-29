@@ -5840,43 +5840,26 @@ h1 {
   border-bottom-width: 1px;
   cursor: pointer;
 }
-.head {
-  position: relative;
-  margin-top: 10px;
-  margin-bottom: 30px;
+#header {
+  margin-bottom: 10px;
 }
-.head h1 {
-  float: left;
-  font-weight: 900;
-  font-size: 160px;
-  line-height: 155px;
-  padding-left: 40px;
-  font-family: 'Raleway', sans-serif;
-  margin: 0px;
-}
-.head h1 img {
-  width: 450px;
-}
-.head h2 {
+#header h2 {
   font-weight: 200;
   font-size: 60px;
   line-height: 55px;
   color: #999999;
-  padding-left: 500px;
-  padding-top: 40px;
-  position: relative;
   font-family: 'Raleway', sans-serif;
-  margin: 0px;
+  margin: 60px 0 0 0;
 }
-.head:before {
+#header:before {
   content: '&';
   font-size: 250px;
   font-weight: 700;
   line-height: 190px;
   color: #dddddd;
   position: absolute;
-  right: 80px;
-  top: -10px;
+  right: 445px;
+  top: 13px;
   z-index: -1;
 }
 .status {
@@ -6295,4 +6278,7 @@ h1 {
 }
 .bs-callout-info h4 {
   color: #5bc0de;
+}
+#search #results {
+  margin-top: 40px;
 }
