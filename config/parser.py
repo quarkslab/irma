@@ -45,7 +45,7 @@ template_frontend_config = {
         ('dbms', TemplatedConfiguration.string, None),
         ('dialect', TemplatedConfiguration.string, None),
         ('username', TemplatedConfiguration.string, None),
-        ('passwd', TemplatedConfiguration.string, None),
+        ('password', TemplatedConfiguration.string, None),
         ('host', TemplatedConfiguration.string, None),
         ('dbname', TemplatedConfiguration.string, None),
         ('tables_prefix', TemplatedConfiguration.string, None),
@@ -238,7 +238,7 @@ def get_sql_db_uri_params():
         frontend_config.sqldb.dbms,
         frontend_config.sqldb.dialect,
         frontend_config.sqldb.username,
-        frontend_config.sqldb.passwd,
+        frontend_config.sqldb.password,
         frontend_config.sqldb.host,
         frontend_config.sqldb.dbname,
     )
