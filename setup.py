@@ -200,30 +200,34 @@ class configure(Command):
         configuration = OrderedDict()
         configuration['log'] = OrderedDict()
         configuration['log']['syslog'] = False
-        configuration['log']['prefix'] = "irma-brain :"
         configuration['broker_brain'] = OrderedDict()
-        configuration['broker_brain']['host'] = 'localhost'
-        configuration['broker_brain']['vhost'] = None
-        configuration['broker_brain']['username'] = None
+        configuration['broker_brain']['host'] = '127.0.0.1'
+        configuration['broker_brain']['vhost'] = 'mqbrain'
+        configuration['broker_brain']['username'] = 'brain'
         configuration['broker_brain']['password'] = None
         configuration['broker_brain']['queue'] = 'brain'
         configuration['broker_probe'] = OrderedDict()
-        configuration['broker_probe']['host'] = 'localhost'
-        configuration['broker_probe']['vhost'] = None
-        configuration['broker_probe']['username'] = None
+        configuration['broker_probe']['host'] = '127.0.0.1'
+        configuration['broker_probe']['vhost'] = 'mqprobe'
+        configuration['broker_probe']['username'] = 'probe'
         configuration['broker_probe']['password'] = None
         configuration['broker_probe']['queue'] = 'results'
         configuration['broker_frontend'] = OrderedDict()
-        configuration['broker_frontend']['host'] = 'localhost'
-        configuration['broker_frontend']['vhost'] = None
-        configuration['broker_frontend']['username'] = None
+        configuration['broker_frontend']['host'] = '127.0.0.1'
+        configuration['broker_frontend']['vhost'] = 'mqfrontend'
+        configuration['broker_frontend']['username'] = 'frontend'
         configuration['broker_frontend']['password'] = None
         configuration['broker_frontend']['queue'] = 'frontend'
-        configuration['sql_brain'] = OrderedDict()
-        configuration['sql_brain']['engine'] = 'sqlite:///'
-        configuration['sql_brain']['dbname'] = 'db/brain.db'
+        configuration['sqldb'] = OrderedDict()
+        configuration['sqldb']['dbms'] = 'sqlite'
+        configuration['sqldb']['dialect'] = ''
+        configuration['sqldb']['username'] = ''
+        configuration['sqldb']['password'] = ''
+        configuration['sqldb']['host'] = ''
+        configuration['sqldb']['dbname'] = '/var/irma/db/brain.db'
+        configuration['sqldb']['tables_prefix'] = 'irma'
         configuration['ftp_brain'] = OrderedDict()
-        configuration['ftp_brain']['host'] = 'localhost'
+        configuration['ftp_brain']['host'] = '127.0.0.1'
         configuration['ftp_brain']['username'] = 'probe'
         configuration['ftp_brain']['password'] = 'probe'
 
@@ -255,14 +259,17 @@ needed by the application. To abort the configuration, press CTRL+D.
         # broker configration
         configuration['broker_brain']['host'] = \
             ask('What is the hostname of your RabbitMQ server?',
-                answer_type=str, default=configuration['broker_brain']['host'])
+                answer_type=str,
+                default=configuration['broker_brain']['host'])
         configuration['broker_brain']['vhost'] = \
             ask('What is the vhost defined for the brain on your '
                 'RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_brain']['vhost'])
         configuration['broker_brain']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_brain']['username'])
         configuration['broker_brain']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
                 answer_type=str,
@@ -270,27 +277,34 @@ needed by the application. To abort the configuration, press CTRL+D.
         configuration['broker_probe']['vhost'] = \
             ask('What is the vhost defined for the probes on your '
                 'RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_probe']['vhost'])
         configuration['broker_probe']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_probe']['username'])
         configuration['broker_probe']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_probe']['password'])
         configuration['broker_frontend']['vhost'] = \
             ask('What is the vhost defined for the frontend on your '
                 'RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_frontend']['vhost'])
         configuration['broker_frontend']['username'] = \
             ask('What is the username for this vhost on your RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_frontend']['username'])
         configuration['broker_frontend']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
-                answer_type=str)
+                answer_type=str,
+                default=configuration['broker_frontend']['password'])
         # ftp brain configuration
         configuration['ftp_brain']['host'] = \
             ask('What is the hostname of your FTPs server?',
-                answer_type=str, default=configuration['ftp_brain']['host'])
+                answer_type=str,
+                default=configuration['ftp_brain']['host'])
         configuration['ftp_brain']['username'] = \
             ask('What is the username defined for the probes on your '
                 'FTP server?',
