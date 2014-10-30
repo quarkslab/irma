@@ -12,7 +12,7 @@
 # Open additional network ports on the Frontend
 - name: Allow all access to HTTP
   ufw:
-    rule: allow 
+    rule: allow
     port: "{{ item }}"
     proto: tcp
   with_items:
@@ -20,6 +20,15 @@
     - 443
   tags:
     - ufw
+
+- name: Install tools for PostgreSQL support
+  apt:
+    name: "postgresql-server-dev-{{postgresql_version}}"
+    state: present
+
+- pip:
+    name: psycopg2
+    state: present
 
 - include: openssl_configuration.yml
   when: frontend_openssl|default(False) == True

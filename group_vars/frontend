@@ -49,6 +49,21 @@ frontend_deployment_configs:
   - section: ftp_brain
     option: password
     value: "{{irma_configurations.pureftpd.frontend.password}}"
+  - section: sqldb
+    option: dbms
+    value: postgresql
+  - section: sqldb
+    option: dialect
+    value: psycopg2
+  - section: sqldb
+    option: username
+    value: "{{irma_configurations.postgresql.frontend.username}}"
+  - section: sqldb
+    option: password
+    value: "{{irma_configurations.postgresql.frontend.password}}"
+  - section: sqldb
+    option: dbname
+    value: "{{irma_configurations.postgresql.frontend.db_name}}"
 
 
 ## HTTPs
@@ -85,6 +100,31 @@ uwsgi_install_method: "pip"
 nodejs_version: "0.10.30"
 nodejs_global_packages:
   - debug
+
+
+# Basic settings for PostgreSQL
+postgresql_version: 9.3
+postgresql_encoding: 'UTF-8'
+postgresql_locale: 'en_US.UTF-8'
+
+postgresql_admin_user: "postgres"
+postgresql_default_auth_method: "trust"
+
+postgresql_cluster_name: "main"
+postgresql_cluster_reset: false
+
+postgresql_databases:
+  - name: irma-frontend
+
+postgresql_users:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    pass: "{{irma_configurations.postgresql.frontend.password}}"
+    encrypted: no
+
+postgresql_user_privileges:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    db: "{{irma_configurations.postgresql.frontend.db_name}}"
+    priv: "ALL"
 
 
 ## Supervisor role

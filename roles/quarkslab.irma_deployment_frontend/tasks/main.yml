@@ -22,6 +22,7 @@
   pip:
     requirements: "{{ frontend_deployment_dir }}/requirements.txt"
     virtualenv: "{{ frontend_deployment_dir }}/venv"
+    virtualenv_site_packages: yes
 
 - name: Copy previous Npm files
   shell: "cp -R {{frontend_install_dir}}/web/node_modules {{frontend_deployment_dir}}/web/node_modules"

@@ -40,6 +40,11 @@ irma_configurations:
     probe:
       username: probe
       password: probe
+  postgresql:
+    frontend:
+      username: irma
+      password: irma
+      db_name: irma-frontend
 
 
 ## Deployment
