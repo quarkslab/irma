@@ -97,19 +97,7 @@ created. For speed up provisioning, you can:
 	  user ALL=(ALL) NOPASSWD: ALL
 
 
-2. Clone IRMA repository
-````````````````````````
-
-Using `Git <http://git-scm.com/>`_ software, clone the repositories:
-
-.. code-block:: bash
-
-	$ git clone --recursive https://github.com/quarkslab/irma-frontend
-	$ git clone --recursive https://github.com/quarkslab/irma-brain
-	$ git clone --recursive https://github.com/quarkslab/irma-probe
-
-
-3. Configure you installation
+2. Configure you installation
 `````````````````````````````
 
 Modify settings in `group_vars/*` especially the `default_ssh_keys:` section,
@@ -122,18 +110,7 @@ infrastructure. There is three sections, one for each server role (frontend,
 brain, probe).
 
 
-4. Install Ansible dependencies
-```````````````````````````````
-
-Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_
-repository. Installation has been made easy using:
-
-.. code-block:: bash
-
-	$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already installed it
-
-
-5. Run the Ansible Playbook
+3. Run the Ansible Playbook
 ```````````````````````````
 
 To run the whole thing:
@@ -149,7 +126,7 @@ to re-provision Nginx, run the same command, but add `--tags=nginx`. You can
 combine multiple tags.
 
 
-6. Modify .ini files
+4. Modify .ini files
 ````````````````````
 
 You’ll need to connect on each server you’ve just used, and modify manually .ini
@@ -159,7 +136,7 @@ In next release of this playbook, there’ll be more convenient way to automate
 configuration generation.
 
 
-7. Deploy new version of IRMA
+5. Deploy new version of IRMA
 `````````````````````````````
 
 As your servers have been provision and deploy in step 5, when you want to upgrade
@@ -174,7 +151,7 @@ it, you’ll need to run the deployment script:
 `group_vars/all` file.
 
 
-8. Access to your IRMA installation
+6. Access to your IRMA installation
 ```````````````````````````````````
 
 Access to your installation using the hostname you’ve used as frontend hostname.
