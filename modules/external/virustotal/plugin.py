@@ -102,11 +102,13 @@ class VirusTotalPlugin(PluginBase):
             # check eventually for errors
             if 'error' in response:
                 results.status = self.VirusTotalResult.ERROR
-                results.error = "Network probably unreachable"
-            elif (response['response_code'] == 204) or \
-                 (response['response_code'] == 403):
+                results.error = response['error']
+            elif (response['response_code'] == 204):
                 results.status = self.VirusTotalResult.ERROR
-                results.error = response['results']['verbose_msg']
+                results.error = "Public API request rate limit exceeded"
+            elif (response['response_code'] == 403):
+                results.status = self.VirusTotalResult.ERROR
+                results.error = "Access forbidden (wrong key value or type)"
             elif (response['response_code'] == 200) and \
                  (response['results']['response_code'] != 1):
                 results.status = self.VirusTotalResult.NOT_FOUND
