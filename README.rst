@@ -24,7 +24,7 @@ Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ r
 
 .. code-block:: bash
 
-	$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already installed it
+	$ ansible-galaxy install -r galaxy.yml # --force if you’ve already installed it
 
 
 Testing IRMA, the easiest way
