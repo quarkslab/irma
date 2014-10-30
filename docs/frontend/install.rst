@@ -1,87 +1,19 @@
 Installation
 ------------
 
+Currently, a quick install through vagrant and ansible scripts is supported.
+It is the recommended way to proceed but if you want to go more into the details,
+here is the manual install guide.
+
+
 The **Frontend** must be installed on a GNU/Linux system. With some efforts, it
 should be possible to run it on a Microsoft Windows system, but this has not
 been tested yet.
 
-Through Packages
-````````````````
-
-Currently, a quick install through package is supported for Debian
-Stable distributions. For other distributions or systems, please refer to
-:ref:`install-source`.
-
-Debian Stable
-*************
-
-First, add Quarklab's Debian repository to your APT repositories:
-
-1. Add Quarkslab public GPG key:
-
-.. code-block:: bash
-
-    $ wget -O - http://www.quarkslab.com/qb-apt-key.asc | sudo apt-key add  -
-
-.. note:: Checking Package Authenticity
-
-    You can check the fingerprint of the key before trusting it to install new
-    packages. Here is the fingerprint of Quarkslab's GPG public key:
-
-    .. code-block:: bash
-
-        $ sudo apt-key fingerprint
-        [...]
-        pub   4096R/143E8417 2014-06-26 [expires: 2019-06-25]
-              Key fingerprint = B5CA 3608 A8E7 4A67 10DC  9343 E197 7836 143E 8417
-        uid                  Debian Quarkslab APT archive <apt@quarkslab.com>
-
-
-2. Add Quarkslab's repository as source
-
-* for *Debian Stable*:
-
-.. code-block:: bash
-
-    $ echo 'deb http://apt.quarkslab.com/pub/debian stable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
-
-* for *Debian Unstable*:
-
-.. code-block:: bash
-
-    $ echo 'deb http://apt.quarkslab.com/pub/debian-unstable unstable main' | sudo tee /etc/apt/sources.list.d/quarkslab.list
-
-
-3. Update your APT cache
-
-.. code-block:: bash
-
-    $ sudo apt-get update
-
-Then, install the meta-package ``irma-frontend``. This meta-package installs and
-configures the python application (``irma-frontend-app``) which include the celery
-worker and the restful API, the web server nginx (``irma-frontend-nginx``) and
-the uwsgi application server (``irma-frontend-uwsgi``) , mongdb, and some
-optional dependencies (``irma-frontend-rsyslog`` and ``irma-frontend-logrotate``).
-By default, the python application will be installed in ``/opt/irma/irma-frontend/``.
-
-.. code-block:: bash
-
-    $ sudo apt-get install irma-frontend
-
-At this point, the python-based application for the **Frontend** is installed
-with its default configuration. See :ref:`app-configuration` to adapt the
-default configuration to your settings.
-
-.. _install-source:
-
-Installation from source
-````````````````````````
-
 This section describes how to get the source code of the application and to
 install it.
 
-Downloading the source code from `github.com <https://github.com/quarkslab/irma-frontend>`_
+Downloading the source code from github
 *******************************************************************************************
 
 The source code is hosted on github.com. One can fetch an up-to-date version
@@ -139,7 +71,7 @@ directory.  The created archive will be used to install the application.
 
     $ make source
     $ ls dist/
-    irma-frontend-app-1.0.4.tar.gz
+    irma-frontend-app-1.1.0.tar.gz
 
 .. note:: Required tools to build the source distribution
 
@@ -163,8 +95,8 @@ Prerequisites
 We assume that you have a command line interface on your system with
 the following tools installed:
 
-* python 2.7.x 
-* python-pip (see `Install pip <https://pip.pypa.io/en/latest/installing.html>`_ 
+* python 2.7.x
+* python-pip (see `Install pip <https://pip.pypa.io/en/latest/installing.html>`_
   for the recommended way to install pip package manager)
 
 Furthermore, we assume that you have created an user ``irma`` that will be used
@@ -184,7 +116,7 @@ installed in ``/opt/irma/irma-frontend`` directory.
 
 .. code-block:: bash
 
-    $ pip install --install-option="--install-base=/opt/irma/irma-frontend" irma-frontend-app-1.0.4.tar.gz
+    $ pip install --install-option="--install-base=/opt/irma/irma-frontend" irma-frontend-app-1.1.0.tar.gz
     [...]
 
 Since the way we packaged the python application does not support

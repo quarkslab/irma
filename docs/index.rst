@@ -12,7 +12,8 @@ Table of Contents
 
 .. toctree::
 
-   irma/index.rst
+   intro/index.rst
+   install/index.rst
    frontend/index.rst
    web/index.rst
    references/index.rst
@@ -56,3 +57,6 @@ Some screenshots of the irma user interface shipped with frontend package.
 
 .. image:: images/screenshots/webui/webui5.png
    :alt: Scan Details
+
+.. image:: images/screenshots/webui/webui6.png
+   :alt: Scan Details suite

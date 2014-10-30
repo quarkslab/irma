@@ -204,13 +204,17 @@ class configure(Command):
         configuration['mongodb']['host'] = '127.0.0.1'
         configuration['mongodb']['port'] = '27017'
         configuration['mongodb']['dbname'] = 'irma'
-        configuration['collections'] = OrderedDict()
-        configuration['collections']['scan_info'] = 'scan_info'
-        configuration['collections']['scan_results'] = 'scan_res'
-        configuration['collections']['scan_ref_results'] = 'scan_ref_res'
-        configuration['collections']['scan_files'] = 'scan_files'
-        configuration['collections']['scan_filedata'] = 'scan_filedata'
-        configuration['collections']['scan_file_fs'] = 'fs'
+        configuration['mongodb']['collections_prefix'] = 'irma'
+        configuration['sqldb'] = OrderedDict()
+        configuration['sqldb']['dbms'] = 'sqlite'
+        configuration['sqldb']['dialect'] = ''
+        configuration['sqldb']['username'] = ''
+        configuration['sqldb']['password'] = ''
+        configuration['sqldb']['host'] = ''
+        configuration['sqldb']['dbname'] = '/var/irma/db/frontend.db'
+        configuration['sqldb']['tables_prefix'] = 'irma'
+        configuration['samples_storage'] = OrderedDict()
+        configuration['samples_storage']['path'] = '/var/irma/samples/'
         configuration['broker_brain'] = OrderedDict()
         configuration['broker_brain']['host'] = 'brain.irma'
         configuration['broker_brain']['vhost'] = None
@@ -223,16 +227,12 @@ class configure(Command):
         configuration['broker_frontend']['username'] = None
         configuration['broker_frontend']['password'] = None
         configuration['broker_frontend']['queue'] = 'frontend'
-        configuration['backend_brain'] = OrderedDict()
-        configuration['backend_brain']['host'] = 'brain.irma'
-        configuration['backend_brain']['db'] = 0
         configuration['ftp_brain'] = OrderedDict()
         configuration['ftp_brain']['host'] = 'brain.irma'
         configuration['ftp_brain']['username'] = None
         configuration['ftp_brain']['password'] = None
         configuration['cron_frontend'] = OrderedDict()
-        configuration['cron_frontend']['clean_db_scan_info_max_age'] = 100
-        configuration['cron_frontend']['clean_db_scan_file_max_age'] = 2
+        configuration['cron_frontend']['clean_db_file_max_age'] = 2
         configuration['cron_frontend']['clean_db_cron_hour'] = 0
         configuration['cron_frontend']['clean_db_cron_minute'] = 0
         configuration['cron_frontend']['clean_db_cron_day_of_week'] = '*'
@@ -262,13 +262,17 @@ needed by the application. To abort the configuration, press CTRL+D.
         configuration['log']['syslog'] = \
             int(ask('Do you want to enable syslog logging? (experimental)',
                     answer_type=bool, default=configuration['log']['syslog']))
-        # mongo configration
+        # mongo configuration
         configuration['mongodb']['host'] = \
             ask('What is the hostname of your mongodb server?',
                 answer_type=str, default=configuration['mongodb']['host'])
         configuration['mongodb']['port'] = \
             ask('What is the port used by your mongodb server?',
                 answer_type=int, default=configuration['mongodb']['port'])
+        # samples storage configuration
+        configuration['samples_storage']['path'] = \
+            ask('What is the sample storage path?',
+                answer_type=str, default=configuration['samples_storage']['path'])
         # broker configration
         configuration['broker_brain']['host'] = \
             ask('What is the hostname of your RabbitMQ server?',
@@ -296,14 +300,6 @@ needed by the application. To abort the configuration, press CTRL+D.
         configuration['broker_frontend']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
                 answer_type=str)
-        # backend configuration
-        configuration['backend_brain']['host'] = \
-            ask('What is the hostname of your Redis server?',
-                answer_type=str,
-                default=configuration['backend_brain']['host'])
-        configuration['backend_brain']['db'] = \
-            ask('Which database id is used for brain on your Redis server?',
-                answer_type=int, default=configuration['backend_brain']['db'])
         # ftp brain configuration
         configuration['ftp_brain']['host'] = \
             ask('What is the hostname of your FTPs server?',

@@ -12,21 +12,21 @@ On GNU/Linux:
 
 .. code-block:: bash
 
-    $ celery worker --app=frontend.tasks:app
-     
+    $ celery worker --app=frontend.tasks:frontend_app
+
      -------------- celery@frontend v3.1.13 (Cipater)
-    ---- **** ----- 
+    ---- **** -----
     --- * ***  * -- Linux-3.2.0-4-amd64-x86_64-with-debian-7.6
-    -- * - **** --- 
+    -- * - **** ---
     - ** ---------- [config]
     - ** ---------- .> app:         frontend.tasks:0x1e18750
     - ** ---------- .> transport:   amqp://probe:**@brain:5672/mqfrontend
-    - ** ---------- .> results:     redis://brain:6379/1
+    - ** ---------- .> results:     disabled
     - *** --- * --- .> concurrency: 1 (prefork)
-    -- ******* ---- 
+    -- ******* ----
     --- ***** ----- [queues]
      -------------- .> brain            exchange=celery(direct) key=brain
-    
+
     [2014-08-20 15:28:58,745: WARNING/MainProcess] celery@frontend ready.
 
 If your Celery worker does not output something similar to the above output,
@@ -64,7 +64,7 @@ whether the configured account is valid. On Debian, this can be done with the
     230 OK. Current directory is /
     Remote system type is UNIX.
     Using binary mode to transfer files.
-    ftp> 
+    ftp>
 
 Restful API
 ```````````
