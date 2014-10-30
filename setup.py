@@ -225,9 +225,6 @@ class configure(Command):
         configuration['broker_probe']['vhost'] = None
         configuration['broker_probe']['username'] = None
         configuration['broker_probe']['password'] = None
-        configuration['backend_probe'] = OrderedDict()
-        configuration['backend_probe']['host'] = 'brain.irma'
-        configuration['backend_probe']['db'] = 1
         configuration['ftp_brain'] = OrderedDict()
         configuration['ftp_brain']['host'] = 'brain.irma'
         configuration['ftp_brain']['username'] = None
@@ -276,14 +273,6 @@ needed by the application. To abort the configuration, press CTRL+D.
         configuration['broker_probe']['password'] = \
             ask('What is the password for this vhost on your RabbitMQ server?',
                 answer_type=str)
-        # backend_probe configuration
-        configuration['backend_probe']['host'] = \
-            ask('What is the hostname of your Redis server?',
-                answer_type=str,
-                default=configuration['backend_probe']['host'])
-        configuration['backend_probe']['db'] = \
-            ask('Which database id is used for probes on your Redis server?',
-                answer_type=int, default=configuration['backend_probe']['db'])
         # ftp brain configuration
         configuration['ftp_brain']['host'] = \
             ask('What is the hostname of your FTPs server?',

@@ -1,5 +1,5 @@
-IRMA Probe
-==========
+Probe - Manual Install
+======================
 
 The **Probes** are python-based application that host a single or multiple
 analyzers. Each analyzer listens on a specific work queue and waits for an
