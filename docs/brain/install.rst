@@ -60,9 +60,7 @@ First, add Quarklab's Debian repository to your APT repositories:
 
 Then, install the meta-package ``irma-brain``. This meta-package installs and
 configure the python application is used to manage analysis requests and
-results (``irma-brain-app``), configures a Redis (``irma-brain-redis``), a
-RabbitMQ (``irma-brain-rabbitmq``) and a FTP server (``irma-brain-ftpd``), and 
-some optionnal dependencies (``irma-brain-rsyslog`` and ``irma-brain-logrotate``).
+results (``irma-brain-app``), a RabbitMQ (``irma-brain-rabbitmq``) and a FTP server (``irma-brain-ftpd``), and some optionnal dependencies (``irma-brain-rsyslog`` and ``irma-brain-logrotate``).
 By default, the python application will be installed in ``/opt/irma/irma-brain/``.
 
 .. code-block:: bash
