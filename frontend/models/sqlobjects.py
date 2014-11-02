@@ -530,8 +530,8 @@ class FileWeb(Base, SQLDatabaseObject):
     @classmethod
     def query_find_by_name(cls, name, strict, session):
         query = session.query(FileWeb)\
-            .join(File)\
-            .group_by(File.id)
+            .distinct(FileWeb.id_file)\
+            .join(File)
 
         if strict:
             query = query.filter(FileWeb.name == name)
@@ -543,8 +543,8 @@ class FileWeb(Base, SQLDatabaseObject):
     @classmethod
     def query_find_by_hash(cls, hash_type, hash_value, session):
         query = session.query(FileWeb)\
-            .join(File)\
-            .group_by(FileWeb.name)
+            .distinct(FileWeb.name)\
+            .join(File)
 
         query = query.filter(getattr(File, hash_type) == hash_value)
 
