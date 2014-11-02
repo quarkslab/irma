@@ -721,4 +721,4 @@ class ScanEvents(Base, SQLDatabaseObject):
         self.scan = scan
 
 
-Base.metadata.create_all(SQLDatabase.get_engine())
+Base.metadata.create_all(SQLDatabase.get_engine(), checkfirst=True)
