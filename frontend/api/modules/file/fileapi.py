@@ -166,8 +166,9 @@ class FileApi(WebApi):
             h_value = request.query.hash or None
             # Options query
             strict = request.query.strict.lower() == 'true'
-            page = int(request.query.page) or 1
-            per_page = int(request.query.per_page) or 25
+            page = int(request.query.page) if request.query.page else 1
+            per_page = int(request.query.per_page) if request.query.per_page\
+                else 25
 
             if name is not None:
                 base_query = file_ctrl.query_find_by_name(name, strict)
