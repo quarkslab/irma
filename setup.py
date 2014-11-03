@@ -272,7 +272,8 @@ needed by the application. To abort the configuration, press CTRL+D.
         # samples storage configuration
         configuration['samples_storage']['path'] = \
             ask('What is the sample storage path?',
-                answer_type=str, default=configuration['samples_storage']['path'])
+                answer_type=str,
+                default=configuration['samples_storage']['path'])
         # broker configration
         configuration['broker_brain']['host'] = \
             ask('What is the hostname of your RabbitMQ server?',

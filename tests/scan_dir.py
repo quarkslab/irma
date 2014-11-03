@@ -44,7 +44,7 @@ def handler(*_):
         try:
             scanner.cancel()
         except IrmaError as e:
-            print (str(e))
+            print(str(e))
     sys.exit(0)
 
 signal.signal(signal.SIGTERM, handler)
@@ -149,14 +149,14 @@ class Scanner(object):
 
 if __name__ == "__main__":
     if len(sys.argv) not in [2, 3]:
-        print ("IRMA directory scanner")
-        print ("Usage: {0} <directory name>".format(__file__) +
-               "<nb file per scan " +
-               "(default:5)>")
+        print("IRMA directory scanner")
+        print("Usage: {0} <directory name>".format(__file__) +
+              "<nb file per scan " +
+              "(default:5)>")
         sys.exit(0)
     directory = os.path.abspath(sys.argv[1])
     if not os.path.exists(directory):
-        print ("[!] directory to scan does not exits")
+        print("[!] directory to scan does not exits")
         sys.exit(-1)
     if len(sys.argv) == 3:
         nb_file_per_scan = sys.argv[2]

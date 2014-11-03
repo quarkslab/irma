@@ -446,7 +446,7 @@ def set_result(scanid, file_hash, probe, result):
             if file_hash == file_web.file.sha256:
                 fws.append(file_web)
         if len(fws) == 0:
-            print ("filename not found in scan")
+            print("filename not found in scan")
             return
 
         fws[0].file.timestamp_last_scan = compat.timestamp()
