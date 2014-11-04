@@ -52,7 +52,7 @@ frontend_deployment_configs:
 
 
 ## HTTPs
-frontend_openssl: False 
+frontend_openssl: False
 
 
 ## Users role
@@ -138,6 +138,10 @@ nginx_sites:
         include uwsgi_params;
         rewrite ^/_api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
+      }
+    - location /api-doc {
+        alias {{ frontend_install_dir }}/docs/api/swagger-ui/;
+        index index.html;
       }
     - location /docs/frontend/ {
         rewrite ^/docs/frontend/(.+) /$1 break;
