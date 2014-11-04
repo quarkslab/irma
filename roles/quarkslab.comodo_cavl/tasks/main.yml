@@ -26,3 +26,11 @@
 - shell: rm control.tar.gz data.tar.gz debian-binary
   args:
     chdir: /tmp/
+
+- name: ComodoCAVL | Download Update
+  command: wget -Nc -r -nd -l1 {{ comodo_cavl_update_url }}
+  args:
+    chdir: /tmp/
+
+- name: ComodoCAVL | Install Update
+  shell: mv /tmp/bases.cav /opt/COMODO/scanners
