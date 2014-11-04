@@ -1,0 +1,111 @@
+---
+
+apis:
+  - path: /scan/new
+    operations:
+      - method: GET
+        summary: Create a new scan
+        nickname: scanNew
+        type: ScanNewResponse
+
+  - path: /scan/add/{scanId}
+    operations:
+      - method: POST
+        summary: Find scan by ID
+        nickname: scanAddFile
+        type: ScanAddResponse
+        consumes: multipart/form-data
+        parameters:
+          - name: scanId
+            description: ID of scan
+            type: string
+            paramType: path
+            required: true
+          - name: file
+            description: The new file to add to the scan
+            type: file
+            paramType: form
+
+  - path: /scan/launch/{scanId}
+    operations:
+      - method: GET
+        summary: Launch specified scan
+        type: ScanLaunchResponse
+        nickname: scanLaunch
+        parameters:
+          - name: scanId
+            description: ID of scan
+            type: string
+            paramType: path
+            required: true
+
+  - path: /scan/cancel/{scanId}
+    operations:
+      - method: GET
+        summary: Cancel all remaining jobs for specified scan
+        nickname: scanCancel
+        type: ScanCancelResponse
+        parameters:
+          - name: scanId
+            description: ID of scan
+            type: string
+            paramType: path
+            required: true
+
+  - path: /scan/finished/{scanId}
+    operations:
+      - method: GET
+        summary: Inform if a specified scan is finished
+        nickname: scanIsFinished
+        type: ScanIsFinishedResponse
+        parameters:
+          - name: scanId
+            description: ID of scan
+            type: string
+            paramType: path
+            required: true
+
+  - path: /scan/info/{scanId}
+    operations:
+      - method: GET
+        summary: Return all infos about a specified scan
+        nickname: scanInfos
+        type: ScanInfosResponse
+        parameters:
+          - name: scanId
+            description: ID of scan
+            type: string
+            paramType: path
+            required: true
+
+  - path: /scan/{scanId}/results
+    operations:
+      - method: GET
+        summary: Return all infos about a specified scan
+        nickname: scanResults
+        type: ScanResultsResponse
+        parameters:
+          - name: scanId
+            description: ID of scan
+            type: string
+            paramType: path
+            required: true
+
+  - path: /scan/{scanId}/results/{fileIdx}
+    operations:
+      - method: GET
+        summary: Return all infos about a fine from a specified scan
+        nickname: scanFileResult
+        type: ScanFileResultInfosResponse
+        parameters:
+          - name: scanId
+            description: ID of scan
+            type: string
+            paramType: path
+            required: true
+          - name: fileIdx
+            description: ID of the file result
+            type: integer
+            format: int64
+            paramType: path
+            required: true
