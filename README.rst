@@ -42,7 +42,7 @@ Requirements
 Setup
 `````
 
-simply run in the `Vagrantfile` directory:
+Simply run in the `Vagrantfile` directory:
 
 .. code-block:: bash
 
@@ -53,15 +53,7 @@ Vagrant will launch a VM and install IRMA on it. It can take a while
 (from 15 to 30 min) depending on the amount of RAM you have on your computer
 and the hard disk drive I/O speed.
 
-Then, for proper use, update your `/etc/hosts` file and add:
-
-
-.. code-block:: bash
-
-	172.16.1.30    www.frontend.irma
-
-
-IRMA allinone interface is available at `www.frontend.irma <http://www.frontend.irma>`_.
+IRMA allinone interface is available at `http://172.16.1.30 <http://172.16.1.30>`_.
 
 
 Useful commands
