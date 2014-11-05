@@ -32,7 +32,6 @@
     ScanModel.prototype = {
       setState: setState,
       hasFiles: hasFiles,
-      buildProbes: buildProbes,
       getPopover: getPopover,
       startUpload: startUpload,
       cancelUpload: cancelUpload,
@@ -43,9 +42,7 @@
       updateScan: updateScan,
       setProgress: setProgress,
       getResults: getResults,
-      getResult: getResult,
-      populateResults: populateResults,
-      buildAntivirus: buildAntivirus
+      getResult: getResult
     };
 
     return ScanModel;
@@ -57,27 +54,6 @@
 
     function hasFiles() {
       return this.uploader.queue.length > 0;
-    }
-
-    function buildProbes(data) {
-      var base = {};
-
-      if(data){
-        var sample = data[_.keys(data)[0]].results;
-        for(var probe in sample){
-          if(sample.hasOwnProperty(probe)){
-            base[probe] = {result: '__loading__', name: probe, version: sample[probe].version, type: sample[probe].type};
-          }
-        }
-      } else {
-        _.forEach(this.state.probes, function(probe){
-          if(probe.active){
-            base[probe.name] = {result: '__loading__'};
-          }
-        });
-      }
-
-      this.base = base;
     }
 
     function getPopover(probe, results) {
@@ -112,7 +88,6 @@
      *  - Done:    Checks for errors, broadcasts the appropriate event
      */
     function startUpload() {
-      this.buildProbes();
       this.api.scan.getNewId().then(function(response){
         this.id = response.scan_id;
         var items = this.uploader.getNotUploadedItems();
@@ -166,6 +141,7 @@
           this.results = data.scan_results.files;
 
           if (data.scan_results.status !== 50) {
+            this.status = constants.scanStatusCodes.RUNNING;
             this.task = $timeout(this.updateScan.bind(this), constants.refresh);
           } else {
             $log.info('Scan was successful');
@@ -192,7 +168,7 @@
       $log.info('Updating results');
 
       return this.api.scan.getResults(this).then(function(data) {
-        this.results = data.scan_results; //this.populateResults(data.scan_results);
+        this.results = data.scan_results;
       }.bind(this), function(data) {
         $rootScope.$broadcast('errorResults', data);
       }.bind(this));
@@ -202,43 +178,6 @@
       $log.info('Retrieve file result ' + resultid);
 
       return api.scan.getResult(this, resultid);
-    }
-
-    function populateResults(data) {
-      if(!this.base){
-        this.buildProbes(data);
-      }
-
-      for(var fileId in data){
-        if(data.hasOwnProperty(fileId)){
-          data[fileId].results = _.extend({}, this.base, data[fileId].results);
-        }
-      }
-      return data;
-    }
-
-    function buildAntivirus() {
-      this.antivirus = {};
-      this.antivirusProbes = {};
-      _.forOwn(this.results, function(fileData, fileId){
-        _.forOwn(fileData.results, function(probeData, probeName){
-          if(probeData.type === 'antivirus'){
-            this.antivirusProbes[probeName] = _.pick(probeData, ['name', 'type', 'version']);
-          }
-        }, this);
-      }.bind(this), this);
-
-      _.forOwn(this.results, function(fileData, fileId){
-        this.antivirus[fileId] = _.omit(fileData, 'results');
-        this.antivirus[fileId].results = {};
-        _.forOwn(this.antivirusProbes, function(probeData, probeName){
-          if(_.has(fileData.results, probeName) && fileData.results[probeName].result !== '__loading__'){
-            this.antivirus[fileId].results[probeName] = fileData.results[probeName];
-          } else {
-            this.antivirus[fileId].results[probeName] = {status: 'loading'};
-          }
-        }, this);
-      }, this);
     }
   }
 }) ();

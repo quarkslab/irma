@@ -10,7 +10,6 @@
   function Scan($scope, $routeParams, $location, state, constants) {
     var vm = this;
     vm.scanStatusCodes = constants.scanStatusCodes;
-    vm.scanUrl = $location.path();
     vm.cancel = cancel;
     vm.newScan = newScan;
 

@@ -5978,61 +5978,38 @@ h1 {
   background-color: #333;
   border-color: #fff;
 }
-.file-display {
-  margin-bottom: 35px;
-}
-.file-display h3 {
-  margin: 0px;
-  padding-left: 250px;
-  font-family: 'Raleway', sans-serif;
-}
-.file-display .results {
-  padding-top: 5px;
-  margin-top: 5px;
-}
-.file-display .probe {
-  text-align: right;
-  font-weight: bold;
-  text-transform: capitalize;
-  font-family: 'Raleway', sans-serif;
-}
-.file-display .version {
-  color: #aaa;
-  font-size: 0.8em;
-}
-.file-display .virus {
-  color: #d9534f;
-}
-.many-results {
-  table-layout: fixed;
-  margin-top: 80px;
-}
-.many-results .first-col {
-  width: 360px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.many-results .probe-name {
-  -webkit-transform: rotate(-45deg);
-  -ms-transform: rotate(-45deg);
-  transform: rotate(-45deg);
-  position: relative;
-  bottom: 35px;
-  text-align: center;
-}
 .result-section h2 {
   margin: 60px 0 20px;
   border-bottom: 1px solid #eee;
   padding-bottom: 9px;
   font-weight: bold;
 }
-.scan .progress {
-  width: 700px;
-  margin: 5px auto 20px;
+.scan #result-table {
+  margin-top: 20px;
 }
-.scan .progress .progress-bar {
-  background-color: #333;
+.scan #scan-infos .label {
+  font-size: 100%;
+}
+.scan .progress-wrapper {
+  font-size: 30px;
+  margin: auto;
+  position: relative;
+  text-align: center;
+}
+.scan .progress-wrapper .progress-rounded-text {
+  font-size: 1em;
+  font-weight: 500;
+  line-height: 3em;
+  color: #777777;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  text-align: center;
+  margin-top: 50px;
+}
+.scan .form-control[readonly] {
+  cursor: text;
+  background-color: white;
 }
 .upload .progress {
   width: 700px;

@@ -1,48 +1,69 @@
 <div class="scan">
-  <div class="row text-center scan-progress">
-    <h2>
-      Scan status:
-      <span ng-switch on="state.scan.status">
-        <span ng-switch-when="1" class="label label-info">Running</span>
-        <span ng-switch-when="2" class="label label-success">Finished</span>
-        <span ng-switch-default class="label  label-default">Started</span>
-      </span>
-    </h2>
+    <div class="row">
+        <div class="col-md-3 col-md-offset-1">
+            <div class="progress-wrapper">
+                <div class="progress-rounded-text">{{ state.scan.scanProgress.progress | number:0 }}%</div>
+                <div
+                     round-progress
+                     max="100"
+                     current="state.scan.scanProgress.progress"
+                     color="#45ccce"
+                     bgcolor="#eaeaea"
+                     radius="75"
+                     semi="false"
+                     stroke="20">
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8" id="scan-infos">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Scan status:</label>
+                    <div class="col-sm-9 form-control-static">
+                        <span ng-switch on="state.scan.status">
+                            <span ng-switch-when="2" class="label label-success">Finished</span>
+                            <span ng-switch-when="1" class="label label-info">Running</span>
+                            <span ng-switch-default class="label  label-default">Stopped</span>
+                        </span>
+                    </div>
+                </div>
 
-    <p>You can share this report with the <a href="{{vm.scanUrl}}">url</a>, or with this id: <strong>{{state.scan.id}}</strong></p>
+                <div class="form-group">
+                    <label for="scan-id" class="col-sm-3 control-label">Scan Id:</label>
+                    <div class="col-sm-6">
+                        <input class="form-control" type="text" ng-model="state.scan.id" name="scan-id" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Tasks:</label>
+                    <div class="col-sm-9 form-control-static">
+                        {{state.scan.scanProgress.finished}} / {{state.scan.scanProgress.total}}
+                    </div>
+                </div>
 
-    <div class="col-md-2 col-md-offset-3"><strong>Total : </strong> {{state.scan.scanProgress.total}}</div>
-    <div class="col-md-2"><strong>Successful : </strong> {{state.scan.scanProgress.successful}}</div>
-    <div class="col-md-2"><strong>Finished : </strong> {{state.scan.scanProgress.finished}}</div>
-
-    <div class="progress">
-      <div class="progress-bar" role="progressbar" aria-valuenow="{{state.scan.scanProgress.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{state.scan.scanProgress.progress}}%;">
-        <span class="sr-only">{{state.scan.scanProgress.progress}}% Complete</span>
-      </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">&nbsp;</label>
+                    <div class="col-sm-9">
+                        <button type="button" class="btn btn-warning" ng-disabled="state.scan.status == vm.scanStatusCodes.FINISHED" ng-click="vm.cancel()">Cancel</button>
+                        <button type="button" class="btn btn-success" ng-click="vm.newScan()">New Scan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <p>
-      <button class="action btn btn-lg btn-warning" ng-disabled="state.scan.status == vm.scanStatusCodes.FINISHED" ng-click="vm.cancel()">Cancel</button>
-      <button class="action btn btn-lg btn-success" ng-click="vm.newScan()">New Scan</button>
-    </p>
-  </div>
-
-  <table class="table many-results text-center">
-    <thead>
-      <tr>
-        <th class="first-col">&nbsp;</th>
-        <th><div class="probe-name">Results</div></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="infos in state.scan.results">
-        <td>
-          <a href="/scan/{{state.scan.id}}/file/{{infos.scan_file_idx}}">{{infos.filename}}</a>
-        </td>
-        <td>
-          <span class="label" ng-class="(infos.status == 0) ? 'label-success' : 'label-danger'">{{infos.probe_finished}} / {{infos.probe_total}}</span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+    <div class="col-md-10 col-md-offset-1">
+        <table class="table table-condensed table-hover" id="result-table">
+            <tbody>
+                <tr ng-repeat="infos in state.scan.results">
+                    <td>
+                        <a href="/scan/{{state.scan.id}}/file/{{infos.scan_file_idx}}">{{infos.filename}}</a>
+                    </td>
+                    <td>
+                        <span class="label" ng-class="(infos.status == 0) ? 'label-success' : 'label-danger'">{{infos.probe_finished}} / {{infos.probe_total}}</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>

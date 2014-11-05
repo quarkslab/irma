@@ -10,7 +10,8 @@ angular.module('irma', [
   'gd.ui.jsonexplorer',
   'angular-capitalize-filter',
   'angularMoment',
-  'ngTable'
+  'ngTable',
+  'angular-svg-round-progress'
 ])
   .constant('constants', {
     fakeDelay: 0,
@@ -20,7 +21,7 @@ angular.module('irma', [
     forceScanDefault: true,
     scanStatusCodes: {
       STOPPED: 0,
-      STARTED: 1,
+      RUNNING: 1,
       FINISHED: 2
     }
   })

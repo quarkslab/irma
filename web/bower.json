@@ -23,7 +23,8 @@
     "angular-capitalize-filter": "~2.0.0",
     "moment": "~2.8.3",
     "angular-moment": "~0.8.2",
-    "ng-table": "~0.3.3"
+    "ng-table": "~0.3.3",
+    "angular-svg-round-progressbar": "master"
   },
   "devDependencies": {
     "angular-mocks": "~1.2.0",
