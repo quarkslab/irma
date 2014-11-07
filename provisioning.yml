@@ -18,7 +18,7 @@
     - { role: mivok0.users, tags: 'users' }
     - { role: quarkslab.irma_provisioning_common, tags: 'common' }
     - { role: franklinkim.sudo, tags: 'sudo' }
-    - { role: Ansibles.openssh, tags: 'openssh' }
+    - { role: ANXS.openssh, tags: 'openssh' }
 
 
 - name: Frontend provisioning

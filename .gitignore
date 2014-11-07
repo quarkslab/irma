@@ -1,7 +1,6 @@
 .vagrant/
 hosts
 vagrant_ansible_inventory_default
-roles/Ansibles.openssh/
 roles/franklinkim.sudo/
 roles/JasonGiedymin.nodejs/
 roles/jdauphant.nginx/
@@ -9,6 +8,7 @@ roles/Mayeu.RabbitMQ/
 roles/mivok0.users/
 roles/Stouts.mongodb/
 roles/ANXS.postgresql/
+roles/ANXS.openssh/
 files/*
 !files/.gitkeep
 
