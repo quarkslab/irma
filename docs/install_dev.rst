@@ -88,19 +88,11 @@ provision Vagrant command only for one VM:
 The provisioning and deployment will apply to all of your VMs.
 
 
-5. Modify your host and open IRMA frontend
-------------------------------------------
-
-Then, for proper use, update your `/etc/hosts` file and add:
-
-
-.. code-block:: bash
-
-	172.16.1.30    www.frontend.irma
-
+5. Access to the IRMA interface
+-------------------------------
 
 Then, with your web browser, IRMA allinone is available at
-`www.frontend.irma <http://www.frontend.irma>`_.
+`http://172.16.1.30 <http://172.16.1.30>`_.
 
 
 6. Sync files between host and guest

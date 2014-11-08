@@ -178,11 +178,6 @@ nginx_configs:
     - server_names_hash_bucket_size 64
 
 nginx_sites:
-  itsatrap:
-    - server_name {{ ansible_eth1.ipv4.address }}
-    - listen 80
-    - root /usr/share/nginx/www/
-    - index index.html
   irma-frontend:
     - listen 80 default_server
     - listen [::]:80 default_server ipv6only=on
