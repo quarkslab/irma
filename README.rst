@@ -2,6 +2,7 @@ IRMA Ansible Provisioning
 =========================
 
 .. image:: https://travis-ci.org/quarkslab/irma-ansible.svg?branch=master
+    :target: https://travis-ci.org/quarkslab/irma-ansible
 
 
 IRMA platform is easily installed thanks to a set of `ansible <http://www.ansible.com>`_ roles and playbooks. It will allow you to build, install or maintain different setups.
