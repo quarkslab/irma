@@ -65,9 +65,9 @@ rabbitmq_conf_tcp_listeners_address: 0.0.0.0
 rabbitmq_conf_tcp_listeners_port: 5672
 
 rabbitmq_vhost_definitions:
-  - "{{irma_configurations.rabbitmq.brain.vhost}}"
-  - "{{irma_configurations.rabbitmq.frontend.vhost}}"
-  - "{{irma_configurations.rabbitmq.probe.vhost}}"
+  - name: "{{irma_configurations.rabbitmq.brain.vhost}}"
+  - name: "{{irma_configurations.rabbitmq.frontend.vhost}}"
+  - name: "{{irma_configurations.rabbitmq.probe.vhost}}"
 
 rabbitmq_users_definitions:
   - vhost: "{{irma_configurations.rabbitmq.brain.vhost}}"
