@@ -9,4 +9,4 @@ install:
     - ansible-galaxy install -r galaxy.txt -p roles/
     - printf 'travis-standalone ansible_ssh_host=localhost' > inventory
 script:
-    - ansible-playbook -i inventory playbook.yml --syntax-check
+    - ansible-playbook -i inventory playbooks/playbook.yml --syntax-check

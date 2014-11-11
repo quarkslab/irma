@@ -6,7 +6,7 @@ Enable SSL using OpenSSL
 
 If you want to activate SSL on the frontend server, you’ll need:
 
-- modify frontend_openssl variables in `group_vars/frontend`:
+- modify frontend_openssl variables in `playbooks/group_vars/frontend`:
 
 
 .. code-block:: bash
@@ -17,7 +17,7 @@ If you want to activate SSL on the frontend server, you’ll need:
                                     # to copy to the server
 
 - Uncomment (and customize) the `nginx_sites` variable in the
-  `group_vars/frontend`, a commented example is available.
+  `playbooks/group_vars/frontend`, a commented example is available.
 
 Then, provision or re-provision your infrastructure. Ansible will only change
 file related to OpenSSL and Nginx configurations.

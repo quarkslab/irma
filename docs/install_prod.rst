@@ -29,18 +29,18 @@ created. For speed up provisioning, you can:
 
 .. code-block:: bash
 
-	  user ALL=(ALL) NOPASSWD: ALL
+	user ALL=(ALL) NOPASSWD: ALL
 
 
 2. Configure you installation
 -----------------------------
 
-Modify settings in `group_vars/*` especially the `default_ssh_keys:` section,
+Modify settings in `playbooks/group_vars/*` especially the `default_ssh_keys:` section,
 you’ll need to add private keys from user for password-less connection to the
 default irma server user. *Be careful, you’ll need to change all passwords
 from this configuration files (`password` variables for most of them).*
 
-You’ll need to custom the `hosts` file and adapt it with you own server
+You’ll need to custom the `hosts/example` file and adapt it with you own server
 infrastructure. There is three sections, one for each server role (frontend,
 brain, probe).
 
@@ -52,7 +52,7 @@ To run the whole thing:
 
 .. code-block:: bash
 
-	$ ansible-playbook -i ./hosts playbook.yml -u <your_sudo_username> -K
+	$ ansible-playbook -i ./hosts/example playbooks/playbook.yml -u <your_sudo_username> -K
 
 Ansible will ask you the sudo password (`-K` option),
 
@@ -79,11 +79,11 @@ it, you’ll need to run the deployment script:
 
 .. code-block:: bash
 
-	$ ansible-playbook -i ./hosts deployment.yml -u irma
+	$ ansible-playbook -i ./hosts/example playbooks/deployment.yml -u irma
 
 
 /!\ Replace `irma` with the default user if you’ve change it in the
-`group_vars/all` file.
+`playbooks/group_vars/all` file.
 
 
 6. Access to your IRMA installation
