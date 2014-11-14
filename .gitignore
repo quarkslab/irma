@@ -4,7 +4,6 @@ vagrant_ansible_inventory_default
 roles/franklinkim.sudo/
 roles/JasonGiedymin.nodejs/
 roles/jdauphant.nginx/
-roles/Mayeu.RabbitMQ/
 roles/mivok0.users/
 roles/Stouts.mongodb/
 roles/ANXS.postgresql/
