@@ -55,7 +55,7 @@ Vagrant.configure("2") do |config|
 
   if ansible_config
     config.vm.provision :ansible do |ansible|
-      ansible.playbook = 'playbook.yml'
+      ansible.playbook = 'playbooks/playbook.yml'
       ansible.extra_vars = ansible_config['extra_vars']
       ansible.groups = ansible_config['groups']
       ansible.limit = 'all'

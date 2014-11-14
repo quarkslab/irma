@@ -33,12 +33,12 @@ the following directory layout:
 .. code-block:: bash
 
 	# all in the same directory
- 	|
- 	+--- irma-frontend
- 	+--- irma-probe
- 	+--- irma-brain
- 	[...]
- 	+--- irma-ansible
+	|
+	+--- irma-frontend
+	+--- irma-probe
+	+--- irma-brain
+	[...]
+	+--- irma-ansible
 
 
 Note: This directory layout can be modified, see `share_*` from
@@ -67,8 +67,8 @@ directory and run:
 and password used in (frontend|brain|probe) config files.
 
 As your `config/*.ini` file are transferring from host to VMs, you’ll need
-locally to modify it (frontend, probe, brain) to match `group_vars/*` user and
-password.
+locally to modify it (frontend, probe, brain) to match `playbooks/group_vars/*`
+user and password.
 
 In next release of this playbook, there’ll be more convenient way to automate
 configuration generation.
@@ -98,7 +98,8 @@ Then, with your web browser, IRMA allinone is available at
 6. Sync files between host and guest
 ------------------------------------
 
-Once rsync is installed inside your virtual machine and your environment is correctly set. You could easily sync your code with:
+Once rsync is installed inside your virtual machine and your environment is
+correctly set. You could easily sync your code with:
 
 .. code-block:: bash
 

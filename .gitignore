@@ -1,5 +1,5 @@
 .vagrant/
-hosts
+hosts/*
 vagrant_ansible_inventory_default
 roles/franklinkim.sudo/
 roles/JasonGiedymin.nodejs/
