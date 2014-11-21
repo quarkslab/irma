@@ -62,7 +62,17 @@ class GData(Antivirus):
 
     def get_database(self):
         """return list of files in the database"""
-        return None
+        search_paths = map(lambda x:
+                            "{path}/G Data/ISDB".format(path=x),
+                            [os.environ.get('PROGRAMDATA', '')])
+        database_patterns = [
+            '*.isdb'
+        ]
+        results = []
+        for pattern in database_patterns:
+            result = self.locate(pattern, search_paths, syspath=False)
+            results.extend(result)
+        return results if results else None
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
