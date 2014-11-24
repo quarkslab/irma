@@ -4,16 +4,18 @@ IRMA: Incident Response & Malware Analysis
 
 IRMA is an asynchronous & customizable analysis system for suspicious files.
 
-This guide will explain how to set up IRMA Brain, use it and customize it at
-your will.
+This guide will explain how to set up IRMA's frontend, use it and customize
+it at will.
 
 Table of Contents
 =================
 
 .. toctree::
 
-   irma/index.rst
-   brain/index.rst
+   intro/index.rst
+   install/index.rst
+   frontend/index.rst
+   web/index.rst
    references/index.rst
    irma/faq.rst
 
@@ -55,3 +57,6 @@ Some screenshots of the irma user interface shipped with frontend package.
 
 .. image:: images/screenshots/webui/webui5.png
    :alt: Scan Details
+
+.. image:: images/screenshots/webui/webui6.png
+   :alt: Scan Details suite
