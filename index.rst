@@ -17,7 +17,7 @@ Table of Contents
    frontend/index.rst
    web/index.rst
    references/index.rst
-   irma/faq.rst
+   intro/faq.rst
 
 Resources
 =========
