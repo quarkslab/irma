@@ -4,7 +4,7 @@ IRMA: Incident Response & Malware Analysis
 
 IRMA is an asynchronous & customizable analysis system for suspicious files.
 
-This guide will explain how to set up IRMA's frontend, use it and customize
+This guide will explain how to set up IRMA, use it and customize
 it at will.
 
 Table of Contents
