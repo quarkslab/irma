@@ -1,30 +1,34 @@
 Automatic Install
 =================
 
-IRMA platform is easily installed thanks to a set of `ansible <http://www.ansible.com>`_ roles and playbooks. It will allow you to build, install or maintain different setups.
+IRMA platform is easily installed thanks to a set of `ansible
+<http://www.ansible.com>`_ roles and playbooks. It will allow you to build,
+install or maintain different setups.
 
-- Get IRMA ansible scripts on github:
+First, get IRMA ansible scripts on github:
 
 .. code-block:: bash
 
 	$ git clone --recursive https://github.com/quarkslab/irma-ansible
 
-There are 3 different types of IRMA setup:
+There are 3 different IRMA setup available:
 
 - `Testing IRMA, the easiest way`_ (everything in one vm)
 - `Production environment`_ (install on physical servers)
-- `Development environment`_ (everything in one vm with sources rsync'd between host and vm)
+- `Development environment`_ (everything in one vm with sources rsync-ed between
+  host and vm)
 
-Common requirements
+Common Requirements
 -------------------
 
 - `Ansible <http://www.ansible.com>`_ 1.6 or higher;
 
-Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ repository. Installation has been made easy using:
+Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_
+repository. Installation has been made easy using:
 
 .. code-block:: bash
 
-	$ ansible-galaxy install -r galaxy.yml -p ./roles # --force if you’ve already installed it
+	$ ansible-galaxy install -r galaxy.yml # eventually, add '--force' to overwrite installed roles
 
 
 Testing IRMA, the easiest way
@@ -37,12 +41,13 @@ Requirements
 
 - `Vagrant <http://www.vagrantup.com/>`_ 1.5 or higher has to be installed
 - As the installation work only for `Virtualbox <https://www.virtualbox.org/>`_,
-  you’ll need to install it
+  you will need to install it
 
-1. Setup
-````````
+Setup
+`````
 
-simply run in the `Vagrantfile` directory:
+Run the following command in the directory containing the
+`Vagrantfile`:
 
 .. code-block:: bash
 
@@ -53,15 +58,7 @@ Vagrant will launch a VM and install IRMA on it. It can take a while
 (from 15 to 30 min) depending on the amount of RAM you have on your computer
 and the hard disk drive I/O speed.
 
-Then, for proper use, update your `/etc/hosts` file and add:
-
-
-.. code-block:: bash
-
-	172.16.1.30    www.frontend.irma
-
-
-IRMA allinone interface is available at `www.frontend.irma <http://www.frontend.irma>`_.
+IRMA allinone interface is available at `http://172.16.1.30 <http://172.16.1.30>`_.
 
 
 Production environment
