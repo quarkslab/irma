@@ -16,14 +16,14 @@ installed on a separate hosts or share the same host as far as they do not
 interfere with each other [#]_. So forth, only Debian Stable and Microsoft
 Windows 7 hosts have been tested.
 
-We can not give you any specific numbers. On one hand we managed to run the
+We cannot give you any specific numbers. On the one hand we managed to run the
 whole IRMA platform on a single machine by hosting it with multiple systems
 inside virtual machines: this setup gives fairly high throughput as long as
 it has reasonable IO (ideally, SSDs), and a good amount of memory (our setup
-was an i7 cpu with 16 GB ram on regular drives (at least 200 GB required),
-on the other hand, a lighter version of the system with the three parts together
-[#]_  was successfully installed on a single virtual machine (1 GB of Ram and
-4 virtual processors).
+was an i7 CPU with 16 GB RAM on regular drives (at least 200 GB required).
+On the other hand, a lighter version of the system with the three parts together
+[#]_  was successfully installed on a single virtual machine (1 GB of RAM and
+4 virtual CPUs).
 
 For a large company, in theory, given a single high-memory machine, with 16+ cores,
 and SSDs, you could run IRMA platform and bear the workload load with reasonable
@@ -38,4 +38,4 @@ response time.
        unique probe by preventing it to launch daemons at startup. This is
        difficult for Microsoft systems on which it is not recommended to
        install multiple anti-viruses on a single host.
-.. [#] with a limited set of probes
+.. [#] With a limited set of probes
