@@ -29,7 +29,7 @@ option:
 Building the source distribution
 ********************************
 
-We provide a Makefile that helps to build the python source distribution. By
+We provide a ``Makefile`` that helps to build the python source distribution. By
 default, the source distribution will be available in the ``dist/`` directory.
 The created archive will be used to install the application.
 
@@ -55,7 +55,7 @@ Installing the source distribution
 **********************************
 
 To be able to install the python source distribution, we assume that you have
-already install the following software on your system. The prerequisites are
+already installed the following software on your system. The prerequisites are
 recalled here.
 
 Prerequisites
