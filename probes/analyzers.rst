@@ -192,6 +192,14 @@ Symantec - Microsoft Windows
 The procedure to install a trial version of Symantec Endpoint Protection is
 particularly tedious. We will not document its installation.
 
+G Data - Microsoft Windows
+``````````````````````````
+
+A trial version of G Data is available on the `editor download page
+<https://www.gdata.de/kundenservice/downloads.html>`. It should be detected
+automatically if the anti-virus is installed in its default installation
+directory.
+
 VirusTotal - GNU/Linux or Microsoft Windows
 ```````````````````````````````````````````
 
@@ -334,3 +342,8 @@ On Microsoft Windows, you need cygwin to successfully install the requirements
 
     $ C:\Python27\Scripts\pip.exe install -r modules/metadata/pe_analyzer/requirements.txt
     [...]
+
+Yara - GNU/Linux or Microsoft Windows
+`````````````````````````````````````
+
+Please refer to ``modules/metadata/yara/README.md`` file for the documentation. 

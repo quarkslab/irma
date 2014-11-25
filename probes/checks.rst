@@ -41,7 +41,7 @@ On GNU/Linux:
 
 The equivalent command on Microsoft Windows is:
 
-.. code-block:: bash
+.. code-block:: none
 
     $ C:\Python27\Scripts\celery.exe worker --app=probe.tasks:app --workdir=C:\irma\irma-probe
     [...]

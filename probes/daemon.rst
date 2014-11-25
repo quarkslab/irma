@@ -22,7 +22,7 @@ Installing the service
 **********************
 
 First, copy the scripts in ``extras/init.d/`` and ``extras/default``
-respectively in ``/etc/init.d`` and ``/etc/defaults``.
+respectively in ``/etc/init.d`` and ``/etc/default``.
 
 .. code-block:: bash
 
