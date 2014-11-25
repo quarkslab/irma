@@ -29,7 +29,7 @@ We provide some template scripts to configure ``pure-ftpd`` in the
 
 .. code-block:: bash
 
-    $ sudo cp ../extras/pure-ftpd/conf/* /etc/pure-ftpd/conf/
+    $ sudo cp extras/pure-ftpd/conf/* /etc/pure-ftpd/conf/
     $ sudo ln -s /etc/pure-ftpd/conf/PureDB /etc/pure-ftpd/auth/50puredb
 
 Generate Certificate
@@ -53,7 +53,7 @@ provided script in ``extras/scripts/pure-ftpd/ftpd-adduser.sh``:
 
 .. code-block:: bash
 
-    $ sudo extras/scripts/pure-ftpd/ftpd-adduser.sh 
+    $ sh extras/scripts/pure-ftpd/ftpd-adduser.sh 
     Usage: sudo ftpd-adduser.sh <user> <virtualuser> <chroot home>
 
 The frontends need an account with ``/home/ftpuser/<frontend-name>`` as home

@@ -33,16 +33,16 @@ For GNU/Linux systems:
     > What is the hostname of your RabbitMQ server? [127.0.0.1]
     > What is the vhost defined for the brain on your RabbitMQ server? [mqbrain]
     > What is the username for this vhost on your RabbitMQ server? [brain]
-    > What is the password for this vhost on your RabbitMQ server? brain
+    > What is the password for this vhost on your RabbitMQ server? brain-rmq-password
     > What is the vhost defined for the probes on your RabbitMQ server? [mqprobe]
     > What is the username for this vhost on your RabbitMQ server? [probe]
-    > What is the password for this vhost on your RabbitMQ server? probe
+    > What is the password for this vhost on your RabbitMQ server? probe-rmq-password
     > What is the vhost defined for the frontend on your RabbitMQ server? [mqfrontend]
     > What is the username for this vhost on your RabbitMQ server? [frontend]
-    > What is the password for this vhost on your RabbitMQ server? frontend
+    > What is the password for this vhost on your RabbitMQ server? frontend-rmq-password
     > What is the hostname of your FTPs server? [127.0.0.1]
     > What is the username defined for the probes on your FTP server? probe
-    > What is the password defined for the probes on your FTP server? probe
+    > What is the password defined for the probes on your FTP server? probe-ftp-password
 
 When finished, one can note that the ``config/brain.ini`` file has been
 modified with values we typed.
