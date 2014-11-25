@@ -11,13 +11,12 @@ Table of Contents
 =================
 
 .. toctree::
+    :maxdepth: 3
 
    intro/index.rst
    install/index.rst
-   frontend/index.rst
-   web/index.rst
    references/index.rst
-   intro/faq.rst
+   faq/index.rst
 
 Resources
 =========

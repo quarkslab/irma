@@ -8,5 +8,5 @@ at the time of writing.
 
 .. toctree::
 
-   install.rst
-   manual-install.rst
+   automated/index.rst
+   manual/index.rst
