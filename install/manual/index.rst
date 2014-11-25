@@ -17,3 +17,4 @@ each component.
     ../../brain/index.rst
     ../../frontend/index.rst
     ../../web/index.rst
+    ../../probes/index.rst
