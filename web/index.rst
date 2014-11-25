@@ -10,8 +10,10 @@ Here are the few steps needed to get the interface up and running
 
 **1. Make sure you have node installed**
 
-Node is needed to fetch the dependencies (npm for the server side, bower for the client side), and to launch the task runner (gulp).
-You can get it from many ways, choose the one that suits you better on their website:  `nodeJs`_.
+Node is needed to fetch the dependencies (``npm`` for the server side,
+``bower`` for the client side), and to launch the task runner (``gulp``). You
+can get it from many ways, choose the one that suits you better on their
+website:  `nodeJs`_.
 
 
 **2. Install the development tools**
@@ -30,8 +32,9 @@ The rest of the dependencies can then be fetched with this command:
 
     $ npm install
 
-If everything went fine, ``bower`` and the ``webdriver-manager`` should launch their respective updates right after ``npm install`` is done.
-If not, here they are:
+If everything went fine, ``bower`` and the ``webdriver-manager`` should launch
+their respective updates right after ``npm install`` is done.  If not, here
+they are:
 
 .. code-block:: bash
 
@@ -42,9 +45,9 @@ If not, here they are:
 Usage
 ======
 
-------------
+-----
 Tests
-------------
+-----
 
 There are 3 steps that can check code integrity:
 
@@ -85,9 +88,9 @@ You can launch those 3 in sequence with the ``full`` task. You will need the sta
     $ gulp full
 
 
-------------
+-----
 Build
-------------
+-----
 
 To get a bundled and production ready version of the interface, use the ``dist`` task, which will build a ``dist`` directory.
 
