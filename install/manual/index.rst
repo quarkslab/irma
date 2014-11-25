@@ -14,5 +14,6 @@ each component.
 
 .. toctree::
 
+    ../../brain/index.rst
     ../../frontend/index.rst
     ../../web/index.rst
