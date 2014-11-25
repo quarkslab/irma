@@ -88,9 +88,9 @@ installed at the root of the ``C:\`` drive, namely in ``C:\irma\irma-probe``.
 Due to differences between Python for Windows and Python for Linux, the
 installation with pip can only be done with the following command:
 
-.. code-block:: bat
+.. code-block:: none
 
-    $ C:\Python27\Scripts\pip.exe install irma-probe-app-1.0.4.tar.gz --root="C:\irma\irma-probe" 
+    $ C:\Python27\Scripts\pip.exe install irma-probe-app-1.1.0.tar.gz --root="C:\irma\irma-probe" 
 
 However, this command puts the code source in ``C:\irma\irma-probe\Python27``
 instead of ``C:\irma\irma-probe``. To fix this, either install
@@ -102,7 +102,7 @@ code source you have just checked out from github.com in
 Since the way we packaged the python application does not support
 automatic installation of dependencies, we need to install them manually:
 
-.. code-block:: bat
+.. code-block:: none
 
     $ C:\Python27\Scripts\pip.exe install -r C:\irma\irma-probe\requirements.txt
     [...]
