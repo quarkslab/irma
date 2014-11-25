@@ -1,4 +1,4 @@
-.. _app-configuration:
+.. _frontend-app-configuration:
 
 Configuration
 -------------
@@ -31,14 +31,14 @@ For GNU/Linux systems:
     > What is the sample storage path? [/var/irma/samples/]
     > What is the hostname of your RabbitMQ server? [brain.irma]
     > What is the vhost defined for the brain on your RabbitMQ server? mqbrain
-    > What is the username for this vhost on your RabbitMQ server? brain
+    > What is the username for this vhost on your RabbitMQ server? brain-rmq-password
     > What is the password for this vhost on your RabbitMQ server? brain
     > What is the vhost defined for the frontend on your RabbitMQ server? mqfrontend
     > What is the username for this vhost on your RabbitMQ server? frontend
-    > What is the password for this vhost on your RabbitMQ server? frontend
+    > What is the password for this vhost on your RabbitMQ server? frontend-rmq-password
     > What is the hostname of your FTPs server? [brain.irma]
     > What is the username defined for the frontend on your FTP server? frontend
-    > What is the password defined for the frontend on your FTP server? frontend
+    > What is the password defined for the frontend on your FTP server? frontend-ftp-password
 
 When finished, one can note that the ``config/frontend.ini`` file has been
 modified with values we typed.
