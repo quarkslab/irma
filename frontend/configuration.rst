@@ -40,8 +40,8 @@ For GNU/Linux systems:
     > What is the username defined for the frontend on your FTP server? frontend
     > What is the password defined for the frontend on your FTP server? frontend
 
-    When finished, one can note that the ``config/frontend.ini`` file has been
-    modified with values we typed.
+When finished, one can note that the ``config/frontend.ini`` file has been
+modified with values we typed.
 
 .. note:: We recall in the following the meaning of each field in ``config/frontend.ini``:
 
@@ -58,7 +58,7 @@ For GNU/Linux systems:
      |  mongodb       +-------------+------------+----------------+---------------------------------------------------------+
      |                |    dbname   | ``string`` |    irma        | name of the database for IRMA                           |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                | collections_|            |                |                                                         |
+     |                |collections_ |            |                |                                                         |
      |                | prefix      | ``string`` |    irma        | prefix for mongodb collections                          |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |    dbms     | ``string`` |    sqlite      | dbapi engine                                            |
@@ -116,7 +116,7 @@ For GNU/Linux systems:
      |                |   password  | ``string`` |                | password used by this frontend on the FTP server        |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |clean_db_file| ``integer``|     2          | remove file after X days                                |
-     |                |_max_age     |            | (in days)      |                                                         |
+     |                |_max_age     |            |                |                                                         |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |clean_db_cron| ``integer``|     0          | cron hour settings                                      |
      |                |_hour        |            |                |                                                         |

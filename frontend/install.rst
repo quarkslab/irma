@@ -14,7 +14,7 @@ This section describes how to get the source code of the application and to
 install it.
 
 Downloading the source code from github
-*******************************************************************************************
+***************************************
 
 The source code is hosted on github.com. One can fetch an up-to-date version
 with the following commands. Let us note that there is a common submodule named
@@ -51,7 +51,7 @@ directory:
 
 .. code-block:: bash
 
-    $ cd web
+    $ cd irma-frontend/web
     $ npm install
     $ node_modules/.bin/bower install
     $ node_modules/.bin/gulp dist
@@ -86,7 +86,7 @@ Installing the source distribution
 **********************************
 
 To be able to install the python source distribution, we assume that you have
-already install the following software on your system. The prerequisites are
+already installed the following software on your system. The prerequisites are
 recalled here.
 
 Prerequisites

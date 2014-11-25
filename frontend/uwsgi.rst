@@ -36,7 +36,7 @@ The template is configured for a default installation of the frontend in
 particular, please ensure that the ``<chdir>`` tag points to your installation
 directory.
 
-.. literalinclude:: ../../extras/uwsgi/frontend-api.xml
+.. literalinclude:: frontend-api.xml
 
 Activate the application
 ````````````````````````
