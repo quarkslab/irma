@@ -51,7 +51,7 @@ Installing the source distribution
 **********************************
 
 To be able to install the python source distribution, we assume that you have
-already install the following software on your system. The pre-requisites are
+already installed the following software on your system. The pre-requisites are
 recalled here.
 
 Pre-requisites
