@@ -5,7 +5,6 @@ Currently, a quick install through vagrant and ansible scripts is supported.
 It is the recommended way to proceed but if you want to go more into the details,
 here is the manual install guide.
 
-
 The **Frontend** must be installed on a GNU/Linux system. With some efforts, it
 should be possible to run it on a Microsoft Windows system, but this has not
 been tested yet.
