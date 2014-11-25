@@ -11,7 +11,6 @@ Table of Contents
 =================
 
 .. toctree::
-    :maxdepth: 3
 
    intro/index.rst
    install/index.rst
