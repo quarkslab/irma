@@ -5,7 +5,7 @@ The **Brain** must be installed on a GNU/Linux distribution. With some efforts,
 it should be possible to run it on a Microsoft Windows system, but this has not
 been tested yet.
 
-.. _install-source:
+.. _brain-install-source:
 
 Installation from source
 ````````````````````````
