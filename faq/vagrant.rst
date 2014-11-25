@@ -25,13 +25,13 @@ Speed up your Vagrant VMs
 
 Install this softwares:
 
-- vagrant-cachier (more `info <https://github.com/fgrehm/vagrant-cachier>`_)
+- vagrant-cachier (more `info on vagrant-cachier <https://github.com/fgrehm/vagrant-cachier>`_)
 
 .. code-block:: bash
 
 	$ vagrant plugin install vagrant-cachier
 
-- vagrant-vbguest (more `info <https://github.com/dotless-de/vagrant-vbguest>`_)
+- vagrant-vbguest (more `info on vagrant-vbguest <https://github.com/dotless-de/vagrant-vbguest>`_)
 
 .. code-block:: bash
 
