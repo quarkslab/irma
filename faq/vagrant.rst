@@ -1,5 +1,5 @@
-Enable SSL using OpenSSL
-------------------------
+Enable SSL using OpenSSL in ansible scripts
+-------------------------------------------
 
 If you want to activate SSL on the frontend server, you’ll need:
 
