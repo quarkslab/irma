@@ -306,6 +306,14 @@ located at ``modules/database/nsrl/config.ini``.
 
     Then you'll need to install python-dev package (for Debian like systems).
 
+.. note:: leveldb.LevelDBError: IO error: /home/irma/leveldb/file_db/LOCK: Permission denied
+
+    If you encounter this problem, you likely have a problem with unix 
+    permissions. Please ensure that the folder is owned by the user 
+    running the probes. On ``supervisord``-based installation (default for 
+    vagrant/ansible scripts), the folder owner should be set to  ``nobody``.
+    For ``init.d``-based installation, it should be ``irma`` instead. 
+
 .. note:: Meaning of the fields in the configuration file
 
     +----------------+-------------+------------+-----------+---------------------------------------+
