@@ -34,10 +34,6 @@ class GData(Antivirus):
         # set default antivirus information
         self._name = "GData Anti-Virus"
         # scan tool variables
-        self._scan_args = (
-             # scan command
-        )
-
         self._scan_patterns = [
             re.compile(r"Infected:\s+(?P<file>.*); (?P<name>.*)")
         ]
@@ -63,8 +59,8 @@ class GData(Antivirus):
     def get_database(self):
         """return list of files in the database"""
         search_paths = map(lambda x:
-                            "{path}/G Data/ISDB".format(path=x),
-                            [os.environ.get('PROGRAMDATA', '')])
+                           "{path}/G Data/ISDB".format(path=x),
+                           [os.environ.get('PROGRAMDATA', '')])
         database_patterns = [
             '*.isdb'
         ]
