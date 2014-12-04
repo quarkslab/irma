@@ -106,8 +106,10 @@ class YaraPlugin(PluginBase):
                 for match in response:
                     match_string = "{0}, {1}".format(match_string, match)
                     matches.append("{0!s}".format(match))
-            #results.results = {'Matches': "{0}".format(match_string)} if not error_raised else None
-            results.results = {'Matches': matches} if not error_raised else None
+            results.results = None
+            if not error_raised:
+                # results.results = {'Matches': "{0}".format(match_string)}
+                results.results = {'Matches': matches}
         except Exception as e:
             results.status = self.YaraResult.ERROR
             results.results = str(e)
