@@ -15,6 +15,9 @@ roles/gdamjan.uwsgi/
 files/*
 !files/.gitkeep
 
+# Ignore AV licence file
+playbooks/files/license.avastlic
+
 # Ignore only stable group_vars
 group_vars/all
 group_vars/brain

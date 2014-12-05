@@ -106,4 +106,9 @@
   roles:
     - { role: quarkslab.drweb, tags: 'drweb' }
 
+- name: Avast provisioning
+  hosts: avast
+  roles:
+    - { role: quarkslab.avast, tags: 'avast' }
+
 # vim: sw=2

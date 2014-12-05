@@ -79,6 +79,8 @@ ansible_config:
       - avs-linux.irma
     drweb:
       - avs-linux.irma
+    avast:
+      - avs-linux.irma
     "probe:children":
       - clamav
       - comodo
@@ -91,3 +93,4 @@ ansible_config:
       - virusblokada
       - zoner
       - drweb
+      - avast
