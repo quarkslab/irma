@@ -1,6 +1,8 @@
 IRMA: Incident Response & Malware Analysis 
 ------------------------------------------
 
+|docs|
+
 IRMA is an asynchronous and customizable analysis system for suspicious files.
 This repository is a subproject of IRMA and contains the source code for IRMA's
 Brain, which is a python-based application that schedules analysis jobs
@@ -37,3 +39,9 @@ Contribute to IRMA
 IRMA is an ambitious project. Make yourself known on the #irma_qb channel on
 irc.freenode.net. We will be please to greet you and to find a way to get you
 involved in the project.
+
+
+.. |docs| image:: https://readthedocs.org/projects/irma/badge/
+    :alt: Documentation Status
+    :scale: 100%
+    :target: https://irma.readthedocs.org
