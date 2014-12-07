@@ -1,9 +1,8 @@
+=========================
 IRMA Ansible Provisioning
 =========================
 
-.. image:: https://travis-ci.org/quarkslab/irma-ansible.svg?branch=master
-    :target: https://travis-ci.org/quarkslab/irma-ansible
-
+|build-status| |docs|
 
 IRMA platform is easily installed thanks to a set of `ansible <http://www.ansible.com>`_ roles and playbooks. It will allow you to build, install or maintain different setups.
 
@@ -88,3 +87,14 @@ Some of roles from `Ansible Galaxy <https://galaxy.ansible.com/>`_ used here:
 - Sudo role from `weareinteractive/ansible-sudo <https://github.com/weareinteractive/ansible-sudo>`_
 - Users role from `mivok/ansible-users <https://github.com/mivok/ansible-users>`_
 - uWSGI role from `gdamjan/ansible-uwsgi <https://github.com/gdamjan/ansible-uwsgi>`_
+
+
+.. |build-status| image:: https://travis-ci.org/quarkslab/irma-ansible.svg?branch=master
+    :alt: Travis-CI build status
+    :scale: 100%
+    :target: https://travis-ci.org/quarkslab/irma-ansible
+
+.. |docs| image:: https://readthedocs.org/projects/irma/badge/
+    :alt: Documentation Status
+    :scale: 100%
+    :target: https://readthedocs.org/projects/irma/
