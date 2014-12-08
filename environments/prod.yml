@@ -43,9 +43,12 @@ ansible_config:
       - avs-linux.irma
     virustotal:
       - avs-linux.irma
+    avg:
+      - avs-linux.irma
     "probe:children":
       - clamav
       - comodo
       - mcafee
       - virustotal
       - static-analyzer
+      - avg
