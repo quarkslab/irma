@@ -10,7 +10,7 @@ IRMA platform is easily installed thanks to a set of `ansible <http://www.ansibl
 
 .. code-block:: bash
 
-	$ git clone --recursive https://github.com/quarkslab/irma-ansible
+	$ git clone https://github.com/quarkslab/irma-ansible
 
 There are 3 different types of IRMA setup:
 
@@ -21,13 +21,13 @@ There are 3 different types of IRMA setup:
 Common requirements
 -------------------
 
-- `Ansible <http://www.ansible.com>`_ 1.6 or higher;
+- `Ansible <http://www.ansible.com>`_ 1.8 or higher;
 
 Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ repository. Installation has been made easy using:
 
 .. code-block:: bash
 
-	$ ansible-galaxy install -r galaxy.yml # --force if you’ve already installed it
+	$ ansible-galaxy install -r ansible-requirements.yml # --force if you’ve already installed it
 
 
 Testing IRMA, the easiest way

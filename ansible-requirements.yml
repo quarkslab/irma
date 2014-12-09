@@ -1,0 +1,23 @@
+---
+
+- src: ANXS.openssh
+  version: v1.0.1
+
+- src: ANXS.postgresql
+  version: v1.0.3
+
+- src: franklinkim.sudo
+  version: 1.0.0
+
+- src: https://github.com/guillaumededrie/ansible-uwsgi.git
+  version: master
+  name: gdamjan.uwsgi
+
+- src: jdauphant.nginx
+  version: v1.0.0
+
+- src: mivok0.users
+  version: master
+
+- src: Stouts.mongodb
+  version: 1.3.1
