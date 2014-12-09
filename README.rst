@@ -8,8 +8,8 @@ This is the main repository for IRMA, an asynchronous & customizable analysis
 system for suspicious files.
 
 This contain the documentation for IRMA project, which is built using
-`Sphinx <http://sphinx-doc.org>` and is available online on the
-`Read the Docs <https://readthedocs.org>` plateform: |docs|.
+`Sphinx <http://sphinx-doc.org>`_ and is available online on the
+`Read the Docs <https://readthedocs.org>`_ plateform: |docs|.
 
 
 Resources
@@ -23,7 +23,7 @@ Resources
 Build the documentation
 =======================
 
-You'll need to install `Sphinx <http://sphinx-doc.org>`, and the run:
+You'll need to install `Sphinx <http://sphinx-doc.org>`_, and the run:
 
 .. code-block:: bash
 
