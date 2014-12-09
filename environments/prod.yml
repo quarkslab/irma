@@ -3,35 +3,35 @@
 
 servers:
   - name: frontend.irma
-    box: puphpet/debian75-x64
+    box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.30
     hostname: frontend.irma
     cpus: 2
     memory: 2048
   - name: brain.irma
-    box: puphpet/debian75-x64
+    box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.31
     hostname: brain.irma
     cpus: 2
     memory: 2048
   - name: clamav.irma
-    box: puphpet/debian75-x64
+    box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.32
     hostname: clamav.irma
   - name: comodo.irma
-    box: puphpet/debian75-x64
+    box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.33
     hostname: comodo.irma
   - name: mcafee.irma
-    box: puphpet/debian75-x64
+    box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.34
     hostname: mcafee.irma
   - name: static-analyzer.irma
-    box: puphpet/debian75-x64
+    box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.35
     hostname: static-analyzer.irma
   - name: virustotal.irma
-    box: puphpet/debian75-x64
+    box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.36
     hostname: virustotal.irma
 
