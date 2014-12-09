@@ -38,7 +38,7 @@ the following directory layout:
  	[...]
  	+--- irma-ansible
 
-.. NOTE:: 
+.. NOTE::
 
     This directory layout can be modified, see ``share_*`` variables from
     ``environments/dev.yml`` and ``environments/allinone_dev.yml`` files.

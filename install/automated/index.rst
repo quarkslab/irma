@@ -8,7 +8,7 @@ install or maintain different setups.
 Requirements
 ------------
 
-- `Ansible <http://www.ansible.com>`_ 1.6 or higher;
+- `Ansible <http://www.ansible.com>`_ 1.8 or higher;
 
 Ansible scripts
 ---------------
@@ -17,14 +17,14 @@ Get IRMA ansible scripts on github:
 
 .. code-block:: bash
 
-	$ git clone --recursive https://github.com/quarkslab/irma-ansible
+	$ git clone https://github.com/quarkslab/irma-ansible
 
 Install the dependencies via `Ansible Galaxy <https://galaxy.ansible.com/>`_
 repository:
 
 .. code-block:: bash
 
-	$ ansible-galaxy install -r galaxy.yml # eventually, add '--force' to overwrite installed roles
+	$ ansible-galaxy install -r ansible-requirements.yml # eventually, add '--force' to overwrite installed roles
 
 Predefined Environments
 -----------------------
