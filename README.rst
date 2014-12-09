@@ -9,7 +9,7 @@ system for suspicious files.
 
 This contain the documentation for IRMA project, which is built using
 `Sphinx <http://sphinx-doc.org>`_ and is available online on the
-`Read the Docs <https://readthedocs.org>`_ plateform: |docs|.
+`Read the Docs <https://readthedocs.org>`_ platform: |docs|.
 
 
 Resources
