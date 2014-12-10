@@ -16,6 +16,9 @@
 - src: jdauphant.nginx
   version: v1.0.0
 
+- src: Mayeu.RabbitMQ
+  version: 1.4.0
+
 - src: mivok0.users
   version: master
 
