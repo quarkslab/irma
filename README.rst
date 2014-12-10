@@ -97,4 +97,4 @@ Some of roles from `Ansible Galaxy <https://galaxy.ansible.com/>`_ used here:
 .. |docs| image:: https://readthedocs.org/projects/irma/badge/
     :alt: Documentation Status
     :scale: 100%
-    :target: https://readthedocs.org/projects/irma/
+    :target: https://irma.readthedocs.org
