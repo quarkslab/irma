@@ -70,6 +70,8 @@ class GenericAVTest():
             return
 
         for file, result in self.expected_results.items():
+            if isinstance(result, (list, tuple)):
+                result = result[0]
             file = os.path.join(self.abspath, self.subfolder, file)
             self.scan_and_check(file, result)
 
@@ -89,6 +91,8 @@ class GenericAVTest():
             return
 
         for file, result in self.expected_results.items():
+            if isinstance(result, (list, tuple)):
+                result = result[1]
             file = os.path.join(self.abspath, self.subfolder, file)
             tmpname = self.__class__.copy_to_tmpfile(file)
             self.scan_and_check(tmpname, result)
