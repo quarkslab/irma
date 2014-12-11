@@ -58,6 +58,9 @@ and the hard disk drive I/O speed.
 
 IRMA allinone interface is available at `http://172.16.1.30 <http://172.16.1.30>`_.
 
+Note: The basebox used in this project is provided by Quarkslab. The code
+source to build it is `here <https://github.com/quarkslab/debian-vm>`_.
+
 
 Useful commands
 ```````````````
