@@ -13,6 +13,8 @@ Vagrant.require_version ">= 1.5.0"
 
 Vagrant.configure("2") do |config|
   config.ssh.forward_agent = true
+  # see https://twitter.com/mitchellh/status/525704126647128064
+  config.ssh.insert_key = false
 
   # Plugins section
   if Vagrant.has_plugin?("vagrant-cachier")
