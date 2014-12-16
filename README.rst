@@ -8,23 +8,12 @@ This repository is a subproject of IRMA and contains the source code for IRMA's
 Probes, which are python-based application that host a single or multiple
 analyzers. Thanks for checking it out.
 
+
 Documentation
 `````````````
 
-All documentation is in the ``docs`` directory. If you are just getting
-started, here is how we recommend you read the docs:
+The documentation is now available `on Read The Docs Website`_.
 
-1. First, build the documentation with ``sphinx`` (in the ``docs`` directory,
-   do ``make html``).
-2. Next, open the documentation in your favorite web browser. The documentation
-   is generated in ``_build/html``. You can open, for instance,
-   ``_build/html/index.html`` as a starting point.
-3. Go through the documentation.
-
-We are trying to do your best to update the documentation regularly. If you
-find any problems in the documentation, or think they should be clarified in
-any way, please take 30 seconds to fill out a `ticket
-<https://github.com/quarkslab/irma-probe/issues>`_.
 
 Getting help
 ````````````
@@ -44,3 +33,4 @@ involved in the project.
     :alt: Documentation Status
     :scale: 100%
     :target: https://irma.readthedocs.org
+.. _on Read The Docs Website: https://irma.readthedocs.org
