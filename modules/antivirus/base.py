@@ -165,8 +165,8 @@ class Antivirus(object):
             raise RuntimeError(reason)
         # handle infected and error error codes
         if retcode in [self.ScanResult.INFECTED, self.ScanResult.ERROR]:
+            is_false_positive = True
             if stdout:
-                is_false_positive = True
                 for line in stdout.splitlines():
                     for pattern in self.scan_patterns:
                         matches = pattern.finditer(line)
@@ -185,12 +185,12 @@ class Antivirus(object):
                         # if a match has been found, ignore other patterns
                         if not is_false_positive:
                             break
-                # handle false positive
-                if is_false_positive:
-                    if stderr or retcode in [self.ScanResult.ERROR]:
-                        retcode = self.ScanResult.ERROR
-                    else:
-                        retcode = self.ScanResult.CLEAN
+            # handle false positive
+            if is_false_positive:
+                if stderr or retcode in [self.ScanResult.ERROR]:
+                    retcode = self.ScanResult.ERROR
+                else:
+                    retcode = self.ScanResult.CLEAN
         return retcode
 
     # =========================================================================
