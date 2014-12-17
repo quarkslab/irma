@@ -1,0 +1,7 @@
+---
+
+- name: Install NodeJS from repositories
+  apt:
+    name: nodejs-legacy
+    state: present
+  sudo: yes

@@ -1,0 +1,13 @@
+---
+
+# NPM is extract to a package directory
+- name: Copy and untar npm
+  unarchive:
+    src: npm/{{ nodejs_npm_filename }}
+    dest: /tmp
+
+- name: Install NPM
+  shell: ./configure && make && make install
+  sudo: yes
+  args:
+    chdir: /tmp/package
