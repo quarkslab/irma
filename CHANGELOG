@@ -1,0 +1,56 @@
+1.1.1 (released 11/11/2014)
+===========================
+
+    * [frontend] add api documentation via swagger
+    * [frontend] minor ui addons (sha1 in results page, cleaner scan progress page)
+    * [frontend] fix problems when using pgsql
+    * [probe] add support for GData/Yara probes
+
+1.1.0 (released 07/10/2014)
+===========================
+
+    * [frontend] new summary view, new details view
+    * [frontend] move from full NoSql to SQL+NoSql
+    * remove Redis
+    * [frontend] Sample stored on FS instead of NoSql (GridFS)
+    * [frontend] move to vagrant/ansible install
+    * [frontend] basic search (hash value, name)
+
+1.0.4 (released 28/08/2014)
+===========================
+
+    * [frontend] results are splitted into a summary view and a details view
+    * [frontend] formatters are now plugins
+    * setup on single machine allowed
+    * deb packaging with config dialogs
+    * sphinx formatted docs (hosted on readthedocs.org)
+    * better errors handling
+
+1.0.3 (released 27/06/2014)
+===========================
+
+    * [frontend] add probe output filtering (called formatters)
+
+1.0.2 (released 02/06/2014)
+===========================
+
+    * [frontend] new results display
+
+1.0.1 (released 12/05/2014)
+===========================
+
+    * simple deb packaging
+
+1.0   (released 29/03/2014)
+===========================
+
+    * First public release
+    * pip packaging
+    * [probe] support:
+        * AV Linux:  Clamav,  Comodo, ESET, F-Prot, McAfee
+        * AV Windows: Kaspersky, McAfee, Sophos, Symantec
+        * NSRL
+        * Virustotal API
+        * PE static analyzer
+
+
