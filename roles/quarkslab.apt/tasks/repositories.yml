@@ -1,0 +1,23 @@
+---
+
+# configure debian security
+- name: Debian Security
+  apt_repository:
+    repo: "{{ item[0] }} {{ item[1] }} {{ item[2] }} {{ item[3] }}"
+    state: present
+  with_nested:
+    - [ 'deb', 'deb-src' ]
+    - [ 'http://security.debian.org/' ]
+    - [ '{{ ansible_distribution_release }}/updates' ]
+    - apt_repositories_sources
+
+# configure mirrors with specified sources
+- name: deb for specified mirrors and specified sources
+  apt_repository:
+    repo: "{{ item[0] }} {{ item[1] }} {{ item[2] }} {{ item[3] }}"
+    state: present
+  with_nested:
+    - [ 'deb', 'deb-src' ]
+    - apt_repositories_mirrors
+    - apt_repositories_code_names
+    - apt_repositories_sources

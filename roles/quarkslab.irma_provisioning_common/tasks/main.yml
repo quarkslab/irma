@@ -1,19 +1,7 @@
 ---
 
-# configure debian mirrors
-- include: apt_mirrors.yml
-  tags: apt
+- include: debian_install_packages.yml
   when: ansible_distribution == 'Debian'
-
-- name: Install common needed packages for IRMA
-  apt: name={{ item }} state=present
-  with_items:
-    - vim
-    - aria2
-    - git
-    - python-pip
-    - python-virtualenv
-  when: ansible_os_family == "Debian"
 
 - name: Build /etc/hosts file
   lineinfile:

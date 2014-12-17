@@ -15,6 +15,7 @@
       ufw: state=enabled policy=deny
       when: vagrant|default(False) == False
   roles:
+    - { role: quarkslab.apt, tags: 'apt' }
     - { role: mivok0.users, tags: 'users' }
     - { role: quarkslab.irma_provisioning_common, tags: 'common' }
     - { role: franklinkim.sudo, tags: 'sudo' }
