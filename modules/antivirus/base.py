@@ -213,6 +213,9 @@ class Antivirus(object):
     def database(self):
         if not self._database:
             self._database = self.get_database()
+            # NOTE: Expecting to have only files, thus filtering folders
+            if self._database:
+                self._database = filter(os.path.isfile, self._database)
         return self._database
 
     @property
