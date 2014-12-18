@@ -55,6 +55,13 @@ frontend_deployment_configs:
 frontend_openssl: False
 
 
+## Apt role
+apt_repositories_code_names:
+  - '{{ ansible_distribution_release }}'
+  - '{{ ansible_distribution_release }}-updates'
+  - '{{ ansible_distribution_release }}-backports'
+
+
 ## Users role
 frontend_users:
   - username: www-data

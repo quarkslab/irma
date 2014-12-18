@@ -19,6 +19,8 @@ Vagrant.configure("2") do |config|
   # Plugins section
   if Vagrant.has_plugin?("vagrant-cachier")
     config.cache.scope = :machine
+    config.cache.auto_detect = false
+    config.cache.enable :apt
   end
 
   if Vagrant.has_plugin?("vagrant-vbguest")

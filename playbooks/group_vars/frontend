@@ -83,6 +83,13 @@ frontend_openssl_certificates:
     dst: /etc/nginx/certs/ca.crt
 
 
+## Apt role
+apt_repositories_code_names:
+  - '{{ ansible_distribution_release }}'
+  - '{{ ansible_distribution_release }}-updates'
+  - '{{ ansible_distribution_release }}-backports'
+
+
 ## Users role
 frontend_users:
   - username: www-data
