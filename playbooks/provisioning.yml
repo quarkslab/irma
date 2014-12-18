@@ -91,4 +91,9 @@
   roles:
     - { role: quarkslab.escan, tags: 'escan' }
 
+- name: VirusBlokAda
+  hosts: virusblokada
+  roles:
+    - { role: quarkslab.virusblokada , tags: 'virusblokada' }
+
 # vim: sw=2

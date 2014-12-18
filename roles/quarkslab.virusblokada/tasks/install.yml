@@ -1,0 +1,27 @@
+---
+
+- name: VBA32 | Create temporary work dir
+  file:
+    path: "{{ virusblokada_temp_dir }}/"
+    state: directory
+
+- name: VBA32 | Download Package
+  get_url:
+    url: "{{ virusblokada_tgz_url }}"
+    dest: "{{ virusblokada_temp_dir }}/vbacl-linux.tar.gz"
+
+- name: VBA32 | Extract Installer
+  command: tar xzf "{{ virusblokada_temp_dir }}/vbacl-linux.tar.gz"
+  args:
+    chdir: "{{ virusblokada_temp_dir }}/"
+
+- name: VBA32 | Launch Installer
+  command: sh "{{ virusblokada_temp_dir }}/setup.sh" install
+  args:
+    chdir: "{{ virusblokada_temp_dir }}/"
+  sudo: yes
+
+- name: VBA32 | Remove temporary work dir
+  file:
+    path: "{{ virusblokada_temp_dir}}/"
+    state: absent
