@@ -2,6 +2,7 @@
 hosts/*
 vagrant_ansible_inventory_default
 roles/franklinkim.sudo/
+roles/franklinkim.ufw/
 roles/JasonGiedymin.nodejs/
 roles/jdauphant.nginx/
 roles/Mayeu.RabbitMQ/

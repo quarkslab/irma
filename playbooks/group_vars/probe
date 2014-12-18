@@ -50,7 +50,7 @@ supervisor_programs_probe:
     stopwaitsecs: 600
     killasgroup: true
 
-# VirusTotal module configuration
+# VirusTotal module configuration
 # Uncomment this to share an apikey to all virustotal probes
 # virustotal_configs:
 #   - section: VirusTotal

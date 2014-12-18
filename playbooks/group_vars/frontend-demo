@@ -51,6 +51,13 @@ frontend_deployment_configs:
     value: "{{irma_configurations.pureftpd.frontend.password}}"
 
 
+## UFW Rules
+ufw_additional_rules:
+  - port: 80
+    rule: allow
+  - port: 443
+
+
 ## HTTPs
 frontend_openssl: False
 

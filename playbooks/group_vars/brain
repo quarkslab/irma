@@ -59,6 +59,19 @@ brain_deployment_configs:
     value: "{{irma_configurations.pureftpd.probe.password}}"
 
 
+## UFW Rules
+brain_ufw_additional_rules:
+  - port: 21
+    rule: allow
+    proto: tcp
+  - port: 5672
+    rule: allow
+    proto: tcp
+  - port: "65435:65535"
+    rule: allow
+    proto: tcp
+
+
 ## RabbitMQ role
 rabbitmq_ssl: false
 rabbitmq_conf_tcp_listeners_address: 0.0.0.0

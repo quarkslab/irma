@@ -50,3 +50,9 @@ irma_configurations:
 ## Deployment
 irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else irma_release|default('HEAD') }}"
 irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+
+
+## UFW
+ufw_login: on
+ufw_applications:
+  - { name: "OpenSSH" }

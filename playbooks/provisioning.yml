@@ -3,19 +3,9 @@
 - name: Common tasks to execute on all servers
   hosts: all
   sudo: yes
-  pre_tasks:
-    # Run the equivalent of "apt-get update" as a separate step
-    - name: Ensure that APT cache is up to date
-      apt: update_cache=yes
-    - name: Install Uncomplicated Firewall software
-      apt: pkg=ufw state=present
-    - name: Open OpenSSH port
-      ufw: rule=allow port=ssh
-    - name: Close all ports for Prod server
-      ufw: state=enabled policy=deny
-      when: vagrant|default(False) == False
   roles:
     - { role: quarkslab.apt, tags: 'apt' }
+    - { role: franklinkim.ufw, tags: 'ufw' }
     - { role: mivok0.users, tags: 'users' }
     - { role: quarkslab.irma_provisioning_common, tags: 'common' }
     - { role: franklinkim.sudo, tags: 'sudo' }
@@ -34,12 +24,7 @@
     - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_frontend }}" }
     - { role: quarkslab.irma_provisioning_frontend, tags: 'frontend' }
     - { role: jdauphant.nginx, tags: 'nginx' }
-  post_tasks:
-    - name: Open Webserver port
-      ufw: rule=allow port=80
-    - name: Open OpenSSL port
-      ufw: rule=allow port=443
-      when: frontend_openssl|default(False) == True
+    - { role: quarkslab.ufw_additional, tags: 'ufw', ufw_additional_rules: "{{ frontend_ufw_additional_rules }}" }
 
 
 - name: Brain provisioning
@@ -50,6 +35,7 @@
     - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
     - { role: quarkslab.pureftpd, tags: 'pureftpd' }
     - { role: quarkslab.irma_provisioning_brain, tags: 'brain' }
+    - { role: quarkslab.ufw_additional, tags: 'ufw', ufw_additional_rules: "{{ brain_ufw_additional_rules }}" }
 
 
 - name: Probe provisioning

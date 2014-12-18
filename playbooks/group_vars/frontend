@@ -66,6 +66,14 @@ frontend_deployment_configs:
     value: "{{irma_configurations.postgresql.frontend.db_name}}"
 
 
+## UFW Rules
+frontend_ufw_additional_rules:
+  - port: 80
+    rule: allow
+  - port: 443
+    rule: "{{ 'allow' if frontend_openssl|default('False') else 'deny' }}"
+
+
 ## HTTPs
 frontend_openssl: False # Default value is False. For HTTPs using OpenSSL,
                         # change it to True
