@@ -1,0 +1,13 @@
+---
+
+- name: eScan | Check version
+  command: escan --version
+  ignore_errors: yes
+  register: escan_present
+
+- include: install.yml
+  when: escan_present | failed
+
+- name: eScan | Download latest definition files
+  command: escan -xs --update
+  sudo: yes

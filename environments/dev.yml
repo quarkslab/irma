@@ -71,6 +71,8 @@ ansible_config:
       - avs-linux.irma
     bitdefender:
       - avs-linux.irma
+    escan:
+      - avs-linux.irma
     "probe:children":
       - clamav
       - comodo
@@ -79,3 +81,4 @@ ansible_config:
       - virustotal
       - avg
       - bitdefender
+      - escan
