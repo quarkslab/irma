@@ -189,6 +189,7 @@ class Antivirus(object):
             if is_false_positive:
                 if stderr or retcode in [self.ScanResult.ERROR]:
                     retcode = self.ScanResult.ERROR
+                    self._scan_results[paths] = stderr if stderr else stdout
                 else:
                     retcode = self.ScanResult.CLEAN
         return retcode
