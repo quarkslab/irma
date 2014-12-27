@@ -1,0 +1,257 @@
+---
+
+apiVersion: 1.0.0
+swaggerVersion: 1.2
+basePath: /_api
+produces:
+  - application/json
+
+models:
+  FileExists:
+    id: FileExists
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      exists:
+        type: boolean
+
+  FileResults:
+    id: FileResults
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      scan_results:
+        type: array
+        items:
+          $ref: FileResult
+
+  FileResult:
+    id: FileResult
+    properties:
+      sha256:
+        type: string
+
+  FileSearchResponse:
+    id: FileSearchResponse
+    properties:
+
+  FileSearchResponse:
+    id: FileSearchResponse
+    properties:
+      total:
+        type: integer
+        format: int64
+      page:
+        type: integer
+        format: int64
+      per_page:
+        type: integer
+        format: int64
+      items:
+        type: array
+        items:
+          $ref: FileWeb
+
+  FileWeb:
+    id: FileWeb
+    properties:
+      scan_file_idx:
+        type: integer
+        format: int64
+      name:
+        type: string
+      file:
+        type: File
+      scan:
+        type: Scan
+
+  File:
+    id: File
+    properties:
+      sha256:
+        type: string
+      sha1:
+        type: string
+      md5:
+        type: string
+      timestamp_first_scan:
+        type: string
+        format: date
+      timestamp_last_scan:
+        type: string
+        format: date
+      size:
+        type: integer
+        format: int64
+
+  ProbeListResponse:
+    id: ProbeListResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      probe_list:
+        type: array
+        items:
+          type: string
+
+  ScanNewResponse:
+    id: ScanNewResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      scan_id:
+        type: string
+
+  ScanAddResponse:
+    id: ScanAddResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      nb_files:
+        type: integer
+        format: int64
+
+  ScanLaunchResponse:
+    id: ScanLaunchResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      probe_list:
+        type: array
+        items:
+          type: string
+
+  ScanCancelResponse:
+    id: ScanCancelResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      cancel_details:
+        type: ScanCancelDetail
+
+  ScanCancelDetail:
+    id: ScanCancelDetail
+    properties:
+      total:
+        type: integer
+        format: int64
+      finished:
+        type: integer
+        format: int64
+      cancelled:
+        type: integer
+        format: int64
+
+  ScanIsFinishedResponse:
+    id: ScanIsFinishedResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+
+  ScanInfosResponse:
+    id: ScanInfosResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      scan_info:
+        type: ScanInfos
+
+  ScanInfos:
+    id: ScanInfos
+    properties:
+      probelist:
+        type: array
+        items:
+          type: string
+      finished:
+        type: boolean
+      file_sha256:
+        type: string
+
+  ScanResultsResponse:
+    id: ScanResultsResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      scan_results:
+        type: array
+        items:
+          type: ScanResultResponse
+
+  ScanResultResponse:
+    id: ScanResultResponse
+    properties:
+      status:
+        type: integer
+        format: int64
+      finished:
+        type: integer
+        format: int64
+      total:
+        type: integer
+        format: int64
+      files:
+        type: array
+        items:
+          $ref: File
+
+  ScanFileResultInfosResponse:
+    id: ScanFileResultInfosResponse
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      results:
+        type: array
+        items:
+          type: ScanFileResultResponse
+
+  ScanFileResultResponse:
+    id: ScanFileResultResponse
+    properties:
+      probe_finished:
+        type: integer
+        format: int64
+      probe_total:
+        type: integer
+        format: int64
+      file_infos:
+        type: array
+        items:
+          $ref: File
+      probe_results:
+        type: array
+        items:
+          $ref: string

@@ -14,6 +14,9 @@
 # terms contained in the LICENSE file.
 
 import bottle
+import yaml
+import json
+
 from bottle import Bottle
 from frontend.api.modules.webapi import WebApi
 from lib.irma.common.utils import IrmaFrontendReturn
@@ -31,36 +34,27 @@ class DocsApi(WebApi):
     _app = Bottle()
 
     def __init__(self):
-        #self._app.route('/popo/<filename:re(files|probes|scans)>', callback=self._api_declaration)
         self._app.route('/', callback=self._resource_listing)
         self._app.route('/<filename>', callback=self._api_declaration)
+        self._base = 'frontend/api/modules/docs/specs'
 
     def _resource_listing(self):
         try:
-            import yaml
-            import json
-
-            with open('docs/api/specs/api-docs.yml') as file:
+            with open('{path}/api-docs.yml'.format(path=self._base)) as file:
                 data = yaml.load(file)
-
-                bottle.response.content_type = "application/json"
-                return json.dumps(data)
-
+            bottle.response.content_type = "application/json"
+            return json.dumps(data)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
-
-    def _api_declaration(self, filename = "files"):
+    def _api_declaration(self, filename="files"):
         try:
-            import yaml
-            import json
-
-            with open('docs/api/specs/' + filename + '.yml') as file:
+            with open('{path}/{filename}.yml'
+                      ''.format(path=self._base, filename=filename)) as file:
                 data = yaml.load(file)
-                data.update(yaml.load(open('docs/api/specs/common.yml')))
-
-                bottle.response.content_type = "application/json"
-                return json.dumps(data)
-
+            with open('{path}/common.yml'.format(path=self._base)) as file:
+                data.update(yaml.load(file))
+            bottle.response.content_type = "application/json"
+            return json.dumps(data)
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))

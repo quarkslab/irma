@@ -1,0 +1,16 @@
+---
+
+apiVersion: 1.0.0
+swaggerVersion: 1.2
+
+apis:
+  - path: /scans
+    description: Operations about scans
+  - path: /probes
+    description: Probes (Antivirus and other tools) operations
+  - path: /files
+    description: Informations about files submitted to the IRMA system
+
+info:
+  title: IRMA Frontend Api
+  description: IRMA Frontend API description using Swagger.
