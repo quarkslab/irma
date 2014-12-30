@@ -36,3 +36,14 @@ There are 3 different IRMA setups available:
     testing-env.rst
     production-env.rst
     development-env.rst
+
+
+Using Debian repos
+------------------
+
+If you planned to use only Debian official repository, you'll need to change in
+``playbooks/group_vars/all``:
+
+.. code-block:: yaml
+
+    default_use_debian_repo: yes # no is the default value
