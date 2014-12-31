@@ -3,8 +3,9 @@
 - src: ANXS.openssh
   version: v1.0.1
 
-- src: ANXS.postgresql
-  version: v1.0.3
+- src: https://github.com/quarkslab/postgresql.git
+  name: ANXS.postgresql
+  version: master
 
 - src: franklinkim.sudo
   version: 1.0.0

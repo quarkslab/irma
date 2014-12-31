@@ -116,11 +116,12 @@ nodejs_version: "0.10.30"
 nodejs_global_packages:
   - debug
 
+## PostgreSQL role
+# Basic settings
+postgresql_from_pg_repo: "{{ not default_use_debian_repo }}"
 
-# Basic settings for PostgreSQL
-postgresql_version: 9.3
-postgresql_encoding: 'UTF-8'
-postgresql_locale: 'en_US.UTF-8'
+postgresql_version: "{{ '9.3' if not default_use_debian_repo|default(False) else '9.1' }}"
+postgresql_shared_buffers: "{{ '128MB' if not default_use_debian_repo|default(False) else '24MB' }}"
 
 postgresql_admin_user: "postgres"
 postgresql_default_auth_method: "trust"
@@ -128,6 +129,7 @@ postgresql_default_auth_method: "trust"
 postgresql_cluster_name: "main"
 postgresql_cluster_reset: false
 
+## Databases informations
 postgresql_databases:
   - name: irma-frontend
 
