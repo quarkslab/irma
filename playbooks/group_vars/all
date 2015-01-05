@@ -3,7 +3,7 @@
 default_ssh_keys:
   - "{{ lookup('file', 'files/ssh_keys/vagrant.pub') }}"   # Vagrant
 
-default_use_debian_repo: True # Use only Debian official repo for provisioning tasks
+default_use_debian_repo: no # If yes, use only Debian official repo for provisioning tasks
 
 default_user: irma
 default_group: irma

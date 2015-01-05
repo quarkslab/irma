@@ -116,6 +116,11 @@ nodejs_version: "0.10.30"
 nodejs_global_packages:
   - debug
 
+
+## MongoDB
+mongodb_from_mongodb_repo: "{{ not default_use_debian_repo }}"
+
+
 ## PostgreSQL role
 # Basic settings
 postgresql_from_pg_repo: "{{ not default_use_debian_repo }}"
