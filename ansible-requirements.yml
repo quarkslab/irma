@@ -13,7 +13,7 @@
 - src: franklinkim.ufw
   version: 1.3.0
 
-- src: https://github.com/guillaumededrie/ansible-uwsgi.git
+- src: https://github.com/quarkslab/ansible-uwsgi.git
   version: master
   name: gdamjan.uwsgi
 

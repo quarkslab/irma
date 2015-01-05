@@ -108,7 +108,9 @@ frontend_users:
 
 
 ## uWSGI role
-uwsgi_install_method: "pip"
+uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
+uwsgi_plugins:
+  - python
 
 
 ## NodeJS role
@@ -163,8 +165,8 @@ supervisor_programs_frontend:
     killasgroup: true
   - name: frontend_api
     command: >
-      /usr/local/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
-      --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
+      uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+      --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
       --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/api/base.py --lazy
     user: irma
     numprocs: 1
