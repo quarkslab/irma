@@ -53,7 +53,7 @@ register the service:
 .. code-block:: bash
 
     $ sudo chmod u+x /etc/init.d/celeryd.probe
-    $ update-rc.d celeryd.probe defaults
+    $ sudo update-rc.d celeryd.probe defaults
 
 You can check that the celery daemon is running properly by launching it and by
 consulting the system logs:
