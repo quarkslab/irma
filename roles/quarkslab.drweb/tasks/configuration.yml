@@ -1,0 +1,14 @@
+---
+
+- name: Configure DrWeb ini file
+  ini_file:
+    dest: /etc/opt/drweb.com/drweb.ini
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    owner: root
+    group: root
+    mode: 0755
+  sudo: yes
+  notify: Restart DrWeb Daemon
+  with_items: drweb_configs
