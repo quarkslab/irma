@@ -34,6 +34,7 @@ Vagrant.configure("2") do |config|
     config.vm.define server['name'] do |machine|
       machine.vm.hostname = server['hostname']
       machine.vm.box = server['box']
+      machine.vm.box_version = server['box_version'] || ">= 0"
       machine.vm.synced_folder '.', '/vagrant', disabled: true
 
       if server['ip']
