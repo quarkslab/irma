@@ -120,12 +120,12 @@ nodejs_global_packages:
 
 
 ## MongoDB
-mongodb_from_mongodb_repo: "{{ not default_use_debian_repo }}"
+mongodb_from_mongodb_repo: "{{ not (default_use_debian_repo | bool) }}"
 
 
 ## PostgreSQL role
 # Basic settings
-postgresql_from_pg_repo: "{{ not default_use_debian_repo }}"
+postgresql_from_pg_repo: "{{ not (default_use_debian_repo | bool) }}"
 
 postgresql_version: "{{ '9.3' if not default_use_debian_repo|default(False) else '9.1' }}"
 postgresql_shared_buffers: "{{ '128MB' if not default_use_debian_repo|default(False) else '24MB' }}"
