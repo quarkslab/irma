@@ -44,7 +44,7 @@ Vagrant.configure("2") do |config|
 
       if server.has_key?('shares')
         server['shares'].each do |share|
-          machine.vm.synced_folder share["share_from"], share["share_to"], type: "rsync", owner: share['share_user'], group: share['share_group'], rsync__exclude: share["share_exclude"]
+          machine.vm.synced_folder share["share_from"], share["share_to"], type: "rsync", rsync__chown: false, rsync__exclude: share["share_exclude"]
         end
       end
 

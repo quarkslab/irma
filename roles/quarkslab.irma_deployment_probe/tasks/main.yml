@@ -15,3 +15,10 @@
 # ref: https://github.com/quarkslab/irma-ansible/pull/8
 - include: modules_configurations.yml
   when: "'virustotal' in group_names"
+
+- name: Restart Supervisor services
+  supervisorctl:
+    name: "{{ item.name }}"
+    state: restarted
+  sudo: yes
+  with_items: supervisor_programs_probe

@@ -1,9 +1,9 @@
+---
+
 - name: Ensure that releases directory has been created
   file:
     path: "{{ probe_project_dir }}/releases"
     state: directory
-    owner: "{{ probe_user }}"
-    group: "{{ probe_group }}"
 
 - name: Clone irma-probe repository
   git:
@@ -33,4 +33,3 @@
     dest: "{{ probe_install_dir }}"
     state: link
   when: irma_deployment_code_version != 'local'
-  notify: Restart Supervisor

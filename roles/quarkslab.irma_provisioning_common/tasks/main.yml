@@ -4,13 +4,13 @@
   when: ansible_distribution == 'Debian'
 
 - include: hosts.yml
+- include: users_groups.yml
 
-
-- name: Create IRMA directories
+- name: Create IRMA data directories
   file:
     path: "{{ item }}"
-    owner: "{{ default_user }}"
-    group: "{{ default_group }}"
+    owner: "{{ irma_user }}"
+    group: "{{ irma_group }}"
     mode: 0755
     state: directory
   sudo: yes
@@ -18,6 +18,18 @@
     - /var/log/irma
     - /var/irma
 
+- name: Create IRMA application directories
+  file:
+    path: "{{ item }}"
+    owner: "{{ irma_user }}"
+    group: "{{ irma_server_group }}"
+    mode: 0750
+    state: directory
+  sudo: yes
+  with_items:
+    - /opt/irma
+
+# Only for Demo boxes
 - name: add a fancy message to the box
   copy:
     src: rc.local

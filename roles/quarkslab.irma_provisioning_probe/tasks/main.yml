@@ -5,7 +5,8 @@
     path: "{{ probe_project_dir }}"
     state: directory
     owner: "{{ probe_user }}"
-    group: "{{ probe_group }}"
-    recurse: yes
+    group: "{{ irma_server_group }}"
+    mode: 02750
+    recurse: "{{ vagrant_share|default(false) }}"
 
 # vim: sw=2

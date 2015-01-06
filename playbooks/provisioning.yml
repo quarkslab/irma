@@ -6,8 +6,8 @@
   roles:
     - { role: quarkslab.apt, tags: 'apt' }
     - { role: franklinkim.ufw, tags: 'ufw' }
-    - { role: mivok0.users, tags: 'users' }
     - { role: quarkslab.irma_provisioning_common, tags: 'common' }
+    - { role: mivok0.users, tags: 'users' }
     - { role: franklinkim.sudo, tags: 'sudo' }
     - { role: ANXS.openssh, tags: 'openssh' }
 
@@ -16,7 +16,6 @@
   hosts: ["frontend", "frontend-demo"]
   sudo: yes
   roles:
-    - { role: mivok0.users, tags: 'users', users: "{{ frontend_users }}" }
     - { role: quarkslab.nodejs, tags: 'nodejs' }
     - { role: gdamjan.uwsgi, tags: 'uwsgi' }
     - { role: Stouts.mongodb, tags: 'mongodb' }

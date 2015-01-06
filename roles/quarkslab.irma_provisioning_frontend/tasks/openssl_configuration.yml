@@ -12,8 +12,8 @@
   copy:
     src: "{{ frontend_openssl_certificates[item].src }}"
     dest: "{{ frontend_openssl_certificates[item].dst }}"
-    owner: www-data
-    group: www-data
-    mode: 644
+    owner: "{{ irma_user }}"
+    group: "{{ irma_cert_group }}"
+    mode: 0640
   with_items: frontend_openssl_certificates.keys()
   tags: ssl
