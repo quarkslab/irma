@@ -2,12 +2,11 @@
 
 - name: Ensure that directory /var/www has www-data rights
   file:
-    path: /var/www
+    path: "{{ frontend_project_dir }}"
     state: directory
     owner: "{{ frontend_user }}"
     group: "{{ frontend_group }}"
     recurse: yes
-  notify: restart nginx
 
 - name: Install tools for PostgreSQL support
   apt:
