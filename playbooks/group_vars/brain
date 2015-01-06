@@ -73,6 +73,7 @@ brain_ufw_additional_rules:
 
 
 ## RabbitMQ role
+rabbitmq_os_package: "{{ default_use_debian_repo | bool }}"
 rabbitmq_ssl: false
 rabbitmq_conf_tcp_listeners_address: 0.0.0.0
 rabbitmq_conf_tcp_listeners_port: 5672
