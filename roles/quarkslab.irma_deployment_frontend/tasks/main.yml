@@ -35,8 +35,9 @@
 - name: Install NPM dependencies
   npm:
     path: "{{ frontend_deployment_dir }}/web"
-    state: present
-  register: npm_install
+    production: "{{ irma_environment == 'production' }}"
+    ignore_scripts: yes
+    state: latest
 
 - name: Copy previous Bower files
   shell: "cp -R {{frontend_install_dir}}/web/app/components {{frontend_deployment_dir}}/web/app/components"
