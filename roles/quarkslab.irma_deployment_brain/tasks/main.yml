@@ -59,4 +59,4 @@
   service:
     name: supervisord
     state: restarted
-  sudo: true
+  sudo: yes
