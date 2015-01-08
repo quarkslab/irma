@@ -108,7 +108,9 @@ frontend_users:
 
 
 ## uWSGI role
-uwsgi_install_method: "pip"
+uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
+uwsgi_plugins:
+  - python
 
 
 ## NodeJS role
@@ -117,10 +119,16 @@ nodejs_global_packages:
   - debug
 
 
-# Basic settings for PostgreSQL
-postgresql_version: 9.3
-postgresql_encoding: 'UTF-8'
-postgresql_locale: 'en_US.UTF-8'
+## MongoDB
+mongodb_from_mongodb_repo: "{{ not (default_use_debian_repo | bool) }}"
+
+
+## PostgreSQL role
+# Basic settings
+postgresql_from_pg_repo: "{{ not (default_use_debian_repo | bool) }}"
+
+postgresql_version: "{{ '9.3' if not default_use_debian_repo|default(False) else '9.1' }}"
+postgresql_shared_buffers: "{{ '128MB' if not default_use_debian_repo|default(False) else '24MB' }}"
 
 postgresql_admin_user: "postgres"
 postgresql_default_auth_method: "trust"
@@ -128,6 +136,7 @@ postgresql_default_auth_method: "trust"
 postgresql_cluster_name: "main"
 postgresql_cluster_reset: false
 
+## Databases informations
 postgresql_databases:
   - name: irma-frontend
 
@@ -156,8 +165,8 @@ supervisor_programs_frontend:
     killasgroup: true
   - name: frontend_api
     command: >
-      /usr/local/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
-      --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
+      uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+      --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
       --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/api/base.py --lazy
     user: irma
     numprocs: 1
