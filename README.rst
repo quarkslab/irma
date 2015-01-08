@@ -87,6 +87,7 @@ Some of roles from `Ansible Galaxy <https://galaxy.ansible.com/>`_ used here:
 - NodeJS role from `JasonGiedymin/nodejs <https://github.com/AnsibleShipyard/ansible-nodejs>`_
 - Nginx role from `jdauphant/ansible-role-nginx <https://github.com/jdauphant/ansible-role-nginx>`_
 - OpenSSH role from `Ansibles/openssh <https://github.com/Ansibles/openssh>`_
+- UFW role from `weareinteractive/ansible-ufw <https://github.com/weareinteractive/ansible-ufw>`_
 - Sudo role from `weareinteractive/ansible-sudo <https://github.com/weareinteractive/ansible-sudo>`_
 - Users role from `mivok/ansible-users <https://github.com/mivok/ansible-users>`_
 - uWSGI role from `gdamjan/ansible-uwsgi <https://github.com/gdamjan/ansible-uwsgi>`_

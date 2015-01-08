@@ -9,6 +9,9 @@
 - src: franklinkim.sudo
   version: 1.0.0
 
+- src: franklinkim.ufw
+  version: 1.3.0
+
 - src: https://github.com/guillaumededrie/ansible-uwsgi.git
   version: master
   name: gdamjan.uwsgi
