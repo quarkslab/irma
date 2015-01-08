@@ -1,0 +1,54 @@
+---
+
+apis:
+  - path: /file/exists/{sha256}
+    operations:
+      - method: GET
+        summary: Look file by SHA256 and tell if it exists
+        nickname: fileExists
+        type: FileExists
+        parameters:
+          - name: sha256
+            description: Hash using SHA256 function of the file
+            type: string
+            paramType: path
+            required: true
+
+  - path: /file/result/{sha256}
+    operations:
+      - method: GET
+        summary: Lookup file by SHA256
+        nickname: getFileResults
+        type: FileResults
+        parameters:
+          - name: sha256
+            description: Hash using SHA256 function of the file
+            type: string
+            paramType: path
+            required: true
+
+  - path: /file/search
+    operations:
+      - method: GET
+        summary: Search a file using query filters (hash or name). Support pagination.
+        type: FileSearchResponse
+        nickname: fileSearch
+        parameters:
+          - name: hash
+            description: Hash using (md5|sha1|sha256)
+            type: string
+            paramType: query
+          - name: name
+            description: Filename or regexp
+            type: string
+            paramType: query
+          - name: page
+            description: Access to result on the selected page
+            type: integer
+            format: int64
+            paramType: query
+          - name: per_page
+            description: Number of results per_page
+            type: integer
+            format: int64
+            paramType: query

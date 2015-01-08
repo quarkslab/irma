@@ -1,0 +1,9 @@
+---
+
+apis:
+  - path: /probe/list
+    operations:
+      - method: GET
+        summary: Get active probe list
+        nickname: getProbeList
+        type: ProbeListResponse
