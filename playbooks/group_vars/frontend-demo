@@ -154,7 +154,7 @@ nginx_sites:
         uwsgi_pass 127.0.0.1:8081;
       }
     - location /swagger {
-        alias {{ frontend_install_dir }}/docs/api/swagger-ui/;
+        alias {{ frontend_install_dir }}/web/swagger-ui/;
         index index.html;
       }
     - location /docs/frontend/ {

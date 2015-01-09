@@ -229,7 +229,7 @@ nginx_sites:
     - error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
     - access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
   # Uncomment the following for HTTPs using OpenSSL support
-  # It can be customize for your needs
+  # It can be customize for your needs (add the swagger API, …)
   #irma-frontend-https:
     #- listen 443 default_server
     #- listen [::]:443 default_server ipv6only=on
