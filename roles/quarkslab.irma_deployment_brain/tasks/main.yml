@@ -23,28 +23,10 @@
     requirements: "{{ brain_deployment_dir }}/requirements.txt"
     virtualenv: "{{ brain_deployment_dir }}/venv"
 
-- name: Create database directory
-  file:
-    path: "{{ brain_deployment_dir }}/db"
-    owner: "{{ brain_user }}"
-    group: "{{ brain_group }}"
-    mode: 0766
-    state: directory
-
 - name: Generate database
-  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito mqfrontend frontend"
+  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.pureftpd.frontend.username }}"
   args:
     chdir: "{{ brain_deployment_dir }}"
-    creates: "{{ brain_deployment_dir }}/db/irma_scan.db"
-
-- name: Update database rights
-  file:
-    path: "{{ brain_deployment_dir }}/db"
-    owner: "{{ brain_user }}"
-    group: "{{ brain_group }}"
-    mode: 0777
-    recurse: yes
-    state: directory
 
 - name: Update logs rights
   file:
@@ -77,4 +59,4 @@
   service:
     name: supervisord
     state: restarted
-  sudo: true
+  sudo: yes

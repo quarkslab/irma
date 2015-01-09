@@ -11,7 +11,7 @@ servers:
     memory: 2048
     shares:
       - share_from: ../irma-frontend
-        share_to: /var/www/prod.project.local/current
+        share_to: /opt/irma/irma-frontend
         share_user: www-data
         share_group: www-data
         share_exclude:
