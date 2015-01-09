@@ -19,6 +19,8 @@ users:
 sudo_users:
   - { name: "{{ default_user }}", nopasswd: yes }
 
+## Global
+irma_environment: production # Can be (development, test)
 
 irma_configurations:
   brain_addr: 127.0.0.1

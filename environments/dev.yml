@@ -107,6 +107,7 @@ ansible_config:
   extra_vars:
     vagrant: true
     vagrant_share: true
+    irma_environment: development
   groups:
     frontend:
       - frontend.irma
