@@ -12,8 +12,6 @@ servers:
     shares:
       - share_from: ../irma-frontend
         share_to: /opt/irma/irma-frontend/current
-        share_user: www-data
-        share_group: www-data
         share_exclude:
           - .git/
           - venv/
@@ -22,16 +20,12 @@ servers:
           - app/components
       - share_from: ../irma-brain
         share_to: /opt/irma/irma-brain/current
-        share_user: irma
-        share_group: irma
         share_exclude:
           - .git/
           - venv/
           - db/
       - share_from: ../irma-probe
         share_to: /opt/irma/irma-probe/current
-        share_user: irma
-        share_group: irma
         share_exclude:
           - .git/
           - venv/

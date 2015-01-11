@@ -7,8 +7,6 @@
   file:
     path: "{{ frontend_project_dir }}/releases"
     state: directory
-    owner: "{{ frontend_user }}"
-    group: "{{ frontend_group }}"
 
 - name: Clone repository
   git:
@@ -35,7 +33,6 @@
 - name: Install NPM dependencies
   npm:
     path: "{{ frontend_deployment_dir }}/web"
-    production: "{{ irma_environment == 'production' }}"
     ignore_scripts: yes
     state: latest
 
@@ -75,3 +72,18 @@
     dest: "{{ frontend_install_dir }}"
     state: link
   when: irma_deployment_code_version != 'local'
+
+- name: Restart Supervisor services
+  supervisorctl:
+    name: "{{ item.name }}"
+    state: restarted
+  sudo: yes
+  with_items: supervisor_programs_frontend
+
+- name: Restart Init.d services
+  service:
+    name: "{{ item }}"
+    state: restarted
+  sudo: yes
+  with_items:
+    - nginx

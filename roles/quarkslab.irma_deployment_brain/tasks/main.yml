@@ -7,8 +7,6 @@
   file:
     path: "{{ brain_project_dir }}/releases"
     state: directory
-    owner: "{{ brain_user }}"
-    group: "{{ brain_group }}"
 
 - name: Clone irma-brain repository
   git:
@@ -27,14 +25,8 @@
   command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.pureftpd.frontend.username }}"
   args:
     chdir: "{{ brain_deployment_dir }}"
-
-- name: Update logs rights
-  file:
-    path: "/var/log/irma/sqlalchemy.log"
-    owner: "{{ brain_user }}"
-    group: "{{ brain_group }}"
-    mode: 0777
-    state: file
+  sudo_user: "{{ irma_user }}"
+  sudo: yes
 
 - name: Configure config/brain.ini file
   ini_file:
@@ -55,8 +47,9 @@
     state: link
   when: irma_deployment_code_version != 'local'
 
-- name: Restart Supervisor
-  service:
-    name: supervisord
+- name: Restart Supervisor services
+  supervisorctl:
+    name: "{{ item.name }}"
     state: restarted
   sudo: yes
+  with_items: supervisor_programs_brain

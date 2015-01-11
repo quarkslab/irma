@@ -10,4 +10,3 @@
     option: "{{ item.option }}"
     value: "{{ item.value }}"
   with_items: virustotal_configs
-  notify: Restart Supervisor

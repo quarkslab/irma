@@ -2,9 +2,11 @@
 
 ## Global variables
 hostname: frontend.irma
-frontend_user: www-data
-frontend_group: www-data
+
+frontend_user: "{{ default_user }}"
+frontend_group: "{{ default_group }}"
 frontend_project_dir: /opt/irma/irma-frontend
+
 frontend_install_dir: "{{ frontend_project_dir }}/current"
 frontend_releases_dir: "{{ frontend_project_dir }}/releases"
 frontend_venv_dir: "{{ frontend_install_dir }}/venv"
@@ -98,15 +100,6 @@ apt_repositories_code_names:
   - '{{ ansible_distribution_release }}-backports'
 
 
-## Users role
-frontend_users:
-  - username: www-data
-    name: www-data
-    groups: ['www-data']
-    uid: 1003
-    ssh_key: "{{ default_ssh_keys }}"
-
-
 ## uWSGI role
 uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
 uwsgi_plugins:
@@ -156,7 +149,7 @@ supervisor_programs_frontend:
   - name: frontend_app
     command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}}"
     directory: "{{ frontend_install_dir }}"
-    user: irma
+    user: "{{ irma_user }}"
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_app.log
     stderr_logfile: /var/log/supervisor/frontend_app.log
@@ -168,7 +161,7 @@ supervisor_programs_frontend:
       uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
       --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
       --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/api/base.py --lazy
-    user: irma
+    user: "{{ irma_user }}"
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_api.log
     stderr_logfile: /var/log/supervisor/frontend_api.log

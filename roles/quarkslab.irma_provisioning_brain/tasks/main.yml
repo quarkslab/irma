@@ -7,19 +7,8 @@
     path: "{{ brain_project_dir }}"
     state: directory
     owner: "{{ brain_user }}"
-    group: "{{ brain_group }}"
-    recurse: yes
-
-# Open additional network ports on the Brain
-- name: Configure UFW for Brain
-  ufw:
-    port: "{{ item.port if item.port is defined else '' }}"
-    rule: "{{ item.rule if item.rule is defined else 'allow' }}"
-    proto: "{{ item.proto if item.proto is defined else 'any' }}"
-    to_ip: "{{ item.to_ip if item.to_ip is defined else 'any' }}"
-    from_ip: "{{ item.from_ip if item.from_ip is defined else 'any' }}"
-  with_items: brain_ufw_rules
-  sudo: yes
-  notify: Reload UFW
+    group: "{{ irma_server_group }}"
+    mode: 02750
+    recurse: "{{ vagrant_share|default(false) }}"
 
 # vim: sw=2
