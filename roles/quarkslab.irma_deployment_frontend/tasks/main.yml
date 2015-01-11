@@ -33,7 +33,6 @@
 - name: Install NPM dependencies
   npm:
     path: "{{ frontend_deployment_dir }}/web"
-    production: "{{ irma_environment == 'production' }}"
     ignore_scripts: yes
     state: latest
 
