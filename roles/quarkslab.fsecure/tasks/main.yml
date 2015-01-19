@@ -1,0 +1,34 @@
+---
+
+- name: F-Secure | Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: latest
+  sudo: yes
+  with_items:
+    - lib32stdc++6
+    - rpm
+
+- name: F-Secure | Check version
+  command: fsav --version
+  ignore_errors: yes
+  register: fsecure_present
+
+- name: F-Secure | Create temporary work dir
+  file:
+    path: "{{ fsecure_temp_dir }}/"
+    state: directory
+
+- include: install.yml
+  when: fsecure_present | failed
+
+- name: F-Secure | Remove temporary work dir
+  file:
+    path: "{{ fsecure_temp_dir }}/"
+    state: absent
+
+- name: F-Secure | Download latest definition files
+  shell: /usr/bin/dbupdate
+  register: command_result
+  failed_when: "'Something updated' not in command_result.stdout and 'No updates' not in command_result.stdout"
+  sudo: yes
