@@ -9,7 +9,28 @@ system for suspicious files.
 
 This contain the documentation for IRMA project, which is built using
 `Sphinx <http://sphinx-doc.org>`_ and is available online on the
-`Read the Docs <https://readthedocs.org>`_ platform: |docs|.
+`Read the Docs <https://readthedocs.org>`_ platform.
+
+
+Repositories
+============
+
+If you want to try/install IRMA, read the doc that will
+guide you to automatic install process. All scripts are
+hosted at our vagrant/ansible repository:
+
+* `Ansible <https://github.com/quarkslab/irma-ansible>`_
+
+If you want to take a look at the sources or go through
+the manual install process:
+
+* `Frontend <https://github.com/quarkslab/irma-frontend>`_
+* `Brain <https://github.com/quarkslab/irma-brain>`_
+* `Probe <https://github.com/quarkslab/irma-probe>`_
+
+all got a common dependency named irma-common that is set as a submodule in all three repositories:
+
+* `Common <https://github.com/quarkslab/irma-common>`_
 
 
 Resources
@@ -36,4 +57,4 @@ Open your browser to the ``_build/html/index.html`` file.
 .. |docs| image:: https://readthedocs.org/projects/irma/badge/
     :alt: Documentation Status
     :scale: 100%
-    :target: https://readthedocs.org/projects/irma/
+    :target: https://irma.readthedocs.org/
