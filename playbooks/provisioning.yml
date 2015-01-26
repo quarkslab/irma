@@ -81,4 +81,9 @@
   roles:
     - { role: quarkslab.avg, tags: 'avg' }
 
+- name: AVG provisioning
+  hosts: bitdefender
+  roles:
+    - { role: quarkslab.bitdefender, tags: 'bitdefender' }
+
 # vim: sw=2

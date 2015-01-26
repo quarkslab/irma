@@ -59,3 +59,6 @@ supervisor_programs_probe:
 #   - section: VirusTotal
 #     option: apikey
 #     value: 88eb8e2f869e98ea9b0367cb47c143cb438a5e8d8dfd3b6e3fb6c898374b8fb6
+
+# Bit Defender Scanner key - Put your licence key here
+# bitdefender_scanner_key:
