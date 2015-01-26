@@ -76,4 +76,9 @@
   roles:
     - { role: quarkslab.virustotal, tags: 'virustotal' }
 
+- name: AVG provisioning
+  hosts: avg
+  roles:
+    - { role: quarkslab.avg, tags: 'avg' }
+
 # vim: sw=2
