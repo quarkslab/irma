@@ -46,7 +46,8 @@ class AVGAntiVirusFree(Antivirus):
         )
         self._scan_patterns = [
             re.compile(r'(?P<file>.*)'
-                       r'\s+Virus identified\s+'
+                       r'\s+(Found|Virus found|Potentially harmful program|'
+                       r'Virus identified|Trojan horse)\s+'
                        r'(?P<name>.*)(\\n)*.*$', re.IGNORECASE)
         ]
         # NOTE: do 'man avgscan' for return codes
