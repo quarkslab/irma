@@ -86,4 +86,9 @@
   roles:
     - { role: quarkslab.bitdefender, tags: 'bitdefender' }
 
+- name: EScan provisioning
+  hosts: escan
+  roles:
+    - { role: quarkslab.escan, tags: 'escan' }
+
 # vim: sw=2
