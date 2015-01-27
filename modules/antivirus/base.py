@@ -172,7 +172,18 @@ class Antivirus(object):
                         matches = pattern.finditer(line)
                         for match in matches:
                             filename = match.group('file').lower()
-                            if paths.lower() in filename:
+                            # Handle absolute and relative paths in AV outputs
+                            #
+                            # Some filenames possibilities:
+                            #   /absolute-dir/.../filename
+                            #   /absolute-dir/.../name.zip/unzip1.zip/unzip2.zip
+                            #   relative-dir/.../name.zip/unzip1.zip/unzip2.zip
+                            #
+                            # NOTE: as 'filename' does not correspond exactly
+                            # to the filename parsed from the output, we need
+                            # to inverse the conditions.
+                            if paths.lower() in filename or \
+                               os.path.relpath(paths.lower()) in filename:
                                 name = match.group('name')
                                 # NOTE: get first result, ignore others if
                                 # binary is packed.
@@ -189,6 +200,7 @@ class Antivirus(object):
             if is_false_positive:
                 if stderr or retcode in [self.ScanResult.ERROR]:
                     retcode = self.ScanResult.ERROR
+                    self._scan_results[paths] = stderr if stderr else stdout
                 else:
                     retcode = self.ScanResult.CLEAN
         return retcode
