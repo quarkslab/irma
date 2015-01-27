@@ -62,3 +62,6 @@ supervisor_programs_probe:
 
 # Bit Defender Scanner key - Put your licence key here
 # bitdefender_scanner_key:
+
+# Zoner Antivirus - put you licence key here
+# zoner_license_key: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX

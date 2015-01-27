@@ -96,4 +96,9 @@
   roles:
     - { role: quarkslab.virusblokada , tags: 'virusblokada' }
 
+- name: Zoner provisioning
+  hosts: zoner
+  roles:
+    - { role: quarkslab.zoner, tags: 'zoner' }
+
 # vim: sw=2
