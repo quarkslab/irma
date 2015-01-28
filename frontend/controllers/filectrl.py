@@ -94,7 +94,7 @@ def infected(sha256):
         returns detection score for
         file with given sha256 value
     """
-    av_results = get_results(sha256, filter_type=[IrmaProbeType.antivirus])
+    av_results = get_results(sha256, True, filter_type=[IrmaProbeType.antivirus])
     probe_res = av_results[sha256]['results']
     nb_scan = nb_detected = 0
     for res in probe_res.values():
