@@ -14,6 +14,19 @@ apis:
             paramType: path
             required: true
 
+  - path: /file/infected/{sha256}
+    operations:
+      - method: GET
+        summary: Look file by SHA256 and tell if it is infected
+        nickname: fileInfected
+        type: FileInfected
+        parameters:
+          - name: sha256
+            description: Hash using SHA256 function of the file
+            type: string
+            paramType: path
+            required: true
+
   - path: /file/result/{sha256}
     operations:
       - method: GET
