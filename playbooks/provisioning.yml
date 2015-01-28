@@ -101,4 +101,9 @@
   roles:
     - { role: quarkslab.zoner, tags: 'zoner' }
 
+- name: DrWeb provisioning
+  hosts: drweb
+  roles:
+    - { role: quarkslab.drweb, tags: 'drweb' }
+
 # vim: sw=2

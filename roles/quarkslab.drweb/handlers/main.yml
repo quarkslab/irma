@@ -1,0 +1,7 @@
+---
+
+- name: Restart DrWeb Daemon
+  service:
+    name: drweb-configd
+    state: restarted
+  sudo: yes

@@ -1,0 +1,7 @@
+---
+
+drweb_temp_dir: "/tmp/drweb"
+drweb_configs:
+  - section: "LinuxSpider"
+    option: "Start"
+    value: "No"

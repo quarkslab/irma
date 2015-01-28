@@ -15,3 +15,9 @@
 
 # Zoner Antivirus - put you licence key here
 # zoner_license_key: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+
+# DrWeb Antivirus - put your configurations there
+# drweb_configs:
+#   - section: LinuxSpider
+#     option: Start
+#     value: No

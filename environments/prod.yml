@@ -53,6 +53,8 @@ ansible_config:
       - avs-linux.irma
     zoner:
       - avs-linux.irma
+    drweb:
+      - avs-linux.irma
     "probe:children":
       - clamav
       - comodo
@@ -64,3 +66,4 @@ ansible_config:
       - escan
       - virusblokada
       - zoner
+      - drweb
