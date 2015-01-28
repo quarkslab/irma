@@ -147,7 +147,7 @@ class FileApi(WebApi):
         """
         try:
             validate_sha256(sha256)
-            return file_ctrl.infected(sha256)
+            return IrmaFrontendReturn.success(**file_ctrl.infected(sha256))
         except Exception as e:
             return IrmaFrontendReturn.error(str(e))
 
