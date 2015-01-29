@@ -17,6 +17,23 @@ models:
         format: int64
       exists:
         type: boolean
+  
+  FileInfected:
+    id: FileInfected
+    properties:
+      msg:
+        type: string
+      code:
+        type: integer
+        format: int64
+      infected:
+        type: boolean
+      nb_detected:
+        type: integer
+        format: int64
+      nb_scan':
+        type: integer
+        format: int64
 
   FileResults:
     id: FileResults
