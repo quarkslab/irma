@@ -72,6 +72,22 @@
             <div ng-switch-when="1">
                <div ng-switch on="output.name">
                   <pre ng-switch-when="StaticAnalyzer"><json-formatter json="output.results" open="1"></json-formatter></pre>
+                  <table class="table table-bordered" ng-switch-when="TrID">
+                    <thead>
+                      <tr>
+                        <th>Description</th>
+                        <th>File Extension</th>
+                        <th>Ration (in %)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr ng-repeat="(id, output) in output.results">
+                        <td>{{output.desc}}</td>
+                        <td>{{output.ext}}</td>
+                        <td>{{output.ratio}}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                   <pre ng-switch-default>{{output.results}}</pre>
                </div>
             </div>
