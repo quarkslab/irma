@@ -1,0 +1,7 @@
+---
+
+- name: Restart Avast daemon
+  service:
+    name: avast
+    state: restarted
+  sudo: yes

@@ -21,3 +21,6 @@
 #   - section: LinuxSpider
 #     option: Start
 #     value: No
+
+# Avast! licence file - Put your licence file here
+# avast_license_file: files/license.avastlic
