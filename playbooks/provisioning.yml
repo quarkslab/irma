@@ -111,4 +111,9 @@
   roles:
     - { role: quarkslab.avast, tags: 'avast' }
 
+- name: FSecure provisioning
+  hosts: fsecure
+  roles:
+    - { role: quarkslab.fsecure, tags: 'fsecure' }
+
 # vim: sw=2
