@@ -56,6 +56,8 @@ ansible_config:
       - avs-linux.irma
     fsecure:
       - avs-linux.irma
+    trid:
+      - avs-linux.irma
     "probe:children":
       - clamav
       - comodo
@@ -70,3 +72,4 @@ ansible_config:
       - drweb
       - avast
       - fsecure
+      - trid

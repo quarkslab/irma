@@ -116,4 +116,9 @@
   roles:
     - { role: quarkslab.fsecure, tags: 'fsecure' }
 
+- name: TrID provisioning
+  hosts: trid
+  roles:
+    - { role: quarkslab.trid, tags: 'trid' }
+
 # vim: sw=2
