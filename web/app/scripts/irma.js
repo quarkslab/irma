@@ -7,7 +7,7 @@ angular.module('irma', [
   'angularFileUpload',
   'mgcrea.ngStrap',
   'mgcrea.ngStrap.helpers.dimensions',
-  'ngJsonExplorer',
+  'gd.ui.jsonexplorer',
   'angular-capitalize-filter',
   'angularMoment',
   'ngTable',
