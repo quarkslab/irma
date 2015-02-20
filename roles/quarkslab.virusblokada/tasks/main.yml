@@ -1,10 +1,10 @@
 ---
 
-- name: AVG | Adding i386 repositories
+- name: VBA32 | Adding i386 repositories
   shell: dpkg --add-architecture i386
   sudo: yes
 
-- name: AVG | Install dependencies
+- name: VBA32 | Install dependencies
   apt:
     name: "{{ item }}"
     state: present
