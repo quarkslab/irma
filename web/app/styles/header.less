@@ -1,25 +1,29 @@
 #header {
-  margin-bottom: 10px;
+  margin-bottom: 7px;
 
-  h2 {
-    font-weight: 200;
-    font-size: 60px;
-    line-height: 55px;
-    color: #999999;
-    font-family: 'Raleway', sans-serif;
-    margin: 60px 0 0 0;
+  img {
+      max-width: 100%;
   }
 
-  &:before{
-    content: '&';
-    font-size: 250px;
-    font-weight: 700;
-    line-height: 190px;
-    color: #dddddd;
-    position: absolute;
-    right: 445px;
-    top: 13px;
-    z-index: -1;
+  h2 {
+    font-weight: 400;
+    font-size: 60px;
+    line-height: 50px;
+    color: #999999;
+    font-family: 'Raleway', sans-serif;
+    margin: 55px 0 0 0;
+
+    &:after {
+      color: #ddd;
+      content: "&";
+      font-size: 255px;
+      font-weight: 700;
+
+      position: relative;
+      float: right;
+      top: -65px;
+      z-index: -1;
+    }
   }
 }
 
@@ -28,8 +32,8 @@
   text-align: center;
   border-bottom: 1px solid #dddddd;
   border-top: 1px solid #dddddd;
-  margin: 10px 50px 25px;
   font-family: 'Raleway', sans-serif;
+  margin-bottom: 25px;
 
   li {
     font-size: 40px;
