@@ -1,4 +1,5 @@
 ---
+# Variables used by Vagrantfile are defined here
 
 servers:
   - name: brain.irma
@@ -28,6 +29,25 @@ servers:
         share_exclude:
           - .git/
           - venv/
+## NOTE: The following adds a windows VM to IRMA. This is not enabled by
+## default in allinone_dev because of known limitations due to shared folders.
+## Please have a look at the documentation if ## you want to enable this in an dev
+## environment.
+## NOTE: hostname cannot be more that 15 characters
+##   - name: probe-win.irma
+##     box: eval-win8x64-enterprise
+##     ip: 172.16.1.31
+##     hostname: probe-win.irma
+##     cpus: 2
+##     cpuexecutioncap: 100
+##     memory: 2048
+##     windows: true
+##     shares:
+##       - share_from: ../irma-probe
+##         share_to: C:/IRMA/irma-probe/current
+##         share_exclude:
+##           - .git/
+##           - venv/
 
 ansible_config:
   extra_vars:
@@ -51,6 +71,8 @@ ansible_config:
       - brain.irma
     virustotal:
       - brain.irma
+    windows-probe:
+      - probe-win.irma
     "probe:children":
       - clamav
       - comodo
@@ -58,3 +80,6 @@ ansible_config:
       - trid
       - static-analyzer
       - virustotal
+      - windows-probe
+    "windows:children":
+      - windows-probe

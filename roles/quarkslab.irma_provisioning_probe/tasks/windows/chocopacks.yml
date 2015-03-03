@@ -1,0 +1,13 @@
+---
+
+- name: Installing Chocolatey Packages
+  raw: choco.exe install "{{ item.name }}" -Version "{{ item.version }}"
+  register: result
+  failed_when: "result.rc not in {{ item.rc | default([0]) }}"
+  with_items:
+    - name: git
+      version: 1.9.5
+    - name: python
+      version: 2.7.6
+    - name: pip
+      version: 1.2.0

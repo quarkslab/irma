@@ -1,0 +1,10 @@
+---
+
+- name: Chocolatey | Check if already installed
+  raw: choco.exe
+  register: result
+  failed_when: result.rc not in [0, 1]
+
+- name: Chocolatey | Install
+  script: ../../files/chocolatey.bat
+  when: result.rc == 1

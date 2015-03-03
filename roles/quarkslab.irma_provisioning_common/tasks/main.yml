@@ -5,7 +5,9 @@
 
 - include: hosts.yml
 - include: users_groups.yml
+
 - include: locales.yml
+  when: ansible_distribution in ['Debian', 'Ubuntu']
 
 - name: Create IRMA data directories
   file:

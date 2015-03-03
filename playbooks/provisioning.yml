@@ -1,15 +1,15 @@
 ---
 
-- name: Common tasks to execute on all servers
+- name: Common tasks to execute on all Linux servers
   hosts: all
   sudo: yes
   roles:
-    - { role: quarkslab.apt, tags: 'apt' }
-    - { role: franklinkim.ufw, tags: 'ufw' }
-    - { role: quarkslab.irma_provisioning_common, tags: 'common' }
-    - { role: mivok0.users, tags: 'users' }
-    - { role: franklinkim.sudo, tags: 'sudo' }
-    - { role: ANXS.openssh, tags: 'openssh' }
+    - { role: quarkslab.apt, tags: 'apt', when: "ansible_distribution in ['Debian', 'Ubuntu']" }
+    - { role: franklinkim.ufw, tags: 'ufw', when: "ansible_distribution in ['Debian', 'Ubuntu']" }
+    - { role: quarkslab.irma_provisioning_common, tags: 'common', when: "ansible_distribution in ['Debian', 'Ubuntu']" }
+    - { role: mivok0.users, tags: 'users', when: "ansible_distribution in ['Debian', 'Ubuntu']" }
+    - { role: franklinkim.sudo, tags: 'sudo', when: "ansible_distribution in ['Debian', 'Ubuntu']" }
+    - { role: ANXS.openssh, tags: 'openssh', when: "ansible_distribution in ['Debian', 'Ubuntu']" }
 
 
 - name: Frontend provisioning
@@ -42,7 +42,7 @@
   sudo: yes
   roles:
     - { role: quarkslab.irma_provisioning_probe, tags: 'probe' }
-    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}" }
+    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}", when: "ansible_distribution in ['Debian', 'Ubuntu']"}
 
 
 # Antivirus section
