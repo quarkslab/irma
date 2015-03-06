@@ -8,29 +8,36 @@
     - libqt4-network
     - libqtgui4
 
+- name: ComodoCAVL | Create temporary work dir
+  file:
+    path: "{{ comodo_cavl_temp_dir }}/"
+    state: directory
+
 - name: ComodoCAVL | Download Package
   get_url:
     url: "{{ comodo_cavl_deb_url }}"
-    dest: /tmp/comodo.deb
+    dest: "{{ comodo_cavl_temp_dir }}/comodo.deb"
   when: ansible_os_family == "Debian"
 
 - name: ComodoCAVL | Extract files
-  shell: ar x /tmp/comodo.deb
+  shell: ar x "{{ comodo_cavl_temp_dir }}/comodo.deb"
   args:
-    chdir: /tmp/
-    creates: /tmp/data.tar.gz
+    chdir: "{{ comodo_cavl_temp_dir }}/"
+    creates: "{{ comodo_cavl_temp_dir }}/data.tar.gz"
 
 - name: ComodoCAVL | Install files
-  shell: tar xzf /tmp/data.tar.gz -C /
-
-- shell: rm control.tar.gz data.tar.gz debian-binary
-  args:
-    chdir: /tmp/
+  shell: tar xzf "{{ comodo_cavl_temp_dir }}/data.tar.gz" -C /
 
 - name: ComodoCAVL | Download Update
   command: wget -Nc -r -nd -l1 {{ comodo_cavl_update_url }}
   args:
-    chdir: /tmp/
+    chdir: "{{ comodo_cavl_temp_dir }}/"
+    creates: "{{ comodo_cavl_temp_dir }}/bases.cav"
 
 - name: ComodoCAVL | Install Update
-  shell: mv /tmp/bases.cav /opt/COMODO/scanners
+  shell: mv "{{ comodo_cavl_temp_dir }}/bases.cav" /opt/COMODO/scanners
+
+- name: ComodoCAVL | Remove temporary work dir
+  file:
+    path: "{{ comodo_cavl_temp_dir }}/"
+    state: absent
