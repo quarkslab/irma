@@ -13,22 +13,17 @@
   ignore_errors: yes
   register: mcafee
 
+- name: McAfee VSCL | Create temporary work dir
+  file:
+    path: "{{ mcafee_temp_dir }}/"
+    state: directory
+
 - include: install.yml
   when: mcafee | failed
 
-- name: McAfee VSCL | Download Update
-  command: wget -Nc -r -nd -l1 -A "avvepo????dat.zip" http://download.nai.com/products/DatFiles/4.x/nai/
-  args:
-    chdir: /tmp/
+- include: update.yml
 
-- shell: "ls /tmp/avvepo*"
-  register: update_pkg
-
-- shell: "unzip -o {{ item }} -d /tmp/ && rm -r {{ item }}"
-  with_items: update_pkg.stdout_lines
-
-- shell: "ls /tmp/avvdat-*"
-  register: update
-
-- shell: "unzip -o {{ item }} -d /usr/local/uvscan/ && rm {{ item }}"
-  with_items: update.stdout_lines
+- name: McAfee VSCL | Remove temporary work dir
+  file:
+    path: "{{ mcafee_temp_dir}}/"
+    state: absent
