@@ -1,0 +1,9 @@
+---
+
+- name: EsetNod32 | Check if present
+  command: "/opt/eset/esets/sbin/esets_scan -v"
+  ignore_errors: yes
+  register: esets_present
+
+- include: install.yml
+  when: esets_present|failed

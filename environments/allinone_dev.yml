@@ -63,6 +63,8 @@ ansible_config:
       - brain.irma
     comodo:
       - brain.irma
+    eset-nod32:
+      - brain.irma
     mcafee:
       - brain.irma
     trid:
@@ -76,6 +78,7 @@ ansible_config:
     "probe:children":
       - clamav
       - comodo
+      - eset-nod32
       - mcafee
       - trid
       - static-analyzer

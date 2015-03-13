@@ -1,0 +1,14 @@
+#!/bin/sh
+
+Xvfb -ac :1 &
+export DISPLAY=localhost:1
+{{ eset_nod32_temp_dir }}/esetnod32.linux &
+sleep 1;
+WID=`xdotool search --name 'ESET NOD32.*'`
+xdotool windowfocus $WID
+xdotool key --delay 1000 'alt+n' 'alt+n' 'alt+a' 'alt+n' 'alt+n' 'alt+e' 'alt+n' 'Tab' 'Down' 'Down' 'alt+n' 'alt+i' ;
+sleep 60;
+xdotool search --name 'ESET NOD32.*' key 'alt+f';
+sleep 5;
+xdotool search --name 'Installer.*' key 'alt+n';
+killall Xvfb

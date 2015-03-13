@@ -1,0 +1,50 @@
+---
+
+- name: EsetNod32 | Install dependencies
+  apt: pkg={{ item }} state=present
+  with_items:
+    - libgtk2.0-0
+    - libc6-i386
+    - xvfb
+    - xdotool
+    - coreutils
+
+- name: EsetNod32 | Create temporary work dir
+  file:
+    path: "{{ eset_nod32_temp_dir }}/"
+    state: directory
+
+- name: EsetNod32 | Download install script
+  get_url:
+    url: "{{ eset_nod32_script_url }}"
+    dest: "{{ eset_nod32_temp_dir }}/esetnod32.linux"
+  when: ansible_os_family == "Debian"
+
+- name: EsetNod32 | Set permissions
+  file:
+    path: "{{ eset_nod32_temp_dir }}/esetnod32.linux"
+    mode: "u+x"
+
+- name: EsetNod32 | Create automation script
+  template: >
+    src=install.sh.j2
+    dest="{{ eset_nod32_temp_dir }}/install.sh"
+    owner=root
+    group=root
+    mode=0755
+
+- name: EsetNod32 | Launch install script
+  shell: "{{ eset_nod32_temp_dir }}/install.sh"
+
+- name: EsetNod32 | Stop Eset daemon and disable it
+  shell: /etc/init.d/esets stop
+
+- name: EsetNod32 | Disable it
+  file:
+    path: /etc/init.d/esets
+    state: absent
+
+- name: EsetNod32 | Remove temporary work dir
+  file:
+    path: "{{ eset_nod32_temp_dir }}/"
+    state: absent
