@@ -24,7 +24,7 @@ Join the #qb_irma channel on irc.freenode.net. Lots of helpful people hang out t
 Contribute to IRMA
 ``````````````````
 
-IRMA is an ambitious project. Make yourself known on the #irma_qb channel on
+IRMA is an ambitious project. Make yourself known on the #qb_irma channel on
 irc.freenode.net. We will be please to greet you and to find a way to get you
 involved in the project.
 
