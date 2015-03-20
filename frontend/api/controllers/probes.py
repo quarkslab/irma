@@ -13,16 +13,21 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+from bottle import response
+from frontend.api.errors import process_error
+import frontend.controllers.braintasks as celery_brain
 
-class WebApi(object):
-    _app = None
-    _mountpath = None
 
-    def __init__(self):
-        pass
+def list():
+    """ get active probe list. This list is used to launch a scan.
+    """
+    try:
+        probelist = celery_brain.probe_list()
 
-    def get_app(self):
-        return self._app
-
-    def get_mount_path(self):
-        return self._mountpath
+        response.content_type = "application/json; charset=UTF-8"
+        return {
+            "total": len(probelist),
+            "data": probelist
+        }
+    except Exception as e:
+        process_error(e)
