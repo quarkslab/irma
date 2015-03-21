@@ -432,15 +432,15 @@ connection is required. Set to ``False`` by default
             flags = flags & 0
             if algorithm:
                 # sanitize algorithm
-                mask = (StorageVolumeManager.WIPE_ALG_ZERO
-                        | StorageVolumeManager.WIPE_ALG_NNSA
-                        | StorageVolumeManager.WIPE_ALG_DOD
-                        | StorageVolumeManager.WIPE_ALG_BSI
-                        | StorageVolumeManager.WIPE_ALG_GUTMANN
-                        | StorageVolumeManager.WIPE_ALG_SCHNEIER
-                        | StorageVolumeManager.WIPE_ALG_PFITZNER7
-                        | StorageVolumeManager.WIPE_ALG_PFITZNER33
-                        | StorageVolumeManager.WIPE_ALG_RANDOM)
+                mask = (StorageVolumeManager.WIPE_ALG_ZERO |
+                        StorageVolumeManager.WIPE_ALG_NNSA |
+                        StorageVolumeManager.WIPE_ALG_DOD |
+                        StorageVolumeManager.WIPE_ALG_BSI |
+                        StorageVolumeManager.WIPE_ALG_GUTMANN |
+                        StorageVolumeManager.WIPE_ALG_SCHNEIER |
+                        StorageVolumeManager.WIPE_ALG_PFITZNER7 |
+                        StorageVolumeManager.WIPE_ALG_PFITZNER33 |
+                        StorageVolumeManager.WIPE_ALG_RANDOM)
                 algorithm = algorithm & mask
                 volume.wipePattern(algorithm, flags=flags)
             else:
