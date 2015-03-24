@@ -54,10 +54,10 @@ class MimetypesTestCase(unittest.TestCase):
         with open(self.filename, "wb") as f:
             f.write(self.data)
         try:
-            self.cookie = magic.open(magic.MAGIC_NONE
-                                     | magic.MAGIC_MIME
-                                     | magic.MAGIC_MIME_ENCODING
-                                     | magic.MAGIC_CONTINUE)
+            self.cookie = magic.open(magic.MAGIC_NONE |
+                                     magic.MAGIC_MIME |
+                                     magic.MAGIC_MIME_ENCODING |
+                                     magic.MAGIC_CONTINUE)
             self.cookie.load()
         except AttributeError:
             self.cookie = magic.Magic(mime=True,

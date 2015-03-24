@@ -16,7 +16,7 @@
 import uuid
 import re
 import random
-
+import collections
 from time import mktime
 
 
@@ -123,8 +123,6 @@ def humanize_time_str(amount, units):
 
 def timestamp(date):
     return mktime(date.timetuple()) + date.microsecond / 1000000.0
-
-import collections
 
 
 def to_unicode(data):

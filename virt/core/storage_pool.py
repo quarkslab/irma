@@ -213,8 +213,8 @@ class StoragePoolManager(ParametricSingleton):
         """
         labels = list()
         # modifying filters
-        mask = (StoragePoolManager.ACTIVE
-                | StoragePoolManager.INACTIVE)
+        mask = (StoragePoolManager.ACTIVE |
+                StoragePoolManager.INACTIVE)
         filter = filter & mask
         # fetching labels according to filters
         if not filter or filter & StoragePoolManager.ACTIVE:
