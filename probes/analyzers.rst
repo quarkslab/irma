@@ -168,14 +168,30 @@ Extract also, using unzip program, the database:
     $ cd /usr/local/uvscan
     $ sudo unzip avvdat-XXXX.zip
 
-Sophos - Microsoft Windows
-``````````````````````````
+Sophos - GNU/Linux or Microsoft Windows
+```````````````````````````````````````
 
 A free evaluation of Sophos Endpoint Antivirus can be downloaded from the
 `editor download page
 <http://www.sophos.com/en-us/products/endpoint-antivirus/free-trial.aspx>`_.
-It should be detected automatically if the anti-virus is installed in its
+You should receive by email a username and a password to authenticate for updates.
+
+It should be detected automatically by IRMA if the anti-virus is installed in its
 default installation directory.
+
+On GNU/Linux:
+
+- Download the archive for Linux, then execute:
+
+.. code-block:: bash
+
+    $ tar zxf sav-linux-9-i386.tgz
+    $ ./sophos-av/install.sh /opt/sophos-av --acceptlicence --autostart=False --enableOnBoot=False --automatic --ignore-existing-installation
+    $ /opt/sophos-av/bin/savconfig set EnableOnStart false
+    $ /opt/sophos-av/bin/savconfig set PrimaryUpdateSourcePath "sophos:"
+    $ /opt/sophos-av/bin/savconfig set PrimaryUpdateUsername "<your_username_from_email>"
+    $ /opt/sophos-av/bin/savconfig set PrimaryUpdatePassword "<your_password_from_email>"
+    $ /opt/sophos-av/bin/savupdate
 
 Kaspersky - Microsoft Windows
 `````````````````````````````
