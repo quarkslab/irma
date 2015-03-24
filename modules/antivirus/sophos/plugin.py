@@ -33,10 +33,7 @@ class SophosPlugin(PluginBase, Sophos, AntivirusPluginInterface):
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
-    _plugin_description_ = "Plugin for Sophos on Windows"
-    _plugin_dependencies_ = [
-        PlatformDependency('win32')
-    ]
+    _plugin_description_ = "Plugin for Sophos on GNU/Linux and Windows"
 
     @classmethod
     def verify(cls):
