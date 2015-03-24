@@ -1,0 +1,8 @@
+---
+
+sophos_temp_dir: /tmp/sophos
+sophos_install_dir: /opt/sophos-av
+sophos_archive_name:
+sophos_update_username:
+sophos_update_password:
+sophos_update_period_minutes: 60

@@ -74,3 +74,8 @@ supervisor_programs_probe:
 
 # Avast! licence file - Put your licence file here
 # avast_license_file: files/license.avastlic
+
+# Sophos Antivirus Antivirus for Linux (Free) - Put your variables here
+# sophos_archive_name: sav-linux-free-9.9.tgz
+# sophos_update_username: ABCDEFGH
+# sophos_update_password: 01s21z54ee
