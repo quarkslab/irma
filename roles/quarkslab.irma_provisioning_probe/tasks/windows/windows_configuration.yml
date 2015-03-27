@@ -1,6 +1,15 @@
 ---
 
-- name: Disabling WinDefender
+- name: Try Disable WinDefender realtime monitoring
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    # https://technet.microsoft.com/en-us/library/dn433291.aspx
+    - cmd: "powershell Set-MpPreference -DisableRealtimeMonitoring $true"
+      rc: [0, 1]
+
+- name: Try Disabling WinDefender
   raw: "{{ item.cmd }}"
   register: result
   failed_when: result.rc not in {{ item.rc | default([0]) }}

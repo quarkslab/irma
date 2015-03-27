@@ -39,8 +39,8 @@ ansible_config:
       - brain.irma
     virustotal:
       - brain.irma
-    windows-probe:
-      - probe-win.irma
+#    windows-probe:
+#      - probe-win.irma
     "probe:children":
       - clamav
       - comodo
@@ -49,5 +49,5 @@ ansible_config:
       - static-analyzer
       - virustotal
       - windows-probe
-    "windows:children":
-      - windows-probe
+#    "windows:children":
+#      - windows-probe
