@@ -58,7 +58,7 @@ class SQLDatabase(object):
                 else:
                     host_and_id = "{0}@{1}".format(username, host)
             url = "{0}://{1}/{2}".format(dbms, host_and_id, dbname)
-            cls.__engine = create_engine(url, echo=DEBUG, client_encoding='utf8')
+            cls.__engine = create_engine(url, echo=DEBUG)
 
             session_factory = sessionmaker(bind=cls.__engine)
             cls.__Session = scoped_session(session_factory)
