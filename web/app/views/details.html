@@ -70,7 +70,12 @@
           <h5>Responded in {{output.duration}} s</h5>
 
           <div ng-switch on="output.status" ng-repeat-end>
-            <pre ng-switch-when="1"><json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer></pre>
+            <div ng-switch-when="1">
+               <div ng-switch on="output.name" ng-repeat-end>
+                  <pre ng-switch-when="StaticAnalyzer"><json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer></pre>
+                  <pre ng-switch-defaults>{{output.results}}</pre>
+               </div>
+            </div>
 
             <div ng-switch-when="0" class="bs-callout bs-callout-warning">
               <h4>Warning:</h4>
