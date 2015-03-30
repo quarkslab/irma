@@ -32,7 +32,7 @@
           params.page(1);
         }
 
-        dataservice.searchFiles(vm.searchedType, vm.searchedStr, params.page(), params.count()).then(function(data) {
+        dataservice.searchFiles(vm.searchedType, vm.searchedStr, (params.page() - 1)* params.count(), params.count()).then(function(data) {
           params.total(data.total);
           $defer.resolve(data.items);
         });

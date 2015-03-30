@@ -12,8 +12,8 @@ function dataservice(bridge) {
         searchFiles: searchFiles
     };
 
-    function searchFiles(type, name, page, per_page) {
-        return bridge.get({url: '/file/search?' + type + '=' + name + '&page=' + page + '&per_page=' + per_page})
+    function searchFiles(type, name, offset, limit) {
+        return bridge.get({url: '/search/files?' + type + '=' + name + '&offset=' + offset + '&limit=' + limit})
             .then(searchComplete);
 
         function searchComplete(response) {
