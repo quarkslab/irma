@@ -127,4 +127,10 @@
   roles:
     - { role: quarkslab.trid, tags: 'trid' }
 
+- name: PEiD provisioning
+  hosts: peid
+  sudo: yes
+  roles:
+    - { role: quarkslab.peid, tags: 'peid' }
+
 # vim: sw=2
