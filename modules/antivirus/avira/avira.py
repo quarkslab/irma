@@ -61,8 +61,8 @@ class Avira(Antivirus):
         """return the version of the antivirus"""
         result = None
         if self.scan_path:
-            cmd = self.build_cmd(self.scan_path)
-            retcode, stdout, stderr = self.run_cmd(cmd, "/v")
+            cmd = self.build_cmd(self.scan_path, "/v")
+            retcode, stdout, _ = self.run_cmd(cmd)
             if not retcode:
                 # match VDF version is for database
                 # matches = re.search(r'VDF Version:\s+'
