@@ -12,18 +12,5 @@ web/.sass-cache/
 web/.tmp/
 web/app/bower_components/
 
-# for pip packaging
-dist
-*.egg-info/
-
-# for debian packages
-debian/*.substvars
-debian/*.log
-debian/files
-debian/rules
-
 # other
-doc/
 .idea/*
-
-.gitmodules
