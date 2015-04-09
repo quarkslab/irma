@@ -41,19 +41,31 @@ class FSecure(Antivirus):
             "--scanexecutables=yes ",
             "--archive=yes ",
             "--mime=yes ",
-            #"--riskware=yes ",
+            # "--riskware=yes ",
             "--virus-action1=report ",
-            #"--riskware-action1=report ",
+            # "--riskware-action1=report ",
             "--suspected-action1=report ",
             "--virus-action2=none ",
-            #"--riskware-action2=none ",
+            # "--riskware-action2=none ",
             "--suspected-action2=none ",
             "--auto=yes ",
             "--list=no ",
         )
         # see man zavcli for return codes
-        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [3]
-        self._scan_retcodes[self.ScanResult.ERROR] = lambda x: x in [1, 3, 9]
+        # fsav reports the exit codes in following priority order:
+        # 130, 7, 1, 3, 4, 8, 6, 9, 0.
+        # 0 Normal exit; no viruses or suspicious files found.
+        # 1 Fatal  error (Usually a missing or corrupted file.)
+        # 3 A boot virus or file virus found.
+        # 4 Riskware (potential spyware) found.
+        # 6 At least one virus was removed and no infected files left.
+        # 7 Out of memory.
+        # 8 Suspicious files found (not necessarily infected by a virus)
+        # 9 Scan error, at least one file scan failed.
+        INFECTED = self.ScanResult.INFECTED
+        ERROR = self.ScanResult.ERROR
+        self._scan_retcodes[INFECTED] = lambda x: x in [3, 4, 6, 8]
+        self._scan_retcodes[ERROR] = lambda x: x in [1, 7, 9]
         self._scan_patterns = [
             re.compile(r'(?P<file>.*)'
                        r':\s+(Infected|Suspected):\s+'
@@ -69,7 +81,7 @@ class FSecure(Antivirus):
         result = None
         if self.scan_path:
             cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
+            retcode, stdout, _ = self.run_cmd(cmd)
             if not retcode:
                 matches = re.search(r'(?P<version>\d+([.-]\d+)+)',
                                     stdout,
@@ -80,23 +92,8 @@ class FSecure(Antivirus):
 
     def get_database(self):
         """return list of files in the database"""
-        # extract folder where are installed definition files
-        drweb_path = "/var/opt/drweb.com/"
-        #search_paths = map(lambda x:
-        #                   '{drweb_path}/lib/{folder}/'
-        #                   ''.format(drweb_path=drweb_path, folder=x),
-        #                   ['bases', 'dws'])
-        #database_patterns = [
-        #    'timestamp*',
-        #    '*.drl',
-        #    '*.dws',
-        #    '*.vdb',
-        #]
-        results = []
-        #for pattern in database_patterns:
-        #    result = self.locate(pattern, search_paths, syspath=False)
-        #    results.extend(result)
-        return results if results else None
+        # TODO
+        return None
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
