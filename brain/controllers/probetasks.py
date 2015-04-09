@@ -32,9 +32,9 @@ cache_probelist = {'list': None, 'time': None}
 
 
 def get_probelist():
+    global cache_probelist
     # get active queues list from probe celery app
     now = time.time()
-    result_queue = config.brain_config['broker_probe'].queue
     if cache_probelist['time'] is not None:
         cache_time = now - cache_probelist['time']
     if cache_probelist['time'] is None or cache_time > PROBELIST_CACHE_TIME:
@@ -42,6 +42,7 @@ def get_probelist():
         i = probe_app.control.inspect()
         queues = i.active_queues()
         if queues:
+            result_queue = config.brain_config['broker_probe'].queue
             for infolist in queues.values():
                 for info in infolist:
                     if info['name'] not in slist:
@@ -51,7 +52,7 @@ def get_probelist():
         if len(slist) != 0:
             # activate cache only on non empty list
             cache_probelist['time'] = now
-        cache_probelist['list'] = slist
+        cache_probelist['list'] = sorted(slist)
     return cache_probelist['list']
 
 
