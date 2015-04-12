@@ -67,10 +67,11 @@
           <h2 id="metadata">Metadata</h2>
           <h3 ng-repeat-start="output in probesMetadata = (vm.results.probe_results | filter:{type:'metadata'})" id="{{output.name | lowercase}}">{{output.name}} <small>{{output.version}}</small></h3>
           <h5>Responded in {{output.duration}} s</h5>
+
           <div ng-switch on="output.status" ng-repeat-end>
             <div ng-switch-when="1">
                <div ng-switch on="output.name">
-                  <pre ng-switch-when="StaticAnalyzer"><json-explorer collapsed="false" json-data="{{output.results}}"></json-explorer></pre>
+                  <pre ng-switch-when="StaticAnalyzer"><json-formatter json="output.results" open="1"></json-formatter></pre>
                   <pre ng-switch-default>{{output.results}}</pre>
                </div>
             </div>
