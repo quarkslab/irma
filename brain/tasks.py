@@ -85,9 +85,12 @@ def scan(frontend_scanid, scan_request):
                 log.info("{0}: Unknown probe {1}".format(frontend_scanid, p))
                 return IrmaTaskReturn.error(msg)
 
-        # Now, create one subtask per file to
-        # scan per probe according to quota
+        # an array with link between job and celery task
+        # to insert them all at once in db
+        job_task_tuples = []
         for probe in probe_list:
+            # Now, create one subtask per file to
+            # scan per probe according to quota
             if remaining is not None:
                 if remaining <= 0:
                     break
@@ -99,7 +102,8 @@ def scan(frontend_scanid, scan_request):
                                               filename,
                                               probe,
                                               job_id)
-            job_ctrl.set_taskid(job_id, task_id)
+            job_task_tuples.append((job_id, task_id))
+    job_ctrl.set_taskids(job_task_tuples)
     scan_ctrl.launched(scan_id)
     celery_frontend.scan_launched(frontend_scanid)
     log.info(
@@ -110,7 +114,7 @@ def scan(frontend_scanid, scan_request):
         "{0} jobs launched".format(scan_ctrl.get_nbjobs(scan_id)))
 
 
-@scan_app.task()
+@scan_app.task(acks_late=True)
 def scan_progress(frontend_scanid):
     try:
         log.info("{0}: scan progress".format(frontend_scanid))
