@@ -4,7 +4,6 @@
 servers:
   - name: frontend.irma
     box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
     ip: 172.16.1.30
     hostname: frontend.irma
     cpus: 2
@@ -20,7 +19,6 @@ servers:
           - app/components
   - name: brain.irma
     box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
     ip: 172.16.1.31
     hostname: brain.irma
     cpus: 2
@@ -34,7 +32,6 @@ servers:
           - db/
   - name: avs-linux.irma
     box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
     ip: 172.16.1.32
     hostname: avs-linux.irma
     cpus: 2
