@@ -13,11 +13,21 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from frontend.models.sqlobjects import File
-from frontend.helpers.sessions import session_query
+from bottle import response
+from frontend.api.errors import process_error
+import frontend.controllers.braintasks as celery_brain
 
 
-# used by tasks.py
-def remove_files(max_age_sec):
-    with session_query() as session:
-        return File.remove_old_files(max_age_sec, session)
+def list():
+    """ get active probe list. This list is used to launch a scan.
+    """
+    try:
+        probelist = celery_brain.probe_list()
+
+        response.content_type = "application/json; charset=UTF-8"
+        return {
+            "total": len(probelist),
+            "data": probelist
+        }
+    except Exception as e:
+        process_error(e)

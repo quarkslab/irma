@@ -7,7 +7,7 @@ angular.module('irma', [
   'angularFileUpload',
   'mgcrea.ngStrap',
   'mgcrea.ngStrap.helpers.dimensions',
-  'ngJsonExplorer',
+  'jsonFormatter',
   'angular-capitalize-filter',
   'angularMoment',
   'ngTable',
@@ -15,7 +15,7 @@ angular.module('irma', [
 ])
   .constant('constants', {
     fakeDelay: 0,
-    baseApi: '/_api',
+    baseApi: '/api/v1',
     speed: 1500,
     refresh: 1000,
     forceScanDefault: true,
