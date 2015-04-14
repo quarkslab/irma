@@ -19,12 +19,13 @@ import requests
 import json
 import argparse
 
-ADDRESS = "http://localhost/_api"
+ADDRESS = "http://172.16.1.30/api/v1/"
 
 
 # Warning this is a copy of IrmaScanStatus lib.irma.common.utils
 # in order to get rid of this dependency
 # KEEP SYNCHRONIZED
+
 class IrmaScanStatus:
     empty = 0
     ready = 10
@@ -60,13 +61,6 @@ class IrmaScanStatus:
              }
 
 
-class IrmaReturnCode:
-    success = 0
-    warning = 1
-    error = -1
-    label = {success: "success", warning: "warning", error: "error"}
-
-
 class IrmaError(Exception):
     """Error on cli script"""
     pass
@@ -76,20 +70,40 @@ class IrmaError(Exception):
 #  Functions returns values or raise (Called by other program)
 # =============================================================
 
-def _generic_get_call(url, kwname, verbose):
+def _generic_get_call(url, verbose):
     resp = requests.get(url)
-    data = json.loads(resp.content)
     if verbose:
-        print data
-    if data['code'] == IrmaReturnCode.success:
-        return data[kwname]
-    elif data['code'] == IrmaReturnCode.warning:
-        print "data['msg']"
+        print "http code : {0}".format(resp.status_code)
+        print "content : {0}".format(resp.content)
+    if resp.status_code == 200:
+        return json.loads(resp.content)
     else:
-        code = IrmaReturnCode.label[data['code']]
-        reason = "{0}: {1}".format(code, data['msg'])
+        reason = "Erreur Http code {0}".format(resp.status_code)
+        try:
+            data = json.loads(resp.content)
+            if 'message' in data:
+                reason += data['message']
+        except:
+            pass
         raise IrmaError(reason)
-    return
+
+
+def _generic_post_call(url, verbose, **extra_args):
+    resp = requests.post(url, **extra_args)
+    if verbose:
+        print "http code : {0}".format(resp.status_code)
+        print "content : {0}".format(resp.content)
+    if resp.status_code == 200:
+        return json.loads(resp.content)
+    else:
+        reason = "Erreur Http code {0}".format(resp.status_code)
+        try:
+            data = json.loads(resp.content)
+            if 'message' in data:
+                reason += ": {0}".format(data['message'])
+        except:
+            pass
+        raise IrmaError(reason)
 
 
 def _ping(verbose=False):
@@ -97,79 +111,58 @@ def _ping(verbose=False):
 
 
 def _probe_list(verbose=False):
-    url = ADDRESS + '/probe/list'
-    return _generic_get_call(url, 'probe_list', verbose)
+    url = ADDRESS + '/probes'
+    data = _generic_get_call(url, verbose)
+    return data['data']
 
 
 def _scan_cancel(scanid, verbose=False):
-    url = ADDRESS + '/scan/cancel/' + scanid
-    return _generic_get_call(url, 'cancel_details', verbose)
+    url = ADDRESS + '/scans/{0}/cancel'.format(scanid)
+    data = _generic_post_call(url, verbose)
+    return (data['probes_finished'], data['probes_total'])
 
 
 def _scan_result(scanid, verbose=False):
-    url = "{0}/scan/{1}/results".format(ADDRESS, scanid)
-    return _generic_get_call(url, 'scan_results', verbose)
+    url = ADDRESS + '/scans/{0}/results'.format(scanid)
+    data = _generic_get_call(url, verbose)
+    return data
 
 
 def _scan_file_result(scanid, scan_file_idx, verbose=False):
-    url = "{0}/scan/{1}/results/{2}".format(ADDRESS, scanid, scan_file_idx)
-    return _generic_get_call(url, 'results', verbose)
+    url = ADDRESS + '/scans/{0}/results/{1}'.format(scanid, scan_file_idx)
+    data = _generic_get_call(url, verbose)
+    return data
 
 
 def _scan_new(verbose=False):
-    url = ADDRESS + '/scan/new'
-    return _generic_get_call(url, 'scan_id', verbose)
-
-
-def _scan_progress(scanid, verbose=False):
-    resp = requests.get(url=ADDRESS + '/scan/progress/' + scanid)
-    data = json.loads(resp.content)
-    if verbose:
-        print data
-    finished = successful = total = None
-    if data['code'] == IrmaReturnCode.success:
-        progress = data['progress_details']
-        finished = progress['finished']
-        successful = progress['successful']
-        total = progress['total']
-        status = "launched"
-    elif data['code'] == IrmaReturnCode.warning:
-        status = data['msg']
-        return (status, finished, total, successful)
-    else:
-        code = IrmaReturnCode.label[data['code']]
-        reason = "{0} getting progress: {1}".format(code, data['msg'])
-        raise IrmaError(reason)
-    return (status, finished, total, successful)
+    url = ADDRESS + '/scans'
+    data = _generic_post_call(url, verbose)
+    return data['id']
 
 
 def _scan_add(scanid, filelist, verbose=False):
     postfiles = dict(map(lambda t: (t, open(t, 'rb')), filelist))
-    resp = requests.post(ADDRESS + '/scan/add/' + scanid, files=postfiles)
-    data = json.loads(resp.content)
-    if verbose:
-        print data
-    if data['code'] != IrmaReturnCode.success:
-        raise IrmaError("{0}: {1}".format(data['code'], data['msg']))
-    return data['nb_files']
+    url = ADDRESS + '/scans/{0}/files'.format(scanid)
+    data = _generic_post_call(url, verbose, files=postfiles)
+    return len(data['results'])
 
 
 def _scan_launch(scanid, force, probe, verbose=False):
+    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     params = {'force': force}
-    if probe:
-        params['probe'] = ','.join(probe)
-    resp = requests.get(ADDRESS + '/scan/launch/' + scanid, params=params)
-    data = json.loads(resp.content)
-    if verbose:
-        print data
-    if data['code'] != IrmaReturnCode.success:
-        code = IrmaReturnCode.label[data['code']]
-        reason = "{0} launching scan: {1}".format(code, data['msg'])
-        raise IrmaError(reason)
-    else:
-        probelist = data['probe_list']
-    return probelist
+    if probe is not None:
+        params['probes'] = ','.join(probe)
+    url = ADDRESS + "/scans/{0}/launch".format(scanid)
+    data = _generic_post_call(url, verbose,
+                              data=json.dumps(params), headers=headers)
+    return data
 
+
+def _scan_progress(scanid, verbose=False):
+    url = ADDRESS + '/scans/{0}'.format(scanid)
+    data = _generic_get_call(url, verbose)
+    return (data['status'], data['probes_finished'],
+            data['probes_total'])
 
 # ================================================
 #  Functions print values or raise (Called by UI)
@@ -183,63 +176,60 @@ def probe_list(verbose=False):
 
 
 def scan_cancel(scanid=None, verbose=False):
-    print _scan_cancel(scanid, verbose)
+    (finished, total) = _scan_cancel(scanid, verbose)
+    print "Cancelled {0}/{1} jobs".format(total - finished, total)
     return
 
 
 def scan_progress(scanid=None, partial=None, verbose=False):
-    (status, finished, total, successful) = _scan_progress(scanid, verbose)
-    if status == IrmaScanStatus.label[IrmaScanStatus.launched]:
-        rate_total = rate_success = 0
+    (status, finished, total) = _scan_progress(scanid, verbose)
+    rate_total = 0
+    if status == IrmaScanStatus.launched:
         if total != 0:
             rate_total = finished * 100 / total
         if finished != 0:
-            rate_success = successful * 100 / finished
             print("{0}/{1} jobs finished ".format(finished, total) +
-                  "({0}%) / ".format(rate_total) +
-                  "{0} success ({1}%)".format(successful, rate_success))
+                  "({0}%)".format(rate_total))
     else:
-        print "Scan status : {0}".format(status)
-    if status == IrmaScanStatus.label[IrmaScanStatus.finished] or partial:
+        print "Scan status : {0}".format(IrmaScanStatus.label[status])
+    if status == IrmaScanStatus.finished or partial:
         scan_results(scanid=scanid, verbose=verbose)
     return
 
 
 def print_results(results_dict, justify=12):
-
-        for (filename, fileres) in results_dict.items():
-            if 'probe_results' not in fileres:
-                print "Wrong return format"
-                print results_dict
-                return
-            res = fileres['probe_results']
-            hashval = fileres['file_infos']['sha256']
-            print "{0}\n[SHA256: {1}]".format(filename, hashval)
-            for probe_list in res.values():
-                for probe in probe_list.values():
-                    name = probe['name']
-                    print "\t%s" % (name.ljust(justify)),
-                    probe_res = probe.get('results', "No result")
-                    if type(probe_res) == str:
-                        print(probe_res.strip())
-                    elif type(probe_res) == list:
-                        print("\n\t " + " " * justify).join(probe_res)
-                    elif probe_res is None:
-                        print('clean')
-                    elif type(probe_res) == dict:
-                        print "[...]"
-                    else:
-                        print(probe_res)
+    for (hashval, fileres) in results_dict.items():
+        if 'probe_results' not in fileres:
+            print "Wrong return format"
+            print results_dict
+            return
+        probe_results = fileres['probe_results']
+        filename = fileres['name']
+        print "{0}\n[SHA256: {1}]".format(filename, hashval)
+        for probe in probe_results:
+            name = probe['name']
+            print "\t%s" % (name.ljust(justify)),
+            probe_res = probe.get('results', "No result")
+            if type(probe_res) == str:
+                print(probe_res.strip())
+            elif type(probe_res) == list:
+                print("\n\t " + " " * justify).join(probe_res)
+            elif probe_res is None:
+                print('clean')
+            elif type(probe_res) == dict:
+                print "[...]"
+            else:
+                print(probe_res)
 
 
 def scan_results(scanid=None, verbose=False):
     scan_results = _scan_result(scanid, verbose)
-    scan_files = scan_results.get('files', None)
     res = {}
-    for scan_file in scan_files:
-        name = scan_file['filename']
-        file_idx = scan_file['scan_file_idx']
-        res[name] = _scan_file_result(scanid, file_idx, verbose)
+    for scan_file in scan_results:
+        file_idx = scan_file['result_id']
+        data = _scan_file_result(scanid, file_idx, verbose)
+        hashval = data['file_infos']['sha256']
+        res[hashval] = data
     print_results(res)
     return
 
