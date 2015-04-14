@@ -45,10 +45,11 @@ def error(job_id):
     _finish(job_id, Job.error)
 
 
-def set_taskid(job_id, task_id):
+def set_taskids(job_task_tuples):
     with session_transaction() as session:
-        job = Job.load(job_id, session)
-        job.task_id = task_id
+        for (job_id, task_id) in job_task_tuples:
+            job = Job.load(job_id, session)
+            job.task_id = task_id
 
 
 def info(job_id):
