@@ -55,7 +55,7 @@
       }
 
       if(!!_.find(vm.probes, {active: false})) {
-        params.probe = _.pluck(_.filter(vm.probes, {active: true}), 'name').join(',');
+        params.probes = _.pluck(_.filter(vm.probes, {active: true}), 'name').join(',');
       }
 
       return params;
@@ -81,8 +81,8 @@
     function loadProbes() {
       return api.getProbes().then(function(response) {
 
-        if(response.probe_list.length > 0) {
-          _.forEach(response.probe_list, function(probe) {
+        if(response.total > 0) {
+          _.forEach(response.data, function(probe) {
             vm.probes.push({
               name: probe,
               active: true,

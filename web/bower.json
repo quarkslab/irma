@@ -19,7 +19,7 @@
     "json3": "~3.3.1",
     "bootstrap": "~3.1.1",
     "angular-strap": "~2.1.1",
-    "ng-json-explorer": "StudentUniverse/ng-json-explorer#4675604682ec7d349eaee0f62533db64f83576ad",
+    "json-formatter": "~0.2.7",
     "angular-capitalize-filter": "~2.0.0",
     "moment": "~2.8.3",
     "angular-moment": "~0.8.2",

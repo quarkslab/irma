@@ -28,18 +28,9 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
 from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaFileSystemError
-from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.database.sqlhandler import SQLDatabase
+from lib.irma.common.utils import IrmaScanStatus, IrmaProbeType
 from lib.irma.database.sqlobjects import SQLDatabaseObject
-
-
-def sql_db_connect():
-    """Connection to DB
-    """
-    uri_params = config.get_sql_db_uri_params()
-    # TODO args* style argument
-    SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
-                        uri_params[3], uri_params[4], uri_params[5])
+from frontend.models.nosqlobjects import ProbeRealResult
 
 
 # SQLite fix for ForeignKey support
@@ -70,7 +61,6 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
         os.chmod(db_name, 0666)
 
 
-sql_db_connect()
 Base = declarative_base()
 tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
 
@@ -383,6 +373,9 @@ class ProbeResult(Base, SQLDatabaseObject):
         self.status = status
         self.files_web = [file_web]
 
+    def get_details(self):
+        return ProbeRealResult(id=self.nosql_id)
+
 
 class Scan(Base, SQLDatabaseObject):
     __tablename__ = '{0}scan'.format(tables_prefix)
@@ -459,12 +452,26 @@ class Scan(Base, SQLDatabaseObject):
     def status(self):
         return max(evt.status for evt in self.events)
 
-    def set_status(self, status_code, session):
+    @property
+    def probes_total(self):
+        total = 0
+        for fw in self.files_web:
+            total += fw.probes_total
+        return total
+
+    @property
+    def probes_finished(self):
+        finished = 0
+        for fw in self.files_web:
+            finished += fw.probes_finished
+        return finished
+
+    def set_status(self, status_code):
         if status_code not in IrmaScanStatus.label.keys():
             raise IrmaCoreError("Trying to update with an unknown status")
         if status_code not in [evt.status for evt in self.events]:
             evt = ScanEvents(status_code, self)
-            evt.save(session)
+            self.events.append(evt)
 
 
 class FileWeb(Base, SQLDatabaseObject):
@@ -527,16 +534,44 @@ class FileWeb(Base, SQLDatabaseObject):
         self.scan = scan
         self.scan_file_idx = idx
 
+    @property
+    def probes_total(self):
+        return len(self.probe_results)
+
+    @property
+    def probes_finished(self):
+        finished = 0
+        for pr in self.probe_results:
+            if pr.nosql_id is not None:
+                finished += 1
+        return finished
+
+    @property
+    def status(self):
+        for pr in self.probe_results:
+            if pr.nosql_id is not None:
+                probe_result = ProbeRealResult(id=pr.nosql_id)
+                if probe_result.type == IrmaProbeType.antivirus and \
+                   probe_result.status == 1:
+                    return 1
+        return 0
+
+    def get_probe_results(self, formatted=True):
+        results = []
+
+        for pr in self.probe_results:
+            if pr.nosql_id is not None:
+                probe_result = ProbeRealResult(id=pr.nosql_id)
+                results.append(probe_result.to_json(formatted))
+
+        return results
+
     @classmethod
-    def query_find_by_name(cls, name, strict, session):
+    def query_find_by_name(cls, name, session):
         query = session.query(FileWeb)\
             .distinct(FileWeb.id_file)\
-            .join(File)
-
-        if strict:
-            query = query.filter(FileWeb.name == name)
-        else:
-            query = query.filter(FileWeb.name.like("%{0}%".format(name)))
+            .join(File)\
+            .filter(FileWeb.name.like("%{0}%".format(name)))
 
         return query
 
@@ -719,6 +754,3 @@ class ScanEvents(Base, SQLDatabaseObject):
         self.status = status
         self.timestamp = compat.timestamp()
         self.scan = scan
-
-
-Base.metadata.create_all(SQLDatabase.get_engine(), checkfirst=True)

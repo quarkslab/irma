@@ -13,14 +13,12 @@ function resultsManager($q, $log, Result, bridge) {
   };
 
   function _load(scanId, fileIdx, deferred) {
-    bridge.get({url: '/scan/' + scanId + '/results/' + fileIdx})
+    bridge.get({url: '/scans/' + scanId + '/results/' + fileIdx})
       .then(_loadComplete);
 
     function _loadComplete(response) {
-      if (response.code !== -1) {
-        var results = _retrieveInstance(response.results);
-        deferred.resolve(results);
-      }
+      var results = _retrieveInstance(response);
+      deferred.resolve(results);
     }
   }
 

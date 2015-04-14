@@ -13,33 +13,25 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from contextlib import contextmanager
-from frontend.models.sqlobjects import sql_db_connect
-from lib.irma.database.sqlhandler import SQLDatabase
-from lib.irma.common.exceptions import IrmaDatabaseError
+import config.parser as config
+from sqlalchemy import create_engine
 
 
-@contextmanager
-def session_transaction():
-    """Provide a transactional scope around a series of operations."""
-    sql_db_connect()
-    session = SQLDatabase.get_session()
-    try:
-        yield session
-        session.commit()
-    except IrmaDatabaseError:
-        session.rollback()
-        raise
-    finally:
-        session.close()
+def generate_url(dbms, dialect, username, passwd, host, dbname):
+    if dialect:
+        dbms = "{0}+{1}".format(dbms, dialect)
+    host_and_id = ''
+    if host and username:
+        if passwd:
+            host_and_id = "{0}:{1}@{2}".format(username, passwd, host)
+        else:
+            host_and_id = "{0}@{1}".format(username, host)
+    return "{0}://{1}/{2}".format(dbms, host_and_id, dbname)
 
 
-@contextmanager
-def session_query():
-    """Provide a transactional scope around a series of operations."""
-    sql_db_connect()
-    session = SQLDatabase.get_session()
-    try:
-        yield session
-    except IrmaDatabaseError:
-        raise
+# Retrieve database informations
+uri_params = config.get_sql_db_uri_params()
+url = generate_url(uri_params[0], uri_params[1], uri_params[2], uri_params[3],
+                   uri_params[4], uri_params[5])
+
+engine = create_engine(url, echo=False)

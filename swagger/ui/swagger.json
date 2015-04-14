@@ -1,0 +1,667 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.1.0",
+        "title": "IRMA API",
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "basePath": "/api/v1",
+    "produces": [
+        "application/json"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/scans": {
+            "get": {
+                "summary": "List all scans",
+                "description": "List all scan which have been submit to the IRMA plateform.\n",
+                "tags": [
+                    "Scans"
+                ],
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Offset the list of returned objects. Default is zero.",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "A limit on the number of objects to be returned.",
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "total": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "offset": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Scan"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a scan",
+                "description": "Before scanning files, you'll need to create a scan object.\n",
+                "tags": [
+                    "Scans"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/Scan"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scanId}": {
+            "get": {
+                "summary": "Retrieve a scan",
+                "description": "You can retrieve details about a specific scan with the given ID.\n",
+                "tags": [
+                    "Scans"
+                ],
+                "parameters": [
+                    {
+                        "name": "scanId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the scan",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A scan",
+                        "schema": {
+                            "$ref": "#/definitions/Scan"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scanId}/launch": {
+            "post": {
+                "summary": "Launch a scan",
+                "description": "You'll need at least one file to be present before launching a scan.\nIf the scan has already been launched, you'll received a 200 response.\n",
+                "tags": [
+                    "Scans"
+                ],
+                "parameters": [
+                    {
+                        "name": "scanId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the scan",
+                        "required": true
+                    },
+                    {
+                        "name": "options",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "force": {
+                                    "type": "boolean"
+                                },
+                                "probes": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "description": "Options passed to the scan"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Scan"
+                        }
+                    },
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/Scan"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scanId}/cancel": {
+            "post": {
+                "summary": "Cancel a scan",
+                "description": "Cancel a scan that has previously been launched. You may not cancel a\nscan that has not been launched, you'll recieved an Unexpected error.\n",
+                "tags": [
+                    "Scans"
+                ],
+                "parameters": [
+                    {
+                        "name": "scanId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the scan",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Scan"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scanId}/files": {
+            "post": {
+                "summary": "Create a file upload",
+                "description": "Upload a file for a specific scan.\n",
+                "tags": [
+                    "Scans"
+                ],
+                "parameters": [
+                    {
+                        "name": "scanId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the scan",
+                        "required": true
+                    },
+                    {
+                        "name": "file",
+                        "in": "formData",
+                        "type": "file",
+                        "description": "File to add to the scan",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Scan"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scanId}/results": {
+            "get": {
+                "summary": "List all results from a scan",
+                "description": "When retrieving a scan, you'll get a results property containing the\ntotal count of scan results items. With this url you can retrieve the\nfull paginated list of items.\n",
+                "tags": [
+                    "Scans"
+                ],
+                "parameters": [
+                    {
+                        "name": "scanId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the scan",
+                        "required": true
+                    },
+                    {
+                        "name": "fileId",
+                        "in": "query",
+                        "description": "Extract only result from this file.",
+                        "type": "number",
+                        "format": "double"
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Offset the list of returned objects. Default is zero.",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "A limit on the number of objects to be returned.",
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "total": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "offset": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/SummaryScanResult"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/scans/{scanId}/results/{resultId}": {
+            "get": {
+                "summary": "Retrieve a result for a specific scan",
+                "description": "Possibility to display result for a scan of a file\n",
+                "tags": [
+                    "Scans"
+                ],
+                "parameters": [
+                    {
+                        "name": "scanId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the scan",
+                        "required": true
+                    },
+                    {
+                        "name": "resultId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the result",
+                        "required": true
+                    },
+                    {
+                        "name": "formatted",
+                        "in": "query",
+                        "description": "Select if format result (if no, there is more informations about the scan result)",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ScanResult"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/probes": {
+            "get": {
+                "summary": "Retrieve active probes informations",
+                "description": "The Probes endpoint returns information about probes which are available\nfor a scan.\n",
+                "tags": [
+                    "Probes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "total": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/search/files": {
+            "get": {
+                "summary": "Search files",
+                "description": "Search files by hash or using name of the file\n",
+                "tags": [
+                    "Search"
+                ],
+                "parameters": [
+                    {
+                        "name": "hash",
+                        "in": "query",
+                        "description": "Hash value (can be md5, sha1 or sha256)",
+                        "type": "string"
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filename or regexp",
+                        "type": "string"
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Offset the list of returned objects. Default is zero.",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "A limit on the number of objects to be returned.",
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "total": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "offset": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/File"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "Scan": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "probes_total": {
+                    "type": "integer"
+                },
+                "probes_finished": {
+                    "type": "integer"
+                },
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/SummaryScanResult"
+                    }
+                }
+            }
+        },
+        "SummaryScanResult": {
+            "type": "object",
+            "properties": {
+                "result_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "probes_total": {
+                    "type": "integer"
+                },
+                "probes_finished": {
+                    "type": "integer"
+                }
+            }
+        },
+        "ScanResult": {
+            "type": "object",
+            "properties": {
+                "result_id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "probes_total": {
+                    "type": "integer"
+                },
+                "probes_finished": {
+                    "type": "integer"
+                },
+                "file_infos": {
+                    "$ref": "#/definitions/File"
+                },
+                "probe_results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/ProbeResult"
+                    }
+                }
+            }
+        },
+        "ProbeResult": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "external",
+                        "antivirus",
+                        "metadata",
+                        "database"
+                    ]
+                },
+                "results": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "number",
+                    "format": "float"
+                }
+            }
+        },
+        "File": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "sha256": {
+                    "type": "string"
+                },
+                "sha1": {
+                    "type": "string"
+                },
+                "md5": {
+                    "type": "string"
+                },
+                "timestamp_first_scan": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "timestamp_last_scan": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "size": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "Error": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "api_error",
+                        "invalid_request_error"
+                    ]
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

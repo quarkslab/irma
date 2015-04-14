@@ -88,12 +88,14 @@
      *  - Done:    Checks for errors, broadcasts the appropriate event
      */
     function startUpload() {
-      this.api.scan.getNewId().then(function(response){
-        this.id = response.scan_id;
+      this.api.scan.createNew().then(function(response){
+        this.id = response.id;
+
         var items = this.uploader.getNotUploadedItems();
         _.each(items, function(item){
           item.url = this.api.scan.getAddUrl(this);
         }.bind(this));
+
         $log.info('Upload has started');
         this.uploader.uploadAll();
       }.bind(this));
@@ -109,7 +111,7 @@
     }
 
     function doneUpload(event, items) {
-      if(!!_.find(items, function(item){ return (!item.isSuccess || JSON.parse(item._xhr.response).code !== 0); })){
+      if(!!_.find(items, function(item){ return (!item.isSuccess || item._xhr.status !== 200); })){
         this.errorUpload();
       } else {
         $rootScope.$broadcast('successUpload');
@@ -135,23 +137,21 @@
     }
 
     function updateScan() {
-      this.api.scan.getResults(this).then(function(data) {
-        if(data.code === 0) {
-          this.setProgress(data.scan_results.total, data.scan_results.finished);
-          this.results = data.scan_results.files;
+      this.api.scan.getInfos(this).then(function(data) {
+        this.setProgress(data.probes_total, data.probes_finished);
+        this.results = data.results;
 
-          if (data.scan_results.status !== 50) {
-            this.status = constants.scanStatusCodes.RUNNING;
-            this.task = $timeout(this.updateScan.bind(this), constants.refresh);
-          } else {
-            $log.info('Scan was successful');
-            $rootScope.$broadcast('successScan');
-
-            this.status = constants.scanStatusCodes.FINISHED;
-          }
+        if (data.status !== 50) {
+          this.status = constants.scanStatusCodes.RUNNING;
+          this.task = $timeout(this.updateScan.bind(this), constants.refresh);
         } else {
-            this.task = $timeout(this.updateScan.bind(this), constants.refresh);
+          $log.info('Scan was successful');
+          $rootScope.$broadcast('successScan');
+
+          this.status = constants.scanStatusCodes.FINISHED;
         }
+      }.bind(this), function(data) {
+        this.task = $timeout(this.updateScan.bind(this), constants.refresh);
       }.bind(this));
     }
 
@@ -168,7 +168,7 @@
       $log.info('Updating results');
 
       return this.api.scan.getResults(this).then(function(data) {
-        this.results = data.scan_results;
+        this.results = data;
       }.bind(this), function(data) {
         $rootScope.$broadcast('errorResults', data);
       }.bind(this));

@@ -13,51 +13,39 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import os
-import sys
 from bottle import Bottle
-from lib.irma.common.utils import IrmaFrontendReturn
-from lib.plugins import PluginManager
+from bottle.ext import sqlalchemy
+from frontend.helpers.sql import engine
+from frontend.models.sqlobjects import Base
 
 """
     IRMA FRONTEND WEB API
     defines all accessible route accessed via uwsgi..
 """
-
-# discover plugins located at specified path
-plugin_path = os.path.abspath("frontend/api/modules")
-if not os.path.exists(plugin_path):
-    print("path {0} is invalid, cannot load api plugin".format(plugin_path))
-    sys.exit(1)
-manager = PluginManager()
-manager.discover(plugin_path)
-
 # main bottle app
 application = Bottle()
 
-# now discover plugins installed
-plugins = PluginManager().get_all_plugins()
-if not plugins:
-    print("No api plugins found")
-else:
-    for plugin in plugins:
-        mount_path = plugin().get_mount_path()
-        app = plugin().get_app()
-        print "Found app {0} to mount @ {1}".format(mount_path,
-                                                    app)
-        application.mount(mount_path, app)
+plugin = sqlalchemy.Plugin(
+    # SQLAlchemy engine created with create_engine function.
+    engine,
+    # SQLAlchemy metadata, required only if create=True.
+    Base.metadata,
+    # Keyword used to inject session database
+    # in a route (default 'db').
+    keyword='db',
+    # If it is true, execute `metadata.create_all(engine)`
+    # when plugin is applied (default False).
+    create=True,
+    # If it is true, plugin commit changes after route
+    # is executed (default True).
+    commit=False,
+    # If it is true and keyword is not defined,
+    # plugin uses **kwargs argument to inject session database (default False).
+    use_kwargs=False
+)
+application.install(plugin)
 
-
-# =============
-#  Server root
-# =============
-
-@application.route("/ping")
-def svr_index():
-    """ hello world
-
-    :route: /
-    :rtype: dict of 'code': int, 'msg': str
-    :return: success
-    """
-    return IrmaFrontendReturn.success()
+# See frontend/api/routes.py
+from frontend.api.routes import *
+# See frontend/api/errors.py
+from frontend.api.errors import *

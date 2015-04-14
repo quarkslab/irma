@@ -14,20 +14,23 @@
     function get(options) {
       var deferred = $q.defer();
 
-      $http.get(vm.rootUrl + options.url, {params: options.payload}).then(function(data) {
-        if(data.data.code === -1) {
-          $timeout(function() {
-            if(!options.noAlerts){ alerts.add({standard: 'apiErrorWithMsg', apiMsg: data.data.msg});}
-            deferred.reject(data.data);
-          }, constants.fakeDelay);
-        } else {
-          $timeout(function() {
-            deferred.resolve(data.data);
-          }, constants.fakeDelay);
+      $http.get(vm.rootUrl + options.url, {params: options.payload}).then(function(response) {
+        $timeout(function() {
+          deferred.resolve(response.data);
+        }, constants.fakeDelay);
+      }, function(response) {
+        // In case of error with the API
+        if(!options.noAlerts) {
+            if (response.data.type !== 'api_error') {
+                alerts.add({
+                    standard: 'apiErrorWithMsg',
+                    apiMsg: response.data.message,
+                });
+            } else {
+                alerts.add({standard: 'apiError'});
+            }
         }
-      }, function(data) {
-        if(!options.noAlerts) { alerts.add({standard: 'apiError'});}
-        $timeout(function() { deferred.reject(data.data); }, constants.fakeDelay);
+        $timeout(function() { deferred.reject(response.data); }, constants.fakeDelay);
       });
 
       return deferred.promise;
@@ -36,16 +39,23 @@
     function post(options){
       var deferred = $q.defer();
 
-      $http.post(vm.rootUrl+options.url, options.payload).then(function(data) {
-        if(data.data.code !== 0) {
-          $timeout(function(){ deferred.reject(data.data); }, constants.fakeDelay);
-        } else {
-          $timeout(function(){ deferred.resolve(data.data); }, constants.fakeDelay);
+      $http.post(vm.rootUrl+options.url, options.payload).then(function(response) {
+          $timeout(function(){ deferred.resolve(response.data); }, constants.fakeDelay);
+      }, function(response) {
+        // In case of error with the API
+        if(!options.noAlerts) {
+            if (response.data.type !== 'api_error') {
+                alerts.add({
+                    standard: 'apiErrorWithMsg',
+                    apiMsg: response.data.message,
+                });
+            } else {
+                alerts.add({standard: 'apiError'});
+            }
         }
-      }, function(data) {
-        if(!options.noAlerts) { alerts.add({standard: 'apiError'});}
-        $timeout(function() { deferred.reject(data.data); }, constants.fakeDelay);
+        $timeout(function() { deferred.reject(response.data); }, constants.fakeDelay);
       });
+
       return deferred.promise;
     }
   }
