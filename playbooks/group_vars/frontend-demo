@@ -104,7 +104,7 @@ supervisor_programs_frontend:
     command: >
       /usr/local/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
       --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
-      --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/api/base.py --lazy
+      --python-path {{ frontend_install_dir }}/venv --mount /api/v1=frontend/api/base.py --lazy
     user: "{{ irma_user }}"
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_api.log

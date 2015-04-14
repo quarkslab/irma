@@ -160,7 +160,7 @@ supervisor_programs_frontend:
     command: >
       uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
       --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
-      --python-path {{ frontend_install_dir }}/venv --mount /_api=frontend/api/base.py --lazy
+      --python-path {{ frontend_install_dir }}/venv --mount /api/v1=frontend/api/base.py --lazy
     user: "{{ irma_user }}"
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_api.log
@@ -203,13 +203,13 @@ nginx_sites:
     - location ~ /\.ht {
         deny all;
       }
-    - location /_api {
+    - location /api/v1 {
         include uwsgi_params;
-        rewrite ^/_api/(.+) /$1 break;
+        rewrite ^/api/v1/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
     - location /swagger {
-        alias {{ frontend_install_dir }}/web/swagger-ui/;
+        alias {{ frontend_install_dir }}/swagger/ui;
         index index.html;
       }
     - location / {
