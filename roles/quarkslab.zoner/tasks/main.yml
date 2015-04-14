@@ -1,0 +1,26 @@
+---
+
+- fail:
+    msg: Update key not set. Please register at http://www.zonerantivirus.com/ to get an activation key. Fill your update key in host_vars or group_vars
+  when: zoner_license_key is not defined
+
+- name: Zoner | Check version
+  command: zavcli --version
+  ignore_errors: yes
+  register: zoner_present
+
+- include: install.yml
+  when: zoner_present | failed
+
+- name: Zoner | Setting update key
+  replace:
+    dest: "/etc/zav/zavd.conf"
+    regexp: '^UPDATE_KEY([\s]+)=(.*)$'
+    replace: 'UPDATE_KEY\1= "{{ zoner_license_key }}"'
+  sudo: yes
+  notify:
+    - Zoner | Restart daemon
+
+- name: Zoner | Download latest definition files
+  command: /opt/zav/bin/zavd --update
+  sudo: yes

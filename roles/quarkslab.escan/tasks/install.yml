@@ -1,0 +1,21 @@
+---
+
+- name: eScan | Create temporary work dir
+  file:
+    path: "{{ escan_temp_dir }}/"
+    state: directory
+
+- name: eScan | Download Package
+  get_url:
+    url: "{{ escan_url }}"
+    dest: "{{ escan_temp_dir }}/escan-antivirus.deb"
+
+- name: eScan | Run installer
+  apt:
+    deb: "{{ escan_temp_dir }}/escan-antivirus.deb"
+  sudo: yes
+
+- name: eScan | Remove temporary work dir
+  file:
+    path: "{{ escan_temp_dir }}/"
+    state: absent

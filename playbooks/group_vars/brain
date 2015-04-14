@@ -121,7 +121,7 @@ brain_pureftpd_openssl_subj: "/C=FR/ST=Paris/L=Paris/O=IRMA"
 # supervisor_extra_confs:
 supervisor_programs_brain:
   - name: scan_app
-    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.tasks:scan_app --hostname=scan_app.%%h {{default_celery_options}}"
+    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.tasks:scan_app --hostname=scan_app.%%h {{default_celery_options}} -Ofair"
     directory: "{{ brain_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1

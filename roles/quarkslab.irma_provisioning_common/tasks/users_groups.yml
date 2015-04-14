@@ -14,5 +14,5 @@
     name: "{{ irma_user }}"
     group: "{{ irma_group }}"
     groups: "{{ irma_server_group }}"
-    createhome: no
+    createhome: "{{ 'yes' if 'escan' in group_names else 'no' }}"
     state: present

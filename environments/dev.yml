@@ -4,7 +4,6 @@
 servers:
   - name: frontend.irma
     box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
     ip: 172.16.1.30
     hostname: frontend.irma
     cpus: 2
@@ -20,7 +19,6 @@ servers:
           - app/components
   - name: brain.irma
     box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
     ip: 172.16.1.31
     hostname: brain.irma
     cpus: 2
@@ -32,55 +30,12 @@ servers:
           - .git/
           - venv/
           - db/
-  - name: clamav.irma
+  - name: avs-linux.irma
     box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
     ip: 172.16.1.32
-    hostname: clamav.irma
-    shares:
-      - share_from: ../irma-probe
-        share_to: /opt/irma/irma-probe/current
-        share_exclude:
-          - .git/
-          - venv/
-  - name: comodo.irma
-    box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
-    ip: 172.16.1.33
-    hostname: comodo.irma
-    shares:
-      - share_from: ../irma-probe
-        share_to: /opt/irma/irma-probe/current
-        share_exclude:
-          - .git/
-          - venv/
-  - name: mcafee.irma
-    box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
-    ip: 172.16.1.34
-    hostname: mcafee.irma
-    shares:
-      - share_from: ../irma-probe
-        share_to: /opt/irma/irma-probe/current
-        share_exclude:
-          - .git/
-          - venv/
-  - name: static-analyzer.irma
-    box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
-    ip: 172.16.1.35
-    hostname: static-analyzer.irma
-    shares:
-      - share_from: ../irma-probe
-        share_to: /opt/irma/irma-probe/current
-        share_exclude:
-          - .git/
-          - venv/
-  - name: virustotal.irma
-    box: quarkslab/debian-7.7-amd64
-    box_version: 1.0.1
-    ip: 172.16.1.36
-    hostname: virustotal.irma
+    hostname: avs-linux.irma
+    cpus: 2
+    memory: 2048
     shares:
       - share_from: ../irma-probe
         share_to: /opt/irma/irma-probe/current
@@ -100,18 +55,42 @@ ansible_config:
     brain:
       - brain.irma
     clamav:
-      - clamav.irma
+      - avs-linux.irma
     comodo:
-      - comodo.irma
+      - avs-linux.irma
     mcafee:
-      - mcafee.irma
+      - avs-linux.irma
     static-analyzer:
-      - static-analyzer.irma
+      - avs-linux.irma
     virustotal:
-      - virustotal.irma
+      - avs-linux.irma
+    avg:
+      - avs-linux.irma
+    bitdefender:
+      - avs-linux.irma
+    escan:
+      - avs-linux.irma
+    virusblokada:
+      - avs-linux.irma
+    zoner:
+      - avs-linux.irma
+    drweb:
+      - avs-linux.irma
+    avast:
+      - avs-linux.irma
+    fsecure:
+      - avs-linux.irma
     "probe:children":
       - clamav
       - comodo
       - mcafee
       - static-analyzer
       - virustotal
+      - avg
+      - bitdefender
+      - escan
+      - virusblokada
+      - zoner
+      - drweb
+      - avast
+      - fsecure

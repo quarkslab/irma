@@ -1,0 +1,7 @@
+---
+
+- name: AVG | Restart agvd service
+  service:
+    name: avgd
+    state: restarted
+  sudo: yes

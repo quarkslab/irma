@@ -1,0 +1,27 @@
+---
+
+- name: VBA32 | Adding i386 repositories
+  shell: dpkg --add-architecture i386
+  sudo: yes
+
+- name: VBA32 | Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  sudo: yes
+  with_items:
+    - libc6-i386
+    - libstdc++6
+
+- name: VBA32 | Check version
+  command: /opt/vba/vbacl --version
+  ignore_errors: yes
+  register: virusblokada_present
+
+- include: install.yml
+  when: virusblokada_present | failed
+
+- name: VBA32 | Update definition files
+  shell: vbacl --update
+  sudo: yes
