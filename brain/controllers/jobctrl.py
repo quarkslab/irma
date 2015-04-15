@@ -19,9 +19,9 @@ from brain.helpers.sql import session_query, session_transaction
 from lib.common.compat import timestamp
 
 
-def new(scan_id, filename, probe):
+def new(scan_id, filename, probe, task_id):
     with session_transaction() as session:
-        j = Job(filename, probe, scan_id)
+        j = Job(filename, probe, scan_id, task_id)
         j.save(session)
         session.commit()
         return j.id

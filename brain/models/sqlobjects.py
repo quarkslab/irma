@@ -287,12 +287,13 @@ class Job(Base, SQLDatabaseObject):
         nullable=False,
     )
 
-    def __init__(self, filename, probename, scanid):
+    def __init__(self, filename, probename, scanid, taskid):
         self.filename = filename
         self.probename = probename
         self.ts_start = timestamp()
         self.status = self.running
         self.scan_id = scanid
+        self.task_id = taskid
 
     def finished(self):
         return self.status != self.running

@@ -60,7 +60,7 @@ def get_probelist():
 #  Task calls
 # ============
 
-def job_launch(ftpuser, frontend_scanid, filename, probe, job_id):
+def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
     """ send a task to the brain to flush the scan files"""
     hook_success = route(
         results_app.signature("brain.tasks.job_success",
@@ -74,7 +74,8 @@ def job_launch(ftpuser, frontend_scanid, filename, probe, job_id):
                       args=(ftpuser, frontend_scanid, filename),
                       queue=probe,
                       link=hook_success,
-                      link_error=hook_error)
+                      link_error=hook_error,
+                      uuid=task_id)
     return task.id
 
 

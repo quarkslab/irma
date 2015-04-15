@@ -24,6 +24,7 @@ import brain.controllers.probetasks as celery_probe
 import brain.controllers.frontendtasks as celery_frontend
 import brain.controllers.ftpctrl as ftp_ctrl
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
+from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaTaskError
 
 # Get celery's logger
@@ -93,13 +94,14 @@ def scan(frontend_scanid, scan_request):
                     break
                 else:
                     remaining -= 1
-            job_id = job_ctrl.new(scan_id, filename, probe)
-            task_id = celery_probe.job_launch(ftpuser,
-                                              frontend_scanid,
-                                              filename,
-                                              probe,
-                                              job_id)
-            job_ctrl.set_taskid(job_id, task_id)
+            task_id = UUID.generate()
+            job_id = job_ctrl.new(scan_id, filename, probe, task_id)
+            celery_probe.job_launch(ftpuser,
+                                    frontend_scanid,
+                                    filename,
+                                    probe,
+                                    job_id,
+                                    task_id)
     scan_ctrl.launched(scan_id)
     celery_frontend.scan_launched(frontend_scanid)
     log.info(
