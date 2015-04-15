@@ -110,7 +110,7 @@ def scan(frontend_scanid, scan_request):
         "{0} jobs launched".format(scan_ctrl.get_nbjobs(scan_id)))
 
 
-@scan_app.task()
+@scan_app.task(acks_late=True)
 def scan_progress(frontend_scanid):
     try:
         log.info("{0}: scan progress".format(frontend_scanid))
