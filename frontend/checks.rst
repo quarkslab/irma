@@ -34,10 +34,10 @@ you should check twice the parameters in the application configuration file you
 are using. Let us note that the Celery worker gives us useful information on
 the analyzer that are enabled.
 
-FTP-SSL accounts
+FTP-TLS accounts
 ````````````````
 
-Additionnally, if you have configured IRMA to use FTP-ssl, you can check
+Additionnally, if you have configured IRMA to use FTP-TLS, you can check
 whether the configured account is valid. On Debian, this can be done with the
 ``ftp-ssl`` package:
 

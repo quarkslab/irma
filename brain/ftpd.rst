@@ -1,9 +1,9 @@
 Installing and configuring Pure-ftpd
 ====================================
 
-A FTP server with TLS is used to store file uploaded by
+A FTP server with TLS is used to transfer files
 **Frontends** and meant to be analyzed by **Probes**. We describe in the
-following how to set up pure-ftpd. 
+following how to set up pure-ftpd.
 
 Installing pure-ftpd
 ````````````````````
@@ -53,7 +53,7 @@ provided script in ``extras/scripts/pure-ftpd/ftpd-adduser.sh``:
 
 .. code-block:: bash
 
-    $ sh extras/scripts/pure-ftpd/ftpd-adduser.sh 
+    $ sh extras/scripts/pure-ftpd/ftpd-adduser.sh
     Usage: sudo ftpd-adduser.sh <user> <virtualuser> <chroot home>
 
 The frontends need an account with ``/home/ftpuser/<frontend-name>`` as home

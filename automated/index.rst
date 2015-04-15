@@ -32,10 +32,9 @@ Predefined Environments
 There are 3 different IRMA setups available:
 
 .. toctree::
-
     testing-env.rst
-    production-env.rst
     development-env.rst
+    production-env.rst
 
 
 Using Debian repos

@@ -1,6 +1,5 @@
 # Sphinx
-_build/doctrees/*
-_build/html/*
+_build/*
 
 # vim
 *.swp

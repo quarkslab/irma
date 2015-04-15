@@ -37,14 +37,14 @@ Update the service parameters in ``/etc/default/celeryd.brain`` and
 ``/etc/default/celeryd.brain`` to match your setup. In most cases, you should
 pay attention to the following fields:
 
-================= ===================== ====================================
+================= ===================== ===========================================
 Fields            Default               Description
-================= ===================== ====================================
+================= ===================== ===========================================
 ``CELERYD_NODES``                       Name given to the worker
 ``CELERYD_CHDIR`` /opt/irma/irma-brain/ Installation directory for the worker
-``CELERYD_USER``  irma                  Username used to execute the Celery worker 
+``CELERYD_USER``  irma                  Username used to execute the Celery worker
 ``CELERYD_GROUP`` irma                  Group used to execute the Celery worker
-================= ===================== ====================================
+================= ===================== ===========================================
 
 Registering the services
 ************************

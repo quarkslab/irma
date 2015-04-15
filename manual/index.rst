@@ -13,8 +13,6 @@ Please refer to specific documentation for the manual installation process for
 each component.
 
 .. toctree::
-
     ../../brain/index.rst
     ../../frontend/index.rst
-    ../../web/index.rst
     ../../probes/index.rst

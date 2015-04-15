@@ -4,50 +4,9 @@ Configuration
 -------------
 
 The configuration file is located at ``config/brain.ini`` in the installation
-directory.
+directory. Update it with your specific info.
 
-From the sources
-````````````````
-
-At the root of the installation directory, the script ``setup.py``
-asks you questions to configure the application for your needs. To fit your
-setup, you must provide the parameters configured previously on the RabbitMQ
-server and the Pure-FTPd server.
-
-For GNU/Linux systems:
-
-.. code-block:: none
-
-    $ python setup.py configure --application
-    running configure
-
-    Welcome to IRMA brain application configuration script.
-
-    The following script will help you to create a new configuration for
-    IRMA frontend application.
-
-    Please answer to the following questions so this script can generate the files
-    needed by the application. To abort the configuration, press CTRL+D.
-
-    > Do you want to enable syslog logging? (experimental) (y/N)
-    > What is the hostname of your RabbitMQ server? [127.0.0.1]
-    > What is the vhost defined for the brain on your RabbitMQ server? [mqbrain]
-    > What is the username for this vhost on your RabbitMQ server? [brain]
-    > What is the password for this vhost on your RabbitMQ server? brain-rmq-password
-    > What is the vhost defined for the probes on your RabbitMQ server? [mqprobe]
-    > What is the username for this vhost on your RabbitMQ server? [probe]
-    > What is the password for this vhost on your RabbitMQ server? probe-rmq-password
-    > What is the vhost defined for the frontend on your RabbitMQ server? [mqfrontend]
-    > What is the username for this vhost on your RabbitMQ server? [frontend]
-    > What is the password for this vhost on your RabbitMQ server? frontend-rmq-password
-    > What is the hostname of your FTPs server? [127.0.0.1]
-    > What is the username defined for the probes on your FTP server? probe
-    > What is the password defined for the probes on your FTP server? probe-ftp-password
-
-When finished, one can note that the ``config/brain.ini`` file has been
-modified with values we typed.
-
-.. note:: We recall in the following the meaning of each field in ``config/brain.ini``:
+.. note:: Detailed meaning of each field in ``config/brain.ini``:
 
      +----------------+-------------+------------+-----------+---------------------------------------------------+
      |     Section    |      Key    |    Type    |  Default  | Description                                       |

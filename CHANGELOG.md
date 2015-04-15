@@ -1,8 +1,21 @@
+1.2.0 (released 14/04/2015)
+===========================
+
+    * [frontend] new API (with swagger documentation)
+    * [probe][antivirus] add support for Windows Avs:
+        + avira, emsisoft
+    * [probe][antivirus] add support for Linux Avs:
+        + avast, avg, bitdefender,
+        drweb, escan, fsecure,
+        sophos, virusblokada, zoner
+    * [probe][metadata] add support for PEiD
+    * [frontend] minor UI addons (new json-explorer plugin)
+
 1.1.1 (released 11/11/2014)
 ===========================
 
-    * [frontend] add api documentation via swagger
-    * [frontend] minor ui addons (sha1 in results page, cleaner scan progress page)
+    * [frontend] add API documentation via swagger
+    * [frontend] minor UI addons (sha1 in results page, cleaner scan progress page)
     * [frontend] fix problems when using pgsql
     * [probe] add support for GData/Yara probes
 

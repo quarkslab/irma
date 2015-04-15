@@ -39,7 +39,7 @@ Fields            Default                  Description
 ================= ======================== ==========================================
 ``CELERYD_NODES`` frontend                 Name given to the probe
 ``CELERYD_CHDIR`` /opt/irma/irma-frontend/ Installation directory for the frontend
-``CELERYD_USER``  irma                     Username used to execute the Celery worker 
+``CELERYD_USER``  irma                     Username used to execute the Celery worker
 ``CELERYD_GROUP`` irma                     Group used to execute the Celery worker
 ================= ======================== ==========================================
 

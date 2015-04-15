@@ -14,7 +14,7 @@ supported and known to work.
 According to the kind of probes and their dependencies, each analyzers can be
 installed on a separate hosts or share the same host as far as they do not
 interfere with each other [#]_. So forth, only Debian Stable and Microsoft
-Windows 7 hosts have been tested.
+Windows 7 and 8 hosts have been tested.
 
 We can not give you any specific numbers. On one hand we managed to run the
 whole IRMA platform on a single machine by hosting it with multiple systems

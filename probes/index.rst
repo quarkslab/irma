@@ -8,7 +8,6 @@ framework for Python.
 
 
 .. toctree::
-
    overview.rst
    install.rst
    configuration.rst

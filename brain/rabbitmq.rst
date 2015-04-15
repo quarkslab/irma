@@ -90,7 +90,6 @@ Checking for users
     Listing users ...
     probe   []
     brain   []
-    guest   [administrator]
     frontend        []
     ...done.
 

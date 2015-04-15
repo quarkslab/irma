@@ -19,24 +19,24 @@ On GNU/Linux:
     WARNING:root: *** [plugin] Plugin failed to load: NSRL miss dependencies: leveldict (ModuleDependency). See requirements.txt for needed dependencies
     WARNING:root: *** [plugin] Plugin failed to load: VirusTotal miss dependencies: virus_total_apis (ModuleDependency). See requirements.txt for needed dependencies
     WARNING:root: *** [plugin] Plugin failed to load: StaticAnalyzer miss dependencies: pefile (ModuleDependency). See requirements.txt for needed dependencies
-     
+
      -------------- celery@irma-probe v3.1.13 (Cipater)
-    ---- **** ----- 
+    ---- **** -----
     --- * ***  * -- Linux-3.2.0-4-amd64-x86_64-with-debian-7.6
-    -- * - **** --- 
+    -- * - **** ---
     - ** ---------- [config]
     - ** ---------- .> app:         probe.tasks:0x1e18750
     - ** ---------- .> transport:   amqp://probe:**@brain:5672/mqprobe
     - ** ---------- .> results:     redis://brain:6379/1
     - *** --- * --- .> concurrency: 1 (prefork)
-    -- ******* ---- 
+    -- ******* ----
     --- ***** ----- [queues]
      -------------- .> ClamAV           exchange=celery(direct) key=ClamAV
                     .> ComodoCAVL       exchange=celery(direct) key=ComodoCAVL
                     .> EsetNod32        exchange=celery(direct) key=EsetNod32
                     .> FProt            exchange=celery(direct) key=FProt
                     .> McAfeeVSCL       exchange=celery(direct) key=McAfeeVSCL
-    
+
     [2014-08-19 18:25:06,469: WARNING/MainProcess] celery@irma-probe ready.
 
 The equivalent command on Microsoft Windows is:
@@ -83,4 +83,4 @@ whether the configured account is valid. On Debian, this can be done with the
     230 OK. Current directory is /
     Remote system type is UNIX.
     Using binary mode to transfer files.
-    ftp> 
+    ftp>
