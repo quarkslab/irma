@@ -8,6 +8,7 @@ This guide will explain how to set up IRMA, use it and customize
 it at will.
 
 .. toctree::
+   :maxdepth: 2
 
    intro/index.rst
    automated/index.rst
