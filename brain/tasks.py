@@ -25,7 +25,6 @@ import brain.controllers.frontendtasks as celery_frontend
 import brain.controllers.ftpctrl as ftp_ctrl
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
 from lib.common.utils import UUID
-from lib.irma.common.exceptions import IrmaTaskError
 
 # Get celery's logger
 log = get_task_logger(__name__)
@@ -45,77 +44,96 @@ config.configure_syslog(results_app)
 
 @scan_app.task(acks_late=True)
 def probe_list():
-    probe_list = celery_probe.get_probelist()
-    if len(probe_list) > 0:
-        return IrmaTaskReturn.success(probe_list)
-    else:
-        return IrmaTaskReturn.error("No probe available")
+    try:
+        probe_list = celery_probe.get_probelist()
+        if len(probe_list) > 0:
+            return IrmaTaskReturn.success(probe_list)
+        else:
+            return IrmaTaskReturn.error("no probe available")
+    except:
+        log.info("exception", exc_info=True)
+        raise
 
 
 @scan_app.task(ignore_result=True, acks_late=True)
 def scan(frontend_scanid, scan_request):
-    log.info("{0}: scan launched".format(frontend_scanid))
-    # TODO user should be identified by RMQ vhost
-    # read vhost from config as workaround
-    rmqvhost = config.get_frontend_rmqvhost()
-    user_id = user_ctrl.get_userid(rmqvhost)
-    ftpuser = user_ctrl.get_ftpuser(user_id)
-    # create an initial entry to track future errors
-    # tell frontend that frontend_scanid is now known to brain
-    # progress available
-    scan_id = scan_ctrl.new(frontend_scanid, user_id, len(scan_request))
-    # send a scan launched event to frontend
-    (remaining, quota) = user_ctrl.get_quota(user_id)
-    log.info("{0}: Found user".format(frontend_scanid) +
-             "quota remaining {0}/{1}".format(remaining, quota))
-    if remaining <= 0:
-        scan_ctrl.error(scan_id, IrmaScanStatus.error)
+    try:
+        log.info("%s", frontend_scanid)
+        # TODO user should be identified by RMQ vhost
+        # read vhost from config as workaround
+        rmqvhost = config.get_frontend_rmqvhost()
+        user_id = user_ctrl.get_userid(rmqvhost)
+        ftpuser = user_ctrl.get_ftpuser(user_id)
+        # create an initial entry to track future errors
+        # tell frontend that frontend_scanid is now known to brain
+        # progress available
+        scan_id = scan_ctrl.new(frontend_scanid, user_id, len(scan_request))
+        # send a scan launched event to frontend
+        (remaining, quota) = user_ctrl.get_quota(user_id)
+        if remaining is not None:
+            log.info("%s quota remaining {0}/{1}",
+                     frontend_scanid,
+                     remaining,
+                     quota)
+        else:
+            log.info("%s unlimited quota",
+                     frontend_scanid)
+        if remaining <= 0:
+            scan_ctrl.error(scan_id, IrmaScanStatus.error)
 
-    available_probelist = celery_probe.get_probelist()
-    for (filename, probe_list) in scan_request.items():
-        if probe_list is None:
-            scan_ctrl.error(scan_id, IrmaScanStatus.error_probe_missing)
-            log.info("{0}: Empty probe list".format(frontend_scanid))
-            return IrmaTaskReturn.error("BrainTask: Empty probe list")
-        # first check probe_list
-        for p in probe_list:
-            # check if probe exists
-            if p not in available_probelist:
+        available_probelist = celery_probe.get_probelist()
+        for (filename, probe_list) in scan_request.items():
+            if probe_list is None:
                 scan_ctrl.error(scan_id, IrmaScanStatus.error_probe_missing)
-                msg = "BrainTask: Unknown probe {0}".format(p)
-                log.info("{0}: Unknown probe {1}".format(frontend_scanid, p))
-                return IrmaTaskReturn.error(msg)
+                log.info("%s Empty probe list", frontend_scanid)
+                return IrmaTaskReturn.error("empty probe list on brain")
+            # first check probe_list
+            for p in probe_list:
+                # check if probe exists
+                if p not in available_probelist:
+                    scan_ctrl.error(scan_id,
+                                    IrmaScanStatus.error_probe_missing)
+                    msg = "Unknown probe {0}".format(p)
+                    log.info("%s Unknown probe %s",
+                             frontend_scanid,
+                             p)
+                    return IrmaTaskReturn.error(msg)
 
-        # Now, create one subtask per file to
-        # scan per probe according to quota
-        for probe in probe_list:
-            if remaining is not None:
-                if remaining <= 0:
-                    break
-                else:
-                    remaining -= 1
-            task_id = UUID.generate()
-            job_id = job_ctrl.new(scan_id, filename, probe, task_id)
-            celery_probe.job_launch(ftpuser,
-                                    frontend_scanid,
-                                    filename,
-                                    probe,
-                                    job_id,
-                                    task_id)
-    scan_ctrl.launched(scan_id)
-    celery_frontend.scan_launched(frontend_scanid)
-    log.info(
-        "{0}: ".format(frontend_scanid) +
-        "{0} files receives / ".format(len(scan_request)) +
-        "{0} active probe / ".format(len(available_probelist)) +
-        "{0} probe used / ".format(len(probe_list)) +
-        "{0} jobs launched".format(scan_ctrl.get_nbjobs(scan_id)))
+            # Now, create one subtask per file to
+            # scan per probe according to quota
+            for probe in probe_list:
+                if remaining is not None:
+                    if remaining <= 0:
+                        break
+                    else:
+                        remaining -= 1
+                task_id = UUID.generate()
+                job_id = job_ctrl.new(scan_id, filename, probe, task_id)
+                celery_probe.job_launch(ftpuser,
+                                        frontend_scanid,
+                                        filename,
+                                        probe,
+                                        job_id,
+                                        task_id)
+        scan_ctrl.launched(scan_id)
+        celery_frontend.scan_launched(frontend_scanid)
+        log.info(
+            "%s %d files receives / %d active probe /" +
+            " %d probe used / %d jobs launched",
+            frontend_scanid,
+            len(scan_request),
+            len(available_probelist),
+            len(probe_list),
+            scan_ctrl.get_nbjobs(scan_id))
+    except:
+        log.info("exception", exc_info=True)
+        raise
 
 
 @scan_app.task(acks_late=True)
 def scan_progress(frontend_scanid):
     try:
-        log.info("{0}: scan progress".format(frontend_scanid))
+        log.info("scanid %s", frontend_scanid)
         rmqvhost = config.get_frontend_rmqvhost()
         user_id = user_ctrl.get_userid(rmqvhost)
         scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
@@ -124,15 +142,15 @@ def scan_progress(frontend_scanid):
         res['status'] = status
         res['progress_details'] = progress_details
         return IrmaTaskReturn.success(res)
-    except Exception as e:
-        msg = "Brain: progress error {0}".format(e)
-        return IrmaTaskReturn.error(msg)
+    except:
+        log.info("exception", exc_info=True)
+        return IrmaTaskReturn.error("progress error on brain")
 
 
 @scan_app.task(acks_late=True)
 def scan_cancel(frontend_scanid):
     try:
-        log.info("{0}: scan cancel".format(frontend_scanid))
+        log.info("scanid %s", frontend_scanid)
         rmqvhost = config.get_frontend_rmqvhost()
         user_id = user_ctrl.get_userid(rmqvhost)
         scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
@@ -152,30 +170,32 @@ def scan_cancel(frontend_scanid):
         res['status'] = status
         res['cancel_details'] = cancel_details
         return IrmaTaskReturn.success(res)
-    except Exception as e:
-        msg = "Brain: cancel error {0}".format(e)
-        return IrmaTaskReturn.error(msg)
+    except:
+        log.info("exception", exc_info=True)
+        return IrmaTaskReturn.error("cancel error on brain")
 
 
 @results_app.task(ignore_result=True, acks_late=True)
 def job_success(result, jobid):
     try:
-        log.info("{0}: job success".format(jobid))
         (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
-        log.info("{0}: probe {1}".format(frontend_scanid, probe))
+        log.info("scanid %s jobid:%d probe %s",
+                 frontend_scanid,
+                 jobid,
+                 probe)
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
         job_ctrl.success(jobid)
-    except IrmaTaskError as e:
-        msg = "Brain: result error {0}".format(e)
-        return IrmaTaskReturn.error(msg)
+    except:
+        log.info("exception", exc_info=True)
+        return
 
 
 @results_app.task(ignore_result=True, acks_late=True)
 def job_error(parent_taskid, jobid):
     try:
-        log.info("{0}: job error on {1}".format(jobid, parent_taskid))
         (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
-        log.info("{0}: probe {1}".format(frontend_scanid, probe))
+        log.info("scanid %s jobid:%d probe %s",
+                 frontend_scanid, jobid, probe)
         job_ctrl.error(jobid)
         result = {}
         result['status'] = -1
@@ -183,21 +203,21 @@ def job_error(parent_taskid, jobid):
         result['error'] = "Brain job error"
         result['duration'] = job_ctrl.duration(jobid)
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
-    except IrmaTaskError as e:
-        msg = "Brain: result error {0}".format(e)
-        return IrmaTaskReturn.error(msg)
+    except:
+        log.info("exception", exc_info=True)
+        return
 
 
 @results_app.task(ignore_result=True, acks_late=True)
 def scan_flush(frontend_scanid):
     try:
-        log.info("{0} scan flush requested".format(frontend_scanid))
+        log.info("scan_id %s scan flush requested", frontend_scanid)
         rmqvhost = config.get_frontend_rmqvhost()
         user_id = user_ctrl.get_userid(rmqvhost)
         scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
         scan_ctrl.flush(scan_id)
         ftpuser = user_ctrl.get_ftpuser(user_id)
         ftp_ctrl.flush_dir(ftpuser, frontend_scanid)
-    except Exception as e:
-        log.info("{0} flush error {1}".format(scan_id, e))
+    except:
+        log.info("exception", exc_info=True)
         return

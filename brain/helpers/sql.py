@@ -17,7 +17,7 @@ def sql_db_connect():
                             uri_params[3], uri_params[4], uri_params[5])
     except Exception as e:
         msg = "SQL: can't connect"
-        log.debug(msg + " [{0}]".format(e))
+        log.info("msg", exc_info=True)
         raise IrmaDatabaseError(msg)
 
 
