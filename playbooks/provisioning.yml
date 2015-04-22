@@ -116,4 +116,11 @@
   roles:
     - { role: quarkslab.fsecure, tags: 'fsecure' }
 
+- name: PEiD provisioning
+  hosts: peid
+  sudo: yes
+  roles:
+    - { role: quarkslab.peid, tags: 'peid' }
+
+
 # vim: sw=2
