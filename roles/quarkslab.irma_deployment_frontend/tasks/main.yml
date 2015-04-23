@@ -64,7 +64,7 @@
   with_items: frontend_deployment_configs
 
 - name: Generate documentation for frontend
-  include: sphinx.yml
+  include: documentation.yml
   when: "'frontend-demo' in group_names"
 
 - name: Create symlink release -> current

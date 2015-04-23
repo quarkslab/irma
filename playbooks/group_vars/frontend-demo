@@ -2,9 +2,11 @@
 
 ## Global variables
 hostname: frontend.irma
-frontend_user: www-data
-frontend_group: www-data
-frontend_project_dir: /var/www/prod.project.local
+
+frontend_user: "{{ default_user }}"
+frontend_group: "{{ default_group }}"
+frontend_project_dir: /opt/irma/irma-frontend
+
 frontend_install_dir: "{{ frontend_project_dir }}/current"
 frontend_releases_dir: "{{ frontend_project_dir }}/releases"
 frontend_venv_dir: "{{ frontend_install_dir }}/venv"
@@ -12,6 +14,7 @@ frontend_venv_dir: "{{ frontend_install_dir }}/venv"
 
 ## Deployment
 frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
+frontend_documentation_deployment_repository: "https://github.com/quarkslab/irma.git"
 frontend_deployment_configs:
   - section: broker_brain
     option: host
@@ -49,6 +52,21 @@ frontend_deployment_configs:
   - section: ftp_brain
     option: password
     value: "{{irma_configurations.pureftpd.frontend.password}}"
+  - section: sqldb
+    option: dbms
+    value: postgresql
+  - section: sqldb
+    option: dialect
+    value: psycopg2
+  - section: sqldb
+    option: username
+    value: "{{irma_configurations.postgresql.frontend.username}}"
+  - section: sqldb
+    option: password
+    value: "{{irma_configurations.postgresql.frontend.password}}"
+  - section: sqldb
+    option: dbname
+    value: "{{irma_configurations.postgresql.frontend.db_name}}"
 
 
 ## UFW Rules
@@ -56,6 +74,7 @@ ufw_additional_rules:
   - port: 80
     rule: allow
   - port: 443
+    rule: deny
 
 
 ## HTTPs
@@ -69,23 +88,48 @@ apt_repositories_code_names:
   - '{{ ansible_distribution_release }}-backports'
 
 
-## Users role
-frontend_users:
-  - username: www-data
-    name: www-data
-    groups: ['www-data']
-    uid: 1003
-    ssh_key: "{{ default_ssh_keys }}"
-
-
 ## uWSGI role
-uwsgi_install_method: "pip"
+uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
+uwsgi_plugins:
+  - python
 
 
 ## NodeJS role
 nodejs_version: "0.10.30"
 nodejs_global_packages:
   - debug
+
+
+## MongoDB
+mongodb_from_mongodb_repo: "{{ not (default_use_debian_repo | bool) }}"
+
+
+## PostgreSQL role
+# Basic settings
+postgresql_from_pg_repo: "{{ not (default_use_debian_repo | bool) }}"
+
+postgresql_version: "{{ '9.3' if not default_use_debian_repo|default(False) else '9.1' }}"
+postgresql_shared_buffers: "{{ '128MB' if not default_use_debian_repo|default(False) else '24MB' }}"
+
+postgresql_admin_user: "postgres"
+postgresql_default_auth_method: "trust"
+
+postgresql_cluster_name: "main"
+postgresql_cluster_reset: false
+
+## Databases informations
+postgresql_databases:
+  - name: irma-frontend
+
+postgresql_users:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    pass: "{{irma_configurations.postgresql.frontend.password}}"
+    encrypted: no
+
+postgresql_user_privileges:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    db: "{{irma_configurations.postgresql.frontend.db_name}}"
+    priv: "ALL"
 
 
 ## Supervisor role
@@ -102,8 +146,8 @@ supervisor_programs_frontend:
     killasgroup: true
   - name: frontend_api
     command: >
-      /usr/local/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
-      --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
+      uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+      --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
       --python-path {{ frontend_install_dir }}/venv --mount /api/v1=frontend/api/base.py --lazy
     user: "{{ irma_user }}"
     numprocs: 1
@@ -114,6 +158,7 @@ supervisor_programs_frontend:
     autostart: true
     stopwaitsecs: 600
     killasgroup: true
+
 
 
 ## Nginx role
@@ -148,9 +193,9 @@ nginx_sites:
     - location ~ /\.ht {
         deny all;
       }
-    - location /_api {
+    - location /api/v1 {
         include uwsgi_params;
-        rewrite ^/_api/(.+) /$1 break;
+        rewrite ^/api/v1/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
     - location /swagger {
