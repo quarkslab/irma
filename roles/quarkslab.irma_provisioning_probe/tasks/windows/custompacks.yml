@@ -8,7 +8,7 @@
     remote_tmp: '{{ echo_temp.stdout[1:-3] | regex_replace("\\\\", "/") }}'
 
 - name: Installing Chocolatey Packages Dependencies
-  raw: choco.exe install "{{ item.name }}" -Version "{{ item.version }}"
+  raw: choco.exe install "{{ item.name }}" -Version "{{ item.version }}" -y
   register: result
   failed_when: "result.rc not in {{ item.rc | default([0]) }}"
   with_items:
@@ -41,7 +41,7 @@
   raw: >
     cd "{{ remote_tmp }}/{{ item }}" &&
     choco.exe pack &&
-    choco.exe install "{{ item }}" -source "{{ remote_tmp }}/{{ item }}" -force
+    choco.exe install "{{ item }}" -source "{{ remote_tmp }}/{{ item }}" -force -y
   with_items:
     - PyWin32
 
