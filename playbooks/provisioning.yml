@@ -70,6 +70,12 @@
   roles:
     - { role: quarkslab.mcafee_vscl, tags: 'mcafee_vscl' }
 
+- name: McAfee VSCL provisioning (Windows)
+  hosts: mcafee-win
+  sudo: yes
+  roles:
+    - { role: quarkslab.mcafee_vscl_windows, tags: 'mcafee_vscl_windows' }
+
 - name: StaticAnalyzer provisioning
   hosts: static-analyzer
   sudo: yes

@@ -23,10 +23,10 @@ servers:
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
-  - name: probe-win.irma
+  - name: mcafee-win.irma
     box: eval-win8x64-enterprise
     ip: 172.16.1.33
-    hostname: probe-win.irma
+    hostname: mcafee-win.irma
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
@@ -70,8 +70,8 @@ ansible_config:
       - avs-linux.irma
     sophos:
       - avs-linux.irma
-    windows-probe:
-      - probe-win.irma
+    mcafee-win:
+      - mcafee-win.irma
     "probe:children":
       - clamav
       - comodo
@@ -88,6 +88,6 @@ ansible_config:
       - fsecure
       - trid
       - sophos
-      - windows-probe
+      - mcafee-win
     "windows:children":
-      - windows-probe
+      - mcafee-win
