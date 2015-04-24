@@ -23,4 +23,3 @@ rabbitmqctl add_user $USER $PASSWD
 echo "[+] Create vhost $VHOST"
 rabbitmqctl add_vhost $VHOST
 rabbitmqctl set_permissions -p $VHOST $USER ".*" ".*" ".*"
-
