@@ -10,7 +10,7 @@ IRMA platform is easily installed thanks to a set of `ansible <http://www.ansibl
 
 .. code-block:: bash
 
-	$ git clone https://github.com/quarkslab/irma-ansible
+    $ git clone https://github.com/quarkslab/irma-ansible
 
 There are 3 different types of IRMA setup:
 
@@ -27,7 +27,7 @@ Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ r
 
 .. code-block:: bash
 
-	$ ansible-galaxy install -r ansible-requirements.yml # --force if you’ve already installed it
+    $ ansible-galaxy install -r ansible-requirements.yml # --force if you’ve already installed it
 
 
 Testing IRMA, the easiest way
@@ -49,7 +49,7 @@ Simply run in the `Vagrantfile` directory:
 
 .. code-block:: bash
 
-	$ vagrant up
+    $ vagrant up
 
 
 Vagrant will launch a VM and install IRMA on it. It can take a while
@@ -70,11 +70,11 @@ some useful commands with vagrant:
 
 .. code-block:: bash
 
-	$ vagrant ssh brain.irma       # login through ssh
-	$ vagrant halt brain.irma      # shutdown the machine
-	$ vagrant reload brain.irma    # restart the machine
-	$ vagrant up brain.irma        # start the machine
-	$ vagrant destroy brain.irma   # delete the machine
+    $ vagrant ssh brain.irma       # login through ssh
+    $ vagrant halt brain.irma      # shutdown the machine
+    $ vagrant reload brain.irma    # restart the machine
+    $ vagrant up brain.irma        # start the machine
+    $ vagrant destroy brain.irma   # delete the machine
 
 for advanced usage of vagrant be sure to check `extras <docs/install_extras.rst>`_
 

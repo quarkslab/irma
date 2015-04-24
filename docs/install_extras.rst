@@ -32,10 +32,10 @@ Install this softwares:
 
 .. code-block:: bash
 
-	$ vagrant plugin install vagrant-cachier
+    $ vagrant plugin install vagrant-cachier
 
 - vagrant-vbguest (more `info <https://github.com/dotless-de/vagrant-vbguest>`_)
 
 .. code-block:: bash
 
-	$ vagrant plugin install vagrant-vbguest
+    $ vagrant plugin install vagrant-vbguest
