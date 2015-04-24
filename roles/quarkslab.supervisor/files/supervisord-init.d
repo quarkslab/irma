@@ -115,7 +115,7 @@ case "$1" in
 	# Stop all processes under supervisord control.
 	$SUPERVISORCTL stop all
 
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE 
+	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
 
 	RETVAL="$?"
 	[ "$RETVAL" = 2 ] && return 2
