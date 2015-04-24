@@ -1,0 +1,12 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+*           text=auto whitespace=space-before-tab,tab-in-indent,tabwidth=4,trailing-space eol=lf
+.git*       text export-ignore
+
+# swagger
+swagger/ui/*.js text whitespace=-trailing-space,-space-before-tab
+swagger/ui/lib/*.js text whitespace=-trailing-space
+
+# Ensure that these binarys are, well, binary
+*.png       binary
+*.tar.gz    binary
+*.zip       binary
