@@ -16,6 +16,7 @@
 import sys
 import argparse
 import pprint
+import logging
 
 from lib.plugins import PluginManager
 
