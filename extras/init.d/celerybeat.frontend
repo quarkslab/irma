@@ -4,7 +4,7 @@
 # =========================================================
 #
 # :Usage: /etc/init.d/celerybeat.frontend {start|stop|force-reload|restart|try-restart|status}
-# :Configuration file: /etc/default/celerybeat.frontend 
+# :Configuration file: /etc/default/celerybeat.frontend
 #
 # See http://docs.celeryproject.org/en/latest/tutorials/daemonizing.html#generic-init-scripts
 

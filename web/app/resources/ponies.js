@@ -26,17 +26,17 @@ if (typeof(BrowserPoniesConfig) !== "undefined" && BrowserPoniesConfig.onbasecfg
 
 /*
  * Copyright (c) 2011-2013 Mathias Panzenböck
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -244,7 +244,7 @@ var BrowserPonies = (function () {
     }
     return s;
   };
-  
+
   var extend = function (dest, src) {
     for (var name in src) {
       dest[name] = src[name];
@@ -278,7 +278,7 @@ var BrowserPonies = (function () {
     if (!this.port) {
       this.port = URL.DEFAULT_PORTS[this.protocol];
     }
-  
+
     if (this.port && URL.DEFAULT_PORTS[this.protocol] !== this.port) {
       this.host = this.hostname+':'+this.port;
     }
@@ -337,7 +337,7 @@ var BrowserPonies = (function () {
     join: function (baseurl) {
       for (var i = 0; i < arguments.length; ++ i) {
         var url = arguments[i];
-        
+
         if ((/^[a-z][-_a-z0-9]*:/i).test(url)) {
           baseurl = url;
         }
@@ -485,7 +485,7 @@ var BrowserPonies = (function () {
       }
     }
   };
-  
+
   var dataUrl = function (mimeType, data) {
     return 'data:'+mimeType+';base64,'+Base64.encode(data);
   };
@@ -495,7 +495,7 @@ var BrowserPonies = (function () {
       /</g, '&lt;').replace(/>/g, '&gt;').replace(
       /"/g, '&quot;').replace(/'/g, '&apos;');
   };
-  
+
   // inspired by:
   // http://farhadi.ir/posts/utf8-in-javascript-with-a-new-trick
   var Base64 = {
@@ -803,7 +803,7 @@ var BrowserPonies = (function () {
     if (!this.name || this.name.toLowerCase() === 'none') {
       throw new Error(baseurl+': illegal behavior name '+this.name);
     }
-    
+
     if (this.follow) this.follow = this.follow.toLowerCase();
     this.movement = null;
     var movement  = behavior.movement.replace(/[-_\s]/g,'').toLowerCase();
@@ -823,7 +823,7 @@ var BrowserPonies = (function () {
     if (behavior.rightimage) {
       this.rightimage = URL.join(baseurl, behavior.rightimage);
     }
-    
+
     this.leftsize = {width: 0, height: 0};
     if (behavior.leftimage) {
       this.leftimage = URL.join(baseurl, behavior.leftimage);
@@ -833,7 +833,7 @@ var BrowserPonies = (function () {
     if (!this.rightcenter || (this.rightcenter.x === 0 && this.rightcenter.y === 0)) {
       this.rightcenter = {x: 0, y: 0, missing: true};
     }
-    
+
     if (!this.leftcenter || (this.leftcenter.x === 0 && this.leftcenter.y === 0)) {
       this.leftcenter = {x: 0, y: 0, missing: true};
     }
@@ -844,7 +844,7 @@ var BrowserPonies = (function () {
       for (var i = 0, n = behavior.effects.length; i < n; ++ i) {
         var effect = new Effect(baseurl, behavior.effects[i]);
         this.effects_by_name[effect.name.toLowerCase()] = effect;
-        this.effects.push(effect);  
+        this.effects.push(effect);
       }
     }
   };
@@ -884,7 +884,7 @@ var BrowserPonies = (function () {
           }
         }.bind(this));
       }
-      
+
       if (this.leftimage) {
         preloadImage(this.leftimage, function (image) {
           this.leftsize.width  = image.width;
@@ -920,7 +920,7 @@ var BrowserPonies = (function () {
     }
     throw new Error('illegal location: '+value);
   };
-  
+
   var Effect = function Effect (baseurl, effect) {
     extend(this, effect);
     this.name = effect.name.toLowerCase();
@@ -938,7 +938,7 @@ var BrowserPonies = (function () {
       this.rightimage = URL.join(baseurl, effect.rightimage);
     }
     this.rightcenter_point = {x: 0, y: 0};
-    
+
     this.leftsize = {width: 0, height: 0};
     if (effect.leftimage) {
       this.leftimage = URL.join(baseurl, effect.leftimage);
@@ -958,7 +958,7 @@ var BrowserPonies = (function () {
           };
         }.bind(this));
       }
-      
+
       if (this.leftimage) {
         preloadImage(this.leftimage, function (image) {
           this.leftsize.width  = image.width;
@@ -998,7 +998,7 @@ var BrowserPonies = (function () {
 
   var createAudio = function (urls) {
     var audio = new Audio();
-    
+
     if (typeof(urls) === "string") {
       audio.src = urls;
     }
@@ -1011,10 +1011,10 @@ var BrowserPonies = (function () {
         audio.appendChild(source);
       }
     }
-  
+
     return audio;
   };
-  
+
   var loadAudio = function (urls) {
     return function (loader,id,observer) {
       var audio = loader.object = createAudio(urls);
@@ -1024,11 +1024,11 @@ var BrowserPonies = (function () {
       audio.preload = 'auto';
     };
   };
-  
+
   var preloadImage = function (url,callback) {
     preload(loadImage,url,callback);
   };
-  
+
   var preloadAudio = function (urls,callback) {
     var fakeurl;
     if (typeof(urls) === "string") {
@@ -1056,7 +1056,7 @@ var BrowserPonies = (function () {
         for (var i = 0; i < list.length; ++ i) {
           list[i] = list[i].slice(common.length);
         }
-      
+
         list.sort();
         fakeurl = common+'{'+list.join('|')+'}';
       }
@@ -1083,7 +1083,7 @@ var BrowserPonies = (function () {
         loaded: false,
         callbacks: callback ? [callback] : []
       };
-      
+
       load(loader, url, function (success) {
         if (loader.loaded) {
           //console.error('resource loaded twice: '+url);
@@ -1110,7 +1110,7 @@ var BrowserPonies = (function () {
           loader.callbacks[i](loader.object, success);
         }
         delete loader.callbacks;
-        
+
         if (resource_loaded_count === resource_count) {
           for (var i = 0, n = onload_callbacks.length; i < n; ++ i) {
             onload_callbacks[i]();
@@ -1120,7 +1120,7 @@ var BrowserPonies = (function () {
       });
     }
   };
-  
+
   preload(function (loader,url,observer) {
     if (document.body) {
       observer(true);
@@ -1263,7 +1263,7 @@ var BrowserPonies = (function () {
       if (progressbar.container.style.display === 'none') {
         resource_count_for_progress = resource_loaded_count;
       }
-      
+
       progressbar.finished = resource_loaded_count === resource_count;
 
       var loaded = resource_loaded_count - resource_count_for_progress;
@@ -1319,7 +1319,7 @@ var BrowserPonies = (function () {
         this.categories.push(pony.categories[i].toLowerCase());
       }
     }
-    
+
     if (pony.speeches) {
       for (var i = 0, n = pony.speeches.length; i < n; ++ i) {
         var speech = extend({},pony.speeches[i]);
@@ -1412,7 +1412,7 @@ var BrowserPonies = (function () {
             if (!behavior.skip) this.stand_behaviors.push(behavior);
             break;
         }
-        
+
         if ('group' in behavior) {
           if (behavior.group !== 0 && !has(this.behaviorgroups,behavior.group)) {
             /*console.warn(format("%s: Behavior %s references unknown behavior group %d.",
@@ -1443,7 +1443,7 @@ var BrowserPonies = (function () {
       else if (this.mouseover_behaviors.length === 0) {
         this.mouseover_behaviors = this.stand_behaviors.slice();
       }
-      
+
       // dereference linked behaviors:
       for (var i = 0, n = this.all_behaviors.length; i < n; ++ i) {
         var behavior = this.all_behaviors[i];
@@ -1459,7 +1459,7 @@ var BrowserPonies = (function () {
       for (var i = 0, n = this.all_behaviors.length; i < n; ++ i) {
         this.all_behaviors[i].preload();
       }
-      
+
       if (HasAudio && audioEnabled) {
         for (var i = 0, n = this.speeches.length; i < n; ++ i) {
           var speech = this.speeches[i];
@@ -1482,7 +1482,7 @@ var BrowserPonies = (function () {
           " because it has no targets.");*/
         return false;
       }
-      
+
       for (var i = 0, n = interaction.behaviors.length; i < n;) {
         var behavior = interaction.behaviors[i];
         if (has(this.behaviors_by_name, behavior)) {
@@ -1513,7 +1513,7 @@ var BrowserPonies = (function () {
     }
     return false;
   };
-  
+
   var isOffscreen = function (rect) {
     return isOutsideOf(rect, windowSize());
   };
@@ -1524,7 +1524,7 @@ var BrowserPonies = (function () {
     var wh = rect.width  * 0.5;
     var hh = rect.height * 0.5;
     return rect.x < wh || rect.y < hh ||
-      rect.x + wh > area.width || 
+      rect.x + wh > area.width ||
       rect.y + hh > area.height;
   };
 
@@ -1743,7 +1743,7 @@ var BrowserPonies = (function () {
       }
       else {
         var current_group = this.current_behavior.group;
-        
+
         for (var i = 0, n = this.pony.dragged_behaviors.length; i < n; ++ i) {
           var behavior = this.pony.dragged_behaviors[i];
           if (behavior.group === 0 || behavior.group === current_group) {
@@ -1972,7 +1972,7 @@ var BrowserPonies = (function () {
           });
         }
       }
-      
+
       // check if some effects need to be repeated:
       for (var i = 0, n = this.repeating.length; i < n; ++ i) {
         var what = this.repeating[i];
@@ -1984,7 +1984,7 @@ var BrowserPonies = (function () {
           what.at += what.effect.delay * 1000;
         }
       }
-      
+
       if (this.interaction_wait <= currentTime &&
           this.pony.interactions.length > 0 &&
           !this.current_interaction) {
@@ -1999,7 +1999,7 @@ var BrowserPonies = (function () {
             interactions.push([interaction, targets]);
           }
         }
-        
+
         if (interactions.length > 0) {
           var dice = Math.random() * sumprob;
           var diceiter = 0;
@@ -2053,7 +2053,7 @@ var BrowserPonies = (function () {
           this.dest_position.x = Math.round(Math.min(pos.x + pos.x - this.dest_position.x, winsize.width - x2));
         }
       }
-      
+
       if (top <= 0) {
         if (this.dest_position.y < pos.y) {
           this.dest_position.y = Math.round(Math.max(pos.y + pos.y - this.dest_position.y, y1));
@@ -2069,7 +2069,7 @@ var BrowserPonies = (function () {
       var nearObjects = [];
       var pos = this.position();
       var pony = ponies[name];
-      
+
       if (!pony) {
         for (var i = 0, n = instances.length; i < n; ++ i) {
           var inst = instances[i];
@@ -2091,7 +2091,7 @@ var BrowserPonies = (function () {
           }
         }
       }
-      
+
       if (nearObjects.length === 0) {
         return null;
       }
@@ -2103,7 +2103,7 @@ var BrowserPonies = (function () {
       if (!breaklink && this.current_behavior && this.current_behavior.linked) {
         this.behave(this.current_behavior.linked, offscreen);
       }
-      else {        
+      else {
         if (this.current_interaction) {
           var currentTime = Date.now();
           this.interaction_wait = currentTime + this.current_interaction.delay * 1000;
@@ -2185,7 +2185,7 @@ var BrowserPonies = (function () {
           });
         }
       }
-      
+
       // get new image + size
       if (this.facing_right) {
         this.current_size   = this.paint_behavior.rightsize;
@@ -2195,7 +2195,7 @@ var BrowserPonies = (function () {
         this.current_size   = this.paint_behavior.leftsize;
         this.current_center = this.paint_behavior.leftcenter;
       }
-      
+
       var spoke = false;
       if (previous_behavior && previous_behavior.speakend) {
         this.speak(this.start_time, previous_behavior.speakend);
@@ -2215,7 +2215,7 @@ var BrowserPonies = (function () {
         !this.current_interaction) {
         this.speakRandom(this.start_time, speakProbability);
       }
-      
+
       var pos  = this.position();
       var size = this.size();
       var winsize = windowSize();
@@ -2289,19 +2289,19 @@ var BrowserPonies = (function () {
             removeAll(reducedMovements, Movements.UpLeft);
             removeAll(reducedMovements, Movements.UpRight);
           }
-          
+
           if (nearBottom) {
             removeAll(reducedMovements, Movements.Down);
             removeAll(reducedMovements, Movements.DownLeft);
             removeAll(reducedMovements, Movements.DownRight);
           }
-          
+
           if (nearLeft) {
             removeAll(reducedMovements, Movements.Left);
             removeAll(reducedMovements, Movements.UpLeft);
             removeAll(reducedMovements, Movements.DownLeft);
           }
-          
+
           if (nearRight) {
             removeAll(reducedMovements, Movements.Right);
             removeAll(reducedMovements, Movements.UpRight);
@@ -2420,7 +2420,7 @@ var BrowserPonies = (function () {
         else {
           msg = "no movement";
         }
-        
+
         if (behavior.follow) {
           msg += " (wanted to follow "+behavior.follow+")";
         }
@@ -2454,7 +2454,7 @@ var BrowserPonies = (function () {
     randomBehavior: function (forceMovement) {
       var behaviors;
       var current_group = this.current_behavior ? this.current_behavior.group : 0;
-      
+
       if (this === dragged && this.canDrag()) {
         behaviors = this.pony.dragged_behaviors;
       }
@@ -2505,7 +2505,7 @@ var BrowserPonies = (function () {
     duration = Math.max(duration - fadeDuration, fadeDuration);
     this.end_time = start_time + duration;
     this.effect   = effect;
-    
+
     var imgurl;
     if (pony.facing_right) {
       imgurl = this.effect.rightimage;
@@ -2623,7 +2623,7 @@ var BrowserPonies = (function () {
           pos = {x: -size.width * 0.5, y: -size.height * 0.5};
           break;
       }
-      
+
       var ponyRect = this.pony.topLeftRect();
       switch (loc) {
         case Locations.Top:
@@ -2702,7 +2702,7 @@ var BrowserPonies = (function () {
     update: function (currentTime, passedTime, winsize) {
       if (this.effect.follow) {
         this.updatePosition(currentTime, passedTime);
-        
+
         var imgurl;
         if (this.pony.facing_right) {
           imgurl = this.effect.rightimage;
@@ -2726,7 +2726,7 @@ var BrowserPonies = (function () {
     var currentTime = Date.now();
     var timeSpan = currentTime - lastTime;
     var winsize = windowSize();
-    
+
     for (var i = 0, n = instances.length; i < n; ++ i) {
       instances[i].update(currentTime, timeSpan, winsize);
     }
@@ -2821,7 +2821,7 @@ var BrowserPonies = (function () {
     mousePosition.x = event.clientX;
     mousePosition.y = event.clientY;
   });
-  
+
   observe(document, 'mouseup', function () {
     if (dragged) {
       var inst = dragged;
@@ -2831,7 +2831,7 @@ var BrowserPonies = (function () {
       }
     }
   });
-  
+
   return {
     convertPony: function (ini, baseurl) {
       var rows = PonyINI.parse(ini);
@@ -2853,7 +2853,7 @@ var BrowserPonies = (function () {
           case "name":
             pony.name = row[1];
             break;
-          
+
           case "behaviorgroup":
             var group = parseInt(row[1],10);
             if (isNaN(group)) {
@@ -2920,7 +2920,7 @@ var BrowserPonies = (function () {
             pony.behaviors.push(behavior);
             behaviors_by_name[behavior.name.toLowerCase()] = behavior;
             break;
-            
+
           case "effect":
             var effect = {
               name:        row[1],
@@ -2943,7 +2943,7 @@ var BrowserPonies = (function () {
             }
             effects.push(effect);
             break;
-            
+
           case "speak":
             var speak;
             if (row.length === 2) {
@@ -3000,7 +3000,7 @@ var BrowserPonies = (function () {
             //console.warn(baseurl+": Unknown pony setting:",row);
         }
       }
-      
+
       if (!('name' in pony)) {
         throw new Error('Pony with following base URL has no name: '+pony.baseurl);
       }

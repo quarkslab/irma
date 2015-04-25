@@ -40,4 +40,3 @@ $1
 EOF
 
 echo "Now reboot..."
-

@@ -1,8 +1,8 @@
 <uwsgi>
-	<plugin>python</plugin>
-	<chdir>/opt/irma/irma-frontend</chdir>
-	<app mountpoint="/_api">
-		<script>./frontend/web/api.py</script>
-	</app>
-	<master/>
+    <plugin>python</plugin>
+    <chdir>/opt/irma/irma-frontend</chdir>
+    <app mountpoint="/_api">
+        <script>./frontend/web/api.py</script>
+    </app>
+    <master/>
 </uwsgi>

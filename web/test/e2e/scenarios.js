@@ -10,5 +10,5 @@ describe('Ivy', function() {
       expect(url.split('#')[1]).toBe('/selection');
     });
   });
-  
+
 });
