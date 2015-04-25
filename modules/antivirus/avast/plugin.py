@@ -21,7 +21,7 @@ from lib.plugins import BinaryDependency, PlatformDependency
 from lib.irma.common.utils import IrmaProbeType
 
 
-class AvastCoreSecurityPlugin(PluginBase, AvastCoreSecurity, 
+class AvastCoreSecurityPlugin(PluginBase, AvastCoreSecurity,
                               AntivirusPluginInterface):
 
     # =================

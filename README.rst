@@ -1,4 +1,4 @@
-IRMA: Incident Response & Malware Analysis 
+IRMA: Incident Response & Malware Analysis
 ------------------------------------------
 
 |docs|
