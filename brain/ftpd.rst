@@ -77,7 +77,7 @@ probes:
     $ sudo extras/scripts/pure-ftpd/ftpd-adduser.sh frontend-irma ftpuser /home/ftpuser/frontend-irma
     [ enter twice a password to be used for frontend, for example frontend-ftp-password]
     $ sudo extras/scripts/pure-ftpd/ftpd-adduser.sh probe ftpuser /home/ftpuser/
-    [ enter twice a password to be used for frontend, for example probe-ftp-password]
+    [ enter twice a password to be used for probe, for example probe-ftp-password]
 
 Checking your configuration
 ```````````````````````````

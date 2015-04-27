@@ -90,3 +90,7 @@ directory.
      |                |clean_db_scan| ``integer``|     \*         | cron day of week settings                               |
      |                |_day_of_week |            |                |                                                         |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
+
+.. note::
+
+    The default path for samples is /var/irma/samples/ make sure it exists before launching your first scan.

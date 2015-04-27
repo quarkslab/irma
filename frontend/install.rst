@@ -60,16 +60,14 @@ code source is to build the web client which is composed of static HTML files
 mixed with javascript web framework (in particular, AngularJS).
 
 One must install first some tools that are necessary to build the whole web
-client. At the time of writing, Node.js is available in the default Debian
-Wheezy repositories (if not, add ``wheezy-backports`` repository):
+client:
 
 .. code-block:: bash
-
-    $ echo "deb http://ftp.fr.debian.org/debian/ wheezy-backports main contrib non-free" | sudo tee /etc/apt/source.list.d/wheezy-backports.list
+    $ curl -sL https://deb.nodesource.com/setup | sudo bash -
     [...]
-    $ sudo apt-get install nodejs
+    $ sudo apt-get install -y nodejs
     [...]
-    $ curl https://www.npmjs.org/install.sh | sudo sh
+    $ curl -sL https://www.npmjs.org/install.sh | sudo bash -
     [...]
 
 Once the tools installed, you can build the static files for the web user
@@ -79,8 +77,8 @@ directory:
 .. code-block:: bash
 
     $ cd irma-frontend/web
-    $ npm install
-    $ node_modules/.bin/bower install
+    $ sudo npm install
+    $ sudo node_modules/.bin/bower install --allow-root
     $ node_modules/.bin/gulp dist
 
 A new directory or an updated directory ``web/dist`` should appear now with
