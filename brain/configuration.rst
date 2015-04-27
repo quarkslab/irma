@@ -83,6 +83,10 @@ You could easily generate the user database by running the following command.
 The path of the database is taken from the configuration file and the folder
 where the database is going to be stored must be created beforehand.
 
+.. note::
+
+    The default path for the database is /var/irma/db/ make sure it exists before creating user database.
+
 .. code-block:: bash
 
     $ python -m scripts.create_user

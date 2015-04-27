@@ -25,8 +25,8 @@ respectively in ``/etc/init.d`` and ``/etc/defaults``.
 
 .. code-block:: bash
 
-    $ sudo cp extras/init.d/celeryd.probe /etc/init.d/celeryd.frontend
-    $ sudo cp extras/default/celeryd.probe /etc/default/celeryd.frontend
+    $ sudo cp extras/init.d/celeryd.frontend /etc/init.d/celeryd.frontend
+    $ sudo cp extras/default/celeryd.frontend /etc/default/celeryd.frontend
 
 Configuring the service
 ***********************
@@ -52,14 +52,14 @@ register the service:
 .. code-block:: bash
 
     $ sudo chmod u+x /etc/init.d/celeryd.frontend
-    $ update-rc.d celeryd.frontend defaults
+    $ sudo update-rc.d celeryd.frontend defaults
 
 You can check that the celery daemon is running properly by launching it and by
 consulting the system logs:
 
 .. code-block:: bash
 
-    $ sudo invoke-rc.d celeryd.probe start
+    $ sudo invoke-rc.d celeryd.frontend start
     $ sudo cat /var/log/celery/*.log
     [...]
     [2014-04-30 13:35:03,949: WARNING/MainProcess] worker1@frontend ready.

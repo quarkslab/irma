@@ -56,8 +56,8 @@ Finally, fix the permission for the ``/etc/init.d/celeryd.brain`` and the
 
     $ sudo chmod u+x /etc/init.d/celeryd.brain
     $ sudo chmod u+x /etc/init.d/celeryd.results
-    $ update-rc.d celeryd.brain defaults
-    $ update-rc.d celeryd.results defaults
+    $ sudo update-rc.d celeryd.brain defaults
+    $ sudo update-rc.d celeryd.results defaults
 
 You can check that the celery daemon is running properly by launching it and by
 consulting the system logs:
