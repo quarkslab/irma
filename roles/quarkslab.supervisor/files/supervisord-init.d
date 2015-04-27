@@ -1,14 +1,14 @@
 #! /bin/sh
 #
-# skeleton	example file to build /etc/init.d/ scripts.
-#		This file should be used to construct scripts for /etc/init.d.
+# skeleton  example file to build /etc/init.d/ scripts.
+#       This file should be used to construct scripts for /etc/init.d.
 #
-#		Written by Miquel van Smoorenburg <miquels@cistron.nl>.
-#		Modified for Debian
-#		by Ian Murdock <imurdock@gnu.ai.mit.edu>.
+#       Written by Miquel van Smoorenburg <miquels@cistron.nl>.
+#       Modified for Debian
+#       by Ian Murdock <imurdock@gnu.ai.mit.edu>.
 #               Further changes by Javier Fernandez-Sanguino <jfs@debian.org>
 #
-# Version:	@(#)skeleton  1.9  26-Feb-2001  miquels@cistron.nl
+# Version:  @(#)skeleton  1.9  26-Feb-2001  miquels@cistron.nl
 #
 ### BEGIN INIT INFO
 # Provides:          supervisor
@@ -40,7 +40,7 @@ DODTIME=5                   # Time to wait for the server to die, in seconds
 
 # Include supervisor defaults if available
 if [ -f /etc/default/supervisor ] ; then
-	. /etc/default/supervisor
+    . /etc/default/supervisor
 fi
 DAEMON_OPTS="-c /etc/supervisord.conf $DAEMON_OPTS"
 
@@ -92,16 +92,16 @@ force_stop() {
 
 case "$1" in
   start)
-	echo "Starting $DESC"
-	start-stop-daemon --start --quiet --pidfile $PIDFILE \
-		--startas $DAEMON -- $DAEMON_OPTS
-	# test -f $PIDFILE || sleep 1
+    echo "Starting $DESC"
+    start-stop-daemon --start --quiet --pidfile $PIDFILE \
+        --startas $DAEMON -- $DAEMON_OPTS
+    # test -f $PIDFILE || sleep 1
         # if running ; then
         #     echo "$NAME."
         # else
         #     echo " ERROR."
         # fi
-	;;
+    ;;
   stop)
     # Return
     # 0 if daemon has been stopped
@@ -110,62 +110,62 @@ case "$1" in
     # other if a failure occurred
     [ -e $PIDFILE ] || return 1
 
-	echo -n "Stopping $DESC: "
+    echo -n "Stopping $DESC: "
 
-	# Stop all processes under supervisord control.
-	$SUPERVISORCTL stop all
+    # Stop all processes under supervisord control.
+    $SUPERVISORCTL stop all
 
-	start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE 
+    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 --pidfile $PIDFILE
 
-	RETVAL="$?"
-	[ "$RETVAL" = 2 ] && return 2
+    RETVAL="$?"
+    [ "$RETVAL" = 2 ] && return 2
 
-	# Many daemons don't delete their pidfiles when they exit.
-	rm -f $PIDFILE
+    # Many daemons don't delete their pidfiles when they exit.
+    rm -f $PIDFILE
 
-	return "$RETVAL"
-	;;
+    return "$RETVAL"
+    ;;
   force-stop)
-	echo -n "Forcefully stopping $DESC: "
+    echo -n "Forcefully stopping $DESC: "
         force_stop
         if ! running ; then
             echo "$NAME."
         else
             echo " ERROR."
         fi
-	;;
+    ;;
   #reload)
-	#
-	#	If the daemon can reload its config files on the fly
-	#	for example by sending it SIGHUP, do it here.
-	#
-	#	If the daemon responds to changes in its config file
-	#	directly anyway, make this a do-nothing entry.
-	#
-	# echo "Reloading $DESC configuration files."
-	# start-stop-daemon --stop --signal 1 --quiet --pidfile \
-	#	/var/run/$NAME.pid --exec $DAEMON
+    #
+    #   If the daemon can reload its config files on the fly
+    #   for example by sending it SIGHUP, do it here.
+    #
+    #   If the daemon responds to changes in its config file
+    #   directly anyway, make this a do-nothing entry.
+    #
+    # echo "Reloading $DESC configuration files."
+    # start-stop-daemon --stop --signal 1 --quiet --pidfile \
+    #   /var/run/$NAME.pid --exec $DAEMON
   #;;
   force-reload)
-	#
-	#	If the "reload" option is implemented, move the "force-reload"
-	#	option to the "reload" entry above. If not, "force-reload" is
-	#	just the same as "restart" except that it does nothing if the
-	#   daemon isn't already running.
-	# check wether $DAEMON is running. If so, restart
-	start-stop-daemon --stop --test --quiet --pidfile $PIDFILE \
+    #
+    #   If the "reload" option is implemented, move the "force-reload"
+    #   option to the "reload" entry above. If not, "force-reload" is
+    #   just the same as "restart" except that it does nothing if the
+    #   daemon isn't already running.
+    # check wether $DAEMON is running. If so, restart
+    start-stop-daemon --stop --test --quiet --pidfile $PIDFILE \
         --startas $DAEMON \
-	&& $0 restart \
-	|| exit 0
-	;;
+    && $0 restart \
+    || exit 0
+    ;;
   restart)
     echo -n "Restarting $DESC: "
     start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
-	[ -n "$DODTIME" ] && sleep $DODTIME
-	start-stop-daemon --start --quiet --pidfile $PIDFILE \
-		--startas $DAEMON -- $DAEMON_OPTS
-	echo "$NAME."
-	;;
+    [ -n "$DODTIME" ] && sleep $DODTIME
+    start-stop-daemon --start --quiet --pidfile $PIDFILE \
+        --startas $DAEMON -- $DAEMON_OPTS
+    echo "$NAME."
+    ;;
   status)
     echo -n "$NAME is "
     if running ;  then
@@ -176,11 +176,11 @@ case "$1" in
     fi
     ;;
   *)
-	N=/etc/init.d/$NAME
-	# echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-	echo "Usage: $N {start|stop|restart|force-reload|status|force-stop}" >&2
-	exit 1
-	;;
+    N=/etc/init.d/$NAME
+    # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+    echo "Usage: $N {start|stop|restart|force-reload|status|force-stop}" >&2
+    exit 1
+    ;;
 esac
 
 exit 0

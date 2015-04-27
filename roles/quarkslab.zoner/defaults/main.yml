@@ -1,6 +1,6 @@
 ---
 
-zoner_version: "1.3.0" 
+zoner_version: "1.3.0"
 zoner_download_url: "http://update.zonerantivirus.com/download/"
 zoner_deb_amd64_url: "{{ zoner_download_url}}/zav-{{ zoner_version }}-debian-amd64.deb"
 zoner_deb_i386_url:  "{{ zoner_download_url}}/zav-{{ zoner_version }}-debian-i386.deb"

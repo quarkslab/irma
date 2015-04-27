@@ -23,22 +23,22 @@ Clone IRMA repositories:
 
 .. code-block:: bash
 
-	$ git clone --recursive https://github.com/quarkslab/irma-frontend
-	$ git clone --recursive https://github.com/quarkslab/irma-brain
-	$ git clone --recursive https://github.com/quarkslab/irma-probe
+    $ git clone --recursive https://github.com/quarkslab/irma-frontend
+    $ git clone --recursive https://github.com/quarkslab/irma-brain
+    $ git clone --recursive https://github.com/quarkslab/irma-probe
 
 If you’re interested in using `Vagrant <http://vagrantup.com>`_, be sure to have
 the following directory layout:
 
 .. code-block:: bash
 
-	# all in the same directory
-	|
-	+--- irma-frontend
-	+--- irma-probe
-	+--- irma-brain
-	[...]
-	+--- irma-ansible
+    # all in the same directory
+    |
+    +--- irma-frontend
+    +--- irma-probe
+    +--- irma-brain
+    [...]
+    +--- irma-ansible
 
 
 Note: This directory layout can be modified, see `share_*` from
@@ -57,7 +57,7 @@ directory and run:
 
 .. code-block:: bash
 
-	$ VM_ENV=your_environment_name vagrant up --no-provision
+    $ VM_ENV=your_environment_name vagrant up --no-provision
 
 
 3. Configure your .ini files
@@ -82,7 +82,7 @@ provision Vagrant command only for one VM:
 
 .. code-block:: bash
 
-	$ vagrant provision frontend.irma
+    $ vagrant provision frontend.irma
 
 
 The provisioning and deployment will apply to all of your VMs.
@@ -103,8 +103,8 @@ correctly set. You could easily sync your code with:
 
 .. code-block:: bash
 
-	$ vagrant rsync # or vagrant rsync-auto to automatically initiates an rsync
-                        # transfer when changes are detected
+    $ vagrant rsync # or vagrant rsync-auto to automatically initiates an rsync
+                    # transfer when changes are detected
 
 
 Then reload the modified application.
