@@ -71,6 +71,7 @@ class scanctrlTestCase(TestCase):
                             self.user_ftpuser,
                             self.user_quota)
                 user.save(session)
+                session.commit()
                 self.userid = user.id
 
     def tearDown(self):
