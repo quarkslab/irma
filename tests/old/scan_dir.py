@@ -14,27 +14,24 @@
 # terms contained in the LICENSE file.
 
 import os
-import json
 import datetime
 import random
 import hashlib
 import signal
 import sys
-cwd = os.path.dirname(__file__)
-sys.path.append(os.path.join(cwd, os.pardir))
-from frontend.cli.irma import _scan_new, _scan_add, _scan_launch, \
-    _scan_progress, _scan_cancel, IrmaScanStatus, _scan_result, \
-    _scan_file_result, IrmaError
 import time
+# irma-frontend should be in path
+from frontend.cli.apiclient import IrmaApiClient, IrmaScanApi, IrmaProbesApi, \
+    IrmaError
 
 RES_PATH = "."
 SRC_PATH = "."
 
+API_ADDRESS = 'http://www.frontend.irma/api/v1'
 DEBUG = False
 BEFORE_NEXT_PROGRESS = 2
-Probelist = [u'ClamAV', u'VirusTotal', u'Kaspersky', u'Sophos',
-             u'McAfeeVSCL', u'Symantec', u'StaticAnalyzer']
-
+ProbeWlist = None
+ProbeBlist = None
 scanner = None
 
 
@@ -56,7 +53,12 @@ class ScannerError(Exception):
 
 
 class Scanner(object):
-    def __init__(self):
+    def __init__(self, api_url, verbose=False):
+        api_client = IrmaApiClient(api_url, verbose)
+        self.scanapi_client = IrmaScanApi(api_client)
+        self.probesapi_client = IrmaProbesApi(api_client)
+        self.probe_list = None
+        self._probe_list()
         # test setup
         date_str = str(datetime.datetime.now().date())
         date_str = date_str.replace('-', '')
@@ -70,55 +72,72 @@ class Scanner(object):
 
     def cancel(self):
         if self.scanid is not None:
-            _scan_cancel(self.scanid, DEBUG)
+            self.scanapi_client.cancel(self.scanid)
+
+    def _probe_list(self):
+        probe_list = self.probesapi_client.list().get('data', [])
+        if ProbeWlist is not None:
+            probe_list = filter(lambda x: x in ProbeWlist, probe_list)
+        if ProbeBlist is not None:
+            probe_list = filter(lambda x: x not in ProbeBlist, probe_list)
+        self.probe_list = probe_list
+
+    def fetch_scan(self):
+        if self.scanid is None:
+            raise ScannerError("Empty scanid")
+        return self.scanapi_client.get(self.scanid)
+
+    def get_results(self):
+        scan = self.fetch_scan()
+        res = []
+        for result in scan.results:
+            file_result = self.scanapi_client.file_results(self.scanid,
+                                                           result.result_id)
+            res.append(file_result)
+        return res
 
     def scan_files(self, files,
                    force=False,
-                   probe=None,
-                   timeout=10):
-        self.scanid = _scan_new(DEBUG)
-        _scan_add(self.scanid, files, DEBUG)
-        probelist = _scan_launch(self.scanid, force, probe, DEBUG)
-        scanid = self.scanid
+                   timeout_per_file=30):
+        scan = self.scanapi_client.new()
+        self.scanid = scan.id
+        self.scanapi_client.add(self.scanid, files)
+        self.scanapi_client.launch(self.scanid, force, self.probe_list)
         nb = len(files)
-        print("launching scan {0}".format(scanid) +
-              " of {0} files on {1} probes".format(nb, len(probelist)))
+        timeout = timeout_per_file * nb
+        print("launching scan {0}".format(self.scanid) +
+              " of {0} files on {1} probes".format(nb, len(self.probe_list)))
         start = time.time()
         while True:
             time.sleep(BEFORE_NEXT_PROGRESS)
-            (status, fin, tot, suc) = _scan_progress(self.scanid, DEBUG)
-            if fin is not None:
-                # write in place
-                sys.stdout.write("\r\tjobs {0}({1})/{2}".format(fin, suc, tot))
-                sys.stdout.flush()
-            if status == IrmaScanStatus.label[IrmaScanStatus.finished]:
+            scan = self.fetch_scan()
+            # write in place
+            sys.stdout.write("\r\tjobs {0}/{1}".format(scan.probes_finished,
+                                                       scan.probes_total))
+            sys.stdout.flush()
+            if scan.is_finished():
                 break
             now = time.time()
             if now > (start + timeout):
                 try:
-                    _scan_cancel(self.scanid, DEBUG)
+                    self.cancel()
                 except:
                     pass
                 raise ScannerError("Results Timeout")
-        scan_results = _scan_result(self.scanid, DEBUG)
-        scan_files = scan_results.get('files', None)
-        res = []
-        for scan_file in scan_files:
-            file_idx = scan_file['scan_file_idx']
-            res.append(_scan_file_result(scanid, file_idx, DEBUG))
-        return res
+        return self.get_results()
 
     def _write_result(self, res_list):
-        print "Writing results"
+        print " -> Writing results"
         for res in res_list:
-            sha256 = res['file_infos']['sha256']
+            sha256 = res.file_infos.sha256
             res_file = os.path.join(self.res_dir, sha256)
             with open(res_file, "w") as dst:
-                dst.write(json.dumps(res['probe_results']))
+                for result in res.probe_results:
+                    dst.write(result.to_json() + "\n")
         return
 
     def _write_timeout_result(self, file_list):
-        print "Timeout results"
+        print " -> Timeout results"
         for tf in file_list:
             with open(tf) as t:
                 sha256 = hashlib.sha256(t.read()).hexdigest()
@@ -138,11 +157,10 @@ class Scanner(object):
             file_list = filenames[i:i + nb_files_per_scan]
             try:
                 res = self.scan_files(file_list,
-                                      force=True,
-                                      timeout=nb_files_per_scan * 10)
+                                      force=True)
             except ScannerError:
                 self._write_timeout_result(file_list)
-                res = _scan_result(self.scanid, DEBUG)
+                res = self.get_results()
             self._write_result(res)
         return
 
@@ -159,8 +177,8 @@ if __name__ == "__main__":
         print("[!] directory to scan does not exits")
         sys.exit(-1)
     if len(sys.argv) == 3:
-        nb_file_per_scan = sys.argv[2]
+        nb_file_per_scan = int(sys.argv[2])
     else:
         nb_file_per_scan = 5
-    scanner = Scanner()
+    scanner = Scanner(API_ADDRESS, DEBUG)
     scanner.scan_dir(directory, nb_file_per_scan)
