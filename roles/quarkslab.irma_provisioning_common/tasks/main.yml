@@ -30,6 +30,18 @@
     - /opt/irma
 
 # Only for Demo boxes
+- name: update python packages (download issue) for demo box
+  pip:
+    name: "{{ item }}"
+    state: latest
+    extra_args: "{{ pip_extra_args | default('') }}"
+  with_items:
+    - pip
+    # to solve the following issue: https://github.com/Supervisor/meld3/issues/23
+    - setuptools
+  sudo: yes
+  when: build_environment|default("default") == "demo"
+
 - name: add a fancy message to the box
   copy:
     src: rc.local
@@ -37,4 +49,9 @@
     owner: root
     group: root
     mode: 755
+  when: build_environment|default("default") == "demo"
+
+- name: check if virtualbox vbguest are installed
+  shell: "find /opt/VBoxGuestAdditions-* -name uninstall.sh | sh"
+  sudo: yes
   when: build_environment|default("default") == "demo"
