@@ -18,6 +18,10 @@ from bottle.ext import sqlalchemy
 from frontend.helpers.sql import engine
 from frontend.models.sqlobjects import Base
 
+from frontend.api.routes import define_routes
+from frontend.api.errors import define_errors
+
+
 """
     IRMA FRONTEND WEB API
     defines all accessible route accessed via uwsgi..
@@ -45,7 +49,5 @@ plugin = sqlalchemy.Plugin(
 )
 application.install(plugin)
 
-# See frontend/api/routes.py
-from frontend.api.routes import *
-# See frontend/api/errors.py
-from frontend.api.errors import *
+define_routes(application)
+define_errors(application)
