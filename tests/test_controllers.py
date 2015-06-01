@@ -13,29 +13,22 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import sys
-import os
-from random import shuffle
-pardir = os.path.abspath(os.path.join(__file__, os.path.pardir))
-sys.path.append(os.path.dirname(pardir))
 
 import logging
-import unittest
-# Test config
-cwd = os.path.abspath(os.path.dirname(__file__))
-os.environ['IRMA_BRAIN_CFG_PATH'] = cwd
-from brain.helpers.sql import session_query, session_transaction
+from random import shuffle
+from unittest import TestCase, main
 
+# Test config
+from brain.helpers.sql import session_query, session_transaction
 
 from lib.irma.common.utils import IrmaScanStatus
 from lib.common.utils import UUID
-from lib.common.compat import timestamp
 
 import brain.controllers.scanctrl as scan_ctrl
+import brain.controllers.jobctrl as job_ctrl
 import brain.controllers.userctrl as user_ctrl
 from brain.models.sqlobjects import Scan, User
-from lib.irma.common.exceptions import IrmaValueError, IrmaTaskError, \
-    IrmaDatabaseError, IrmaDatabaseResultNotFound
+from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
 
 
 # =================
@@ -61,7 +54,7 @@ def enable_logging(level=logging.INFO,
 #  Test cases
 # ============
 
-class scanctrlTestCase(unittest.TestCase):
+class scanctrlTestCase(TestCase):
     def setUp(self):
         self.user_name = "test_user"
         self.user_rmqvhost = "test_vhost"
@@ -78,6 +71,7 @@ class scanctrlTestCase(unittest.TestCase):
                             self.user_ftpuser,
                             self.user_quota)
                 user.save(session)
+                session.commit()
                 self.userid = user.id
 
     def tearDown(self):
@@ -107,7 +101,7 @@ class TestScanController(scanctrlTestCase):
         scan_id = scan_ctrl.new(self.scanid, self.userid, 10)
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                scan_ctrl.job_new(scan_id, "file-{0}".format(i), probe)
+                job_ctrl.new(scan_id, "file-{0}".format(i), probe, 1)
         scan_ctrl.launched(scan_id)
         with session_query() as session:
             scan = Scan.load(scan_id, session)
@@ -128,13 +122,11 @@ class TestScanController(scanctrlTestCase):
         job_ids = []
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                job_ids.append(scan_ctrl.job_new(scan_id,
-                                                 "file-{0}".format(i),
-                                                 probe))
+                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i), probe, 1))
         scan_ctrl.launched(scan_id)
         shuffle(job_ids)
         for job_id in job_ids:
-            scan_ctrl.job_success(job_id)
+            job_ctrl.success(job_id)
         self.assertTrue(scan_ctrl.check_finished(scan_id))
         with session_query() as session:
             scan = Scan.load(scan_id, session)
@@ -147,13 +139,11 @@ class TestScanController(scanctrlTestCase):
         job_ids = []
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                job_ids.append(scan_ctrl.job_new(scan_id,
-                                                 "file-{0}".format(i),
-                                                 probe))
+                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i), probe, 1))
         scan_ctrl.launched(scan_id)
         shuffle(job_ids)
         for job_id in job_ids:
-            scan_ctrl.job_error(job_id)
+            job_ctrl.error(job_id)
         self.assertTrue(scan_ctrl.check_finished(scan_id))
         with session_query() as session:
             scan = Scan.load(scan_id, session)
@@ -166,13 +156,11 @@ class TestScanController(scanctrlTestCase):
         job_ids = []
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                job_ids.append(scan_ctrl.job_new(scan_id,
-                                                 "file-{0}".format(i),
-                                                 probe))
+                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i), probe, 1))
         scan_ctrl.launched(scan_id)
         shuffle(job_ids)
         for i, job_id in enumerate(job_ids[:-1]):
-            scan_ctrl.job_success(job_id)
+            job_ctrl.success(job_id)
             (status, progress_details) = scan_ctrl.progress(scan_id)
             self.assertEqual(status,
                              IrmaScanStatus.label[IrmaScanStatus.launched])
@@ -204,7 +192,7 @@ class TestUserController(scanctrlTestCase):
         scanid = scan_ctrl.new(self.scanid, self.userid, 2)
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                scan_ctrl.job_new(scanid, "file-{0}".format(i), probe)
+                job_ctrl.new(scanid, "file-{0}".format(i), probe, 1)
         scan_ctrl.launched(scanid)
         (after, _) = user_ctrl.get_quota(self.userid)
         self.assertEqual(before - after, 20)
@@ -213,7 +201,3 @@ class TestUserController(scanctrlTestCase):
             scan_ids = [scan.id for scan in user.scans]
             self.assertNotEqual(scan_ids, [])
             self.assertTrue(scanid in scan_ids)
-
-if __name__ == '__main__':
-    enable_logging()
-    unittest.main()

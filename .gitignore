@@ -3,3 +3,7 @@
 
 # for dev configuration files
 config/brain.ini
+
+# for tests
+tests/results/
+.coverage
