@@ -18,6 +18,7 @@
     requirements: "{{ probe_deployment_dir }}/requirements.txt"
     virtualenv: "{{ probe_deployment_dir }}/venv"
     virtualenv_site_packages: "yes"
+    extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Configure config/probe.ini file
   ini_file:

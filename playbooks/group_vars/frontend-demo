@@ -101,6 +101,9 @@ apt_repositories_code_names:
   - '{{ ansible_distribution_release }}-backports'
 
 
+## PIP extras args
+pip_extra_args: "--default-timeout 120"
+
 ## uWSGI role
 uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
 uwsgi_plugins:

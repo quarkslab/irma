@@ -23,6 +23,7 @@
 - pip:
     name: psycopg2
     state: present
+    extra_args: "{{ pip_extra_args | default('') }}"
 
 - include: openssl_configuration.yml
   when: frontend_openssl|default(False) == True

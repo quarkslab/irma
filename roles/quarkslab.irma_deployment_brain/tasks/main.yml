@@ -20,6 +20,7 @@
   pip:
     requirements: "{{ brain_deployment_dir }}/requirements.txt"
     virtualenv: "{{ brain_deployment_dir }}/venv"
+    extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Generate database
   command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.pureftpd.frontend.username }}"

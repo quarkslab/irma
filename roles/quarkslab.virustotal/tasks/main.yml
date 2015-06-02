@@ -5,5 +5,6 @@
   pip:
     name: "{{ item }}"
     state: "latest"
+    extra_args: "{{ pip_extra_args | default('') }}"
   with_items:
     - virustotal-api

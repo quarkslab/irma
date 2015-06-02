@@ -12,6 +12,7 @@
   pip:
     name: sphinx
     virtualenv: "{{ frontend_deployment_dir }}/venv"
+    extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Build documentation
   command: "../venv/bin/sphinx-build -b html -d _build/doctrees . _build/html"
