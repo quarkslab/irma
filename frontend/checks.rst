@@ -74,8 +74,8 @@ route on the web server or by checking the system logs:
 
 .. code-block:: bash
 
-    $ curl http://localhost/_api/probe/list
-    {"msg": "success", "code": 0, "probe_list": ["ClamAV", "ComodoCAVL", "EsetNod32", "FProt", "Kaspersky", "McAfeeVSCL", "NSRL", "StaticAnalyzer", "VirusTotal"]}
+    $ curl http://localhost/api/v1/probes
+    {"total": 9, "data": ["ClamAV", "ComodoCAVL", "EsetNod32", "FProt", "Kaspersky", "McAfeeVSCL", "NSRL", "StaticAnalyzer", "VirusTotal"]}
     $ sudo cat /var/log/uwsgi/app/frontend-api.log
     Wed Aug 20 17:51:33 2014 - *** Starting uWSGI 1.2.3-debian (64bit) on [Wed Aug 20 17:51:33 2014] ***
     Wed Aug 20 17:51:33 2014 - compiled with version: 4.7.2 on 06 July 2013 12:20:09
@@ -94,8 +94,8 @@ route on the web server or by checking the system logs:
     Wed Aug 20 17:51:33 2014 - Python main interpreter initialized at 0x264e120
     Wed Aug 20 17:51:33 2014 - your server socket listen backlog is limited to 100 connections
     Wed Aug 20 17:51:33 2014 - *** Operational MODE: preforking ***
-    Wed Aug 20 17:51:33 2014 - mounting ./frontend/web/api.py on /_api
-    Wed Aug 20 17:51:33 2014 - WSGI app 0 (mountpoint='/_api') ready in 0 seconds on interpreter 0x264e120 pid: 7860 (default app)
+    Wed Aug 20 17:51:33 2014 - mounting frontend/api/base.py on /api/v1
+    Wed Aug 20 17:51:33 2014 - WSGI app 0 (mountpoint='/api/v1') ready in 0 seconds on interpreter 0x264e120 pid: 7860 (default app)
     Wed Aug 20 17:51:33 2014 - *** uWSGI is running in multiple interpreter mode ***
     Wed Aug 20 17:51:33 2014 - spawned uWSGI master process (pid: 7860)
     Wed Aug 20 17:51:33 2014 - spawned uWSGI worker 1 (pid: 7892, cores: 1)
