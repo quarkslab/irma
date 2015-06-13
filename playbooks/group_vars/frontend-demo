@@ -278,4 +278,10 @@ nginx_sites:
     ## HSTS record cache for 6 months
     #- add_header Strict-Transport-Security max-age=15768000
 
+
+## OpenSSH server config
+openssh_server_settings:
+  # enable password authentication
+  PasswordAuthentication: "yes"
+
 # vim: sw=2
