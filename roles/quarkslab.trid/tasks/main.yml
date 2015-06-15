@@ -1,0 +1,15 @@
+---
+
+- name: TrID | Check if present
+  command: "{{ trid_install_dir }}/trid -v"
+  ignore_errors: yes
+  register: trid_present
+
+- include: install.yml
+  when: trid_present | failed
+
+- name: TrID | Update
+  command: python tridupdate.py
+  args:
+    chdir: "{{ trid_install_dir }}"
+  sudo: yes

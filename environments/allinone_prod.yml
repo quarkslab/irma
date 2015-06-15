@@ -25,6 +25,8 @@ ansible_config:
       - brain.irma
     mcafee:
       - brain.irma
+    trid:
+      - brain.irma
     static-analyzer:
       - brain.irma
     virustotal:
@@ -33,5 +35,6 @@ ansible_config:
       - clamav
       - comodo
       - mcafee
+      - trid
       - static-analyzer
       - virustotal
