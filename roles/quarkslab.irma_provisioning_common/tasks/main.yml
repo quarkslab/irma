@@ -48,7 +48,7 @@
     dest: /etc/rc.local
     owner: root
     group: root
-    mode: 755
+    mode: 0644
   when: build_environment|default("default") == "demo"
 
 - name: check if virtualbox vbguest are installed
