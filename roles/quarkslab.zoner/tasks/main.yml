@@ -24,3 +24,9 @@
 - name: Zoner | Download latest definition files
   command: /opt/zav/bin/zavd --update
   sudo: yes
+
+- name: Zoner | Enable service
+  service:
+    name: zavd
+    enabled: yes
+  sudo: yes

@@ -5,6 +5,7 @@
 
 - include: hosts.yml
 - include: users_groups.yml
+- include: locales.yml
 
 - name: Create IRMA data directories
   file:

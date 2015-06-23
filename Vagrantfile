@@ -26,6 +26,8 @@ Vagrant.configure("2") do |config|
     config.cache.enable :apt
   end
 
+  # Disable VBGuest installation in demo env, as it's VirtualBox specific and
+  # the demo env is used to generate cross hypervisor VMDK files.
   if Vagrant.has_plugin?("vagrant-vbguest")
     if ["demo"].include? env
       config.vbguest.no_install = true
@@ -35,7 +37,7 @@ Vagrant.configure("2") do |config|
   # Multi machine environment
   servers.each do |server|
     config.vm.define server['name'] do |machine|
-      machine.vm.hostname = server['hostname']
+      machine.vm.hostname = server['hostname'] || nil
       machine.vm.box = server['box']
       machine.vm.box_version = server['box_version'] || ">= 0"
       machine.vm.synced_folder '.', '/vagrant', disabled: true

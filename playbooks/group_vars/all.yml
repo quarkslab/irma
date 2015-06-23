@@ -67,3 +67,8 @@ irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
 ufw_login: on
 ufw_applications:
   - { name: "OpenSSH" }
+
+## OpenSSH server config
+openssh_server_settings:
+  # Stop accepting locale on the server
+  AcceptEnv: LANG
