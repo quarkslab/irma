@@ -18,6 +18,9 @@ Vagrant.configure("2") do |config|
 
   # Plugins section
   if Vagrant.has_plugin?("vagrant-cachier")
+    if ["demo"].include? env
+       config.cache.disable!
+    end
     config.cache.scope = :machine
     config.cache.auto_detect = false
     config.cache.enable :apt

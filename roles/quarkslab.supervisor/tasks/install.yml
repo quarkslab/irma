@@ -1,7 +1,10 @@
 ---
 
 - name: Install Supervisor using pip
-  pip: name=supervisor state=present
+  pip:
+    name: supervisor
+    state: present
+    extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Ensure that Supervisor directories are created
   file:
