@@ -50,8 +50,11 @@ class AVGAntiVirusFree(Antivirus):
                        r'Virus identified|Trojan horse)\s+'
                        r'(?P<name>.*)(\\n)*.*$', re.IGNORECASE)
         ]
+
+        def is_error_fn(x):
+            return x in [1, 2, 3, 6, 7, 8, 9, 10]
+
         # NOTE: do 'man avgscan' for return codes
-        is_error_fn = lambda x: x in [1, 2, 3, 6, 7, 8, 9, 10]
         self._scan_retcodes[self.ScanResult.CLEAN] = lambda x: x in [0]
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [4, 5]
         self._scan_retcodes[self.ScanResult.ERROR] = lambda x: is_error_fn(x)

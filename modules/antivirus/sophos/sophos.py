@@ -81,8 +81,9 @@ class Sophos(Antivirus):
         # locate files using predefined patterns
         if self._is_windows:
             path = 'Sophos/Sophos Anti-Virus'
-            search_paths = map(lambda x: "{program_files}/{path}/*"
-                                         "".format(program_files=x, path=path),
+            search_paths = map(lambda x:
+                               "{program_files}/{path}/*"
+                               "".format(program_files=x, path=path),
                                [os.environ.get('PROGRAMFILES', ''),
                                 os.environ.get('PROGRAMFILES(X86)', '')])
         else:
@@ -106,8 +107,9 @@ class Sophos(Antivirus):
         if self._is_windows:
             path = 'Sophos/Sophos Anti-Virus'
             scan_bin = "sav32cli.exe"
-            scan_paths = map(lambda x: "{program_files}/{path}"
-                                       "".format(program_files=x, path=path),
+            scan_paths = map(lambda x:
+                             "{program_files}/{path}"
+                             "".format(program_files=x, path=path),
                              [os.environ.get('PROGRAMFILES', ''),
                               os.environ.get('PROGRAMFILES(X86)', '')])
         else:

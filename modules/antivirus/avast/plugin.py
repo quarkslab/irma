@@ -37,7 +37,7 @@ class AvastCoreSecurityPlugin(PluginBase, AvastCoreSecurity,
         PlatformDependency('linux'),
         BinaryDependency(
             'scan',
-            help='scan executable is provided by Avast Core Security For Linux.'
+            help='scan executable is provided by Avast Core Security For Linux'
         ),
     ]
 

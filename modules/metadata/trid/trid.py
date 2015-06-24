@@ -71,16 +71,16 @@ class TrID(object):
             # iterate through lines
             for line in stdout.splitlines()[4:]:
                 # find info with pattern matching
-                match = re.match(r'\s*(?P<ratio>\d*[.]\d*)[%]\s+' # percentage
-                                 r'[(](?P<ext>[.]\w*)[)]\s+' # extension
-                                 r'(?P<desc>.*)$', # remaining string
+                match = re.match(r'\s*(?P<ratio>\d*[.]\d*)[%]\s+'  # percentage
+                                 r'[(](?P<ext>[.]\w*)[)]\s+'  # extension
+                                 r'(?P<desc>.*)$',  # remaining string
                                  line)
                 # create entries to be appended to results
                 if match:
-                    entry = { 
+                    entry = {
                         'ratio': match.group('ratio'),
                         'ext':   match.group('ext'),
-                        'desc':  match.group('desc'), 
+                        'desc':  match.group('desc'),
                     }
                     results.append(entry)
         # uniformize retcode (1 is success)
