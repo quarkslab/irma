@@ -58,6 +58,8 @@ ansible_config:
       - avs-linux.irma
     trid:
       - avs-linux.irma
+    sophos:
+      - avs-linux.irma
     "probe:children":
       - clamav
       - comodo
@@ -73,3 +75,4 @@ ansible_config:
       - avast
       - fsecure
       - trid
+      - sophos

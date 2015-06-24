@@ -58,6 +58,12 @@
   roles:
     - { role: quarkslab.comodo_cavl, tags: 'comodo' }
 
+- name: Sophos provisioning
+  hosts: sophos
+  sudo: yes
+  roles:
+    - { role: quarkslab.sophos, tags: 'sophos' }
+
 - name: McAfee VSCL provisioning
   hosts: mcafee
   sudo: yes
