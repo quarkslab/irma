@@ -229,28 +229,8 @@ On GNU/Linux:
 
     $ pip install -r modules/external/virustotal/requirements.txt
     [...]
-    $ python setup.py configure --VirusTotal
-    running configure
 
-    Welcome to IRMA VirusTotal module configuration script.
-
-    The following script will help you to create a new configuration for
-    VirusTotal module on IRMA probe application.
-
-    Please answer to the following questions so this script can generate the files
-    needed by the application. To abort the configuration, press CTRL+D.
-
-    > Do you want to use VirusTotal private API? (y/N) N
-    > What is the apikey you would you like to use for VirusTotal? <api key here>
-
-On Microsoft Windows:
-
-.. code-block:: none
-
-    $ C:\Python27\Scripts\pip.exe install -r modules/external/virustotal/requirements.txt
-    [...]
-    $ C:\Python27\python.exe setup.py configure --VirusTotal
-    [...]
+then update configuration file located at ``modules/external/virustotal/config.ini``.
 
 .. note:: Meaning of the fields in the configuration file
 
@@ -289,46 +269,7 @@ database:
     $ python -m modules.database.nsrl.nsrl create -t file NSRLFile.txt /home/irma/leveldb/file_db
 
 Finally, one must indicate to the analyzer where to find the files for the
-database:
-
-.. code-block:: none
-
-    $ python setup.py configure --NSRL
-    running configure
-
-    Welcome to IRMA NSRL module configuration script.
-
-    The following script will help you to create a new configuration for
-    NSRL module on IRMA probe application.
-
-    Please answer to the following questions so this script can generate the files
-    needed by the application. To abort the configuration, press CTRL+D.
-
-    > Where is located NSRL OS database? /home/irma/leveldb/os_db
-    > Where is located NSRL MFG database? /home/irma/leveldb/mfg_db
-    > Where is located NSRL PRODUCT database? /home/irma/leveldb/prod_db
-    > Where is located NSRL FILE database? /home/irma/leveldb/file_db
-
-The last command ask questions to the user for the configuration file
-located at ``modules/database/nsrl/config.ini``.
-
-.. note:: Error
-
-    If you see an error message like:
-
-    .. code-block:: bash
-
-        fatal error: Python.h: No such file or directory
-
-    Then you'll need to install python-dev package (for Debian like systems).
-
-.. note:: leveldb.LevelDBError: IO error: /home/irma/leveldb/file_db/LOCK: Permission denied
-
-    If you encounter this problem, you likely have a problem with unix 
-    permissions. Please ensure that the folder is owned by the user 
-    running the probes. On ``supervisord``-based installation (default for 
-    vagrant/ansible scripts), the folder owner should be set to  ``nobody``.
-    For ``init.d``-based installation, it should be ``irma`` instead. 
+database by filling the configuration file located at ``modules/database/nsrl/config.ini``.
 
 .. note:: Meaning of the fields in the configuration file
 
@@ -343,6 +284,25 @@ located at ``modules/database/nsrl/config.ini``.
     |                +-------------+------------+-----------+---------------------------------------+
     |                | nsrl_prod_db| ``string`` |           | location of the Product database      |
     +----------------+-------------+------------+-----------+---------------------------------------+
+
+.. note:: Error
+
+    If you see an error message like:
+
+    .. code-block:: bash
+
+        fatal error: Python.h: No such file or directory
+
+    Then you'll need to install python-dev package (for Debian like systems).
+
+.. note:: leveldb.LevelDBError: IO error: /home/irma/leveldb/file_db/LOCK: Permission denied
+
+    If you encounter this problem, you likely have a problem with unix
+    permissions. Please ensure that the folder is owned by the user
+    running the probes. On ``supervisord``-based installation (default for
+    vagrant/ansible scripts), the folder owner should be set to  ``nobody``.
+    For ``init.d``-based installation, it should be ``irma`` instead.
+
 
 StaticAnalyzer - GNU/Linux or Microsoft Windows
 ```````````````````````````````````````````````
@@ -370,7 +330,7 @@ On Microsoft Windows, you need cygwin to successfully install the requirements
 Yara - GNU/Linux or Microsoft Windows
 `````````````````````````````````````
 
-Please refer to ``modules/metadata/yara/README.md`` file for the documentation. 
+Please refer to ``modules/metadata/yara/README.md`` file for the documentation.
 
 Guide on Debian (credits to Carbonn)
 ++++++++++++++++++++++++++++++++++++
@@ -393,7 +353,7 @@ Guide on Debian (credits to Carbonn)
     $ python setup.py build
     $ sudo python setup.py install
     $ sudo ldconfig
-    
+
 
 3. Configuring for IRMA
 
@@ -402,19 +362,19 @@ Guide on Debian (credits to Carbonn)
     $ mkdir /opt/irma/yara_rules/
     $ cat /opt/irma/yara_rules/yara_rules.yar << EOF
     # Insert rule below inside the file
-    
+
     rule silent_banker : banker
     {
         meta:
             description = "This is just an example"
             thread_level = 3
             in_the_wild = true
-    
+
         strings:
             $a = {6A 40 68 00 30 00 00 6A 14 8D 91}
             $b = {8D 4D B0 2B C1 83 C0 27 99 6A 4E 59 F7 F9}
             $c = "UVODFRYSIHLNWPEJXQZAKCBGMT"
-    
+
         condition:
             $a or $b or $c
     }
