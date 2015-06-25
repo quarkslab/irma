@@ -2,14 +2,17 @@ language: python
 python:
   - "2.7"
 
-install: 
+install:
+  - pip install pep8
   - pip install -r requirements.txt
 
 before_script:
+  - pep8 --version
   - sudo mkdir -p /var/log/irma/ && sudo touch /var/log/irma/sqlalchemy.log && sudo chmod 555 /var/log/irma/sqlalchemy.log
   - export IRMA_FRONTEND_CFG_PATH=tests/
 
-script: 
+script:
+  - pep8 config extras frontend tests --exclude=tests/old
   - nosetests tests/
 
 notifications:
