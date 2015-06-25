@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +37,7 @@ class AvastCoreSecurityPlugin(PluginBase, AvastCoreSecurity,
         PlatformDependency('linux'),
         BinaryDependency(
             'scan',
-            help='scan executable is provided by Avast Core Security For Linux.'
+            help='scan executable is provided by Avast Core Security For Linux'
         ),
     ]
 
