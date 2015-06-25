@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +122,8 @@ class TestScanController(scanctrlTestCase):
         job_ids = []
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i), probe, 1))
+                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i),
+                                            probe, 1))
         scan_ctrl.launched(scan_id)
         shuffle(job_ids)
         for job_id in job_ids:
@@ -139,7 +140,8 @@ class TestScanController(scanctrlTestCase):
         job_ids = []
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i), probe, 1))
+                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i),
+                                            probe, 1))
         scan_ctrl.launched(scan_id)
         shuffle(job_ids)
         for job_id in job_ids:
@@ -156,7 +158,8 @@ class TestScanController(scanctrlTestCase):
         job_ids = []
         for i in xrange(0, 10):
             for probe in ['probe1', 'probe2']:
-                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i), probe, 1))
+                job_ids.append(job_ctrl.new(scan_id, "file-{0}".format(i),
+                                            probe, 1))
         scan_ctrl.launched(scan_id)
         shuffle(job_ids)
         for i, job_id in enumerate(job_ids[:-1]):
