@@ -17,7 +17,6 @@ class TestModuleCelerytasks(TestCase):
             module.sync_call(app, path, name, timeout)
         self.assertEqual(str(context.exception), expected)
 
-
     def test002_sync_call_ok(self):
         app = MagicMock()
         path, name, timeout, karg = "p_test", "n_test", "t_test", "k_test"
@@ -27,8 +26,8 @@ class TestModuleCelerytasks(TestCase):
         result = module.sync_call(app, path, name, timeout, karg=karg)
         self.assertEqual(result, expected)
         self.assertEqual(app.send_task.call_args, args)
-        self.assertEqual(app.send_task().get.call_args, (tuple(),{"timeout": timeout}))
-
+        self.assertEqual(app.send_task().get.call_args,
+                         (tuple(), {"timeout": timeout}))
 
     def test003_async_call_raise(self):
         app = MagicMock()
@@ -38,7 +37,6 @@ class TestModuleCelerytasks(TestCase):
         with self.assertRaises(IrmaTaskError) as context:
             module.async_call(app, path, name)
         self.assertEqual(str(context.exception), expected)
-
 
     def test004_async_call_ok(self):
         app = MagicMock()

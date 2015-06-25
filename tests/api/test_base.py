@@ -1,6 +1,6 @@
 from unittest import TestCase
 from bottle import Bottle, Route
-from bottle.ext.sqlalchemy import  Plugin
+from bottle.ext.sqlalchemy import Plugin
 
 from tests.api.data import test_routes
 import frontend.api.base as api_base

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +19,7 @@ from frontend.api.controllers import probes, search, scans
 """ Define all routes for the API
     This file is loaded by base.py
 """
+
 
 def define_routes(application):
     # probes routes
