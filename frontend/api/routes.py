@@ -20,6 +20,7 @@ from frontend.api.controllers import probes, search, scans
     This file is loaded by base.py
 """
 
+
 def define_routes(application):
     # probes routes
     application.route("/probes", callback=probes.list)

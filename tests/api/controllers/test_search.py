@@ -15,21 +15,19 @@ class TestApiSearch(TestCase):
         api_search.file_web_schema = self.file_web_schema
         api_search.request = self.request
 
-
     def tearDown(self):
         api_search.file_web_schema = self.old_file_web_schema
         api_search.request = self.old_request
         del self.file_web_schema
         del self.request
 
-
     def test001_files_raise_none_None(self):
         with patch("frontend.api.controllers.search.process_error") as mock:
             api_search.files("whatever")
             self.assertTrue(mock.called)
             self.assertIsInstance(mock.call_args[0][0], ValueError)
-            self.assertEqual(str(mock.call_args[0][0]), "Can't find using both name and hash")
-
+            self.assertEqual(str(mock.call_args[0][0]),
+                             "Can't find using both name and hash")
 
     def test002_files_raise_h_type_None(self):
         self.request.query.name = None
@@ -39,11 +37,11 @@ class TestApiSearch(TestCase):
             self.assertIsInstance(mock.call_args[0][0], ValueError)
             self.assertEqual(str(mock.call_args[0][0]), "Hash not supported")
 
-
     def test003_files_raise_both_None(self):
         self.request.query.name = self.request.query.hash = None
         with patch("frontend.api.controllers.search.process_error") as mock:
             api_search.files("whatever")
             self.assertTrue(mock.called)
             self.assertIsInstance(mock.call_args[0][0], ValueError)
-            self.assertEqual(str(mock.call_args[0][0]), "Missing query attribute name or hash")
+            self.assertEqual(str(mock.call_args[0][0]),
+                             "Missing query attribute name or hash")
