@@ -24,8 +24,8 @@ def sql_db_connect():
 @contextmanager
 def session_transaction():
     """Provide a transactional scope around a series of operations."""
-    # TODO: when used with 'with', session is not commited and usage of vars such
-    #       as object.id could not be initialized (None)
+    # TODO: when used with 'with', session is not commited and usage of vars
+    #       such as object.id could not be initialized (None)
     sql_db_connect()
     session = SQLDatabase.get_session()
     try:
