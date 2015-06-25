@@ -1,5 +1,4 @@
 server {
-
     # ==================
     #  GZIP Compression
     # ==================
@@ -14,14 +13,12 @@ server {
     gzip_http_version 1.1;
     gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
-
     # ======================
     #  Server Configuration
     # ======================
 
     listen 443 default_server;
     listen [::]:443  default_server ipv6only=on;
-
 
     # ===================
     #  TLS Configuration
@@ -44,19 +41,30 @@ server {
     # HSTS record cache for 6 months
     add_header Strict-Transport-Security max-age=15768000;
 
-    root /opt/irma/irma-frontend/web/dist;
-    index index.html;
-
-    server_name localhost;
+    server_name www.frontend.irma;
     client_max_body_size 100m;
-
-    location /_api {
-            rewrite ^/_api/(.+) /$1 break;
-            include uwsgi_params;
-            uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
-    }
-
     location ~ /\.ht {
-            deny all;
+       deny all;
+
     }
+    location /api/v1 {
+        include uwsgi_params;
+        rewrite ^/api/v1/(.+) /$1 break;
+        uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
+
+    }
+    location /swagger {
+        alias /opt/irma/irma-frontend/swagger/ui;
+        index index.html;
+
+    }
+    location / {
+        expires -1;
+        add_header Pragma "no-cache";
+        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        root /opt/irma/irma-frontend/web/dist;
+        try_files $uri $uri/ /index.html =404;
+    }
+    error_log /var/log/nginx/frontend.irma.error.log;
+    access_log /var/log/nginx/frontend.irma.access.log;
 }
