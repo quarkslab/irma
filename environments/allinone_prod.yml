@@ -10,14 +10,14 @@ servers:
     cpuexecutioncap: 100
     memory: 2048
     share_code: false
-  - name: probe-win.irma
-    box: eval-win8x64-enterprise
-    ip: 172.16.1.31
-    hostname: probe-win.irma
-    cpus: 2
-    cpuexecutioncap: 100
-    memory: 2048
-    windows: true
+##   - name: probe-win.irma
+##     box: eval-win8x64-enterprise
+##     ip: 172.16.1.31
+##     hostname: probe-win.irma
+##     cpus: 2
+##     cpuexecutioncap: 100
+##     memory: 2048
+##     windows: true
 
 ansible_config:
   extra_vars:
@@ -39,8 +39,8 @@ ansible_config:
       - brain.irma
     virustotal:
       - brain.irma
-#    windows-probe:
-#      - probe-win.irma
+##    windows-probe:
+##      - probe-win.irma
     "probe:children":
       - clamav
       - comodo
@@ -48,6 +48,6 @@ ansible_config:
       - trid
       - static-analyzer
       - virustotal
-      - windows-probe
-#    "windows:children":
-#      - windows-probe
+##      - windows-probe
+##    "windows:children":
+##      - windows-probe
