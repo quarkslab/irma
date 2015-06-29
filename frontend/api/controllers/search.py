@@ -56,7 +56,10 @@ def files(db):
 
             base_query = FileWeb.query_find_by_hash(h_type, h_value, db)
         else:
-            raise ValueError("Missing query attribute name or hash")
+            # FIXME this is just a temporary way to output
+            # all files, need a dedicated
+            # file route and controller
+            base_query = FileWeb.query_find_by_name("", db)
 
         # TODO: Find a way to move pagination as a BaseQuery like in
         #       flask_sqlalchemy.
