@@ -52,8 +52,14 @@
         </div>
     </div>
 
-    <div class="col-md-10 col-md-offset-1">
+    <div class="col-md-10 col-md-offset-1 scan-files-details">
         <table class="table table-condensed table-hover" id="result-table">
+            <thead>
+                <tr>
+                    <th class="title">Files details<small> (Click to display a file details)</small></th>
+                    <th>Progress</th>
+                </tr>
+            </thead>
             <tbody>
                 <tr ng-repeat="infos in state.scan.results">
                     <td>
