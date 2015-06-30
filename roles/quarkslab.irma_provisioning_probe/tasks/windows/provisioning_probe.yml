@@ -3,6 +3,8 @@
 - include: windows_install_packages.yml
 - include: windows_configuration.yml
 
+
+
 - name: Create IRMA application directories
   win_file:
     path: "{{ item }}"
