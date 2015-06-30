@@ -25,6 +25,7 @@
     vm.location = undefined;
     vm.status = undefined;
     vm.lastAction = undefined;
+    vm.domain = $location.protocol() + "://" + $location.host();
     vm.probes = [];
     vm.settings = {
       force: true,
