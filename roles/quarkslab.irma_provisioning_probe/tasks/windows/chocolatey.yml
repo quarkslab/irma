@@ -7,4 +7,4 @@
 
 - name: Chocolatey | Install
   script: ../../files/chocolatey.bat
-  when: result.rc == 1
+  when: result.stdout == ""
