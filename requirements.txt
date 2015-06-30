@@ -8,3 +8,4 @@ bottle-sqlalchemy==0.4.2
 mock
 coverage
 nose
+requests
