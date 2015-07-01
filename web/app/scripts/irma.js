@@ -22,7 +22,8 @@ angular.module('irma', [
     scanStatusCodes: {
       STOPPED: 0,
       RUNNING: 1,
-      FINISHED: 2
+      FINISHED: 2,
+      ERROR: 3
     }
   })
   .constant('angularMomentConfig', {
