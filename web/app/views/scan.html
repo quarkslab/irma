@@ -21,6 +21,7 @@
                     <label class="col-sm-3 control-label">Scan status:</label>
                     <div class="col-sm-9 form-control-static">
                         <span ng-switch on="state.scan.status">
+                            <span ng-switch-when="3" class="label label-danger">Error</span>
                             <span ng-switch-when="2" class="label label-success">Finished</span>
                             <span ng-switch-when="1" class="label label-info">Running</span>
                             <span ng-switch-default class="label  label-default">Stopped</span>

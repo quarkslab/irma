@@ -57,6 +57,11 @@
         type: 'danger',
         dismiss: false
       },
+      'ftpError': {
+        message: '<strong>Error:</strong> An FTP error occured',
+        type: 'danger',
+        dismiss: false
+      },
       'apiErrorWithMsg': {
         message: '<strong>Api Error:</strong> ',
         type: 'danger',
