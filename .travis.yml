@@ -12,7 +12,7 @@ before_script:
   - export IRMA_FRONTEND_CFG_PATH=tests/
 
 script:
-  - pep8 config extras frontend tests --exclude=tests/old
+  - pep8 config extras frontend tests --exclude=tests/old,extras/migration
   - nosetests tests/
 
 notifications:

@@ -244,6 +244,25 @@ def get_sql_db_uri_params():
     )
 
 
+def get_sql_url():
+    dbms = frontend_config.sqldb.dbms
+    if frontend_config.sqldb.dialect:
+        dbms = "{0}+{1}".format(dbms, frontend_config.sqldb.dialect)
+    host_and_id = ''
+    if frontend_config.sqldb.host and frontend_config.sqldb.username:
+        if frontend_config.sqldb.password:
+            host_and_id = "{0}:{1}@{2}".format(frontend_config.sqldb.username,
+                                               frontend_config.sqldb.password,
+                                               frontend_config.sqldb.host)
+        else:
+            host_and_id = "{0}@{1}".format(frontend_config.sqldb.username,
+                                           frontend_config.sqldb.host)
+    url = "{0}://{1}/{2}".format(dbms,
+                                 host_and_id,
+                                 frontend_config.sqldb.dbname)
+    return url
+
+
 def get_sql_db_tables_prefix():
     return frontend_config.sqldb.tables_prefix
 
