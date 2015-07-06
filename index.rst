@@ -13,6 +13,7 @@ it at will.
    intro/index.rst
    automated/index.rst
    manual/index.rst
+   migration/index.rst
    references/index.rst
    faq/index.rst
    resources/index.rst
