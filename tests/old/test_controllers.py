@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@ import unittest
 # Test config
 cwd = os.path.abspath(os.path.dirname(__file__))
 os.environ['IRMA_FRONTEND_CFG_PATH'] = cwd
-from frontend.helpers.sql import session_query, session_transaction
+from frontend.helpers.sessions import session_query, session_transaction
 
 
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaProbeType
@@ -37,7 +37,7 @@ import frontend.controllers.braintasks as braintasks
 from lib.irma.common.exceptions import IrmaValueError, IrmaTaskError, \
     IrmaDatabaseError
 
-from frontend.models.sqlobjects import Scan, sql_db_connect
+from frontend.models.sqlobjects import Scan
 
 # Parameter for scan test
 PROBES = ['Probe1', 'Probe2']

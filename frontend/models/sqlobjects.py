@@ -15,7 +15,7 @@
 import hashlib
 import os
 
-from sqlalchemy import Table, Column, Integer, Float, ForeignKey, String, \
+from sqlalchemy import Table, Column, Integer, Numeric, ForeignKey, String, \
     event, UniqueConstraint
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -24,13 +24,13 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import config.parser as config
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
-    IrmaDatabaseError, IrmaCoreError, IrmaValueError
+    IrmaDatabaseError, IrmaCoreError, IrmaFileSystemError
 from lib.common import compat
 from lib.common.utils import UUID
-from lib.irma.common.exceptions import IrmaFileSystemError
 from lib.irma.common.utils import IrmaScanStatus, IrmaProbeType
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 from frontend.models.nosqlobjects import ProbeRealResult
+from frontend.helpers.utils import write_sample_on_disk
 
 
 # SQLite fix for ForeignKey support
@@ -171,12 +171,12 @@ class File(Base, SQLDatabaseObject):
         name='md5'
     )
     timestamp_first_scan = Column(
-        Float(precision=2),
+        Numeric(asdecimal=False),
         nullable=False,
         name='timestamp_first_scan'
     )
     timestamp_last_scan = Column(
-        Float(precision=2),
+        Numeric(asdecimal=False),
         nullable=False,
         name='timestamp_last_scan'
     )
@@ -209,57 +209,39 @@ class File(Base, SQLDatabaseObject):
         return dict((k, v) for (k, v) in self.to_dict().items() if k in keys)
 
     @classmethod
-    def load_from_sha256(cls, sha256, session):
-        """Find the object in the database
+    def load_from_sha256(cls, sha256, session, data=None):
+        """Find the object in the database, update data if file was previously deleted
         :param sha256: the sha256 to look for
         :param session: the session to use
+        :param data: the file's data, in case it was deleted (default is None)
         :rtype: cls
         :return: the object that corresponds to the sha256
-        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError,
+                IrmaFileSystemError
         """
         try:
-            return session.query(cls).filter(
+            asked_file = session.query(cls).filter(
                 cls.sha256 == sha256
             ).one()
         except NoResultFound as e:
             raise IrmaDatabaseResultNotFound(e)
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
+        if asked_file.path is None and data is not None:
+            asked_file.path = write_sample_on_disk(sha256, data)
+        # Note: nothing is done if path is None and data is None too.
+        #       Further manipulation of *asked_file* may be dangerous
+        return asked_file
 
     def save_file_to_fs(self, data):
         """Add a sample
         :param data: the sample file
         :raise: IrmaFileSystemError if there is a problem with the filesystem
         """
-        # helper to split files in subdirs
-        def build_path(sha256):
-                PREFIX_NB = 3
-                PREFIX_LEN = 2
-                base_path = config.get_samples_storage_path()
-                if (PREFIX_NB * PREFIX_LEN) > len(sha256):
-                    raise IrmaValueError("too much prefix for file storage")
-                path = base_path
-                for i in xrange(0, PREFIX_NB):
-                    prefix = sha256[i * PREFIX_LEN: (i + 1) * PREFIX_LEN]
-                    path = os.path.join(path, prefix)
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                if not os.path.isdir(path):
-                    reason = "storage path is not a directory"
-                    raise IrmaFileSystemError(reason)
-                return os.path.join(path, sha256)
 
         sha256 = hashlib.sha256(data).hexdigest()
         # split files between subdirs
-        path = build_path(sha256)
-        try:
-            with open(path, 'wb') as h:
-                h.write(data)
-        except IOError:
-            raise IrmaFileSystemError(
-                'Cannot add the sample {0} to the collection'.format(sha256)
-            )
-
+        path = write_sample_on_disk(sha256, data)
         self.sha256 = sha256
         self.sha1 = hashlib.sha1(data).hexdigest()
         self.md5 = hashlib.md5(data).hexdigest()
@@ -289,10 +271,11 @@ class File(Base, SQLDatabaseObject):
         """
         fl = session.query(cls).filter(
             cls.timestamp_last_scan < compat.timestamp() - max_age
+        ).filter(
+            cls.path is not None
         ).all()
         for f in fl:
             f.remove_file_from_fs()
-
         return len(fl)
 
     def get_file_names(self):
@@ -733,7 +716,7 @@ class ScanEvents(Base, SQLDatabaseObject):
         name='status'
     )
     timestamp = Column(
-        Float(precision=2),
+        Numeric(asdecimal=False),
         nullable=False,
         name='timestamp'
     )

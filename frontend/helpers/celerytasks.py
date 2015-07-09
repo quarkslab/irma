@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import celery
+from celery import exceptions as celery_exceptions
 from lib.irma.common.exceptions import IrmaTaskError
 
 
@@ -26,7 +26,7 @@ def sync_call(celery_app, taskpath, taskname, timeout, **kwargs):
         task = celery_app.send_task(full_task_path, **kwargs)
         (status, res) = task.get(timeout=timeout)
         return (status, res)
-    except celery.exceptions.TimeoutError:
+    except celery_exceptions.TimeoutError:
         raise IrmaTaskError("Celery timeout - {0}".format(taskname))
 
 

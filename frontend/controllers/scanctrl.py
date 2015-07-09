@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ def add_files(scan, files, session):
         try:
             # The file exists
             file_sha256 = hashlib.sha256(data).hexdigest()
-            file = File.load_from_sha256(file_sha256, session)
+            file = File.load_from_sha256(file_sha256, session, data)
         except IrmaDatabaseResultNotFound:
             # It doesn't
             time = compat.timestamp()

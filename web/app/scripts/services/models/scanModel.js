@@ -5,9 +5,9 @@
     .module('irma')
     .factory('scanModel', Scan);
 
-  Scan.$inject = ['$rootScope', '$fileUploader', '$timeout', '$log', 'api', 'constants'];
+  Scan.$inject = ['$rootScope', '$fileUploader', '$timeout', '$log', 'api', 'alerts', 'constants'];
 
-  function Scan($rootScope, $fileUploader, $timeout, $log, api, constants) {
+  function Scan($rootScope, $fileUploader, $timeout, $log, api, alerts, constants) {
     function ScanModel(id) {
       this.id = id;
       this.state = undefined;
@@ -141,7 +141,10 @@
         this.setProgress(data.probes_total, data.probes_finished);
         this.results = data.results;
 
-        if (data.status !== 50) {
+        if(data.status === 1020){
+          this.status = constants.scanStatusCodes.ERROR;
+          alerts.add({standard: 'ftpError'});
+        } else if (data.status !== 50) {
           this.status = constants.scanStatusCodes.RUNNING;
           this.task = $timeout(this.updateScan.bind(this), constants.refresh);
         } else {

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,11 @@
 # terms contained in the LICENSE file.
 
 import re
+import os
+
+import config.parser as config
 from lib.common.utils import UUID
+from lib.irma.common.exceptions import IrmaValueError, IrmaFileSystemError
 
 
 def validate_scanid(scanid):
@@ -62,3 +66,47 @@ def guess_hash_type(value):
         except ValueError:
             pass
     return hash_type
+
+
+# helper to split files in subdirs
+def build_sha256_path(sha256):
+    """Builds a file path from its sha256. Creates directory if needed.
+    :param sha256: the sha256 to create path
+    :rtype: string
+    :return: the path build from the sha256
+    :raise: IrmaValueError, IrmaFileSystemError
+        """
+    PREFIX_NB = 3
+    PREFIX_LEN = 2
+    base_path = config.get_samples_storage_path()
+    if (PREFIX_NB * PREFIX_LEN) > len(sha256):
+        raise IrmaValueError("too much prefix for file storage")
+    path = base_path
+    for i in xrange(0, PREFIX_NB):
+        prefix = sha256[i * PREFIX_LEN: (i + 1) * PREFIX_LEN]
+        path = os.path.join(path, prefix)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    if not os.path.isdir(path):
+        reason = "storage path is not a directory"
+        raise IrmaFileSystemError(reason)
+    return os.path.join(path, sha256)
+
+
+def write_sample_on_disk(sha256, data):
+    """Write file data on the location calculated from file sha256
+    :param sha256: the file's sha256
+    :param data: the file's data
+    :rtype: string
+    :return: the path build from the sha256
+    :raise: IrmaFileSystemError
+    """
+    path = build_sha256_path(sha256)
+    try:
+        with open(path, 'wb') as filee:
+            filee.write(data)
+    except IOError:
+        raise IrmaFileSystemError(
+            'Cannot add the sample {0} to the collection'.format(sha256)
+        )
+    return path

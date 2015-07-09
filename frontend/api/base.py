@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,10 @@ from bottle import Bottle
 from bottle.ext import sqlalchemy
 from frontend.helpers.sql import engine
 from frontend.models.sqlobjects import Base
+
+from frontend.api.routes import define_routes
+from frontend.api.errors import define_errors
+
 
 """
     IRMA FRONTEND WEB API
@@ -45,7 +49,5 @@ plugin = sqlalchemy.Plugin(
 )
 application.install(plugin)
 
-# See frontend/api/routes.py
-from frontend.api.routes import *
-# See frontend/api/errors.py
-from frontend.api.errors import *
+define_routes(application)
+define_errors(application)

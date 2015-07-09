@@ -1,11 +1,18 @@
 .scan {
-  #result-table {
-    margin-top: 20px;
-  }
 
   #scan-infos {
     .label {
       font-size: 100%;
+    }
+  }
+
+  .scan-id {
+    strong {
+      padding-top: 7px;
+      display: block;
+    }
+    small {
+      color: #999;
     }
   }
 
@@ -32,5 +39,26 @@
   .form-control[readonly] {
     cursor: text;
     background-color: white;
+  }
+
+  .scan-files-details {
+    .title {
+      font-family: Raleway, sans-serif;
+      font-weight: bold;
+      font-size: 2.8rem;
+    }
+
+    small {
+      font-size: 60%;
+      color: #999;
+      font-weight: normal;
+      margin-left: 30px;
+    }
+
+    a {
+      text-decoration: none;
+      font-weight: bold;
+      padding-left: 20px;
+    }
   }
 }

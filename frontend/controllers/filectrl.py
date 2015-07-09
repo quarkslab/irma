@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,10 @@
 # terms contained in the LICENSE file.
 
 from frontend.models.sqlobjects import File
-from frontend.helpers.sessions import session_query
+from frontend.helpers.sessions import session_transaction
 
 
 # used by tasks.py
 def remove_files(max_age_sec):
-    with session_query() as session:
+    with session_transaction() as session:
         return File.remove_old_files(max_age_sec, session)

@@ -20,11 +20,14 @@
     vm.checkForMaintenance = checkForMaintenance;
     vm.pingApi = pingApi;
     vm.noPingApi = noPingApi;
+    vm.updateTitle = updateTitle;
     // Controller variables definitions
     vm.scan = undefined;
     vm.location = undefined;
     vm.status = undefined;
     vm.lastAction = undefined;
+    vm.domain = $location.protocol() + "://" + $location.host();
+    vm.title;
     vm.probes = [];
     vm.settings = {
       force: true,
@@ -167,6 +170,10 @@
       return deferred.promise;
     }
 
+    function updateTitle() {
+      vm.title = (vm.location)? 'IRMA | '+vm.location[0].toUpperCase() + vm.location.slice(1): 'IRMA';
+    }
+
     /**
      * Route events
      */
@@ -178,6 +185,7 @@
     $rootScope.$on('$routeChangeSuccess', function(event, newOne) {
       $log.debug('route change success to '+ newOne.originalPath);
       vm.location = newOne.location;
+      vm.updateTitle();
     });
 
     $rootScope.$on('$routeChangeError', function(event, newOne) {

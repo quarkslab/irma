@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,7 +56,10 @@ def files(db):
 
             base_query = FileWeb.query_find_by_hash(h_type, h_value, db)
         else:
-            raise ValueError("Missing query attribute name or hash")
+            # FIXME this is just a temporary way to output
+            # all files, need a dedicated
+            # file route and controller
+            base_query = FileWeb.query_find_by_name("", db)
 
         # TODO: Find a way to move pagination as a BaseQuery like in
         #       flask_sqlalchemy.

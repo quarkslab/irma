@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,6 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from frontend.api.base import application
 from frontend.api.controllers import probes, search, scans
 
 
@@ -21,24 +20,26 @@ from frontend.api.controllers import probes, search, scans
     This file is loaded by base.py
 """
 
-# probes routes
-application.route("/probes", callback=probes.list)
-# files routes
-application.route("/search/files", callback=search.files)
-# scans routes
-application.route("/scans",
-                  callback=scans.list)
-application.route("/scans", method="POST",
-                  callback=scans.new)
-application.route("/scans/<scanid>",
-                  callback=scans.get)
-application.route("/scans/<scanid>/files", method="POST",
-                  callback=scans.add_files)
-application.route("/scans/<scanid>/launch", method="POST",
-                  callback=scans.launch)
-application.route("/scans/<scanid>/cancel", method="POST",
-                  callback=scans.cancel)
-application.route("/scans/<scanid>/results",
-                  callback=scans.get_results)
-application.route("/scans/<scanid>/results/<resultid:int>",
-                  callback=scans.get_result)
+
+def define_routes(application):
+    # probes routes
+    application.route("/probes", callback=probes.list)
+    # files routes
+    application.route("/search/files", callback=search.files)
+    # scans routes
+    application.route("/scans",
+                      callback=scans.list)
+    application.route("/scans", method="POST",
+                      callback=scans.new)
+    application.route("/scans/<scanid>",
+                      callback=scans.get)
+    application.route("/scans/<scanid>/files", method="POST",
+                      callback=scans.add_files)
+    application.route("/scans/<scanid>/launch", method="POST",
+                      callback=scans.launch)
+    application.route("/scans/<scanid>/cancel", method="POST",
+                      callback=scans.cancel)
+    application.route("/scans/<scanid>/results",
+                      callback=scans.get_results)
+    application.route("/scans/<scanid>/results/<resultid:int>",
+                      callback=scans.get_result)

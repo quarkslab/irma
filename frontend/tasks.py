@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2014 QuarksLab.
+# Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ def scan_launched(scanid):
         scan_ctrl.set_launched(scanid)
     except IrmaDatabaseError as e:
         print "Exception has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
+        raise scan_launched.retry(countdown=2, max_retries=3, exc=e)
 
 
 @frontend_app.task(acks_late=True)
@@ -60,7 +60,7 @@ def scan_result(scanid, file_hash, probe, result):
         scan_ctrl.set_result(scanid, file_hash, probe, result)
     except IrmaDatabaseError as e:
         print "Exception has occurred:{0}".format(e)
-        raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
+        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
 
 
 @frontend_app.task()

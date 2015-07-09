@@ -21,6 +21,7 @@
                     <label class="col-sm-3 control-label">Scan status:</label>
                     <div class="col-sm-9 form-control-static">
                         <span ng-switch on="state.scan.status">
+                            <span ng-switch-when="3" class="label label-danger">Error</span>
                             <span ng-switch-when="2" class="label label-success">Finished</span>
                             <span ng-switch-when="1" class="label label-info">Running</span>
                             <span ng-switch-default class="label  label-default">Stopped</span>
@@ -28,10 +29,11 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group scan-id">
                     <label for="scan-id" class="col-sm-3 control-label">Scan Id:</label>
                     <div class="col-sm-6">
-                        <input class="form-control" type="text" ng-model="state.scan.id" name="scan-id" readonly>
+                      <strong>{{state.scan.id}}</strong>
+                      <small>You can share this scan by linking the current url</small>
                     </div>
                 </div>
                 <div class="form-group">
@@ -52,8 +54,14 @@
         </div>
     </div>
 
-    <div class="col-md-10 col-md-offset-1">
+    <div class="col-md-10 col-md-offset-1 scan-files-details">
         <table class="table table-condensed table-hover" id="result-table">
+            <thead>
+                <tr>
+                    <th class="title">Files details<small> (Click to display a file details)</small></th>
+                    <th>Progress</th>
+                </tr>
+            </thead>
             <tbody>
                 <tr ng-repeat="infos in state.scan.results">
                     <td>
