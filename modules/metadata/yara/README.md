@@ -2,7 +2,7 @@ irma-probe-yara
 ===============
 
   Yara Module for IRMA
-  
+
   Bryan Nolen @BryanNolen
 
 #To install:#
@@ -24,4 +24,3 @@ irma-probe-yara
   ```
 
 5. Verify that the Yara module is present on the web interface under advanced options.
-

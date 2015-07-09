@@ -26,6 +26,7 @@ from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
 from lib.irma.common.utils import IrmaProbeType
 
+
 class ICAPPlugin(PluginBase):
 
     class ICAPResult:
@@ -62,9 +63,12 @@ class ICAPPlugin(PluginBase):
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
         self.conn_kwargs = self.retrieve_options(config, kwargs,
-                                                 (('host', str), ('port', int)))
+                                                 (('host', str),
+                                                  ('port', int)))
         self.req_kwargs = self.retrieve_options(config, kwargs,
-                                                (('service', str), ('url', str), ('timeout', int)))
+                                                (('service', str),
+                                                 ('url', str),
+                                                 ('timeout', int)))
         self.module = sys.modules['icapclient']
 
     @staticmethod
@@ -81,7 +85,7 @@ class ICAPPlugin(PluginBase):
                     pass
             if value is not None:
                 options[option] = type_(value)
-        
+
         return options
 
     def query_server(self, filename):
@@ -100,7 +104,8 @@ class ICAPPlugin(PluginBase):
                 # only read the human readable descriptions
                 threats = [s.strip() for idx, s
                            in enumerate(values[1:]) if idx % 4 == 1]
-                threat = '%s threat(s) found: %s' % (threats[0].strip(), ', '.join(threats))
+                threat = '%s threat(s) found: %s' % \
+                         (threats[0].strip(), ', '.join(threats))
             except:
                 threat = 'Multiple threats found: %s' % threat
         if threat is None:
