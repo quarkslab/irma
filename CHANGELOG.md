@@ -1,3 +1,12 @@
+1.2.1 (released 09/07/2015)
+===========================
+
+    * [frontend] new API command line client (with deserialized object)
+    * [frontend] db migration system (powered by alembic)
+    * [frontend] minor UI improvements
+    * [probe][metadata] new TriD probe
+    * [probe][external] new ICAP probe (by vrasneur)
+
 1.2.0 (released 14/04/2015)
 ===========================
 
