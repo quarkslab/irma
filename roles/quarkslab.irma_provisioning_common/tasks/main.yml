@@ -43,6 +43,17 @@
   sudo: yes
   when: build_environment|default("default") == "demo"
 
+# Some python packages are causing troubles
+- name: update python packages that are too old in Debian
+  pip:
+    name: "{{ item }}"
+    state: latest
+    extra_args: "{{ pip_extra_args | default('') }}"
+  with_items:
+    # mock needs a setuptools>=17.1, and virtualenv is too old
+    - virtualenv
+  sudo: yes
+
 - name: add a fancy message to the box
   copy:
     src: rc.local
