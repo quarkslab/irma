@@ -1,0 +1,22 @@
+---
+
+- name: Sophos | Check installed version
+  command: /opt/sophos-av/bin/savscan --version
+  ignore_errors: yes
+  register: sophos_present
+
+- name: Sophos | Installation already done
+  debug:
+    msg: "Sophos is already installed. Skipping the installation part..."
+  when: sophos_present | success
+
+- name: Sophos | Installation can not proceed
+  debug:
+    msg: "Sophos won't be installed because you have not provided an archive name ('sophos_archive_name' variable)."
+  when: (sophos_present | failed) and not sophos_archive_name
+
+- include: install.yml
+  when: (sophos_present | failed) and sophos_archive_name
+
+- include: update.yml
+  when: ((sophos_present | success) or ((sophos_present | failed) and sophos_archive_name))

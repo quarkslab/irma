@@ -1,0 +1,12 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+*           text=auto whitespace=space-before-tab,tab-in-indent,tabwidth=4,trailing-space eol=lf
+*.yml       text whitespace=space-before-tab,tab-in-indent,tabwidth=4,trailing-space
+*.ps1       text eol=crlf
+*.nuspec    text eol=crlf
+.git*       text export-ignore
+
+# Ensure that these binarys are, well, binary
+*.bz2       binary
+*.tgz       binary
+*.tar.gz    binary
+*.zip       binary

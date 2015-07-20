@@ -20,8 +20,8 @@ created. For speed up provisioning, you can:
 
 .. code-block:: bash
 
-	*On your local machine*
-	$ ssh-copy-id user@hostname # -i if you want to select your identity file
+    *On your local machine*
+    $ ssh-copy-id user@hostname # -i if you want to select your identity file
 
 
 - If you don’t want to have to type your password for `sudo` command execution,
@@ -29,7 +29,7 @@ created. For speed up provisioning, you can:
 
 .. code-block:: bash
 
-	user ALL=(ALL) NOPASSWD: ALL
+    user ALL=(ALL) NOPASSWD: ALL
 
 
 2. Configure you installation
@@ -52,7 +52,7 @@ To run the whole thing:
 
 .. code-block:: bash
 
-	$ ansible-playbook -i ./hosts/example playbooks/playbook.yml -u <your_sudo_username> -K
+    $ ansible-playbook -i ./hosts/example playbooks/playbook.yml -u <your_sudo_username> -K
 
 Ansible will ask you the sudo password (`-K` option),
 
@@ -79,7 +79,7 @@ it, you’ll need to run the deployment script:
 
 .. code-block:: bash
 
-	$ ansible-playbook -i ./hosts/example playbooks/deployment.yml -u irma
+    $ ansible-playbook -i ./hosts/example playbooks/deployment.yml -u irma
 
 
 /!\ Replace `irma` with the default user if you’ve change it in the

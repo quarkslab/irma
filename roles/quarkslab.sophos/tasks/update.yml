@@ -1,0 +1,17 @@
+---
+
+- name: Sophos | Set update parameters
+  command: "{{ sophos_install_dir }}/bin/savconfig set {{ item.key }} {{ item.value }}"
+  with_items:
+    - { key: 'PrimaryUpdateSourcePath', value: 'sophos:' }
+    - { key: 'UpdatePeriodMinutes', value: "{{ sophos_update_period_minutes }}" }
+
+- name: Sophos | Set credentials for update parameters
+  command: "{{ sophos_install_dir }}/bin/savconfig set {{ item.key }} {{ item.value }}"
+  with_items:
+    - { key: 'PrimaryUpdateUsername', value: "{{ sophos_update_username }}" }
+    - { key: 'PrimaryUpdatePassword', value: "{{ sophos_update_password }}" }
+  when: sophos_update_username and sophos_update_password
+
+- name: Sophos | Download updates (may be a few minutes long the first time)
+  command: "{{ sophos_install_dir }}/bin/savupdate"

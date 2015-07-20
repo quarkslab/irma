@@ -23,9 +23,8 @@ cat > /etc/issue <<EOF
    -----------------------------
 
    frontend: http://$IP/
-   documentation: http://$IP/docs/frontend/
-                  http://$IP/docs/brain/
-                  http://$IP/docs/probe/
+   api-documentation: http://$IP/swagger/
+   irma-documentation: http://$IP/docs/
 
    -----------------------------
 

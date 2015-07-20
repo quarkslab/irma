@@ -58,6 +58,12 @@
   roles:
     - { role: quarkslab.comodo_cavl, tags: 'comodo' }
 
+- name: Sophos provisioning
+  hosts: sophos
+  sudo: yes
+  roles:
+    - { role: quarkslab.sophos, tags: 'sophos' }
+
 - name: McAfee VSCL provisioning
   hosts: mcafee
   sudo: yes
@@ -116,11 +122,15 @@
   roles:
     - { role: quarkslab.fsecure, tags: 'fsecure' }
 
+- name: TrID provisioning
+  hosts: trid
+  roles:
+    - { role: quarkslab.trid, tags: 'trid' }
+
 - name: PEiD provisioning
   hosts: peid
   sudo: yes
   roles:
     - { role: quarkslab.peid, tags: 'peid' }
-
 
 # vim: sw=2

@@ -28,7 +28,9 @@
 - name: AVG | Update database
   shell: avgupdate
   register: avgupdate_results
-  failed_when: "avgupdate_results.rc != 0 and avgupdate_results.rc != 2"
+  until: "avgupdate_results.rc in [0, 2]"
+  retries: 5
+  failed_when: "avgupdate_results.rc not in [0, 2]"
   sudo: yes
   notify:
     - AVG | Restart agvd service
