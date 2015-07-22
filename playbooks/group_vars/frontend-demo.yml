@@ -196,7 +196,6 @@ nginx_configs:
     - gzip_http_version 1.1
     - gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript
   http:
-    - types_hash_max_size 2048
     - server_names_hash_bucket_size 64
 
 nginx_sites:
