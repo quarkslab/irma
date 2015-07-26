@@ -138,4 +138,9 @@
   roles:
     - { role: quarkslab.peid, tags: 'peid' }
 
+- name: Emsisoft a2cmd provisioning
+  hosts: emsisoft-win
+  roles:
+    - { role: quarkslab.emsisoft_a2cmd_windows, tags: 'emsisoft' }
+
 # vim: sw=2

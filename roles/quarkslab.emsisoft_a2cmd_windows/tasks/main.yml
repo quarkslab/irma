@@ -1,0 +1,35 @@
+---
+
+- name: Determine remote_tmp variable
+  raw: echo '%TEMP%'
+  register: echo_temp
+
+- set_fact:
+    remote_tmp: '{{ echo_temp.stdout[1:-3] | regex_replace("\\\\", "/") }}'
+
+- name: Determine ProgramFiles(x86)
+  raw: echo '%PROGRAMFILES(x86)%'
+  register: echo_programfiles
+
+- set_fact:
+    remote_programfile: '{{ echo_programfiles.stdout[1:-3] | regex_replace("\\\\", "/") }}'
+
+## Install
+- name: Checking if already installed
+  win_stat:
+    path: '{{ remote_programfile }}/{{ emsisoft_a2cmd_install_path }}/a2cmd.exe'
+  register: emsisoft_a2cmd_installed
+
+- name: Install Emsisoft a2cmd
+  raw: >
+    powershell -command "(new-object net.webclient).DownloadFile('{{ emsisoft_a2cmd_url }}', '{{ remote_tmp }}/a2cmd.zip');"
+                        "md -Force '{{ remote_programfile }}/{{ emsisoft_a2cmd_install_path }}';"
+                        "Add-Type -assembly 'system.io.compression.filesystem';"
+                        "[io.compression.zipfile]::ExtractToDirectory('{{ remote_tmp }}/a2cmd.zip', '{{ remote_programfile }}/{{ emsisoft_a2cmd_install_path }}/')"
+  when: not emsisoft_a2cmd_installed.stat.exists
+
+## Update
+- name: Install a2cmd signatures
+  raw: >
+    powershell -command "cd '{{ remote_programfile }}/{{ emsisoft_a2cmd_install_path }}';"
+                        "cmd /c a2cmd.exe /u;"
