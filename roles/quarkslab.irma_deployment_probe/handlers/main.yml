@@ -1,0 +1,26 @@
+---
+
+- name: Removing the service
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    # stopping the service
+    - cmd: 'python.exe "{{ probe_project_dir }}/current/extras/winsrv/service.py" stop'
+      # 0 is success, 1060 is service does not exists
+      rc: [0, 1060]
+    # deleting the service
+    - cmd: 'sc delete irma-service'
+      # 0 is success, 1060 is service does not exists
+      rc: [0, 1060]
+
+# TODO: remove hardcoded vagrant
+- name: Installing the service
+  raw: python.exe "{{ probe_project_dir }}/current/extras/winsrv/service.py" --startup=auto install
+  register: result
+  failed_when: result.rc not in [0]
+
+- name: Starting the service
+  raw: 'python.exe "{{ probe_project_dir }}/current/extras/winsrv/service.py" start'
+  register: result
+  failed_when: "'Error' in result.stdout"

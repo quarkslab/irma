@@ -24,3 +24,6 @@ group_vars/all
 group_vars/brain
 group_vars/frontend
 group_vars/probe
+
+# Ignore python files (ansible plugins or scripts)
+*.pyc

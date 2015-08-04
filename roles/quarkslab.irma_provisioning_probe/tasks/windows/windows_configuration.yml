@@ -1,0 +1,29 @@
+---
+
+- name: Try Disable WinDefender realtime monitoring
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    # https://technet.microsoft.com/en-us/library/dn433291.aspx
+    - cmd: "powershell Set-MpPreference -DisableRealtimeMonitoring $true"
+      rc: [0, 1]
+
+- name: Try Disabling WinDefender
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    # Stopping and Disabling Windows defender
+    - cmd: "powershell Stop-Service WinDefend"
+      rc: [0, 1]
+    - cmd: "powershell Set-Service 'MpsSvc' -startuptype 'disabled'"
+      rc: [0]
+    - cmd: "powershell Remove-WindowsFeature Windows-Defender"
+      rc: [0, 1]
+  when: "'windows_defender' not in group_names"
+
+- name: Configure HOSTS file
+  raw: powershell -command "ac -Encoding UTF8 $env:SYSTEMROOT/system32/drivers/etc/hosts '{{ hostvars[item].ansible_eth1.ipv4.address }} {{ item }}'"
+  when: hostvars[item].ansible_eth1.ipv4.address is defined
+  with_items: groups['all']

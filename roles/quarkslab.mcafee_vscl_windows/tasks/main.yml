@@ -1,0 +1,42 @@
+---
+
+- name: Determine remote_tmp variable
+  raw: echo '%TEMP%'
+  register: echo_temp
+
+- set_fact:
+    remote_tmp: '{{ echo_temp.stdout[1:-3] | regex_replace("\\\\", "/") }}'
+
+- set_fact:
+    remote_install_script: '{{ remote_tmp }}/mcafee-installer.py'
+
+## Upload
+- name: Remove file if existing
+  win_file:
+    path: "{{ remote_install_script }}"
+    state: absent
+
+- name: Uploading script
+  win_copy:
+    src: mcafee-installer.py
+    dest: "{{ remote_install_script }}"
+
+## Install
+- name: Checking if already installed
+  win_stat:
+    path: '{{ mcafee_install_path }}/scan.exe'
+  register: mcafee_vscl_installed
+
+- name: Install McAfee VSCL
+  raw: "python.exe {{ remote_install_script }} -v install -u {{ mcafee_url }} -p {{ mcafee_install_path }}"
+  when: not mcafee_vscl_installed.stat.exists
+
+## Update
+- name: Install McAfee signatures
+  raw: "python.exe {{ remote_install_script }} -v update -u {{ mcafee_url_signatures }} -p {{ mcafee_install_path }}"
+
+## Clean
+- name: Delete script
+  win_file:
+    path:  "{{ remote_install_script }}"
+    state: "absent"

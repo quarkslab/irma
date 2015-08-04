@@ -4,17 +4,8 @@
     probe_deployment_dir: "{{ probe_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
 
 # Install Probe
-- include: probe_deployment.yml
+- include: linux/probe_deployment.yml
+  when: ansible_distribution in ['Debian', 'Ubuntu']
 
-# Configure (enventually) VirusTotal module
-#
-# ref: https://github.com/quarkslab/irma-ansible/pull/8
-- include: modules_configurations.yml
-  when: "'virustotal' in group_names"
-
-- name: Restart Supervisor services
-  supervisorctl:
-    name: "{{ item.name }}"
-    state: restarted
-  sudo: yes
-  with_items: supervisor_programs_probe
+- include: windows/probe_deployment.yml
+  when: "'Windows' in ansible_distribution"

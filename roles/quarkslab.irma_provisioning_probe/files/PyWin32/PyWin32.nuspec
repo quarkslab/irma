@@ -1,0 +1,216 @@
+<?xml version="1.0"?>
+<package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <metadata>
+    <id>PyWin32</id>
+    <title>Python for Windows Extensions</title>
+    <version>219.0</version>
+    <authors>Mark Hammond</authors>
+    <owners>Ethan Brown</owners>
+    <summary>Python for Windows Extensions adds a number of extensions allowing interaction with Win32 APIs and COM. This package should work for Python 2.3, 2.4, 2.5, 2.6, 2.7, 3.1, 3.2, 3.3, 3.4 or 3.5</summary>
+    <description>Additional documentation can be found at ActiveState
+
+      http://docs.activestate.com/activepython/2.7/pywin32/PyWin32.HTML
+    </description>
+    <projectUrl>http://sourceforge.net/projects/pywin32/</projectUrl>
+    <tags>Python Windows extensions</tags>
+    <licenseUrl>http://en.wikipedia.org/wiki/Python_Software_Foundation_License</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <iconUrl>https://github.com/Iristyle/ChocolateyPackages/raw/master/PyWin32/PyWin32-logo.png</iconUrl>
+    <releaseNotes>Since build 218:
+----------------
+ * win32com.mapi
+   Addded outlook interface IConverterSession with methods MIMEToMAPI,
+   MAPIToMIMEStm, and SetAdrBook.
+   Added method OpenStreamOnFile (Nick Czeczulin)
+   Ignore PT_MV_TSTRING along with PT_TSTRING (Nick Czeczulin)
+
+ * Conversions from a Python object to a variant now does a better job
+   at deciding what variant type to use, taking into account the
+   size and sign of the value (Stefan Schukat via patch #127)
+
+ * Add support for VT_I8 and VT_UI8 when converting a variant into a
+   Python object (Stefan Schukat via patch #128)
+
+ * win32com.mapi.exchange
+   Added 64-bit support by excluding the 32-bit Ex2kSdk.lib functions
+   from 64-bit builds.  Unfortunately, this means that only
+   IExchangeManageStore::CreateStoreEntryID is currently available in a
+   64-bit build. (Nick Czeczulin)
+
+* adodbapi updated to version 2.6 -- new examples folder includes short
+  programs for reading and writing .xls spreadsheets and reading ACCESS
+  .mdb files using SQL. New functions .is64bit.Python() and
+  is64bit.os() to help pick the correct drivers.
+  New function .schema_table.names() returns a list of all tables in a
+  database.
+  Ability for a Windows computer to be a database proxy for a remote
+  (Linux or Windows) unit.
+  see adodbapi/README.txt for more information.
+
+* Fix issue implementing COM objects from within a virtualenv (Kevin
+  Smyth via issue #3597965)
+
+* Fix some issues using decimal objects with Python 3.3 and later
+ (rupole)
+
+* Add a counterpart to VB's Nothing, from patch 3609027 by Stefan
+  Schukat
+
+* win32api
+    Handle REG_QWORD (64-bit ints) (rupole)
+    Add GetEnvironmentVariableW and SetEnvironmentVariableW (rupole)
+    Fix function pointer check for win32api.GetNativeSystemInfo
+    (bug#665)
+
+* win32com.shell
+    Add interfaces IFileOperation and IFileOperationProgressSink
+    Add SHParseDisplayName (feature req #3585998) (rupole)
+
+* win32com.propsys
+    Add interfaces IPropertyChange, IPropertyChangeArray, and
+    IObjectWithPropertyKey
+    Add functions PSCreateSimplePropertyChange,
+    PSCreatePropertyChangeArray, and SHSetDefaultProperties
+
+* win32crypt
+    Add functions and objects for handling certificates and certificate
+    stores
+
+* win32gui
+    Add RegisterHotKey (rupole)
+
+* win32evtlog
+    Add several more Evt* functions (Vista+ event log API)
+
+* win32prociess
+    Add EnumProcessModulesEx (feature request 3608155) (rupole)
+
+* pythonwin
+    Fix a hang using the tools menu
+
+Since build 217:
+----------------
+* mapiutil.py GetPropTagName has been modified to return the fully qualified
+  PT_UNICODE and PT_STRING8 type name. Added optional argument to override
+  rawType default in GetMapiTypeName. (Nick Czeczulin)
+
+* Fix the count of replaced terms in Pythonwin's search/replace (rupole).
+
+* Fix obscure issues in the Pythonwin code browser and other uses of the
+  "hierlist" widget (rupole).
+
+* Fix a crash using a COM "record" that holds an array (rupole).
+
+* Fix error return in win32gui.GetClassName (rupole).
+
+* Some misc fixed to win32timezone (Jason R. Coombs).
+
+* Some fixes to win32com gencache for Python 3.x (Tim Golden)
+
+* Fix ActiveScript exception hresults.
+
+* RegQueryValueEx now return an empty list for blank REG_MULTI_SZ
+  (rupole via bug #3531456)
+
+* Add win32pdh.AddEnglishCounter (rupole via feature request #3529527)
+
+* Fix post_install script use of the registry (rupole via bug #3536122)
+
+* Python 3.3 version is built with VS2010.
+
+* win32com.shell - added function SHCreateStreamOnFileEx and
+  interfaces IShellItem2, IEnumShellItems, IApplicationDocumentLists,
+  IApplicationDestinations, ITaskbarList, IEnumObjects,
+  IKnownFolder, IKnownFolderManager, IObjectArray, IObjectCollection,
+  ICustomDestinationList, and IShellLibrary; enhance SHAddToRecentDocs.
+
+* win32com.propsys - Many Property System interfaces and functions added
+
+* pythoncom - added StgCreateStorageEx
+
+* win32com.client -
+  Fix iteration of objects that don't declare an enumerator in their typelib
+  Validate syntax of constants written to makepy generated files
+
+* win32file - Add GetFileInformationByHandleEx, ReOpenFile and OpenFileById,
+  SetFileInformationByHandle.  SetFileTime() has an extra param to allow UTC
+  time to be specified.
+
+* win32api - Allow UpdateResource to remove a resource
+
+Since build 216:
+----------------
+* ISAPI extension works with Python 3.x
+
+* Python service module will now have their directory added to the start
+  of sys.path rather than the end to avoid cryptic error messages if a
+  module of the same name is already on the path (rvolpe via #3194663)
+
+* Various Pythonwin autocomplete enhancements (kxroberto via #3468282 and
+  Oliver Tengler via #3433953)
+
+* The Pythonwin editor now remembers previous searches made in this session.
+  (patch #3468280 from kxroberto).
+
+* The LOGFONT struct implementation (win32util) was extended to support the
+  full LOGFONT struct as published by Microsoft.  This includes changes to
+  win32util.LogFontToDict and win32util.DictToLogFont.  (Feature request
+  3433757 by Kris Hardy)
+
+* Remove some duplicated menu code from pythonwin which should avoid
+  having py2exe pulling in most of the pythonwin framework in some cases
+  (patch 3433527 from kxroberto.)
+
+* A new win32com.client.VARIANT object can be used for advanced control over
+  the parameter types passed to some COM methods.  See the documentation in
+  win32com/HTML/variant.html (also included in the help file)
+
+* The win32com.adsi and win32com.mapi packages have been upgraded to work on
+  Python 3.x and as a result, there is a slight risk that regressions to
+  these packages have been introduced in the Python 2.x versions.  Please
+  file a bug if any problems are found.
+
+* Pythonwin now warns, but allows you to continue, when saving a file with
+  an invalid encoding line (bug 3139486)
+
+* Fix win32com.client.WithEvents on py3k (bug 3199843)
+
+* When passing integers/unsigned integers to COM objects which did not fit
+  into 32bits, OverflowErrors were silently discarded and -1 was silently
+  passed.  This has been fixed for signed integers (an OverflowError is now
+  raised) and unsigned integers now allow for values with the high-bit set to
+  be passed correctly.
+
+* Fix win32com.client.WithEvents() on py3k.
+
+* makepy may have generated syntax errors if 'helpstring' elements in typelibs
+  had strange quoting or slashes (bug 3199631)
+
+* Fixed that in some cases win32file.GetOpenFileName and GetSaveFileName
+  could have returned trailing garbage after an embedded NULL character.
+  (bug 3277647)
+
+* Some functions which accepted a DWORD did not accept long integers which
+  fit in 32bits with the most signficant bit set (eg, 0x80000000).
+
+* Source-code management moved from CVS to Mercurual.
+
+* win32com.shell - Added SHCreateShellItem and fixed some 64bit issues.
+
+* win32evtlog - Added some of the new event log functions introduced in
+  Vista/Windows 7
+
+* win32service - Added EnumServicesStatusEx, and support startup type
+  "delayed" for Python services
+
+* win32net - Fix a problem with NetFileEnum on 64-bit (bug #3376041)
+</releaseNotes>
+    <dependencies>
+        <dependency id="7zip.install" />
+        <dependency id="python" version="[2.7,3.0]" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

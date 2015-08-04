@@ -1,0 +1,52 @@
+---
+
+- name: Ensure that releases directory has been created
+  win_file:
+    path: "{{ probe_project_dir }}/releases"
+    state: directory
+  when: irma_deployment_code_version != 'local'
+
+- name: Clone irma-probe repository
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    - cmd: git clone "{{ probe_deployment_repository }}" "{{ probe_deployment_dir }}" --recursive
+      rc: [0, 128] # 128 as an existing AV may cause an error when cloning test directory
+    - cmd: cd "{{ probe_deployment_dir }}" && git reset --hard "{{ irma_deployment_code_version }}"
+      rc: [0, 128] # 128 as an existing AV may cause an error when cloning test directory
+  when: irma_deployment_code_version != 'local'
+
+- name: Install requirements in a virtualenv
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    - cmd: python -m virtualenv --system-site-packages "{{ probe_deployment_dir }}/venv"
+    - cmd: "{{ probe_deployment_dir }}/venv/Scripts/activate"
+    - cmd: python -m pip install -r "{{ probe_deployment_dir }}/requirements.txt"
+
+- name: Configure config/probe.ini file
+  win_ini_file:
+    dest: "{{ probe_deployment_dir }}/config/probe.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items: probe_deployment_configs
+
+- name: Create symlink release -> current
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    - cmd: 'rmdir /q /s "{{ probe_install_dir }}"'
+      rc: [0, 2]
+    - cmd: 'mklink /d "{{ probe_install_dir }}" "{{ probe_deployment_dir }}"'
+      rc: [0, 2]
+  when: irma_deployment_code_version != 'local'
+
+- include: winsrv.yml
+  when: "{{ irma_winsrv | default(false) }} == true"
+
+- include: startup.yml
+  when: "{{ irma_winsrv | default(false) }} == false"

@@ -12,6 +12,7 @@ ansible_config = configuration['ansible_config'] || false
 Vagrant.require_version ">= 1.5.0"
 
 Vagrant.configure("2") do |config|
+
   config.ssh.forward_agent = true
   # see https://twitter.com/mitchellh/status/525704126647128064
   config.ssh.insert_key = false
@@ -49,18 +50,30 @@ Vagrant.configure("2") do |config|
 
       if server.has_key?('shares')
         server['shares'].each do |share|
-          machine.vm.synced_folder share["share_from"], share["share_to"], type: "rsync", rsync__chown: false, rsync__exclude: share["share_exclude"]
+          if server['windows'] || false
+            machine.vm.synced_folder share["share_from"], share["share_to"]
+          else
+            machine.vm.synced_folder share["share_from"], share["share_to"], type: "rsync", rsync__chown: false, rsync__exclude: share["share_exclude"]
+          end
         end
       end
 
+      if server['windows'] || false
+        machine.vm.communicator = :winrm
+        machine.vm.guest = :windows
+        machine.ssh.port = 5985
+        machine.vm.network :forwarded_port, guest: 3389, host: 3389, id: "rdp", auto_correct:true 
+        machine.vm.network :forwarded_port, guest: 5985, host: 5985, id: "winrm", auto_correct:true
+      end
 
       # Providers specific section
       machine.vm.provider "virtualbox" do |v|
-        #v.gui = true
+        v.gui = false
         v.cpus = server['cpus'] || 1
         v.memory = server['memory'] || 1024
         v.customize ["modifyvm", :id, "--cpuexecutioncap", server['cpuexecutioncap'] || 50]
       end
+
     end
   end
 
@@ -69,12 +82,14 @@ Vagrant.configure("2") do |config|
       ansible.playbook = 'playbooks/playbook.yml'
       ansible.extra_vars = ansible_config['extra_vars']
       ansible.groups = ansible_config['groups']
-      ansible.limit = 'all'
-
+      
+      # NOTE: ansible.limit = 'all' is incompatible when provisioning windows
+      #ansible.limit = 'all'
       #ansible.tags = ['']
       #ansible.skip_tags = ['']
       #ansible.verbose = 'vvvv'
       #ansible.raw_arguments = ['--check','--diff']
     end
   end
+
 end

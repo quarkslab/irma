@@ -8,3 +8,27 @@ virustotal_configs:
   - section: VirusTotal
     option: apikey
     value: 1fe0ef5feca2f84eb450bc3617f839e317b2a686af4d651a9bada77a522201b0
+
+irma_winsrv: false
+irma_winsrv_configuration:
+  # services (run celeryd by default)
+  - section: services
+    option: run
+    value: celeryd
+  - section: services
+    option: clean
+    value: "{{ irma_install_dir }}/irma-probe/current/celery.log"
+  # celeryd service
+  - section: celeryd
+    option: command
+    value: "C:/Python27/python.exe"
+  - section: celeryd
+    option: parameters
+    value: "-m celery worker --app=probe.tasks --workdir=C:/IRMA/irma-probe/current/ -f C:/IRMA/irma-probe/current/celery.log -l info"
+  # service log
+  - section: log
+    option: filename
+    value: "{{ irma_install_dir }}/irma-probe/current/service.log"
+  - section: log
+    option: level
+    value: INFO

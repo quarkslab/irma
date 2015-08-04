@@ -7,20 +7,30 @@ servers:
     ip: 172.16.1.30
     hostname: frontend.irma
     cpus: 2
+    cpuexecutioncap: 100
     memory: 2048
   - name: brain.irma
     box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.31
     hostname: brain.irma
     cpus: 2
+    cpuexecutioncap: 100
     memory: 2048
   - name: avs-linux.irma
     box: quarkslab/debian-7.7-amd64
     ip: 172.16.1.32
     hostname: avs-linux.irma
     cpus: 2
+    cpuexecutioncap: 100
     memory: 2048
-
+  - name: mcafee-win.irma
+    box: eval-win8x64-enterprise
+    ip: 172.16.1.33
+    hostname: mcafee-win.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+    windows: true
 
 ansible_config:
   extra_vars:
@@ -60,6 +70,8 @@ ansible_config:
       - avs-linux.irma
     sophos:
       - avs-linux.irma
+    mcafee-win:
+      - mcafee-win.irma
     "probe:children":
       - clamav
       - comodo
@@ -76,3 +88,6 @@ ansible_config:
       - fsecure
       - trid
       - sophos
+      - mcafee-win
+    "windows:children":
+      - mcafee-win
