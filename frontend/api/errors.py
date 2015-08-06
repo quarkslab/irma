@@ -13,6 +13,8 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import sys
+import os
 from bottle import response, abort
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -39,6 +41,12 @@ class ApiError(object):
 
 # Main function design to return a custom API Error
 def process_error(error):
+    exc_type, _, exc_tb = sys.exc_info()
+    fname = exc_tb.tb_frame.f_code.co_filename
+    print "Exception {0}:{1} [{2}:{3}]".format(exc_type,
+                                               error,
+                                               fname,
+                                               exc_tb.tb_lineno)
     # Default options if error does not match known error
     abort_code = ApiError.http_status_code
     api_error = ApiError('api_error')

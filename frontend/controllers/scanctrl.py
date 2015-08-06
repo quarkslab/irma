@@ -29,6 +29,27 @@ from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 log = logging.getLogger()
 
 
+def _new_file(data, session):
+    try:
+        # The file exists
+        file_sha256 = hashlib.sha256(data).hexdigest()
+        file = File.load_from_sha256(file_sha256, session, data)
+    except IrmaDatabaseResultNotFound:
+        # It doesn't
+        time = compat.timestamp()
+        file = File(time, time)
+        file.save_file_to_fs(data)
+        session.add(file)
+    return file
+
+
+def _new_fileweb(scan, name, data, session):
+    file = _new_file(data, session)
+    file_web = FileWeb(file, name, scan, len(scan.files_web))
+    session.add(file_web)
+    return file_web
+
+
 def add_files(scan, files, session):
     """ add file(s) to the specified scan
 
@@ -44,30 +65,61 @@ def add_files(scan, files, session):
     if scan.status == IrmaScanStatus.empty:
         # on first file added update status to 'ready'
         scan.set_status(IrmaScanStatus.ready)
-    idx_file = len(scan.files_web)
+
     for (name, data) in files.items():
-        try:
-            # The file exists
-            file_sha256 = hashlib.sha256(data).hexdigest()
-            file = File.load_from_sha256(file_sha256, session, data)
-        except IrmaDatabaseResultNotFound:
-            # It doesn't
-            time = compat.timestamp()
-            file = File(time, time)
-            file.save_file_to_fs(data)
-            session.add(file)
-
-        file_web = FileWeb(file, name, scan, idx_file)
-        session.add(file_web)
-        idx_file += 1
-
+        _new_fileweb(scan, name, data, session)
     session.commit()
+
+
+def _add_empty_result(fw_list, probe_list, scan, session):
+    log.debug("add_empty results for %d filewebs",
+              len(fw_list))
+    for fw in fw_list:
+        known_fw_list = filter(lambda x: x.file.sha256 == fw.file.sha256,
+                               scan.files_web)
+        scan_known_result = []
+        log.debug("add_empty_results: Found %d file in current scan",
+                  len(known_fw_list))
+        if len(known_fw_list) >= 1:
+            scan_known_result = known_fw_list[0].probe_results
+            log.debug("add_empty_results: %d known results",
+                      len(scan_known_result))
+        for probe_name in probe_list:
+            # Fetch the ref results for the file
+            ref_results = filter(lambda x: x.name == probe_name,
+                                 fw.file.ref_results)
+            # Fetch the already produced result in the current scan
+            scan_results = filter(lambda x: x.name == probe_name,
+                                  scan_known_result)
+            if len(ref_results) == 1 and not scan.force:
+                # we ask for results already present
+                # and we found one use it
+                probe_result = ref_results[0]
+                fw.probe_results.append(probe_result)
+            elif scan.force and len(scan_results) == 1:
+                # We ask for a new analysis
+                # but there is already one in current scan
+                # just link it
+                probe_result = scan_results[0]
+                fw.probe_results.append(probe_result)
+            else:
+                # results is not known or analysis is forced
+                # create empty result
+                # TODO probe types
+                probe_result = ProbeResult(
+                    None,
+                    probe_name,
+                    None,
+                    None,
+                    file_web=fw
+                )
+                session.add(probe_result)
 
 
 # launch operation is divided in two parts
 # one is synchronous, the other called by
 # a celery task is asynchronous (Ftp transfer)
-def launch_synchronous(scan, force, probelist, session):
+def launch_synchronous(scan, probelist, session):
     """ launch_synchronous specified scan
 
     :param scanid: id returned by scan_new
@@ -94,30 +146,7 @@ def launch_synchronous(scan, force, probelist, session):
     else:
         # all available probes
         probelist = all_probe_list
-
-    for fw in scan.files_web:
-        for probe_name in probelist:
-            # Fetch the ref results for the file
-            ref_result = filter(lambda x: x.name == probe_name,
-                                fw.file.ref_results)
-            if len(ref_result) == 1 and not force:
-                # we ask for results already present
-                # and we found one use it
-                probe_result = ref_result.pop()
-                fw.probe_results.append(probe_result)
-            else:
-                # results is not known or analysis is forced
-                # create empty result
-                # TODO probe types
-                probe_result = ProbeResult(
-                    None,
-                    probe_name,
-                    None,
-                    None,
-                    file_web=fw
-                )
-                session.add(probe_result)
-
+    _add_empty_result(scan.files_web, probelist, scan, session)
     session.commit()
 
 
@@ -166,6 +195,22 @@ def cancel(scan, session):
         raise IrmaTaskError(res)
 
 
+def create_scan_request(fw_list):
+    # Create scan request
+    # dict of sha256 : probe_list
+    # force parameter taken into account
+    scan_request = {}
+    for fw in fw_list:
+        probes_to_do = []
+        for pr in fw.probe_results:
+            # init with all probes asked not already present
+            if pr.nosql_id is None:
+                probes_to_do.append(pr.name)
+        if len(probes_to_do) > 0:
+            scan_request[fw.file.sha256] = probes_to_do
+    return scan_request
+
+
 # Used by tasks.py
 def launch_asynchronous(scanid):
     with session_transaction() as session:
@@ -174,18 +219,7 @@ def launch_asynchronous(scanid):
         IrmaScanStatus.filter_status(scan.status,
                                      IrmaScanStatus.ready,
                                      IrmaScanStatus.ready)
-        # Create scan request
-        # dict of sha256 : probe_list
-        # force parameter taken into account
-        scan_request = {}
-        for fw in scan.files_web:
-            probes_to_do = []
-            for pr in fw.probe_results:
-                # init with all probes asked not already present
-                if pr.nosql_id is None:
-                    probes_to_do.append(pr.name)
-            if len(probes_to_do) > 0:
-                scan_request[fw.file.sha256] = probes_to_do
+        scan_request = create_scan_request(scan.files_web)
 
         # Nothing to do
         if len(scan_request) == 0:
@@ -220,7 +254,7 @@ def set_launched(scanid):
     :raise: IrmaDatabaseError
     """
     with session_transaction() as session:
-        print("Scanid {0} is now launched".format(scanid))
+        log.info("Scanid %s is now launched", format(scanid))
         scan = Scan.load_from_ext_id(scanid, session=session)
         if scan.status == IrmaScanStatus.uploaded:
             scan.set_status(IrmaScanStatus.launched)
@@ -240,18 +274,14 @@ def sanitize_dict(d):
 def set_result(scanid, file_hash, probe, result):
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-        fws = []
-
-        for file_web in scan.files_web:
-            if file_hash == file_web.file.sha256:
-                fws.append(file_web)
+        fws = scan.get_filewebs_by_sha256(file_hash)
         if len(fws) == 0:
-            print("filename not found in scan")
+            log.error("file %s not found in scan", file_hash)
             return
 
-        fws[0].file.timestamp_last_scan = compat.timestamp()
-        fws[0].file.update(['timestamp_last_scan'], session=session)
-
+        fws_file = File.load_from_sha256(file_hash, session)
+        fws_file.timestamp_last_scan = compat.timestamp()
+        fws_file.update(['timestamp_last_scan'], session=session)
         sanitized_res = sanitize_dict(result)
 
         # update results for all files with same sha256
@@ -288,12 +318,60 @@ def set_result(scanid, file_hash, probe, result):
             for pr in fw.probe_results:
                 if pr.nosql_id is not None:
                     probedone.append(pr.name)
-            print("Scanid {0}".format(scanid) +
-                  "Result from {0} ".format(probe) +
-                  "probedone {0}".format(probedone))
+            log.info("Scanid %s result from %s probedone %s",
+                     scanid, probe, probedone)
 
         if scan.finished():
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
             # launch flush celery task on brain
             celery_brain.scan_flush(scanid)
+
+
+def _append_new_files_to_scan(scan, uploaded_files, session):
+    new_fws = []
+    for (file_name, file_sha256) in uploaded_files.items():
+        file_data = ftp_ctrl.download_file_data(scan.external_id, file_sha256)
+        new_fws.append(_new_fileweb(scan, file_name, file_data, session))
+    return new_fws
+
+
+def _resubmit_files(scan, parent_file, resubmit_fws, hash_uploaded, session):
+    fws = parent_file.files_web
+    if len(fws) == 0:
+        log.error("file %s not found in scan", parent_file.sha256)
+        return
+    probe_requested = [pr.name for pr in fws[0].probe_results]
+    # Now create an emtpy result for each resubmit_fw with same probelist
+    # as their parent
+    _add_empty_result(resubmit_fws, probe_requested, scan, session)
+    # TODO add current available results
+
+    # Now filter fws that have already a file uploaded in the current scan
+    fws_filtered = filter(lambda x: x.file.sha256 not in hash_uploaded,
+                          resubmit_fws)
+    log.info("Scan %s: %d new files to resubmit",
+             scan.external_id, len(fws_filtered))
+    if len(fws_filtered) != 0:
+        scan_request = create_scan_request(fws_filtered)
+        celery_brain.scan_launch(scan.external_id, scan_request)
+    return
+
+
+def handle_output_files(scanid, parent_file_hash, probe, result):
+    uploaded_files = result.get('uploaded_files', None)
+    # TODO resubmit switch
+    resubmit = True
+    if uploaded_files is None or not resubmit:
+        return
+    with session_transaction() as session:
+        log.info("Scanid %s: Appending new uploaded files %s",
+                 scanid, uploaded_files.keys())
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        parent_file = File.load_from_sha256(parent_file_hash, session)
+        # filter already present file in current scan
+        hash_uploaded = [f.sha256 for f in scan.files]
+        new_fws = _append_new_files_to_scan(scan, uploaded_files, session)
+        for fw in new_fws:
+            parent_file.children.append(fw)
+        _resubmit_files(scan, parent_file, new_fws, hash_uploaded, session)

@@ -39,12 +39,17 @@ def get_context_formatted(obj, context):
 
 class FileWebSchema(Schema):
     file_infos = fields.Nested(FileSchema, attribute="file")
+    file_sha256 = fields.Nested(FileSchema, attribute="file", only='sha256')
     probe_results = fields.Function(get_context_formatted)
     result_id = fields.Integer(attribute="scan_file_idx")
     scan_id = fields.Nested('ScanSchema', attribute="scan", only='id')
+    parent_file_sha256 = fields.Nested(FileSchema, attribute="parent",
+                                       only='sha256')
 
     class Meta:
         fields = ("name",
+                  "file_sha256",
+                  "parent_file_sha256",
                   "result_id",
                   "scan_id",
                   "file_infos",

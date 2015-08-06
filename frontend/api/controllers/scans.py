@@ -94,19 +94,18 @@ def launch(scanid, db):
     try:
         validate_scanid(scanid)
         scan = Scan.load_from_ext_id(scanid, db)
-
-        force = False
         probes = None
 
         # handle scan parameter / cached results: "force"
         if 'force' in request.json and request.json.get('force'):
-            force = True
+            scan.force = True
+            db.commit()
 
         # handle scan parameter / probelist: "probes"
         if 'probes' in request.json:
             probes = request.json.get('probes').split(',')
 
-        scan_ctrl.launch_synchronous(scan, force, probes, db)
+        scan_ctrl.launch_synchronous(scan, probes, db)
         # launch_asynchronous scan via frontend task
         celery_frontend.scan_launch(scanid)
 
