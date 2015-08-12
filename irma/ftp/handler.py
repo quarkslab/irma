@@ -184,6 +184,20 @@ class FtpTls(object):
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 
+    def download_data(self, path, remotename):
+        """ Download <remotename> found in <path> and return as data buffer"""
+        try:
+            data = []
+            dstpath = "{0}/{1}".format(path, remotename)
+            self._conn.retrbinary("RETR {0}".format(dstpath),
+                                  lambda x: data.append(x))
+            buf = ''.join(data)
+            # remotename is hashvalue of data
+            self._check_hash(remotename, buf)
+            return buf
+        except Exception as e:
+            raise IrmaFtpError("{0}".format(e))
+
     def delete(self, path, filename):
         """ Delete <filename> into directory <path>"""
         try:
