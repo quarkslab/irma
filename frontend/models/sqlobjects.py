@@ -552,7 +552,7 @@ class FileWeb(Base, SQLDatabaseObject):
     @classmethod
     def query_find_by_name(cls, name, session):
         query = session.query(FileWeb)\
-            .distinct(FileWeb.id_file)\
+            .distinct(FileWeb.name)\
             .join(File)\
             .filter(FileWeb.name.like("%{0}%".format(name)))
 
