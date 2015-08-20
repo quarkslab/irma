@@ -54,24 +54,27 @@
         </div>
     </div>
 
-    <div class="col-md-10 col-md-offset-1 scan-files-details">
-        <table class="table table-condensed table-hover" id="result-table">
-            <thead>
-                <tr>
-                    <th class="title">Files details<small> (Click to display a file details)</small></th>
-                    <th>Progress</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="infos in state.scan.results">
-                    <td>
-                        <a href="/scan/{{state.scan.id}}/file/{{infos.result_id}}">{{infos.name}}</a>
-                    </td>
-                    <td>
-                        <span class="label" ng-class="(infos.status == 0) ? 'label-success' : 'label-danger'">{{infos.probes_finished}} / {{infos.probes_total}}</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="col-md-10 col-md-offset-1 scan-files-details"> 
+      <h3>Files details <small>(Click to display a file details)</small></h3>
+      <div ng-repeat="file in state.scan.arborescence" ng-include="'tree'"></div>
     </div>
+
+
 </div>
+
+<script type="text/ng-template" id="tree">
+  <div class="file">
+    <div class="infos">
+      <span class="pull-right label" ng-class="(file.status == 0) ? 'label-success' : 'label-danger'">
+        {{file.probes_finished}} / {{file.probes_total}}
+      </span>
+      <button ng-if="file.children.length" ng-click="file.displayChildren = !file.displayChildren">
+        {{file.displayChildren? '-': '+'}}
+      </button>
+      <a href="/scan/{{state.scan.id}}/file/{{file.result_id}}">{{file.name}}</a>
+    </div>
+    <div ng-if="file.children.length && file.displayChildren" class="children">
+      <div ng-repeat="file in file.children" ng-include="'tree'"></div>
+    </div>
+  </div>
+</script>
