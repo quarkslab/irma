@@ -16,34 +16,28 @@
 from marshmallow import Schema, fields
 
 
-class ApiErrorSchema(Schema):
+class ApiErrorSchema_v1(Schema):
     class Meta:
         fields = ("type", "message")
 
 
-def get_tags_formatted(obj, context):
-    return obj.get_tags(context['formatted'])
-
-
-class FileSchema(Schema):
-    tags = fields.Function(get_tags_formatted)
-
+class FileSchema_v1(Schema):
     class Meta:
         fields = ("sha256", "sha1", "md5", "timestamp_first_scan",
-                  "timestamp_last_scan", "size", "id", "tags")
+                  "timestamp_last_scan", "size", "id")
 
 
 def get_context_formatted(obj, context):
     return obj.get_probe_results(context['formatted'])
 
 
-class FileWebSchema(Schema):
-    file_infos = fields.Nested(FileSchema, attribute="file")
-    file_sha256 = fields.Nested(FileSchema, attribute="file", only='sha256')
+class FileWebSchema_v1(Schema):
+    result_id = fields.String(attribute="external_id")
+    file_infos = fields.Nested(FileSchema_v1, attribute="file")
+    file_sha256 = fields.Nested(FileSchema_v1, attribute="file", only='sha256')
     probe_results = fields.Function(get_context_formatted)
-    result_id = fields.Integer(attribute="scan_file_idx")
-    scan_id = fields.Nested('ScanSchema', attribute="scan", only='id')
-    parent_file_sha256 = fields.Nested(FileSchema, attribute="parent",
+    scan_id = fields.Nested('ScanSchema_v1', attribute="scan", only='id')
+    parent_file_sha256 = fields.Nested(FileSchema_v1, attribute="parent",
                                        only='sha256')
 
     class Meta:
@@ -59,16 +53,11 @@ class FileWebSchema(Schema):
                   "status")
 
 
-class ScanSchema(Schema):
+class ScanSchema_v1(Schema):
     id = fields.String(attribute="external_id")
-    results = fields.Nested(FileWebSchema, attribute="files_web", many=True,
+    results = fields.Nested(FileWebSchema_v1, attribute="files_web", many=True,
                             exclude=('probe_results', 'file_infos'))
 
     class Meta:
         fields = ("id", "date", "status", "probes_total", "probes_finished",
                   "results")
-
-
-class TagSchema(Schema):
-    class Meta:
-        fields = ("id", "text")

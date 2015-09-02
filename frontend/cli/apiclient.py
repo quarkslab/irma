@@ -134,8 +134,8 @@ class IrmaScanApi(object):
         data = self._apiclient.get_call(route)
         return self._scan_schema.make_object(data)
 
-    def file_results(self, scan_id, result_idx):
-        route = '/scans/{0}/results/{1}'.format(scan_id, result_idx)
+    def file_results(self, result_id):
+        route = '/results/{0}'.format(result_id)
         data = self._apiclient.get_call(route)
         return self._results_schema.make_object(data)
 
@@ -148,7 +148,7 @@ class IrmaScanApi(object):
 class IrmaFileInfoSchema(Schema):
     class Meta:
         fields = ('size', 'sha1', 'timestamp_first_scan',
-                  'timestamp_last_scan', 'sha256', 'id', 'md5')
+                  'timestamp_last_scan', 'sha256', 'id', 'md5', 'mimetype')
 
     def make_object(self, data):
         return IrmaFileInfo(**data)
@@ -156,7 +156,7 @@ class IrmaFileInfoSchema(Schema):
 
 class IrmaFileInfo(object):
     def __init__(self, size, sha1, timestamp_first_scan,
-                 timestamp_last_scan, sha256, id, md5):
+                 timestamp_last_scan, sha256, id, md5, mimetype):
         self.size = size
         self.sha1 = sha1
         self.timestamp_first_scan = timestamp_first_scan
@@ -164,6 +164,7 @@ class IrmaFileInfo(object):
         self.sha256 = sha256
         self.id = id
         self.md5 = md5
+        self.mimetype = mimetype
 
     def __repr__(self):
         ret = "Size: {0}\n".format(self.size)
@@ -182,7 +183,8 @@ class IrmaFileInfo(object):
 class IrmaProbeResult(object):
 
     def __init__(self, status, name, version, type, results=None,
-                 error=None, duration=0, external_url=None):
+                 error=None, duration=0, external_url=None,
+                 uploaded_files=None):
         self.status = status
         self.name = name
         self.results = results
@@ -191,6 +193,7 @@ class IrmaProbeResult(object):
         self.type = type
         self.error = error
         self.external_url = external_url
+        self.uploaded_files = uploaded_files
 
     def to_json(self):
         return IrmaProbeResultSchema().dumps(self).data
@@ -206,6 +209,9 @@ class IrmaProbeResult(object):
         ret += "Results: {0}\n".format(self.results)
         if self.external_url is not None:
             ret += "External URL: {0}".format(self.external_url)
+        if self.uploaded_files is not None:
+            files = ", ".join(self.uploaded_files.keys())
+            ret += "Uploaded Files: {0}".format(files)
         return ret
 
 
@@ -220,11 +226,14 @@ class IrmaProbeResultSchema(Schema):
 
 class IrmaResults(object):
     def __init__(self, status, probes_finished, scan_id, name,
-                 probes_total, result_id, file_infos=None, probe_results=None):
+                 probes_total, result_id, file_sha256, parent_file_sha256,
+                 file_infos=None, probe_results=None):
         self.status = status
         self.probes_finished = probes_finished
         self.scan_id = scan_id
         self.name = name
+        self.file_sha256 = file_sha256
+        self.parent_file_sha256 = parent_file_sha256
         self.probe_results = []
         if probe_results is not None:
             for pres in probe_results:
@@ -245,6 +254,7 @@ class IrmaResults(object):
     def __str__(self):
         ret = "Scanid: {0}\n".format(self.scan_id)
         ret += "Filename: {0}\n".format(self.name)
+        ret += "ParentFile SHA256: {0}\n".format(self.parent_file_sha256)
         ret += "FileInfo: \n{0}\n".format(self.file_infos)
         ret += "Status: {0}\n".format(self.status)
         ret += "Probes finished: {0}\n".format(self.probes_finished)
@@ -267,7 +277,9 @@ class IrmaResultsSchema(Schema):
 
 class IrmaScan(object):
     def __init__(self, status, probes_finished,
-                 probes_total, date, id, results=[]):
+                 probes_total, date, id,
+                 force, resubmit_files, mimetype_filtering,
+                 results=[]):
         self.status = status
         self.probes_finished = probes_finished
         self.results = []
@@ -278,6 +290,9 @@ class IrmaScan(object):
         self.probes_total = probes_total
         self.date = date
         self.id = id
+        self.force = force
+        self.resubmit_files = resubmit_files
+        self.mimetype_filtering = mimetype_filtering
 
     def is_launched(self):
         return self.status == IrmaScanStatus.launched
@@ -292,6 +307,9 @@ class IrmaScan(object):
     def __repr__(self):
         ret = "Scanid: {0}\n".format(self.id)
         ret += "Status: {0}\n".format(self.pstatus)
+        ret += "Options: Force [{0}] ".format(self.force)
+        ret += "Mimetype [{0}] ".format(self.mimetype_filtering)
+        ret += "Resubmit [{0}]\n".format(self.resubmit_files)
         ret += "Probes finished: {0}\n".format(self.probes_finished)
         ret += "Probes Total: {0}\n".format(self.probes_total)
         ret += "Results: {0}\n".format(self.results)
@@ -304,7 +322,8 @@ class IrmaScanSchema(Schema):
 
     class Meta:
         fields = ('status', 'probes_finished', 'date',
-                  'probes_total', 'date', 'id')
+                  'probes_total', 'date', 'id', 'force',
+                  'resumbit_files', 'mimetype_filtering')
 
     def make_object(self, data):
         return IrmaScan(**data)

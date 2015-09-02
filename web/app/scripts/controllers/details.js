@@ -42,7 +42,7 @@
         state.newScan($routeParams.scanId);
       }
 
-      resultManager.getResult($routeParams.scanId, $routeParams.fileIdx).then(function(results) {
+      resultManager.getResult($routeParams.resultId).then(function(results) {
         vm.results = results;
         $scope.tags = results.file_infos.tags;
       });

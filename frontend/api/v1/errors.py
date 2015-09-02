@@ -14,19 +14,18 @@
 # terms contained in the LICENSE file.
 
 import sys
-import os
 from bottle import response, abort
 from sqlalchemy.orm.exc import NoResultFound
 
-from frontend.helpers.schemas import ApiErrorSchema
+from frontend.api.v1_1.schemas import ApiErrorSchema_v1_1
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaValueError
 
 
-api_error_schema = ApiErrorSchema()
+api_error_schema = ApiErrorSchema_v1_1()
 
 
-# This object aimed to be serialize by an ApiErrorSchema
+# This object aimed to be serialize by an ApiErrorSchema_v1_1
 class ApiError(object):
     http_status_code = 402
 

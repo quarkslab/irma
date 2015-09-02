@@ -24,9 +24,15 @@ import frontend.controllers.ftpctrl as ftp_ctrl
 from frontend.helpers.sessions import session_transaction
 from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
-
+from lib.common.mimetypes import Magic
+from lib.irma.common.utils import IrmaScanRequest
+from frontend.controllers import braintasks
 
 log = logging.getLogger()
+
+# ===================
+#  Internals helpers
+# ===================
 
 
 def _new_file(data, session):
@@ -38,16 +44,183 @@ def _new_file(data, session):
         # It doesn't
         time = compat.timestamp()
         file = File(time, time)
-        file.save_file_to_fs(data)
+        # determine file mimetype
+        magic = Magic()
+        mimetype = magic.from_buffer(data)
+        file.save_file_to_fs(data, mimetype)
         session.add(file)
     return file
 
 
 def _new_fileweb(scan, name, data, session):
     file = _new_file(data, session)
-    file_web = FileWeb(file, name, scan, len(scan.files_web))
+    file_web = FileWeb(file, name, scan)
     session.add(file_web)
+    session.commit()
     return file_web
+
+
+def _add_empty_result(fw, probelist, scan, session):
+    scan_known_results = _fetch_known_results(fw.file.sha256, scan)
+    for probe_name in probelist:
+        # Fetch the ref results for the file
+        ref_results = filter(lambda x: x.name == probe_name,
+                             fw.file.ref_results)
+        # Fetch the already produced result in the current scan
+        scan_results = filter(lambda x: x.name == probe_name,
+                              scan_known_results)
+        if len(ref_results) == 1 and not scan.force:
+            # we ask for results already present
+            # and we found one use it
+            probe_result = ref_results[0]
+            fw.probe_results.append(probe_result)
+            log.debug("Link refresult for %s probe %s",
+                      fw.name,
+                      probe_name)
+        elif scan.force and len(scan_results) == 1:
+            # We ask for a new analysis
+            # but there is already one in current scan
+            # just link it
+            log.debug("Link scanresult for %s probe %s",
+                      fw.name,
+                      probe_name)
+            probe_result = scan_results[0]
+            fw.probe_results.append(probe_result)
+        else:
+            # results is not known or analysis is forced
+            # create empty result
+            # TODO probe types
+            log.debug("Creating Empty result for %s probe %s",
+                      fw.name,
+                      probe_name)
+            probe_result = ProbeResult(
+                None,
+                probe_name,
+                None,
+                None,
+                file_web=fw
+            )
+            session.add(probe_result)
+            session.commit()
+    return
+
+
+def _fetch_known_results(filehash, scan):
+    scan_known_result = []
+    known_fw_list = filter(lambda x: x.file.sha256 == filehash,
+                           scan.files_web)
+    log.info("_fetch_known_results: Found %d file in current scan",
+             len(known_fw_list))
+    if len(known_fw_list) >= 1:
+        scan_known_result = known_fw_list[0].probe_results
+        log.info("_fetch_known_results: %d known results",
+                 len(scan_known_result))
+    return scan_known_result
+
+
+def _add_empty_results(fw_list, scan_request, scan, session):
+    log.info("add_empty results")
+    for fw in fw_list:
+        probelist = scan_request.get_probelist(fw.file.sha256)
+        _add_empty_result(fw, probelist, scan, session)
+
+
+def _create_scan_request(fw_list, probelist, mimetype_filtering):
+    # Create scan request
+    # dict of sha256 : probe_list
+    # force parameter taken into account
+    scan_request = IrmaScanRequest()
+    for fw in fw_list:
+        scan_request.add_file(fw.file.sha256,
+                              probelist,
+                              fw.file.mimetype)
+    # TODO external parameter
+    if mimetype_filtering is True:
+        srdict = scan_request.to_dict()
+        filtered_srdict = braintasks.mimetype_filter_scan_request(srdict)
+        scan_request = IrmaScanRequest(filtered_srdict)
+    return scan_request
+
+
+def _sanitize_dict(d):
+    new = {}
+    for k, v in d.iteritems():
+        if isinstance(v, dict):
+            v = _sanitize_dict(v)
+        newk = k.replace('.', '_').replace('$', '')
+        new[newk] = v
+    return new
+
+
+def _append_new_files_to_scan(scan, uploaded_files, session):
+    new_fws = []
+    for (file_name, file_sha256) in uploaded_files.items():
+        file_data = ftp_ctrl.download_file_data(scan.external_id, file_sha256)
+        fw = _new_fileweb(scan, file_name, file_data, session)
+        log.info("scan {0}: new fileweb id {1} for file {2}".format(
+                 scan.external_id, fw.external_id, fw.name))
+        new_fws.append(fw)
+    return new_fws
+
+
+def _resubmit_files(scan, parent_file, resubmit_fws, hash_uploaded, session):
+    fws = parent_file.files_web
+    if len(fws) == 0:
+        log.error("file %s not found in scan", parent_file.sha256)
+        return
+    fws_filtered = []
+    for fw in resubmit_fws:
+        # Either fw is already in scan and duplicate result
+        if fw.file.sha256 in hash_uploaded:
+            # grab probelist from filewebs linked to the same file
+            # in current scan
+            probelist = [p.name for p in _fetch_known_results(fw.file.sha256,
+                                                              scan)]
+            # and add link to their results
+            _add_empty_result(fw, probelist, scan, session)
+        else:
+            # if new to scan, build a new one
+            # (done later in _add_empty_results)
+            fws_filtered.append(fw)
+
+    log.info("Scan %s: %d new files to resubmit",
+             scan.external_id, len(fws_filtered))
+    if len(fws_filtered) != 0:
+        scan_request = _create_scan_request(fws_filtered,
+                                            scan.get_probelist(),
+                                            scan.mimetype_filtering)
+        _add_empty_results(fws_filtered, scan_request, scan, session)
+        celery_brain.scan_launch(scan.external_id, scan_request.to_dict())
+    return
+
+
+def _fetch_probe_result(fw, probe):
+    pr_list = filter(lambda x: x.name == probe, fw.probe_results)
+    if len(pr_list) > 1:
+        log.error("Integrity error: multiple results for "
+                  "file {0} probe {1}".format(fw.name, probe))
+    return pr_list[0]
+
+
+def _update_ref_results(fw, file, pr):
+    rr_list = filter(lambda x: x.name == pr.name, file.ref_results)
+    if len(rr_list) == 0:
+        # current probe is not part of ref results
+        # just add it
+        file.ref_results.append(pr)
+    elif len(rr_list) == 1:
+        # a reference result already exist
+        # replace it
+        file.ref_results.remove(rr_list[0])
+        file.ref_results.append(pr)
+    else:
+        log.error("Integrity error: multiple refresults for "
+                  "file {0} probe {1}".format(file.sha256, pr.name))
+    return
+
+# ================
+#  Public methods
+# ================
 
 
 def add_files(scan, files, session):
@@ -71,56 +244,11 @@ def add_files(scan, files, session):
     session.commit()
 
 
-def _add_empty_result(fw_list, probe_list, scan, session):
-    log.debug("add_empty results for %d filewebs",
-              len(fw_list))
-    for fw in fw_list:
-        known_fw_list = filter(lambda x: x.file.sha256 == fw.file.sha256,
-                               scan.files_web)
-        scan_known_result = []
-        log.debug("add_empty_results: Found %d file in current scan",
-                  len(known_fw_list))
-        if len(known_fw_list) >= 1:
-            scan_known_result = known_fw_list[0].probe_results
-            log.debug("add_empty_results: %d known results",
-                      len(scan_known_result))
-        for probe_name in probe_list:
-            # Fetch the ref results for the file
-            ref_results = filter(lambda x: x.name == probe_name,
-                                 fw.file.ref_results)
-            # Fetch the already produced result in the current scan
-            scan_results = filter(lambda x: x.name == probe_name,
-                                  scan_known_result)
-            if len(ref_results) == 1 and not scan.force:
-                # we ask for results already present
-                # and we found one use it
-                probe_result = ref_results[0]
-                fw.probe_results.append(probe_result)
-            elif scan.force and len(scan_results) == 1:
-                # We ask for a new analysis
-                # but there is already one in current scan
-                # just link it
-                probe_result = scan_results[0]
-                fw.probe_results.append(probe_result)
-            else:
-                # results is not known or analysis is forced
-                # create empty result
-                # TODO probe types
-                probe_result = ProbeResult(
-                    None,
-                    probe_name,
-                    None,
-                    None,
-                    file_web=fw
-                )
-                session.add(probe_result)
-
-
 # launch operation is divided in two parts
 # one is synchronous, the other called by
 # a celery task is asynchronous (Ftp transfer)
-def launch_synchronous(scan, probelist, session):
-    """ launch_synchronous specified scan
+def check_probe(scan, probelist, session):
+    """ check_probe specified scan
 
     :param scanid: id returned by scan_new
     :rtype: dict of 'code': int, 'msg': str [, optional 'probe_list':list]
@@ -142,11 +270,9 @@ def launch_synchronous(scan, probelist, session):
         if len(unknown_probes) != 0:
             reason = "probe {0} unknown".format(", ".join(unknown_probes))
             raise IrmaValueError(reason)
-        scan.probelist = probelist
     else:
-        # all available probes
         probelist = all_probe_list
-    _add_empty_result(scan.files_web, probelist, scan, session)
+    scan.set_probelist(probelist)
     session.commit()
 
 
@@ -195,23 +321,7 @@ def cancel(scan, session):
         raise IrmaTaskError(res)
 
 
-def create_scan_request(fw_list):
-    # Create scan request
-    # dict of sha256 : probe_list
-    # force parameter taken into account
-    scan_request = {}
-    for fw in fw_list:
-        probes_to_do = []
-        for pr in fw.probe_results:
-            # init with all probes asked not already present
-            if pr.nosql_id is None:
-                probes_to_do.append(pr.name)
-        if len(probes_to_do) > 0:
-            scan_request[fw.file.sha256] = probes_to_do
-    return scan_request
-
-
-# Used by tasks.py
+# Used by tasks.py, second part of the scan launch operation
 def launch_asynchronous(scanid):
     with session_transaction() as session:
         log.info("{0}: Launching asynchronously".format(scanid))
@@ -219,10 +329,12 @@ def launch_asynchronous(scanid):
         IrmaScanStatus.filter_status(scan.status,
                                      IrmaScanStatus.ready,
                                      IrmaScanStatus.ready)
-        scan_request = create_scan_request(scan.files_web)
-
+        scan_request = _create_scan_request(scan.files_web,
+                                            scan.get_probelist(),
+                                            scan.mimetype_filtering)
+        _add_empty_results(scan.files_web, scan_request, scan, session)
         # Nothing to do
-        if len(scan_request) == 0:
+        if scan_request.nb_files == 0:
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
             log.info("{0}: Finished nothing to do".format(scanid))
@@ -230,8 +342,8 @@ def launch_asynchronous(scanid):
 
         try:
             upload_list = list()
-            for fw in scan.files_web:
-                upload_list.append(fw.file.path)
+            for file in scan.files:
+                upload_list.append(file.path)
             ftp_ctrl.upload_scan(scanid, upload_list)
         except IrmaFtpError as e:
             log.error("{0}: Ftp upload error {1}".format(scanid, str(e)))
@@ -240,16 +352,17 @@ def launch_asynchronous(scanid):
             return
 
         # launch new celery scan task on brain
-        celery_brain.scan_launch(scanid, scan_request)
+        celery_brain.scan_launch(scanid, scan_request.to_dict())
         scan.set_status(IrmaScanStatus.uploaded)
         session.commit()
         log.info("{0}: Success: scan uploaded".format(scanid))
         return
 
 
-def set_launched(scanid):
+def set_launched(scanid, scan_report_dict):
     """ set status launched for scan
     :param scanid: id returned by scan_new
+    :param scanreport: scan details output by brain
     :return: None
     :raise: IrmaDatabaseError
     """
@@ -259,16 +372,6 @@ def set_launched(scanid):
         if scan.status == IrmaScanStatus.uploaded:
             scan.set_status(IrmaScanStatus.launched)
             session.commit()
-
-
-def sanitize_dict(d):
-    new = {}
-    for k, v in d.iteritems():
-        if isinstance(v, dict):
-            v = sanitize_dict(v)
-        newk = k.replace('.', '_').replace('$', '')
-        new[newk] = v
-    return new
 
 
 def set_result(scanid, file_hash, probe, result):
@@ -282,27 +385,14 @@ def set_result(scanid, file_hash, probe, result):
         fws_file = File.load_from_sha256(file_hash, session)
         fws_file.timestamp_last_scan = compat.timestamp()
         fws_file.update(['timestamp_last_scan'], session=session)
-        sanitized_res = sanitize_dict(result)
+        sanitized_res = _sanitize_dict(result)
 
         # update results for all files with same sha256
         for fw in fws:
             # Update main reference results with fresh results
-            pr = None
-            ref_res_names = [rr.name for rr in fw.file.ref_results]
-            for probe_result in fw.probe_results:
-                if probe_result.name == probe:
-                    pr = probe_result
-                    if probe_result.name not in ref_res_names:
-                        fw.file.ref_results.append(probe_result)
-                    else:
-                        for rr in fw.file.ref_results:
-                            if probe_result.name == rr.name:
-                                fw.file.ref_results.remove(rr)
-                                fw.file.ref_results.append(probe_result)
-                                break
-                    break
+            pr = _fetch_probe_result(fw, probe)
+            _update_ref_results(fw, fw.file, pr)
             fw.file.update(session=session)
-
             # init empty NoSql record to get
             # all mandatory fields initialized
             prr = ProbeRealResult()
@@ -328,46 +418,16 @@ def set_result(scanid, file_hash, probe, result):
             celery_brain.scan_flush(scanid)
 
 
-def _append_new_files_to_scan(scan, uploaded_files, session):
-    new_fws = []
-    for (file_name, file_sha256) in uploaded_files.items():
-        file_data = ftp_ctrl.download_file_data(scan.external_id, file_sha256)
-        new_fws.append(_new_fileweb(scan, file_name, file_data, session))
-    return new_fws
-
-
-def _resubmit_files(scan, parent_file, resubmit_fws, hash_uploaded, session):
-    fws = parent_file.files_web
-    if len(fws) == 0:
-        log.error("file %s not found in scan", parent_file.sha256)
-        return
-    probe_requested = [pr.name for pr in fws[0].probe_results]
-    # Now create an emtpy result for each resubmit_fw with same probelist
-    # as their parent
-    _add_empty_result(resubmit_fws, probe_requested, scan, session)
-    # TODO add current available results
-
-    # Now filter fws that have already a file uploaded in the current scan
-    fws_filtered = filter(lambda x: x.file.sha256 not in hash_uploaded,
-                          resubmit_fws)
-    log.info("Scan %s: %d new files to resubmit",
-             scan.external_id, len(fws_filtered))
-    if len(fws_filtered) != 0:
-        scan_request = create_scan_request(fws_filtered)
-        celery_brain.scan_launch(scan.external_id, scan_request)
-    return
-
-
 def handle_output_files(scanid, parent_file_hash, probe, result):
-    uploaded_files = result.get('uploaded_files', None)
-    # TODO resubmit switch
-    resubmit = True
-    if uploaded_files is None or not resubmit:
-        return
     with session_transaction() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
+        uploaded_files = result.get('uploaded_files', None)
+        if uploaded_files is None or not scan.resubmit_files:
+            log.info("Scanid %s: Nothing to resubmit or resubmit disabled",
+                     scanid)
+            return
         log.info("Scanid %s: Appending new uploaded files %s",
                  scanid, uploaded_files.keys())
-        scan = Scan.load_from_ext_id(scanid, session=session)
         parent_file = File.load_from_sha256(parent_file_hash, session)
         # filter already present file in current scan
         hash_uploaded = [f.sha256 for f in scan.files]

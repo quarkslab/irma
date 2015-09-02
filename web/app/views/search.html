@@ -31,7 +31,7 @@
     <div class="row" id="results">
         <table ng-table="vm.tableParams" class="table table-bordered">
             <tr ng-repeat="item in $data">
-                <td data-title="'Name'"><a href="/scan/{{item.scan_id}}/file/{{item.result_id}}">{{item.name}}</a></td>
+                <td data-title="'Name'"><a href="/results/{{item.result_id}}">{{item.name}}</a></td>
                 <td data-title="'Last seen'">{{item.file_infos.timestamp_last_scan | amDateFormat:'lll'}}</td>
                 <td data-title="'SHA256'">{{item.file_infos.sha256}}</td>
                 <td data-title="'Size'">{{item.file_infos.size}}</td>

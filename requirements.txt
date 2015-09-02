@@ -9,3 +9,4 @@ mock
 coverage
 nose
 requests
+python-magic

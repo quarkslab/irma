@@ -54,10 +54,10 @@ template_frontend_config = {
         ('path', TemplatedConfiguration.string, None)
     ],
     'celery_brain': [
-        ('timeout', TemplatedConfiguration.integer, 10),
+        ('timeout', TemplatedConfiguration.integer, 60),
     ],
     'celery_frontend': [
-        ('timeout', TemplatedConfiguration.integer, 10),
+        ('timeout', TemplatedConfiguration.integer, 30),
     ],
     'broker_brain': [
         ('host', TemplatedConfiguration.string, None),

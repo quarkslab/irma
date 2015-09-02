@@ -71,7 +71,7 @@
       <button ng-if="file.children.length" ng-click="file.displayChildren = !file.displayChildren">
         {{file.displayChildren? '-': '+'}}
       </button>
-      <a href="/scan/{{state.scan.id}}/file/{{file.result_id}}">{{file.name}}</a>
+      <a href="/results/{{file.result_id}}">{{file.name}}</a>
     </div>
     <div ng-if="file.children.length && file.displayChildren" class="children">
       <div ng-repeat="file in file.children" ng-include="'tree'"></div>

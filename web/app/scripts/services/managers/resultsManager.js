@@ -13,8 +13,8 @@ function resultsManager($q, $log, Result, bridge) {
     getAvailableTags: getAvailableTags
   };
 
-  function _loadResult(scanId, fileIdx, deferred) {
-    bridge.get({url: '/scans/' + scanId + '/results/' + fileIdx})
+  function _load(resultId, deferred) {
+    bridge.get({url: '/results/' + resultId })
       .then(_loadComplete);
 
     function _loadComplete(response) {
@@ -27,10 +27,10 @@ function resultsManager($q, $log, Result, bridge) {
     return new Result(resultData);
   }
 
-  function getResult(scanId, fileIdx) {
+  function getResult(resultId) {
     $log.info('Retrieve result');
     var deferred = $q.defer();
-    _loadResult(scanId, fileIdx, deferred);
+    _load(resultId, deferred);
 
     return deferred.promise;
   }

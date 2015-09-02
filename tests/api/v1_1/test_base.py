@@ -2,8 +2,8 @@ from unittest import TestCase
 from bottle import Bottle, Route
 from bottle.ext.sqlalchemy import Plugin
 
-from tests.api.data import test_routes
-import frontend.api.base as api_base
+from tests.api.v1_1.data import test_routes
+import frontend.api.v1_1.base as api_base
 
 
 class TestApiBase(TestCase):

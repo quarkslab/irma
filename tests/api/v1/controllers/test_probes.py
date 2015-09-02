@@ -1,7 +1,7 @@
 from unittest import TestCase
 from mock import patch
 
-import frontend.api.controllers.probes as api_probes
+import frontend.api.v1.controllers.probes as api_probes
 
 
 class TestApiProbes(TestCase):
@@ -10,7 +10,7 @@ class TestApiProbes(TestCase):
         sample = ["test"]
         expected = {"total": len(sample),
                     "data": sample}
-        with patch("frontend.api.controllers.probes.celery_brain") as mock:
+        with patch("frontend.api.v1.controllers.probes.celery_brain") as mock:
             mock.probe_list.return_value = sample
             result = api_probes.list()
         self.assertEqual(api_probes.response.content_type,
@@ -20,10 +20,10 @@ class TestApiProbes(TestCase):
 
     def test002_list_error(self):
         expected = Exception("test")
-        celery_brain = "frontend.api.controllers.probes.celery_brain"
+        celery_brain = "frontend.api.v1.controllers.probes.celery_brain"
         with patch(celery_brain) as mock_error:
             mock_error.probe_list.side_effect = expected
-            process_error = "frontend.api.controllers.probes.process_error"
+            process_error = "frontend.api.v1.controllers.probes.process_error"
             with patch(process_error) as mock:
                 result = api_probes.list()
         self.assertIsNone(result)
