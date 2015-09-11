@@ -9,6 +9,7 @@
     - libc6-i386
     - libstdc++6
     - libncurses5:i386
+    - unzip
   sudo: yes
 
 - name: TrID | Creating temp directory
