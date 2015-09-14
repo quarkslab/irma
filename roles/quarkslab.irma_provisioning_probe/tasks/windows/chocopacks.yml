@@ -6,7 +6,7 @@
   failed_when: "result.rc not in {{ item.rc | default([0]) }}"
   with_items:
     - name: git
-      version: 1.9.5
+      version: 1.9.5.20150114
     - name: python
       version: 2.7.6
 
