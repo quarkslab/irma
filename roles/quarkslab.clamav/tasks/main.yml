@@ -12,6 +12,6 @@
 
 - name: ClamAV | Update virus definition
   shell: freshclam --quiet
-  sudo: true
-  when: clamav_install | changed
+  failed_when: "clamav_update.rc != 0 and '/var/log/clamav/freshclam.log is locked by another process' not in clamav_update.stdout"
+  register: clamav_update
   notify: ClamAV | restart daemon
