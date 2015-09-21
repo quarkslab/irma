@@ -27,4 +27,6 @@
   poll: 0
   ignore_errors: true
 
-- pause: seconds=60
+- name: Waiting for guest to come back
+  local_action: wait_for host={{ inventory_hostname }}
+                state=started
