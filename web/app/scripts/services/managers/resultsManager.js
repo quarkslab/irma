@@ -9,10 +9,11 @@ resultsManager.$inject = ['$q', '$log', 'Result', 'bridge'];
 function resultsManager($q, $log, Result, bridge) {
 
   return {
-    getResult: getResult
+    getResult: getResult,
+    getAvailableTags: getAvailableTags
   };
 
-  function _load(scanId, fileIdx, deferred) {
+  function _loadResult(scanId, fileIdx, deferred) {
     bridge.get({url: '/scans/' + scanId + '/results/' + fileIdx})
       .then(_loadComplete);
 
@@ -29,8 +30,26 @@ function resultsManager($q, $log, Result, bridge) {
   function getResult(scanId, fileIdx) {
     $log.info('Retrieve result');
     var deferred = $q.defer();
-    _load(scanId, fileIdx, deferred);
+    _loadResult(scanId, fileIdx, deferred);
 
     return deferred.promise;
+  }
+  
+  function getAvailableTags() {
+    $log.info('Retrieve available tags');
+    var deferred = $q.defer();
+    _loadAvailableTags(deferred);
+
+    return deferred.promise;
+  }
+  
+  function _loadAvailableTags(deferred) {
+    bridge.get({url: '/tags'})
+      .then(_loadComplete);
+
+    function _loadComplete(response) {
+      var results = _retrieveInstance(response);
+      deferred.resolve(results);
+    }
   }
 }

@@ -128,15 +128,30 @@ class Tag(Base, SQLDatabaseObject):
         primary_key=True,
         name='id'
     )
-    name = Column(
+    text = Column(
         String,
         nullable=False,
-        name='name'
+        name='text'
     )
 
-    def __init__(self, name=''):
+    # Many to many Tag <-> File
+    files = relationship(
+        'File',
+        secondary=tag_file,
+        backref='tags',
+        lazy='dynamic',
+    )
+
+    def __init__(self, text=''):
         super(Tag, self).__init__()
-        self.name = name
+        self.text = text
+
+    def to_json(self):
+        return dict((k, v) for (k, v) in self.to_dict().items())
+
+    @classmethod
+    def query_find_all(cls, session):
+        return session.query(Tag).all()
 
 
 class File(Base, SQLDatabaseObject):
@@ -188,12 +203,6 @@ class File(Base, SQLDatabaseObject):
         String(length=255),
         name='path'
     )
-    # Many to many Tag <-> File
-    tags = relationship(
-        'Tag',
-        secondary=tag_file,
-        backref='files'
-    )
 
     def __init__(self, timestamp_first_scan, timestamp_last_scan, tags=[]):
         super(File, self).__init__()
@@ -201,6 +210,30 @@ class File(Base, SQLDatabaseObject):
         self.timestamp_first_scan = timestamp_first_scan
         self.timestamp_last_scan = timestamp_last_scan
         self.tags = tags
+
+    def add_tag(self, tagid, session):
+        try:
+            asked_tag = session.query(Tag).filter(
+                Tag.id == tagid
+            ).one()
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+        except MultipleResultsFound as e:
+            raise IrmaDatabaseError(e)
+
+        self.tags.append(asked_tag)
+
+    def remove_tag(self, tagid, session):
+        try:
+            asked_tag = session.query(Tag).filter(
+                Tag.id == tagid
+            ).one()
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+        except MultipleResultsFound as e:
+            raise IrmaDatabaseError(e)
+
+        self.tags.remove(asked_tag)
 
     def to_json(self):
         # return only these keys
@@ -259,6 +292,12 @@ class File(Base, SQLDatabaseObject):
             self.path = None
         except OSError as e:
             raise IrmaFileSystemError(e)
+
+    def get_tags(self, formatted=True):
+        results = []
+        for t in self.tags:
+            results.append(t.to_json())
+        return results
 
     @classmethod
     def remove_old_files(cls, max_age, session):
@@ -550,21 +589,33 @@ class FileWeb(Base, SQLDatabaseObject):
         return results
 
     @classmethod
-    def query_find_by_name(cls, name, session):
+    def query_find_by_name(cls, name, tags, session):
         query = session.query(FileWeb)\
             .distinct(FileWeb.name)\
             .join(File)\
             .filter(FileWeb.name.like("%{0}%".format(name)))
 
+        # Update the query with tags if user asked for it
+        if tags is not None:
+            query = query.join(File.tags)
+            for tag in tags:
+                query = query.filter(File.tags.any(Tag.id == tag))
+
         return query
 
     @classmethod
-    def query_find_by_hash(cls, hash_type, hash_value, session):
+    def query_find_by_hash(cls, hash_type, hash_value, tags, session):
         query = session.query(FileWeb)\
             .distinct(FileWeb.name)\
             .join(File)
 
         query = query.filter(getattr(File, hash_type) == hash_value)
+
+        # Update the query with tags if user asked for it
+        if tags is not None:
+            query = query.join(File.tags)
+            for tag in tags:
+                query = query.filter(File.tags.any(Tag.id == tag))
 
         return query
 

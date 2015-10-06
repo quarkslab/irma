@@ -11,6 +11,7 @@ angular.module('irma', [
   'angular-capitalize-filter',
   'angularMoment',
   'ngTable',
+  'ngTagsInput',
   'angular-svg-round-progress'
 ])
   .constant('constants', {

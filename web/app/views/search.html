@@ -1,6 +1,17 @@
 <div id="search">
     <div class="row">
         <form class="form-inline" ng-submit="vm.tableParams.reload()" role="form">
+            <tags-input 
+                ng-model="vm.searchedTags"
+                add-from-autocomplete-only="true">
+                <auto-complete
+                    load-on-down-arrow="true"
+                    load-on-empty="true"
+                    load-on-focus="true"
+                    min-length="0"
+                    source="loadAvailableTags($query)">
+                </auto-complete>
+            </tags-input>
             <div class="form-group">
                 <select class="form-control" id="type" ng-model="vm.searchedType">
                     <option value="name">By name</option>
@@ -11,7 +22,7 @@
                 <div class="input-group">
                     <input type="text" id="search" class="form-control" ng-model="vm.searchedStr" placeholder="Type your search here">
                     <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary" ng-disabled="!vm.searchedStr">Go!</button>
+                        <button type="submit" class="btn btn-primary">Go!</button>
                     </span>
                 </div>
             </div>

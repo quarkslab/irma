@@ -12,9 +12,27 @@ function dataservice(bridge) {
         searchFiles: searchFiles
     };
 
-    function searchFiles(type, name, offset, limit) {
-        return bridge.get({url: '/search/files?' + type + '=' + name + '&offset=' + offset + '&limit=' + limit})
-            .then(searchComplete);
+    function searchFiles(tags, type, name, offset, limit) {
+    	var url = '/search/files?';
+    		
+    	if (tags.length > 0) {
+    		url += 'tags=';
+    	}
+    	
+		for (var i = 0; i < tags.length; i++) {
+			if(i > 0) {
+				url += ',';
+			}
+		    url += tags[i].id;
+		}
+		
+    	if (tags.length > 0) {
+    		url += '&';
+    	}
+		
+		url += type + '=' + name + '&offset=' + offset + '&limit=' + limit;
+		
+        return bridge.get({url: url}).then(searchComplete);
 
         function searchComplete(response) {
             return response;

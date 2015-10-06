@@ -4,6 +4,19 @@
 
     <div class="result-section">
       <h2 id="file-informations">File informations</h2>
+      <tags-input 
+            ng-model="tags"
+            on-tag-added="tagAdded($tag)"
+            on-tag-removed="tagRemoved($tag)"
+            add-from-autocomplete-only="true">
+            <auto-complete
+                    load-on-down-arrow="true"
+                    load-on-empty="true"
+                    load-on-focus="true"
+                    min-length="0"
+                    source="loadAvailableTags($query)">
+            </auto-complete>
+      </tags-input>
       <table class="table table-bordered">
         <tbody>
           <tr>

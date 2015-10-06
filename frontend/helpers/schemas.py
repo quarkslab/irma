@@ -21,10 +21,16 @@ class ApiErrorSchema(Schema):
         fields = ("type", "message")
 
 
+def get_tags_formatted(obj, context):
+    return obj.get_tags(context['formatted'])
+
+
 class FileSchema(Schema):
+    tags = fields.Function(get_tags_formatted)
+
     class Meta:
         fields = ("sha256", "sha1", "md5", "timestamp_first_scan",
-                  "timestamp_last_scan", "size", "id")
+                  "timestamp_last_scan", "size", "id", "tags")
 
 
 def get_context_formatted(obj, context):
@@ -56,3 +62,8 @@ class ScanSchema(Schema):
     class Meta:
         fields = ("id", "date", "status", "probes_total", "probes_finished",
                   "results")
+
+
+class TagSchema(Schema):
+    class Meta:
+        fields = ("id", "text")
