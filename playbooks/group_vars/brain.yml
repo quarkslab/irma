@@ -102,6 +102,11 @@ pureftpd_options:
   PAMAuthentication: "no"
   TLS: "2"
   PassivePortRange: "65435 65535"
+  # NOTE: vulnerable to POODLE but cannot find a workaround to make
+  # Python's 2.7.9 ftplib module work with Debian 8.1 pure-ftpd configured with
+  # TLSv1 only (-S:HIGH:MEDIUM:+TLSv1:!SSLv2:!SSLv3)
+  TLSCipherSuite: "-S:HIGH:MEDIUM:+TLSv1"
+
 
 # Brain role
 brain_pureftpd_virtual_users:

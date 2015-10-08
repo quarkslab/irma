@@ -1,0 +1,12 @@
+---
+
+## Override probe global
+default_user: vagrant
+default_group: vagrant
+
+# NOTE: As windows does not support key based authentication, you need to
+# set up your password globally in this configuration file or per host using
+# the hosts_vars
+ansible_ssh_pass: vagrant
+ansible_ssh_port: 5985
+ansible_connection: winrm

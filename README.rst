@@ -29,7 +29,6 @@ Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ r
 
     $ ansible-galaxy install -r ansible-requirements.yml # --force if you’ve already installed it
 
-
 Testing IRMA, the easiest way
 -----------------------------
 
@@ -77,6 +76,40 @@ some useful commands with vagrant:
     $ vagrant destroy brain.irma   # delete the machine
 
 for advanced usage of vagrant be sure to check `extras <docs/install_extras.rst>`_
+
+Experimental support for Windows provisioning
+=============================================
+
+Generate Windows base box
+-------------------------
+
+.. code-block:: bash
+
+    $ git clone https://github.com/boxcutter/windows
+    $ cd windows
+    $ make virtualbox/eval-win8x64-enterprise
+
+Adding to Vagrant boxes
+-----------------------
+
+.. code-block:: bash
+
+    $ vagrant box add --name eval-win8x64-enterprise box/virtualbox/eval-win8x64-enterprise*.box
+
+Creating an instance of the base box
+------------------------------------
+
+.. code-block:: bash
+
+    $ vagrant up
+
+Provisioning with ansible
+-------------------------
+
+.. code-block:: bash
+
+    $ sudo pip install pywinrm
+    $ ansible-playbook -i inventory playbooks/playbook.yml -u vagrant -k
 
 Credits
 -------

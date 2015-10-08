@@ -4,7 +4,11 @@
 probe_user: "{{ default_user }}"
 probe_group: "{{ default_group }}"
 
-probe_project_dir: /opt/irma/irma-probe
+irma_install_dir_linux: /opt/irma
+irma_install_dir_windows: C:/IRMA
+irma_install_dir: "{{ irma_install_dir_linux if 'Windows' not in ansible_distribution else irma_install_dir_windows }}"
+
+probe_project_dir: "{{ irma_install_dir }}/irma-probe"
 probe_install_dir: "{{ probe_project_dir }}/current"
 probe_venv_dir: "{{ probe_install_dir }}/venv"
 

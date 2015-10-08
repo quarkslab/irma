@@ -1,12 +1,11 @@
 ---
 
-- name: Ensure good rights on IRMA-Probe install directory
-  file:
-    path: "{{ probe_project_dir }}"
-    state: directory
-    owner: "{{ probe_user }}"
-    group: "{{ irma_server_group }}"
-    mode: 02750
-    recurse: "{{ vagrant_share|default(false) }}"
+- include: linux/provisioning_probe.yml
+  when: "ansible_distribution in ['Debian', 'Ubuntu']"
+  sudo: yes
+
+- include: windows/provisioning_probe.yml
+  when: "'Windows' in ansible_distribution"
+  sudo: no
 
 # vim: sw=2
