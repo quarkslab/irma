@@ -182,3 +182,45 @@ class IrmaProbeType:
             return IrmaProbeType.unknown
         else:
             return IrmaProbeType.from_label[probe_type]
+
+# ==================
+#  Irma ScanRequest
+# ==================
+
+
+class IrmaScanRequest(object):
+
+    def __init__(self, dict_object=None):
+        if dict_object is None:
+            self.request = dict()
+        else:
+            self.request = dict_object
+
+    @property
+    def nb_files(self):
+        return len(self.request.keys())
+
+    def add_file(self, filehash, probelist, mimetype):
+        self.request[filehash] = dict()
+        self.request[filehash]['probe_list'] = probelist
+        self.request[filehash]['mimetype'] = mimetype
+
+    def del_file(self, filehash):
+        if filehash in self.request.keys():
+            self.request.pop(filehash)
+        return
+
+    def get_probelist(self, filehash):
+        return self.request[filehash]['probe_list']
+
+    def set_probelist(self, filehash, value):
+        self.request[filehash]['probe_list'] = value
+
+    def get_mimetype(self, filehash):
+        return self.request[filehash]['mimetype']
+
+    def to_dict(self):
+        return self.request
+
+    def filehashes(self):
+        return self.request.keys()
