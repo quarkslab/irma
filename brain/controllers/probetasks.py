@@ -19,11 +19,14 @@ import config.parser as config
 from brain.helpers.celerytasks import route, async_call
 
 
+scan_app = celery.Celery('scantasks')
+config.conf_brain_celery(scan_app)
+
 results_app = celery.Celery('resultstasks')
 config.conf_results_celery(results_app)
 
 probe_app = celery.Celery('probetasks')
-config.conf_results_celery(probe_app)
+config.conf_probe_celery(probe_app)
 
 # Time to cache the probe list
 # to avoid asking to rabbitmq
@@ -59,6 +62,16 @@ def get_probelist():
 # ============
 #  Task calls
 # ============
+
+def handle_mimetype(mimetype, probe):
+    """ send a task to a probe to know if it handle mimetype"""
+    task = async_call(probe_app,
+                      "probe.tasks",
+                      "handle_mimetype",
+                      args=[mimetype],
+                      queue=probe,)
+    return task
+
 
 def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
     """ send a task to the brain to flush the scan files"""
