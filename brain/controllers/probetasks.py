@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2013-2015 QuarksLab.
 # This file is part of IRMA project.
 #
@@ -14,13 +13,8 @@
 # terms contained in the LICENSE file.
 
 import celery
-import time
 import config.parser as config
 from brain.helpers.celerytasks import route, async_call
-
-
-scan_app = celery.Celery('scantasks')
-config.conf_brain_celery(scan_app)
 
 results_app = celery.Celery('resultstasks')
 config.conf_results_celery(results_app)
@@ -28,50 +22,10 @@ config.conf_results_celery(results_app)
 probe_app = celery.Celery('probetasks')
 config.conf_probe_celery(probe_app)
 
-# Time to cache the probe list
-# to avoid asking to rabbitmq
-PROBELIST_CACHE_TIME = 60
-cache_probelist = {'list': None, 'time': None}
-
-
-def get_probelist():
-    global cache_probelist
-    # get active queues list from probe celery app
-    now = time.time()
-    if cache_probelist['time'] is not None:
-        cache_time = now - cache_probelist['time']
-    if cache_probelist['time'] is None or cache_time > PROBELIST_CACHE_TIME:
-        slist = list()
-        i = probe_app.control.inspect()
-        queues = i.active_queues()
-        if queues:
-            result_queue = config.brain_config['broker_probe'].queue
-            for infolist in queues.values():
-                for info in infolist:
-                    if info['name'] not in slist:
-                        # exclude only predefined result queue
-                        if info['name'] != result_queue:
-                            slist.append(info['name'])
-        if len(slist) != 0:
-            # activate cache only on non empty list
-            cache_probelist['time'] = now
-        cache_probelist['list'] = sorted(slist)
-    return cache_probelist['list']
-
 
 # ============
 #  Task calls
 # ============
-
-def handle_mimetype(mimetype, probe):
-    """ send a task to a probe to know if it handle mimetype"""
-    task = async_call(probe_app,
-                      "probe.tasks",
-                      "handle_mimetype",
-                      args=[mimetype],
-                      queue=probe,)
-    return task
-
 
 def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
     """ send a task to the brain to flush the scan files"""
@@ -94,3 +48,11 @@ def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
 
 def job_cancel(job_list):
     probe_app.control.revoke(job_list, terminate=True)
+
+
+def get_info(queue_name):
+    async_call(probe_app,
+               "probe.tasks",
+               "register",
+               queue=queue_name)
+    return
