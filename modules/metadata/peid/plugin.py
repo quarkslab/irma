@@ -15,6 +15,7 @@
 
 import os
 import sys
+import re
 
 from ConfigParser import SafeConfigParser
 from datetime import datetime
@@ -79,6 +80,9 @@ class PEiDPlugin(PluginBase):
         sign_path = config.get('PEiD', 'sign_path')
         peutils = sys.modules['peutils']
         self.signatures = peutils.SignatureDatabase(sign_path)
+
+    def can_handle(self, mimetype):
+        return re.search('PE32', mimetype, re.IGNORECASE) is not None
 
     def analyze(self, filename):
         pefile = sys.modules['pefile']

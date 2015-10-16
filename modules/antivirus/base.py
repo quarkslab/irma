@@ -62,6 +62,10 @@ class Antivirus(object):
         self._scan_results = dict()
         self._is_windows = sys.platform.startswith('win')
 
+    def can_handle(self, mimetype):
+        # Accept all mimetypes
+        return True
+
     # ====================
     #  Antivirus methods
     # ====================

@@ -14,7 +14,7 @@
 # terms contained in the LICENSE file.
 
 import kombu
-import ssl
+import shutil
 import tempfile
 import os
 import sys
@@ -78,6 +78,47 @@ app.conf.update(
 # declare celery tasks
 ##############################################################################
 
+def handle_output_files(results, dstpath):
+    # First check if there is some output files
+    output_files = results.pop('output_files', None)
+    if output_files is None:
+        return
+    tmpdir = output_files.get('output_dir', None)
+    file_list = output_files.get('file_list', None)
+    log.debug("handle_output_files with %s", ",".join(file_list))
+    if tmpdir is None or file_list is None:
+        return
+    conf_ftp = config.probe_config.ftp_brain
+    uploaded_files = {}
+    with FtpTls(conf_ftp.host,
+                conf_ftp.port,
+                conf_ftp.username,
+                conf_ftp.password) as ftps:
+        for path in file_list:
+            if os.path.isdir(path):
+                continue
+            log.debug("handle_output_files uploading %s", path)
+            full_path = os.path.join(tmpdir, path)
+            hashname = ftps.upload_file(dstpath, full_path)
+            uploaded_files[path] = hashname
+    results['uploaded_files'] = uploaded_files
+    shutil.rmtree(tmpdir)
+    return
+
+
+@app.task(ignore_result=False, acks_late=True)
+def handle_mimetype(mimetype):
+    try:
+        log.info("handle_mimetype %s", mimetype)
+        # retrieve queue name and the associated plugin
+        routing_key = current_task.request.delivery_info['routing_key']
+        probe = probes[routing_key]
+        return probe.can_handle(mimetype)
+    except Exception as e:
+        log.exception("Exception has occured: {0}".format(e))
+        raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
+
+
 @app.task(acks_late=True)
 def probe_scan(frontend, scanid, filename):
     try:
@@ -97,6 +138,7 @@ def probe_scan(frontend, scanid, filename):
         # Some AV always delete suspicious file
         if os.path.exists(tmpname):
             os.remove(tmpname)
+        handle_output_files(results, path)
         return to_unicode(results)
     except Exception as e:
         log.exception("Exception has occured: {0}".format(e))

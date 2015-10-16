@@ -67,6 +67,9 @@ class PEAnalyzerPlugin(PluginBase):
         module = sys.modules['modules.metadata.pe_analyzer.pe'].PE
         self.module = module()
 
+    def can_handle(self, mimetype):
+        return re.search('PE32', mimetype, re.IGNORECASE) is not None
+
     def analyze(self, filename):
         # check parameters
         if not filename:

@@ -54,6 +54,10 @@ class TrIDPlugin(PluginBase):
         module = sys.modules['modules.metadata.trid.trid'].TrID
         self.module = module()
 
+    def can_handle(self, mimetype):
+        # accept all mimetypes
+        return True
+
     def run(self, paths):
         results = PluginResult(name=type(self).plugin_name,
                                type=type(self).plugin_category,
