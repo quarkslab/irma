@@ -18,7 +18,7 @@
 import argparse
 from apiclient import IrmaApiClient, IrmaScanApi, IrmaProbesApi, IrmaError
 
-ADDRESS = "http://www.frontend.irma/api/v1/"
+ADDRESS = "http://www.frontend.irma/api/v1.1/"
 
 # ================================================
 #  Functions print values or raise (Called by UI)
@@ -88,7 +88,7 @@ def scan_results(scanid, verbose=False):
     scanapi = IrmaScanApi(cli)
     scan = scanapi.get(scanid)
     for result in scan.results:
-        file_result = scanapi.file_results(scanid, result.result_id)
+        file_result = scanapi.file_results(result.result_id)
         print "[{0} (sha256: {1})]".format(file_result.name,
                                            file_result.file_infos.sha256)
         for pr in file_result.probe_results:

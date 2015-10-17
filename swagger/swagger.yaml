@@ -7,7 +7,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
 
-basePath: /api/v1
+basePath: /api/v1.1
 produces:
   - application/json
 consumes:
@@ -20,7 +20,7 @@ paths:
     get:
       summary: List all scans
       description: |
-        List all scan which have been submit to the IRMA plateform.
+        List all scan which have been submitted to IRMA plateform.
       tags:
         - Scans
       parameters:
@@ -60,7 +60,7 @@ paths:
     post:
       summary: Create a scan
       description: |
-        Before scanning files, you'll need to create a scan object.
+        Before scanning files, you will need to create a scan object.
       tags:
         - Scans
       responses:
@@ -102,8 +102,8 @@ paths:
     post:
       summary: Launch a scan
       description: |
-        You'll need at least one file to be present before launching a scan.
-        If the scan has already been launched, you'll received a 200 response.
+        You will need at least one file to be present before launching a scan.
+        If the scan has already been launched, you will received a 200 response.
       tags:
         - Scans
       parameters:
@@ -143,8 +143,8 @@ paths:
     post:
       summary: Cancel a scan
       description: |
-        Cancel a scan that has previously been launched. You may not cancel a
-        scan that has not been launched, you'll recieved an Unexpected error.
+        Cancel a scan that has been previously launched. You may not cancel a
+        scan that has not been launched, you'll received an Unexpected error.
       tags:
         - Scans
       parameters:
@@ -197,7 +197,7 @@ paths:
     get:
       summary: List all results from a scan
       description: |
-        When retrieving a scan, you'll get a results property containing the
+        When retrieving a scan, you will get a results property containing the
         total count of scan results items. With this url you can retrieve the
         full paginated list of items.
       tags:
@@ -250,19 +250,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /scans/{scanId}/results/{resultId}:
+  /results/{resultId}:
     get:
-      summary: Retrieve a result for a specific scan
+      summary: Retrieve a scan result for a specific file
       description: |
         Possibility to display result for a scan of a file
       tags:
-        - Scans
+        - Results
       parameters:
-        - name: scanId
-          in: path
-          type: string
-          description: ID of the scan
-          required: true
         - name: resultId
           in: path
           type: string
@@ -270,7 +265,7 @@ paths:
           required: true
         - name: formatted
           in: query
-          description: Select if format result (if no, there is more informations about the scan result)
+          description: Select if result should be formatted or raw
           type: string
       responses:
         200:
@@ -290,10 +285,9 @@ paths:
 
   /probes:
     get:
-      summary: Retrieve active probes informations
+      summary: Retrieve active probes information
       description: |
-        The Probes endpoint returns information about probes which are available
-        for a scan.
+        Returns information about availables probes for a scan.
       tags:
         - Probes
       responses:

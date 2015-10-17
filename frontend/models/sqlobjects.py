@@ -15,8 +15,8 @@
 import hashlib
 import os
 
-from sqlalchemy import Table, Column, Integer, Numeric, ForeignKey, String, \
-    event, UniqueConstraint
+from sqlalchemy import Table, Column, Integer, Numeric, Boolean, ForeignKey, \
+    String, event, UniqueConstraint
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
@@ -25,7 +25,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 import config.parser as config
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaCoreError, IrmaFileSystemError
-from lib.common import compat
+from lib.common import compat, mimetypes
 from lib.common.utils import UUID
 from lib.irma.common.utils import IrmaScanStatus, IrmaProbeType
 from lib.irma.database.sqlobjects import SQLDatabaseObject
@@ -199,6 +199,10 @@ class File(Base, SQLDatabaseObject):
         Integer,
         name='size'
     )
+    mimetype = Column(
+        String,
+        name='mimetype'
+    )
     path = Column(
         String(length=255),
         name='path'
@@ -266,7 +270,7 @@ class File(Base, SQLDatabaseObject):
         #       Further manipulation of *asked_file* may be dangerous
         return asked_file
 
-    def save_file_to_fs(self, data):
+    def save_file_to_fs(self, data, mimetype):
         """Add a sample
         :param data: the sample file
         :raise: IrmaFileSystemError if there is a problem with the filesystem
@@ -280,6 +284,7 @@ class File(Base, SQLDatabaseObject):
         self.md5 = hashlib.md5(data).hexdigest()
         self.size = len(data)
         self.path = path
+        self.mimetype = mimetype
 
     def remove_file_from_fs(self):
         """Remove the sample
@@ -430,12 +435,37 @@ class Scan(Base, SQLDatabaseObject):
         String,
         name='ip'
     )
+    probelist = Column(
+        String,
+        name='probelist'
+    )
+    force = Column(
+        Boolean,
+        name='force'
+    )
+    mimetype_filtering = Column(
+        Boolean,
+        name='mimetype_filtering'
+    )
+    resubmit_files = Column(
+        Boolean,
+        name='resubmit_files'
+    )
+
+    def get_probelist(self):
+        return self.probelist.split(",")
+
+    def set_probelist(self, value):
+        self.probelist = ",".join(value)
 
     def __init__(self, date, ip):
         super(Scan, self).__init__()
         self.external_id = UUID.generate()
         self.date = date
         self.ip = ip
+        self.force = False
+        self.mimetype_filtering = False
+        self.resubmit_files = False
 
     @classmethod
     def load_from_ext_id(cls, external_id, session):
@@ -488,12 +518,23 @@ class Scan(Base, SQLDatabaseObject):
             finished += fw.probes_finished
         return finished
 
+    @property
+    def files(self):
+        return list(set([fw.file for fw in self.files_web]))
+
     def set_status(self, status_code):
         if status_code not in IrmaScanStatus.label.keys():
             raise IrmaCoreError("Trying to update with an unknown status")
         if status_code not in [evt.status for evt in self.events]:
             evt = ScanEvents(status_code, self)
             self.events.append(evt)
+
+    def get_filewebs_by_sha256(self, sha256):
+        fws = []
+        for file_web in self.files_web:
+            if file_web.file.sha256 == sha256:
+                fws.append(file_web)
+        return fws
 
 
 class FileWeb(Base, SQLDatabaseObject):
@@ -512,10 +553,11 @@ class FileWeb(Base, SQLDatabaseObject):
         primary_key=True,
         name='id'
     )
-    scan_file_idx = Column(
-        Integer,
+    external_id = Column(
+        String(length=36),
+        index=True,
         nullable=False,
-        name='scan_file_idx'
+        name='external_id'
     )
     # Many to one FileWeb <-> File as part of the primary key
     id_file = Column(
@@ -529,7 +571,8 @@ class FileWeb(Base, SQLDatabaseObject):
     )
     file = relationship(
         "File",
-        backref=backref('files_web')
+        backref=backref('files_web'),
+        foreign_keys='FileWeb.id_file'
     )
     name = Column(
         String(length=255),
@@ -546,15 +589,43 @@ class FileWeb(Base, SQLDatabaseObject):
         "Scan",
         backref=backref('files_web')
     )
-    # insure there are no dup scan_file_idx
-    __table_args__ = (UniqueConstraint('id_scan', 'scan_file_idx'),)
+    # Many to one FileWeb <-> Scan
+    id_parent = Column(
+        Integer,
+        ForeignKey('{0}file.id'.format(tables_prefix)),
+    )
+    # Many to one FileWeb <-> File
+    parent = relationship("File",
+                          backref="children",
+                          foreign_keys='FileWeb.id_parent')
 
-    def __init__(self, file, name, scan, idx):
+    # insure there are no dup external_id
+    __table_args__ = (UniqueConstraint('external_id'),)
+
+    def __init__(self, file, name, scan):
         super(FileWeb, self).__init__()
+        self.external_id = UUID.generate()
         self.file = file
         self.name = name
         self.scan = scan
-        self.scan_file_idx = idx
+
+    @classmethod
+    def load_from_ext_id(cls, external_id, session):
+        """Find the object in the database
+        :param external_id: the id to look for
+        :param session: the session to use
+        :rtype: cls
+        :return: the object that corresponds to the external_id
+        :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
+        """
+        try:
+            return session.query(cls).filter(
+                cls.external_id == external_id
+            ).one()
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+        except MultipleResultsFound as e:
+            raise IrmaDatabaseError(e)
 
     @property
     def probes_total(self):
@@ -592,7 +663,7 @@ class FileWeb(Base, SQLDatabaseObject):
     def query_find_by_name(cls, name, tags, session):
         query = session.query(FileWeb)\
             .distinct(FileWeb.name)\
-            .join(File)\
+            .join(File, File.id == FileWeb.id_file)\
             .filter(FileWeb.name.like("%{0}%".format(name)))
 
         # Update the query with tags if user asked for it
@@ -607,7 +678,7 @@ class FileWeb(Base, SQLDatabaseObject):
     def query_find_by_hash(cls, hash_type, hash_value, tags, session):
         query = session.query(FileWeb)\
             .distinct(FileWeb.name)\
-            .join(File)
+            .join(File, File.id == FileWeb.id_file)
 
         query = query.filter(getattr(File, hash_type) == hash_value)
 

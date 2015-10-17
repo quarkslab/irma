@@ -13,18 +13,19 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import sys
 from bottle import response, abort
 from sqlalchemy.orm.exc import NoResultFound
 
-from frontend.helpers.schemas import ApiErrorSchema
+from frontend.api.v1_1.schemas import ApiErrorSchema_v1_1
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaValueError
 
 
-api_error_schema = ApiErrorSchema()
+api_error_schema = ApiErrorSchema_v1_1()
 
 
-# This object aimed to be serialize by an ApiErrorSchema
+# This object aimed to be serialize by an ApiErrorSchema_v1_1
 class ApiError(object):
     http_status_code = 402
 
@@ -39,6 +40,12 @@ class ApiError(object):
 
 # Main function design to return a custom API Error
 def process_error(error):
+    exc_type, _, exc_tb = sys.exc_info()
+    fname = exc_tb.tb_frame.f_code.co_filename
+    print "Exception {0}:{1} [{2}:{3}]".format(exc_type,
+                                               error,
+                                               fname,
+                                               exc_tb.tb_lineno)
     # Default options if error does not match known error
     abort_code = ApiError.http_status_code
     api_error = ApiError('api_error')

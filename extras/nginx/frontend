@@ -26,9 +26,9 @@ server {
         deny all;
 
     }
-    location /api/v1 {
+    location /api {
         include uwsgi_params;
-        rewrite ^/api/v1/(.+) /$1 break;
+        rewrite ^/api/(.+) /$1 break;
         uwsgi_pass unix:///run/uwsgi/app/frontend-api/socket;
 
     }

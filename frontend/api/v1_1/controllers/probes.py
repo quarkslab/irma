@@ -14,7 +14,7 @@
 # terms contained in the LICENSE file.
 
 from bottle import response
-from frontend.api.errors import process_error
+from frontend.api.v1_1.errors import process_error
 import frontend.controllers.braintasks as celery_brain
 
 

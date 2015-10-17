@@ -1,7 +1,7 @@
 from unittest import TestCase
 from mock import MagicMock, patch
 
-import frontend.api.controllers.search as api_search
+import frontend.api.v1_1.controllers.search as api_search
 
 
 class TestApiSearch(TestCase):
@@ -22,7 +22,8 @@ class TestApiSearch(TestCase):
         del self.request
 
     def test001_files_raise_none_None(self):
-        with patch("frontend.api.controllers.search.process_error") as mock:
+        process_error = "frontend.api.v1_1.controllers.search.process_error"
+        with patch(process_error) as mock:
             api_search.files("whatever")
             self.assertTrue(mock.called)
             self.assertIsInstance(mock.call_args[0][0], ValueError)
@@ -31,7 +32,8 @@ class TestApiSearch(TestCase):
 
     def test002_files_raise_h_type_None(self):
         self.request.query.name = None
-        with patch("frontend.api.controllers.search.process_error") as mock:
+        process_error = "frontend.api.v1_1.controllers.search.process_error"
+        with patch(process_error) as mock:
             api_search.files("whatever")
             self.assertTrue(mock.called)
             self.assertIsInstance(mock.call_args[0][0], ValueError)

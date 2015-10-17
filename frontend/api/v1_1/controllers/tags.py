@@ -14,14 +14,14 @@
 # terms contained in the LICENSE file.
 
 from bottle import response
-from frontend.api.errors import process_error
-from frontend.helpers.schemas import TagSchema
+from frontend.api.v1_1.errors import process_error
+from frontend.api.v1_1.schemas import TagSchema_v1_1
 from frontend.models.sqlobjects import File, Tag
 import logging
 
 
 log = logging.getLogger()
-tag_schema = TagSchema()
+tag_schema = TagSchema_v1_1()
 tag_schema.context = {'formatted': True}
 
 

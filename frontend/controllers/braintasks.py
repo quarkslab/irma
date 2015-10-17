@@ -41,6 +41,20 @@ def probe_list():
     return res
 
 
+def mimetype_filter_scan_request(scan_request):
+    """ send a task to the brain asking for mimetype filtering
+        on probe list
+    """
+    (retcode, res) = sync_call(brain_app,
+                               "brain.tasks",
+                               "mimetype_filter_scan_request",
+                               timeout,
+                               args=[scan_request])
+    if retcode != IrmaReturnCode.success:
+        raise IrmaTaskError(res)
+    return res
+
+
 def scan_progress(scanid):
     """ send a task to the brain asking for status of subtasks launched """
     return sync_call(brain_app,

@@ -1,6 +1,6 @@
 <div class="row">
   <div class="col-md-9" role="main">
-    <p><a href="/scan/{{state.scan.id}}">Back to the scan summary</a></p>
+    <p><a href="/scan/{{vm.results.scan_id}}">Back to the scan summary</a></p>
 
     <div class="result-section">
       <h2 id="file-informations">File informations</h2>
@@ -26,6 +26,10 @@
           <tr>
             <th>Size (bytes)</th>
             <td>{{vm.results.file_infos.size}}</td>
+          </tr>
+          <tr>
+            <th>Mimetype</th>
+            <td>{{vm.results.file_infos.mimetype}}</td>
           </tr>
           <tr>
             <th>MD5</th>

@@ -2,22 +2,23 @@ from random import randint
 from unittest import TestCase
 from mock import MagicMock, patch
 
-import frontend.api.controllers.scans as api_scans
+import frontend.api.v1_1.controllers.scans as api_scans
 from frontend.models.sqlobjects import Scan
-from frontend.helpers.schemas import ScanSchema
+from frontend.api.v1_1.schemas import ScanSchema_v1_1
 from lib.irma.common.utils import IrmaScanStatus
 
 
 class TestApiScans(TestCase):
 
     def test001_initiation(self):
-        self.assertIsInstance(api_scans.scan_schema, ScanSchema)
+        self.assertIsInstance(api_scans.scan_schema, ScanSchema_v1_1)
 
     def test002_list_error(self):
         sample = Exception("test")
         db_mock = MagicMock()
         db_mock.query.side_effect = sample
-        with patch("frontend.api.controllers.scans.process_error") as mock:
+        process_error = "frontend.api.v1_1.controllers.scans.process_error"
+        with patch(process_error) as mock:
             api_scans.list(db_mock)
         self.assertTrue(db_mock.query.called)
         self.assertEqual(db_mock.query.call_args, ((Scan,),))
@@ -32,7 +33,9 @@ class TestApiScans(TestCase):
                     "offset": default_offset,
                     "limit": default_limit,
                     "data": scan_schema_mock.dump().data}
-        scan_schema = "frontend.api.controllers.scans.scan_schema"
+        scan_schema = "frontend.api.v1_1.controllers.scans.scan_schema"
+        api_scans.request.query.offset = None
+        api_scans.request.query.limit = None
         with patch(scan_schema, scan_schema_mock):
             result = api_scans.list(db_mock)
         self.assertEqual(result, expected)
@@ -54,7 +57,7 @@ class TestApiScans(TestCase):
                     "data": scan_schema_mock.dump().data}
         api_scans.request.query.offset = offset
         api_scans.request.query.limit = limit
-        scan_schema = "frontend.api.controllers.scans.scan_schema"
+        scan_schema = "frontend.api.v1_1.controllers.scans.scan_schema"
         with patch(scan_schema, scan_schema_mock):
             result = api_scans.list(db_mock)
         self.assertEqual(result, expected)
@@ -62,8 +65,8 @@ class TestApiScans(TestCase):
 
     def test005_new_ok(self):
         db_mock = MagicMock()
-        with patch("frontend.api.controllers.scans.Scan") as scan_mock:
-            scan_schema = "frontend.api.controllers.scans.scan_schema"
+        with patch("frontend.api.v1_1.controllers.scans.Scan") as scan_mock:
+            scan_schema = "frontend.api.v1_1.controllers.scans.scan_schema"
             with patch(scan_schema) as schema_mock:
                 result = api_scans.new(db_mock)
         self.assertTrue(scan_mock.called)

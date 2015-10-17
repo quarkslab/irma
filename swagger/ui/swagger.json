@@ -8,7 +8,7 @@
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
     },
-    "basePath": "/api/v1",
+    "basePath": "/api/v1.1",
     "produces": [
         "application/json"
     ],
@@ -19,6 +19,38 @@
         "http"
     ],
     "paths": {
+        "/probes": {
+            "get": {
+                "summary": "Retrieve active probes informations",
+                "description": "The Probes endpoint returns information about probes which are available\nfor a scan.\n",
+                "tags": [
+                    "Probes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "total": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
         "/scans": {
             "get": {
                 "summary": "List all scans",
@@ -353,92 +385,6 @@
                 }
             }
         },
-        "/scans/{scanId}/results/{resultId}": {
-            "get": {
-                "summary": "Retrieve a result for a specific scan",
-                "description": "Possibility to display result for a scan of a file\n",
-                "tags": [
-                    "Scans"
-                ],
-                "parameters": [
-                    {
-                        "name": "scanId",
-                        "in": "path",
-                        "type": "string",
-                        "description": "ID of the scan",
-                        "required": true
-                    },
-                    {
-                        "name": "resultId",
-                        "in": "path",
-                        "type": "string",
-                        "description": "ID of the result",
-                        "required": true
-                    },
-                    {
-                        "name": "formatted",
-                        "in": "query",
-                        "description": "Select if format result (if no, there is more informations about the scan result)",
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ScanResult"
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    },
-                    "default": {
-                        "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/probes": {
-            "get": {
-                "summary": "Retrieve active probes informations",
-                "description": "The Probes endpoint returns information about probes which are available\nfor a scan.\n",
-                "tags": [
-                    "Probes"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "total": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "data": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
         "/search/files": {
             "get": {
                 "summary": "Search files",
@@ -499,6 +445,53 @@
                                     }
                                 }
                             }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/results/{resultId}": {
+            "get": {
+                "summary": "Retrieve a result for a specific scan",
+                "description": "Fetch file result for a scan\n",
+                "tags": [
+                    "Results"
+                ],
+                "parameters": [
+                    {
+                        "name": "resultId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the result",
+                        "required": true
+                    },
+                    {
+                        "name": "formatted",
+                        "in": "query",
+                        "description": "Select if format result (if no, there is more informations about the scan result)",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ScanResult"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {

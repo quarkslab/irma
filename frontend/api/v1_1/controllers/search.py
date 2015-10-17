@@ -15,13 +15,13 @@
 
 from bottle import response, request
 
-from frontend.api.errors import process_error
+from frontend.api.v1_1.errors import process_error
 from frontend.helpers.utils import guess_hash_type
 from frontend.models.sqlobjects import FileWeb
-from frontend.api.controllers import tags
-from frontend.helpers.schemas import FileWebSchema
+from frontend.api.v1_1.schemas import FileWebSchema_v1_1
 
-file_web_schema = FileWebSchema()
+
+file_web_schema = FileWebSchema_v1_1()
 file_web_schema.context = {'formatted': True}
 
 
