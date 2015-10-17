@@ -26,7 +26,7 @@ file_web_schema.context = {'formatted': True}
 
 
 def files(db):
-    """ Search a file using query filters (hash or name). Support
+    """ Search a file using query filters (tags + hash or name). Support
         pagination.
     :param all params are send using query method
     :rtype: dict of 'total': int, 'page': int, 'per_page': int,
@@ -38,6 +38,9 @@ def files(db):
     try:
         name = request.query.name or None
         h_value = request.query.hash or None
+        search_tags = request.query.tags or None
+        if search_tags is not None:
+            search_tags = search_tags.split(',')
 
         if name is not None and h_value is not None:
             raise ValueError("Can't find using both name and hash")
@@ -47,19 +50,20 @@ def files(db):
         limit = int(request.query.limit) if request.query.limit else 25
 
         if name is not None:
-            base_query = FileWeb.query_find_by_name(name, db)
+            base_query = FileWeb.query_find_by_name(name, search_tags, db)
         elif h_value is not None:
             h_type = guess_hash_type(h_value)
 
             if h_type is None:
                 raise ValueError("Hash not supported")
 
-            base_query = FileWeb.query_find_by_hash(h_type, h_value, db)
+            base_query = FileWeb.query_find_by_hash(
+                h_type, h_value, search_tags, db)
         else:
             # FIXME this is just a temporary way to output
             # all files, need a dedicated
             # file route and controller
-            base_query = FileWeb.query_find_by_name("", db)
+            base_query = FileWeb.query_find_by_name("", search_tags, db)
 
         # TODO: Find a way to move pagination as a BaseQuery like in
         #       flask_sqlalchemy.
