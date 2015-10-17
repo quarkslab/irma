@@ -15,6 +15,7 @@
 
 import os
 import sys
+import re
 
 from datetime import datetime
 from ConfigParser import SafeConfigParser
@@ -107,6 +108,10 @@ class NSRLPlugin(PluginBase):
 
         self.module = module(nsrl_file_db, nsrl_prod_db,
                              nsrl_os_db, nsrl_mfg_db)
+
+    def can_handle(self, mimetype):
+        # accept all PE executable
+        return re.search('PE32', mimetype, re.IGNORECASE) is not None
 
     # ==================
     #  probe interfaces

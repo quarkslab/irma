@@ -58,11 +58,14 @@ probe_config = TemplatedConfiguration(cfg_file, template_probe_config)
 
 def conf_probe_celery(app, queue=None):
     broker = get_probe_broker_uri()
+    backend = get_probe_backend_uri()
     app.conf.update(BROKER_URL=broker,
                     CELERY_ACCEPT_CONTENT=['json'],
                     CELERY_TASK_SERIALIZER='json',
                     CELERY_RESULT_SERIALIZER='json'
                     )
+    app.conf.update(CELERY_RESULT_BACKEND=backend)
+    app.conf.update(CELERY_TASK_RESULT_EXPIRES=300)  # 5 minutes
     if queue is not None:
         app.conf.update(CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode
@@ -87,6 +90,10 @@ def _get_broker_uri(broker_config):
 
 
 def get_probe_broker_uri():
+    return _get_broker_uri(probe_config.broker_probe)
+
+
+def get_probe_backend_uri():
     return _get_broker_uri(probe_config.broker_probe)
 
 

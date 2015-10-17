@@ -71,6 +71,10 @@ class ICAPPlugin(PluginBase):
                                                  ('timeout', int)))
         self.module = sys.modules['icapclient']
 
+    def can_handle(self, mimetype):
+        # accept all mimetypes
+        return True
+
     @staticmethod
     def retrieve_options(config, kwargs, keys):
         options = {}

@@ -70,6 +70,10 @@ class YaraPlugin(PluginBase):
 
         self.rules = sys.modules['yara'].compile(filepath=self.rule_path)
 
+    def can_handle(self, mimetype):
+        # accept all mimetypes
+        return True
+
     def get_file_report(self, filename):
         try:
             results = (False, self.rules.match(filename, timeout=60))
