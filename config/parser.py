@@ -116,7 +116,8 @@ def conf_brain_celery(app):
 
 def conf_probe_celery(app):
     broker = get_probe_broker_uri()
-    _conf_celery(app, broker, backend=False)
+    backend = get_probe_backend_uri()
+    _conf_celery(app, broker, backend=backend)
 
 
 def conf_frontend_celery(app):
@@ -154,6 +155,10 @@ def get_brain_backend_uri():
 
 
 def get_probe_broker_uri():
+    return _get_amqp_uri(brain_config.broker_probe)
+
+
+def get_probe_backend_uri():
     return _get_amqp_uri(brain_config.broker_probe)
 
 

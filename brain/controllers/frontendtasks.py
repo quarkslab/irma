@@ -22,11 +22,11 @@ config.conf_frontend_celery(frontend_app)
 config.configure_syslog(frontend_app)
 
 
-def scan_launched(frontend_scanid):
+def scan_launched(frontend_scanid, scan_request):
     async_call(frontend_app,
                "frontend.tasks",
                "scan_launched",
-               args=[frontend_scanid])
+               args=[frontend_scanid, scan_request])
 
 
 def scan_result(frontend_scanid, filename, probe, result):

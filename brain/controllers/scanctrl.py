@@ -16,13 +16,19 @@
 from brain.models.sqlobjects import Scan
 from brain.helpers.sql import session_query, session_transaction
 from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.common.exceptions import IrmaValueError
+from lib.irma.common.exceptions import IrmaValueError, \
+    IrmaDatabaseResultNotFound
 
 
 def new(frontend_scan_id, user_id, nb_files):
     with session_transaction() as session:
-        scan = Scan(frontend_scan_id, user_id, nb_files)
-        scan.save(session)
+        try:
+            scan = Scan.get_scan(frontend_scan_id, user_id, session)
+            scan.nb_files += nb_files
+            scan.update(['nb_files'], session)
+        except IrmaDatabaseResultNotFound:
+            scan = Scan(frontend_scan_id, user_id, nb_files)
+            scan.save(session)
         session.commit()
         return scan.id
 
@@ -31,6 +37,12 @@ def get_scan_id(frontend_scan_id, user_id):
     with session_query() as session:
         scan = Scan.get_scan(frontend_scan_id, user_id, session)
         return scan.id
+
+
+def get_user_id(scan_id):
+    with session_query() as session:
+        scan = Scan.load(scan_id, session)
+        return scan.user_id
 
 
 def get_nbjobs(scan_id):

@@ -23,7 +23,8 @@ import brain.controllers.jobctrl as job_ctrl
 import brain.controllers.probetasks as celery_probe
 import brain.controllers.frontendtasks as celery_frontend
 import brain.controllers.ftpctrl as ftp_ctrl
-from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus
+from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
+    IrmaScanRequest
 from lib.common.utils import UUID
 
 # Get celery's logger
@@ -39,8 +40,56 @@ config.configure_syslog(results_app)
 
 
 # ===================
+#  Private functions
+# ===================
+
+
+def _create_scan(frontend_scanid, scan_request_dict):
+    # TODO user should be identified by RMQ vhost
+    # read vhost from config as workaround
+    rmqvhost = config.get_frontend_rmqvhost()
+    user_id = user_ctrl.get_userid(rmqvhost)
+    # create an initial entry to track future errors
+    # tell frontend that frontend_scanid is now known to brain
+    # progress available
+    print("Received {0}".format(scan_request_dict))
+    scan_request = IrmaScanRequest(scan_request_dict)
+    scan_id = scan_ctrl.new(frontend_scanid, user_id, scan_request.nb_files)
+    (remaining, quota) = user_ctrl.get_quota(user_id)
+    if remaining is not None:
+        log.info("%s quota remaining {0}/{1}",
+                 frontend_scanid,
+                 remaining,
+                 quota)
+    else:
+        log.info("%s unlimited quota",
+                 frontend_scanid)
+    if remaining <= 0:
+        scan_ctrl.error(scan_id, IrmaScanStatus.error)
+    return scan_id
+
+
+mimetype_probe = {}
+
+
+def _get_mimetype_probelist(mimetype):
+    log.info("asking what probes handle %s",
+             mimetype)
+    available_probelist = celery_probe.get_probelist()
+    if mimetype not in mimetype_probe:
+        mimetype_probe[mimetype] = []
+        for probe in available_probelist:
+            res = celery_probe.handle_mimetype(mimetype, probe).get()
+            if res is True:
+                mimetype_probe[mimetype].append(probe)
+                log.info("probe %s handle it", probe)
+    return mimetype_probe[mimetype]
+
+
+# ===================
 #  Tasks declaration
 # ===================
+
 
 @scan_app.task(acks_late=True)
 def probe_list():
@@ -55,50 +104,63 @@ def probe_list():
         raise
 
 
-@scan_app.task(ignore_result=True, acks_late=True)
-def scan(frontend_scanid, scan_request):
+@scan_app.task(ignore_result=False, acks_late=True)
+def mimetype_filter_scan_request(scan_request_dict):
     try:
-        log.info("%s", frontend_scanid)
-        # TODO user should be identified by RMQ vhost
-        # read vhost from config as workaround
-        rmqvhost = config.get_frontend_rmqvhost()
-        user_id = user_ctrl.get_userid(rmqvhost)
-        ftpuser = user_ctrl.get_ftpuser(user_id)
-        # create an initial entry to track future errors
-        # tell frontend that frontend_scanid is now known to brain
-        # progress available
-        scan_id = scan_ctrl.new(frontend_scanid, user_id, len(scan_request))
-        # send a scan launched event to frontend
-        (remaining, quota) = user_ctrl.get_quota(user_id)
-        if remaining is not None:
-            log.info("%s quota remaining {0}/{1}",
-                     frontend_scanid,
-                     remaining,
-                     quota)
-        else:
-            log.info("%s unlimited quota",
-                     frontend_scanid)
-        if remaining <= 0:
-            scan_ctrl.error(scan_id, IrmaScanStatus.error)
-
         available_probelist = celery_probe.get_probelist()
-        for (filename, probe_list) in scan_request.items():
+        scan_request = IrmaScanRequest(scan_request_dict)
+        for filehash in scan_request.filehashes():
+            filtered_probelist = []
+            mimetype = scan_request.get_mimetype(filehash)
+            mimetype_probelist = _get_mimetype_probelist(mimetype)
+            probe_list = scan_request.get_probelist(filehash)
+            # first check probe_list for unknown probe
+            for probe in probe_list:
+                # check if probe exists
+                if probe not in available_probelist:
+                    msg = "Unknown probe {0}".format(probe)
+                    log.info("Unknown probe %s",
+                             probe)
+                    return IrmaTaskReturn.error(msg)
+                if probe in mimetype_probelist:
+                    # probe is asked but not supported by mimetype
+                    filtered_probelist.append(probe)
+            # update probe list in scan request
+            scan_request.set_probelist(filehash, filtered_probelist)
+        return IrmaTaskReturn.success(scan_request.to_dict())
+    except:
+        log.info("exception", exc_info=True)
+        raise
+
+
+@scan_app.task(ignore_result=False, acks_late=True)
+def scan(frontend_scanid, scan_request_dict):
+    try:
+        log.info("%s: new_scan", frontend_scanid)
+        scan_id = _create_scan(frontend_scanid, scan_request_dict)
+        scan_request = IrmaScanRequest(scan_request_dict)
+        available_probelist = celery_probe.get_probelist()
+        log.info("%s: launch_scan", frontend_scanid)
+        user_id = scan_ctrl.get_user_id(scan_id)
+        (remaining, _) = user_ctrl.get_quota(user_id)
+        ftp_user = user_ctrl.get_ftpuser(user_id)
+        for filehash in scan_request.filehashes():
+            probe_list = scan_request.get_probelist(filehash)
+            # first check probe_list for unknown probe
+            for probe in probe_list:
+                # check if probe exists
+                if probe not in available_probelist:
+                    scan_ctrl.error(scan_id,
+                                    IrmaScanStatus.error_probe_missing)
+                    msg = "Unknown probe {0}".format(probe)
+                    log.info("%s Unknown probe %s",
+                             frontend_scanid,
+                             probe)
+                    return IrmaTaskReturn.error(msg)
             if probe_list is None:
                 scan_ctrl.error(scan_id, IrmaScanStatus.error_probe_missing)
                 log.info("%s Empty probe list", frontend_scanid)
                 return IrmaTaskReturn.error("empty probe list on brain")
-            # first check probe_list
-            for p in probe_list:
-                # check if probe exists
-                if p not in available_probelist:
-                    scan_ctrl.error(scan_id,
-                                    IrmaScanStatus.error_probe_missing)
-                    msg = "Unknown probe {0}".format(p)
-                    log.info("%s Unknown probe %s",
-                             frontend_scanid,
-                             p)
-                    return IrmaTaskReturn.error(msg)
-
             # Now, create one subtask per file to
             # scan per probe according to quota
             for probe in probe_list:
@@ -108,43 +170,25 @@ def scan(frontend_scanid, scan_request):
                     else:
                         remaining -= 1
                 task_id = UUID.generate()
-                job_id = job_ctrl.new(scan_id, filename, probe, task_id)
-                celery_probe.job_launch(ftpuser,
+                job_id = job_ctrl.new(scan_id, filehash, probe, task_id)
+                celery_probe.job_launch(ftp_user,
                                         frontend_scanid,
-                                        filename,
+                                        filehash,
                                         probe,
                                         job_id,
                                         task_id)
         scan_ctrl.launched(scan_id)
-        celery_frontend.scan_launched(frontend_scanid)
+        celery_frontend.scan_launched(frontend_scanid, scan_request.to_dict())
         log.info(
-            "%s %d files receives / %d active probe /" +
-            " %d probe used / %d jobs launched",
+            "%s %d files receives / %d active probes / "
+            "%d jobs launched",
             frontend_scanid,
-            len(scan_request),
+            scan_request.nb_files,
             len(available_probelist),
-            len(probe_list),
             scan_ctrl.get_nbjobs(scan_id))
     except:
         log.info("exception", exc_info=True)
         raise
-
-
-@scan_app.task(acks_late=True)
-def scan_progress(frontend_scanid):
-    try:
-        log.info("scanid %s", frontend_scanid)
-        rmqvhost = config.get_frontend_rmqvhost()
-        user_id = user_ctrl.get_userid(rmqvhost)
-        scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
-        (status, progress_details) = scan_ctrl.progress(scan_id)
-        res = {}
-        res['status'] = status
-        res['progress_details'] = progress_details
-        return IrmaTaskReturn.success(res)
-    except:
-        log.info("exception", exc_info=True)
-        return IrmaTaskReturn.error("progress error on brain")
 
 
 @scan_app.task(acks_late=True)
