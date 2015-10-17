@@ -38,6 +38,7 @@
       errorUpload: errorUpload,
       doneUpload: doneUpload,
       startScan: startScan,
+      stopUpdate: stopUpdate,
       cancelScan: cancelScan,
       updateScan: updateScan,
       setProgress: setProgress,
@@ -130,10 +131,14 @@
 
     function cancelScan() {
       $log.info('Scan was cancelled');
-      $timeout.cancel(this.task);
+      this.stopUpdate();
       if(this.id){
         this.api.scan.cancel(this);
       }
+    }
+
+    function stopUpdate(){
+      $timeout.cancel(this.task);
     }
 
     function updateScan() {

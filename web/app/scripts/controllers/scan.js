@@ -31,5 +31,9 @@
       state.newScan();
       state.goTo('selection');
     }
+
+    $scope.$on('$destroy', function(){
+      state.scan.stopUpdate();
+    });
   }
 }) ();
