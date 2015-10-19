@@ -46,19 +46,19 @@ def files(db):
         limit = int(request.query.limit) if request.query.limit else 25
 
         if name is not None:
-            base_query = FileWeb.query_find_by_name(name, db)
+            base_query = FileWeb.query_find_by_name(name, None, db)
         elif h_value is not None:
             h_type = guess_hash_type(h_value)
 
             if h_type is None:
                 raise ValueError("Hash not supported")
 
-            base_query = FileWeb.query_find_by_hash(h_type, h_value, db)
+            base_query = FileWeb.query_find_by_hash(h_type, h_value, None, db)
         else:
             # FIXME this is just a temporary way to output
             # all files, need a dedicated
             # file route and controller
-            base_query = FileWeb.query_find_by_name("", db)
+            base_query = FileWeb.query_find_by_name("", None, db)
 
         # TODO: Find a way to move pagination as a BaseQuery like in
         #       flask_sqlalchemy.
