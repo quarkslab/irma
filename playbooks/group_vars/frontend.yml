@@ -129,6 +129,8 @@ postgresql_default_auth_method: "trust"
 postgresql_cluster_name: "main"
 postgresql_cluster_reset: false
 
+postgresql_client_encoding: "UTF8"
+
 ## Databases informations
 postgresql_databases:
   - name: irma-frontend
