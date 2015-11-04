@@ -134,7 +134,6 @@ def _create_scan_request(fw_list, probelist, mimetype_filtering):
         scan_request.add_file(fw.file.sha256,
                               probelist,
                               fw.file.mimetype)
-    # TODO external parameter
     if mimetype_filtering is True:
         srdict = scan_request.to_dict()
         filtered_srdict = braintasks.mimetype_filter_scan_request(srdict)
