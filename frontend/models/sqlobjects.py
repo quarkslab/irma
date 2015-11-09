@@ -664,7 +664,7 @@ class FileWeb(Base, SQLDatabaseObject):
         query = session.query(FileWeb)\
             .distinct(FileWeb.name)\
             .join(File, File.id == FileWeb.id_file)\
-            .filter(FileWeb.name.like("%{0}%".format(name)))
+            .filter(FileWeb.name.like(u"%{0}%".format(name)))
 
         # Update the query with tags if user asked for it
         if tags is not None:

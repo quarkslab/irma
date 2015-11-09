@@ -19,6 +19,7 @@ from frontend.api.v1_1.errors import process_error
 from frontend.helpers.utils import guess_hash_type
 from frontend.models.sqlobjects import FileWeb
 from frontend.api.v1_1.schemas import FileWebSchema_v1_1
+from lib.common.utils import decode_utf8
 
 
 file_web_schema = FileWebSchema_v1_1()
@@ -36,8 +37,12 @@ def files(db):
         on error 'msg' gives reason message
     """
     try:
-        name = request.query.name or None
+        name = None
+        if 'name' in request.query:
+            name = decode_utf8(request.query['name'])
+
         h_value = request.query.hash or None
+
         search_tags = request.query.tags or None
         if search_tags is not None:
             search_tags = search_tags.split(',')
