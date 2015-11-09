@@ -27,6 +27,7 @@ from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common.mimetypes import Magic
 from lib.irma.common.utils import IrmaScanRequest
 from frontend.controllers import braintasks
+import ntpath
 
 log = logging.getLogger()
 
@@ -52,9 +53,10 @@ def _new_file(data, session):
     return file
 
 
-def _new_fileweb(scan, name, data, session):
+def _new_fileweb(scan, filename, data, session):
     file = _new_file(data, session)
-    file_web = FileWeb(file, name, scan)
+    (path, name) = ntpath.split(filename)
+    file_web = FileWeb(file, name, path, scan)
     session.add(file_web)
     session.commit()
     return file_web
@@ -238,8 +240,10 @@ def add_files(scan, files, session):
         # on first file added update status to 'ready'
         scan.set_status(IrmaScanStatus.ready)
 
-    for (name, data) in files.items():
-        _new_fileweb(scan, name, data, session)
+    for (filename, data) in files.items():
+        # Using ntpath.split as it handles
+        # windows path and Linux path
+        _new_fileweb(scan, filename, data, session)
     session.commit()
 
 

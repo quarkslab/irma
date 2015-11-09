@@ -147,7 +147,6 @@ def add_files(scanid, db):
         for f in request.files:
             upfile = request.files.get(f)
             filename = decode_utf8(upfile.raw_filename)
-            filename = os.path.basename(filename)
             data = upfile.file.read()
             files[filename] = data
 
