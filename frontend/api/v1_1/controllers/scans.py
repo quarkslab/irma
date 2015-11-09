@@ -16,6 +16,7 @@
 import os
 from bottle import response, request
 from lib.common import compat
+from lib.common.utils import decode_utf8
 from lib.irma.common.utils import IrmaScanStatus
 from frontend.api.v1_1.errors import process_error
 from frontend.models.sqlobjects import Scan
@@ -155,7 +156,8 @@ def add_files(scanid, db):
         files = {}
         for f in request.files:
             upfile = request.files.get(f)
-            filename = os.path.basename(upfile.filename)
+            filename = decode_utf8(upfile.raw_filename)
+            filename = os.path.basename(filename)
             data = upfile.file.read()
             files[filename] = data
 
