@@ -225,6 +225,8 @@ class File(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
+        if asked_tag in self.tags:
+            raise IrmaDatabaseError("Adding an already present Tag")
         self.tags.append(asked_tag)
 
     def remove_tag(self, tagid, session):
@@ -237,6 +239,8 @@ class File(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
+        if asked_tag not in self.tags:
+            raise IrmaDatabaseError("Removing a not present Tag")
         self.tags.remove(asked_tag)
 
     def to_json(self):
