@@ -216,29 +216,13 @@ class File(Base, SQLDatabaseObject):
         self.tags = tags
 
     def add_tag(self, tagid, session):
-        try:
-            asked_tag = session.query(Tag).filter(
-                Tag.id == tagid
-            ).one()
-        except NoResultFound as e:
-            raise IrmaDatabaseResultNotFound(e)
-        except MultipleResultsFound as e:
-            raise IrmaDatabaseError(e)
-
+        asked_tag = Tag.find_by_id(tagid, session)
         if asked_tag in self.tags:
             raise IrmaDatabaseError("Adding an already present Tag")
         self.tags.append(asked_tag)
 
     def remove_tag(self, tagid, session):
-        try:
-            asked_tag = session.query(Tag).filter(
-                Tag.id == tagid
-            ).one()
-        except NoResultFound as e:
-            raise IrmaDatabaseResultNotFound(e)
-        except MultipleResultsFound as e:
-            raise IrmaDatabaseError(e)
-
+        asked_tag = Tag.find_by_id(tagid, session)
         if asked_tag not in self.tags:
             raise IrmaDatabaseError("Removing a not present Tag")
         self.tags.remove(asked_tag)
@@ -679,8 +663,10 @@ class FileWeb(Base, SQLDatabaseObject):
         # Update the query with tags if user asked for it
         if tags is not None:
             query = query.join(File.tags)
-            for tag in tags:
-                query = query.filter(File.tags.any(Tag.id == tag))
+            for tagid in tags:
+                # check if tag exists
+                Tag.find_by_id(tagid, session)
+                query = query.filter(File.tags.any(Tag.id == tagid))
 
         return query
 
@@ -695,8 +681,10 @@ class FileWeb(Base, SQLDatabaseObject):
         # Update the query with tags if user asked for it
         if tags is not None:
             query = query.join(File.tags)
-            for tag in tags:
-                query = query.filter(File.tags.any(Tag.id == tag))
+            for tagid in tags:
+                # check if tag exists
+                Tag.find_by_id(tagid, session)
+                query = query.filter(File.tags.any(Tag.id == tagid))
 
         return query
 
