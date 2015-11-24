@@ -50,6 +50,7 @@ class FileWebSchema_v1_1(Schema):
     class Meta:
         fields = ("result_id",
                   "name",
+                  "path",
                   "file_sha256",
                   "parent_file_sha256",
                   "scan_id",

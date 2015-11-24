@@ -583,6 +583,11 @@ class FileWeb(Base, SQLDatabaseObject):
         nullable=False,
         name='name'
     )
+    path = Column(
+        String(length=255),
+        nullable=False,
+        name='path'
+    )
     # Many to one FileWeb <-> Scan
     id_scan = Column(
         Integer,
@@ -606,11 +611,12 @@ class FileWeb(Base, SQLDatabaseObject):
     # insure there are no dup external_id
     __table_args__ = (UniqueConstraint('external_id'),)
 
-    def __init__(self, file, name, scan):
+    def __init__(self, file, name, path, scan):
         super(FileWeb, self).__init__()
         self.external_id = UUID.generate()
         self.file = file
         self.name = name
+        self.path = path
         self.scan = scan
 
     @classmethod
