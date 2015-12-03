@@ -17,7 +17,7 @@ import logging
 from time import sleep
 import gridfs
 
-from pymongo import Connection
+from pymongo import MongoClient
 
 from common.oopatterns import Singleton
 from irma.common.exceptions import IrmaDatabaseError
@@ -81,7 +81,7 @@ class NoSQLDatabase(Singleton):
         if self._db_conn:
             log.warn("Already connected to database")
         try:
-            self._db_conn = Connection(self._db_uri)
+            self._db_conn = MongoClient(self._db_uri)
         except Exception as e:
             raise IrmaDatabaseError("{0}".format(e))
 
