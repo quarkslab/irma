@@ -34,6 +34,7 @@ class PluginMetaClass(type):
     _plugin_dependencies_ = []
     _plugin_category_ = ''
     _plugin_active_ = None
+    _plugin_mimetype_regexp = None
 
     ##########################################################################
     # Plugin methods
@@ -96,6 +97,10 @@ class PluginMetaClass(type):
     @property
     def plugin_path(cls):
         return sys.modules[cls.__module__].__file__
+
+    @property
+    def plugin_mimetype_regexp(cls):
+        return cls._plugin_mimetype_regexp
 
 # Metaclass compatible with python 2 and 3. Inherit from this for Plugins
 PluginBase = PluginMetaClass('PluginBase', (object,), {})
