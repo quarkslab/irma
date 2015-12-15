@@ -28,9 +28,18 @@ probe_deployment_configs:
   - section: broker_probe
     option: password
     value: "{{irma_configurations.rabbitmq.probe.password}}"
-  - section: backend_probe
+  - section: broker_brain
     option: host
     value: "{{irma_configurations.brain_addr}}"
+  - section: broker_brain
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.brain.vhost}}"
+  - section: broker_brain
+    option: username
+    value: "{{irma_configurations.rabbitmq.brain.user}}"
+  - section: broker_brain
+    option: password
+    value: "{{irma_configurations.rabbitmq.brain.password}}"
   - section: ftp_brain
     option: host
     value: "{{irma_configurations.brain_addr}}"
