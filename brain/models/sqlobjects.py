@@ -16,7 +16,7 @@
 import os
 from brain.helpers.sql import sql_db_connect
 from sqlalchemy import Column, Integer, Float, String, \
-    event, ForeignKey
+    event, ForeignKey, Boolean
 import config.parser as config
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -297,6 +297,64 @@ class Job(Base, SQLDatabaseObject):
 
     def finished(self):
         return self.status != self.running
+
+
+class Probe(Base, SQLDatabaseObject):
+    __tablename__ = '{0}probe'.format(tables_prefix)
+
+    # SQLite fix for auto increment on ids
+    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+    if config.get_sql_db_uri_params()[0] == 'sqlite':
+        __table_args__ = {'sqlite_autoincrement': True}
+
+    # Fields
+    id = Column(
+        Integer,
+        autoincrement=True,
+        nullable=False,
+        primary_key=True,
+        name='id'
+    )
+    name = Column(
+        String,
+        nullable=False,
+        index=True,
+        name='name'
+    )
+    category = Column(
+        String,
+        nullable=False,
+        name='category'
+    )
+    mimetype_regexp = Column(
+        String,
+        name='mimetype_regexp'
+    )
+    online = Column(
+        Boolean,
+        name='online'
+    )
+
+    def __init__(self, name, category, mimetype_regexp, online):
+        self.name = name
+        self.category = category
+        self.mimetype_regexp = mimetype_regexp
+        self.online = online
+
+    @classmethod
+    def get_by_name(cls, name, session):
+        try:
+            return session.query(cls).filter(
+                Probe.name == name
+                ).one()
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+        except MultipleResultsFound as e:
+            raise IrmaDatabaseError(e)
+
+    @classmethod
+    def all(cls, session):
+        return session.query(cls).all()
 
 
 Base.metadata.create_all(SQLDatabase.get_engine())
