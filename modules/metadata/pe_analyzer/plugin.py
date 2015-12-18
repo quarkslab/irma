@@ -58,6 +58,7 @@ class PEAnalyzerPlugin(PluginBase):
             'lib.common.mimetypes'
         ),
     ]
+    _plugin_mimetype_regexp = 'PE32'
 
     # ==================================
     #  constructor and destructor stuff

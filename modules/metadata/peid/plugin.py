@@ -57,6 +57,7 @@ class PEiDPlugin(PluginBase):
             os.path.join(os.path.dirname(__file__), 'config.ini')
         )
     ]
+    _plugin_mimetype_regexp = 'PE32'
 
     @classmethod
     def verify(cls):
