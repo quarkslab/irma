@@ -38,6 +38,7 @@ class SkeletonPlugin(PluginBase):
     _plugin_category_ = "custom"
     _plugin_description_ = "Plugin skeleton"
     _plugin_dependencies_ = []
+    _mimetype_regexp = None
 
     # =============
     #  constructor

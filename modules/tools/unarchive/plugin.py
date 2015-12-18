@@ -53,6 +53,7 @@ class UnarchivePlugin(PluginBase):
             help='unarchiver frontend required to support various formats'
         ),
     ]
+    _plugin_mimetype_regexp = 'archive'
 
     # =============
     #  constructor
@@ -60,10 +61,6 @@ class UnarchivePlugin(PluginBase):
 
     def __init__(self):
         pass
-
-    def can_handle(self, mimetype):
-        # accept all archive types
-        return re.search('archive', mimetype, re.IGNORECASE) is not None
 
     def unarchive(self, filename, dst_dir):
         Archive = sys.modules['pyunpack'].Archive
