@@ -19,42 +19,10 @@
         "http"
     ],
     "paths": {
-        "/probes": {
-            "get": {
-                "summary": "Retrieve active probes informations",
-                "description": "The Probes endpoint returns information about probes which are available\nfor a scan.\n",
-                "tags": [
-                    "Probes"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "total": {
-                                "type": "integer",
-                                "format": "int64"
-                            },
-                            "data": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "default": {
-                        "description": "Unexpected error",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
-                        }
-                    }
-                }
-            }
-        },
         "/scans": {
             "get": {
                 "summary": "List all scans",
-                "description": "List all scan which have been submit to the IRMA plateform.\n",
+                "description": "List all scan which have been submitted to IRMA plateform.\n",
                 "tags": [
                     "Scans"
                 ],
@@ -111,7 +79,7 @@
             },
             "post": {
                 "summary": "Create a scan",
-                "description": "Before scanning files, you'll need to create a scan object.\n",
+                "description": "Before scanning files, you will need to create a scan object.\n",
                 "tags": [
                     "Scans"
                 ],
@@ -172,7 +140,7 @@
         "/scans/{scanId}/launch": {
             "post": {
                 "summary": "Launch a scan",
-                "description": "You'll need at least one file to be present before launching a scan.\nIf the scan has already been launched, you'll received a 200 response.\n",
+                "description": "You will need at least one file to be present before launching a scan.\nIf the scan has already been launched, you will received a 200 response.\n",
                 "tags": [
                     "Scans"
                 ],
@@ -188,15 +156,7 @@
                         "name": "options",
                         "in": "body",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "force": {
-                                    "type": "boolean"
-                                },
-                                "probes": {
-                                    "type": "string"
-                                }
-                            }
+                            "$ref": "#/definitions/ScanOption"
                         },
                         "description": "Options passed to the scan"
                     }
@@ -232,7 +192,7 @@
         "/scans/{scanId}/cancel": {
             "post": {
                 "summary": "Cancel a scan",
-                "description": "Cancel a scan that has previously been launched. You may not cancel a\nscan that has not been launched, you'll recieved an Unexpected error.\n",
+                "description": "Cancel a scan that has been previously launched. You may cancel a\nscan in almost all states except Uploading, Finished and Cancelled.\n",
                 "tags": [
                     "Scans"
                 ],
@@ -309,7 +269,7 @@
         "/scans/{scanId}/results": {
             "get": {
                 "summary": "List all results from a scan",
-                "description": "When retrieving a scan, you'll get a results property containing the\ntotal count of scan results items. With this url you can retrieve the\nfull paginated list of items.\n",
+                "description": "When retrieving a scan, you will get a results property containing the\ntotal count of scan results items. With this url you can retrieve the\nfull paginated list of items.\n",
                 "tags": [
                     "Scans"
                 ],
@@ -385,12 +345,91 @@
                 }
             }
         },
-        "/search/files": {
+        "/results/{resultId}": {
             "get": {
-                "summary": "Search files",
-                "description": "Search files by hash or using name of the file\n",
+                "summary": "Retrieve a scan result for a specific file",
+                "description": "Possibility to display result for a scan of a file\n",
                 "tags": [
-                    "Search"
+                    "Results"
+                ],
+                "parameters": [
+                    {
+                        "name": "resultId",
+                        "in": "path",
+                        "type": "string",
+                        "description": "ID of the result",
+                        "required": true
+                    },
+                    {
+                        "name": "formatted",
+                        "in": "query",
+                        "description": "Select if result should be formatted or raw",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ScanResult"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/probes": {
+            "get": {
+                "summary": "Retrieve active probes information",
+                "description": "Returns information about availables probes for a scan.\n",
+                "tags": [
+                    "Probes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "total": {
+                                "type": "integer",
+                                "format": "int64"
+                            },
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "default": {
+                        "description": "Unexpected error",
+                        "schema": {
+                            "$ref": "#/definitions/Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/files": {
+            "get": {
+                "summary": "List all files",
+                "description": "List all files. If a query parameter is passed, Files returned are distinct\nby names\n",
+                "tags": [
+                    "Files"
                 ],
                 "parameters": [
                     {
@@ -403,6 +442,12 @@
                         "name": "name",
                         "in": "query",
                         "description": "Filename or regexp",
+                        "type": "string"
+                    },
+                    {
+                        "name": "tag",
+                        "in": "query",
+                        "description": "list of existing tags id comma separated",
                         "type": "string"
                     },
                     {
@@ -438,10 +483,10 @@
                                     "type": "integer",
                                     "format": "int64"
                                 },
-                                "data": {
+                                "items": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/File"
+                                        "$ref": "#/definitions/SummaryScanResult"
                                     }
                                 }
                             }
@@ -456,25 +501,45 @@
                 }
             }
         },
-        "/results/{resultId}": {
+        "/files/{sha256}": {
             "get": {
-                "summary": "Retrieve a result for a specific scan",
-                "description": "Fetch file result for a scan\n",
+                "summary": "Get files details and all related scans results",
+                "description": "Get detailled information about the given file identified by its hash value (SHA256). \nList all known scan results for this file\n",
                 "tags": [
-                    "Results"
+                    "Files"
                 ],
                 "parameters": [
                     {
-                        "name": "resultId",
+                        "name": "sha256",
                         "in": "path",
                         "type": "string",
-                        "description": "ID of the result",
+                        "description": "hash value of the file",
                         "required": true
                     },
                     {
-                        "name": "formatted",
+                        "name": "name",
                         "in": "query",
-                        "description": "Select if format result (if no, there is more informations about the scan result)",
+                        "description": "submitted file name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Offset the list of returned objects. Default is zero.",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "A limit on the number of objects to be returned.",
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    {
+                        "name": "alt",
+                        "in": "query",
+                        "description": "When value is \"media\" response will be file content.",
                         "type": "string"
                     }
                 ],
@@ -482,16 +547,30 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/ScanResult"
+                            "type": "object",
+                            "properties": {
+                                "total": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "offset": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "limit": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "file_infos": {
+                                    "$ref": "#/definitions/File"
+                                },
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/SummaryScanResult"
+                                    }
+                                }
                             }
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/Error"
                         }
                     },
                     "default": {
@@ -510,6 +589,15 @@
             "properties": {
                 "id": {
                     "type": "string"
+                },
+                "force": {
+                    "type": "boolean"
+                },
+                "resubmit_files": {
+                    "type": "boolean"
+                },
+                "mimetype_filtering": {
+                    "type": "boolean"
                 },
                 "date": {
                     "type": "string",
@@ -535,19 +623,35 @@
         "SummaryScanResult": {
             "type": "object",
             "properties": {
-                "result_id": {
+                "status": {
                     "type": "integer"
                 },
-                "name": {
-                    "type": "string"
-                },
-                "status": {
+                "probes_finished": {
                     "type": "integer"
                 },
                 "probes_total": {
                     "type": "integer"
                 },
-                "probes_finished": {
+                "scan_id": {
+                    "type": "string"
+                },
+                "scan_date": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file_sha256": {
+                    "type": "string"
+                },
+                "parent_file_sha256": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "result_id": {
                     "type": "integer"
                 }
             }
@@ -561,14 +665,17 @@
                 "name": {
                     "type": "string"
                 },
-                "status": {
-                    "type": "integer"
+                "path": {
+                    "type": "string"
                 },
-                "probes_total": {
-                    "type": "integer"
+                "file_sha256": {
+                    "type": "string"
                 },
-                "probes_finished": {
-                    "type": "integer"
+                "parent_file_sha256": {
+                    "type": "string"
+                },
+                "scan_id": {
+                    "type": "string"
                 },
                 "file_infos": {
                     "$ref": "#/definitions/File"
@@ -578,6 +685,15 @@
                     "items": {
                         "$ref": "#/definitions/ProbeResult"
                     }
+                },
+                "probes_total": {
+                    "type": "integer"
+                },
+                "probes_finished": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
                 }
             }
         },
@@ -627,6 +743,9 @@
                 "md5": {
                     "type": "string"
                 },
+                "mimetype": {
+                    "type": "string"
+                },
                 "timestamp_first_scan": {
                     "type": "string",
                     "format": "date-time"
@@ -638,6 +757,44 @@
                 "size": {
                     "type": "integer",
                     "format": "int64"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Tag"
+                    }
+                }
+            }
+        },
+        "ScanOption": {
+            "type": "object",
+            "properties": {
+                "force": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "probes": {
+                    "type": "string"
+                },
+                "mimetype_filtering": {
+                    "type": "boolean",
+                    "default": true
+                },
+                "resubmit_files": {
+                    "type": "boolean",
+                    "default": true
+                }
+            }
+        },
+        "Tag": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "text": {
+                    "type": "string"
                 }
             }
         },

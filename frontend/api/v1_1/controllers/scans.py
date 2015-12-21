@@ -171,7 +171,7 @@ def add_files(scanid, db):
 def get_results(scanid, db):
     """ Retrieve results for a scan. Results are the same as in the get()
         method, i.e. a summary for each scanned files.
-        The request should be performed using a POST request method.
+        The request should be performed using a GET request method.
     """
     try:
         validate_id(scanid)

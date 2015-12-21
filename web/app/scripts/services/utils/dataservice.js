@@ -13,7 +13,7 @@ function dataservice(bridge) {
     };
 
     function searchFiles(tags, type, name, offset, limit) {
-    	var url = '/search/files?';
+       var url = '/files?';
     		
     	if (tags.length > 0) {
     		url += 'tags=';
