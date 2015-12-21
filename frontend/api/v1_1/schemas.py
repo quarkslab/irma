@@ -43,7 +43,10 @@ class FileWebSchema_v1_1(Schema):
     file_sha256 = fields.Nested(FileSchema_v1_1, attribute="file",
                                 only='sha256')
     probe_results = fields.Function(get_context_formatted)
-    scan_id = fields.Nested('ScanSchema_v1_1', attribute="scan", only='id')
+    scan_id = fields.Nested('ScanSchema_v1_1', attribute="scan",
+                            only='external_id')
+    scan_date = fields.Nested('ScanSchema_v1_1', attribute="scan",
+                              only='date')
     parent_file_sha256 = fields.Nested(FileSchema_v1_1, attribute="parent",
                                        only='sha256')
 
@@ -54,6 +57,7 @@ class FileWebSchema_v1_1(Schema):
                   "file_sha256",
                   "parent_file_sha256",
                   "scan_id",
+                  "scan_date",
                   "file_infos",
                   "probe_results",
                   "probes_total",

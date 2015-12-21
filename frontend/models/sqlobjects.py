@@ -524,6 +524,14 @@ class Scan(Base, SQLDatabaseObject):
                 fws.append(file_web)
         return fws
 
+    @classmethod
+    def query_find_by_filesha256(cls, hash_value, session,):
+        query = session.query(Scan)
+        query = query.join(FileWeb, FileWeb.id_scan == Scan.id)
+        query = query.join(File, File.id == FileWeb.id_file)
+        query = query.filter(File.sha256 == hash_value)
+        return query
+
 
 class FileWeb(Base, SQLDatabaseObject):
     __tablename__ = '{0}fileWeb'.format(tables_prefix)
@@ -671,10 +679,12 @@ class FileWeb(Base, SQLDatabaseObject):
         return query
 
     @classmethod
-    def query_find_by_hash(cls, hash_type, hash_value, tags, session):
-        query = session.query(FileWeb)\
-            .distinct(FileWeb.name)\
-            .join(File, File.id == FileWeb.id_file)
+    def query_find_by_hash(cls, hash_type, hash_value, tags, session,
+                           distinct_name=True):
+        query = session.query(FileWeb)
+        if distinct_name:
+            query = query.distinct(FileWeb.name)
+        query = query.join(File, File.id == FileWeb.id_file)
 
         query = query.filter(getattr(File, hash_type) == hash_value)
 

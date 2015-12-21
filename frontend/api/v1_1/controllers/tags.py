@@ -25,17 +25,6 @@ tag_schema = TagSchema_v1_1()
 tag_schema.context = {'formatted': True}
 
 
-def add_tag(sha256, tagid, db):
-    """ Attach a tag to a file.
-    """
-    try:
-        file = File.load_from_sha256(sha256, db)
-        file.add_tag(tagid, db)
-        db.commit()
-    except Exception as e:
-        process_error(e)
-
-
 def list_available_tags(db):
     """ Search for all tags in TAG table using query.
     :return:
@@ -49,16 +38,5 @@ def list_available_tags(db):
         return {
             'items': tag_schema.dump(available_tags, many=True).data,
         }
-    except Exception as e:
-        process_error(e)
-
-
-def remove_tag(sha256, tagid, db):
-    """ Remove a tag attached to a file.
-    """
-    try:
-        file = File.load_from_sha256(sha256, db)
-        file.remove_tag(tagid, db)
-        db.commit()
     except Exception as e:
         process_error(e)
