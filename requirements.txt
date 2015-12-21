@@ -1,4 +1,4 @@
-celery==3.1.13
+celery>=3.1.13
 redis>=2.9.1
 sqlalchemy
 nose
