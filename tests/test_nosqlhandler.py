@@ -16,7 +16,7 @@
 import logging
 import unittest
 from irma.database.nosqlhandler import NoSQLDatabase
-from pymongo import Connection
+from pymongo import MongoClient
 
 # Test config
 test_db_uri = "mongodb://localhost"
@@ -68,7 +68,7 @@ class CheckNoSQLDatabase(NoSQLDatabaseTestCase):
         db = NoSQLDatabase(test_db_name, test_db_uri)
         if not db._is_connected():
             db._connect()
-        self.assertIsInstance(db.db_instance(), Connection)
+        self.assertIsInstance(db.db_instance(), MongoClient)
         self.assertIsNotNone(db.db_instance().host)
         db._connect()
         db._disconnect()
