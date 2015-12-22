@@ -11,7 +11,7 @@
     chdir: "{{ fsecure_temp_dir }}/"
 
 - name: F-Secure | Run installer
-  shell: sh "{{ fsecure_temp_dir }}/fsls-10.20.358-rtm/f-secure-linux-security-10.20.358" --auto standalone lang=en noremotewui nolocallogin
+  shell: sh "{{ fsecure_temp_dir }}/fsls-{{ fsecure_version }}/fsls-{{ fsecure_version }}" --auto standalone lang=en noremotewui nolocallogin
   sudo: true
 
 - name: F-Secure | Disable Web Interface and Firewall with fschooser
