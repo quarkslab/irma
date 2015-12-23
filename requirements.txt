@@ -1,5 +1,5 @@
 PyYAML
-celery>=3.1.13
+celery<3.2
 pymongo
 bottle
 SQLAlchemy
