@@ -43,7 +43,9 @@ def define_routes(application):
                       callback=results.get)
     # tags routes
     application.route("/tags",
-                      callback=tags.list_available_tags)
+                      callback=tags.list)
+    application.route("/tags", method="POST",
+                      callback=tags.new)
     # files routes
     application.route("/files",
                       callback=files.list)
