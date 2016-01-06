@@ -355,7 +355,7 @@ paths:
     get:
       summary: Get files details and all related scans results
       description: |
-        Get detailled information about the given file identified by its hash value (SHA256). 
+        Get detailled information about the given file identified by its hash value (SHA256).
         List all known scan results for this file
       tags:
         - Files
@@ -408,7 +408,45 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-            
+  '/tags':
+    get:
+      summary: List all tags
+      description: |
+        List all tags.
+      tags:
+        - Tags
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/Tag'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create a new tag
+      description: |
+        Create a new tag if not already existing.
+      tags:
+        - Tags
+      parameters:
+        - name: text
+          in: body
+          type: string
+          description: tag label
+          required: true
+      responses:
+        '200':
+         description: OK
+         schema:
+          $ref: '#/definitions/Tag'
+
 definitions:
   Scan:
     type: object
@@ -434,7 +472,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SummaryScanResult'
-          
+
   SummaryScanResult:
     type: object
     properties:
@@ -487,6 +525,7 @@ definitions:
         type: integer
       status:
         type: integer
+
   ProbeResult:
     type: object
     properties:
@@ -508,6 +547,7 @@ definitions:
       duration:
         type: number
         format: float
+
   File:
     type: object
     properties:
@@ -535,6 +575,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Tag'
+
   ScanOption:
     type: object
     properties:
@@ -549,6 +590,7 @@ definitions:
       resubmit_files:
         type: boolean
         default: True
+
   Tag:
     type: object
     properties:
@@ -557,6 +599,7 @@ definitions:
         format: double
       text:
         type: string
+
   Error:
     type: object
     properties:
