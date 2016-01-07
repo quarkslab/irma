@@ -143,4 +143,10 @@
   roles:
     - { role: quarkslab.emsisoft_a2cmd_windows, tags: 'emsisoft' }
 
+- name: Unarchiver provisioning
+  hosts: unarchiver
+  sudo: yes
+  roles:
+    - { role: quarkslab.unarchiver, tags: 'unarchiver' }
+
 # vim: sw=2
