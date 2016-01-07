@@ -58,6 +58,7 @@ class PEAnalyzerPlugin(PluginBase):
             'lib.common.mimetypes'
         ),
     ]
+    _plugin_mimetype_regexp = 'PE32'
 
     # ==================================
     #  constructor and destructor stuff
@@ -66,6 +67,9 @@ class PEAnalyzerPlugin(PluginBase):
     def __init__(self):
         module = sys.modules['modules.metadata.pe_analyzer.pe'].PE
         self.module = module()
+
+    def can_handle(self, mimetype):
+        return re.search('PE32', mimetype, re.IGNORECASE) is not None
 
     def analyze(self, filename):
         # check parameters

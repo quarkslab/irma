@@ -48,7 +48,7 @@ class VirusBlokAda(Antivirus):
             "-CH+ "   # switch on cache while scanning objects
             "-SFX+ "  # detect installers of malware
         )
-        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [7]
+        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [6, 7]
         self._scan_patterns = [
             re.compile(r'(?P<file>[^\s]+)'
                        r'\s+(: infected)\s+'

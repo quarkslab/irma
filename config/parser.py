@@ -39,6 +39,14 @@ template_probe_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None)
     ],
+    'broker_brain': [
+        ('host', TemplatedConfiguration.string, None),
+        ('port', TemplatedConfiguration.integer, 5672),
+        ('vhost', TemplatedConfiguration.string, None),
+        ('username', TemplatedConfiguration.string, None),
+        ('password', TemplatedConfiguration.string, None),
+        ('queue', TemplatedConfiguration.string, None)
+    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 21),
@@ -56,13 +64,15 @@ probe_config = TemplatedConfiguration(cfg_file, template_probe_config)
 #  Celery helpers
 # ================
 
-def conf_probe_celery(app, queue=None):
-    broker = get_probe_broker_uri()
+def _conf_celery(app, broker, backend=None, queue=None):
     app.conf.update(BROKER_URL=broker,
                     CELERY_ACCEPT_CONTENT=['json'],
                     CELERY_TASK_SERIALIZER='json',
                     CELERY_RESULT_SERIALIZER='json'
                     )
+    if backend is not None:
+        app.conf.update(CELERY_RESULT_BACKEND=backend)
+        app.conf.update(CELERY_TASK_RESULT_EXPIRES=300)  # 5 minutes
     if queue is not None:
         app.conf.update(CELERY_DEFAULT_QUEUE=queue,
                         # delivery_mode=1 enable transient mode
@@ -70,6 +80,18 @@ def conf_probe_celery(app, queue=None):
                         CELERY_QUEUES=(Queue(queue, routing_key=queue),)
                         )
     return
+
+
+def conf_probe_celery(app):
+    broker = get_probe_broker_uri()
+    _conf_celery(app, broker)
+
+
+def conf_brain_celery(app):
+    broker = get_brain_backend_uri()
+    backend = get_brain_backend_uri()
+    queue = probe_config.broker_brain.queue
+    _conf_celery(app, broker, backend=backend, queue=queue)
 
 
 # ================
@@ -88,6 +110,15 @@ def _get_broker_uri(broker_config):
 
 def get_probe_broker_uri():
     return _get_broker_uri(probe_config.broker_probe)
+
+
+def get_brain_broker_uri():
+    return _get_broker_uri(probe_config.broker_brain)
+
+
+# Use AMQP as broker and backend
+def get_brain_backend_uri():
+    return _get_broker_uri(probe_config.broker_brain)
 
 
 # ================

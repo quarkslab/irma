@@ -38,6 +38,7 @@ class SkeletonPlugin(PluginBase):
     _plugin_category_ = "custom"
     _plugin_description_ = "Plugin skeleton"
     _plugin_dependencies_ = []
+    _mimetype_regexp = None
 
     # =============
     #  constructor
@@ -45,6 +46,11 @@ class SkeletonPlugin(PluginBase):
 
     def __init__(self):
         pass
+
+    def can_handle(self, mimetype):
+        # filter files on mimetype
+        # return True if supported
+        return True
 
     @classmethod
     def verify(cls):

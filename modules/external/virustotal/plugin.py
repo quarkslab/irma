@@ -80,6 +80,10 @@ class VirusTotalPlugin(PluginBase):
             module = sys.modules['virus_total_apis'].PublicApi
         self.module = module(self.apikey)
 
+    def can_handle(self, mimetype):
+        # accept all mimetypes
+        return True
+
     def get_file_report(self, filename):
         with open(filename, 'rb') as filedesc:
             digest = hashlib.md5(filedesc.read()).hexdigest()
@@ -102,7 +106,7 @@ class VirusTotalPlugin(PluginBase):
             # check eventually for errors
             if 'error' in response:
                 results.status = self.VirusTotalResult.ERROR
-                results.error = response['error']
+                results.error = str(response['error'])
             elif (response['response_code'] == 204):
                 results.status = self.VirusTotalResult.ERROR
                 results.error = "Public API request rate limit exceeded"
