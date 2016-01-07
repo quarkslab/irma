@@ -1,3 +1,15 @@
+1.3.0 (released 07/01/2016)
+===========================
+
+    * [all] new feature scheduler: probe selection is based on file mimetype (default)
+    * [all] new feature scheduler: probe could output children files that could be analyzed too (default)
+    * [frontend] new API version (v1.1 old API is still available)
+    * [frontend] tag a file and search by tag
+    * [frontend][fix] UTF8 support
+    * [frontend] cli tools is now a standalone project named irma-cli
+    * [probe] probes now register on brain with their category and their mimetype support (regexp)
+    * [probe][tools] new Unarchiver probe
+
 1.2.1 (released 09/07/2015)
 ===========================
 
