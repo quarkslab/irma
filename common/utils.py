@@ -18,6 +18,7 @@ import re
 import random
 import collections
 from time import mktime
+import urllib
 
 
 class UUID(object):
@@ -141,3 +142,9 @@ def to_unicode(data):
         return type(data)(map(to_unicode, data))
     else:
         return data
+
+
+def decode_utf8(utf8_str):
+    unquoted = urllib.unquote(utf8_str)
+    decoded = unquoted.decode("utf8", "replace")
+    return decoded
