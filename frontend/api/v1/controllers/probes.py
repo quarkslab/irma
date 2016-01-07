@@ -13,11 +13,21 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from bottle import Bottle
-from frontend.api.v1.base import application as app_v1
-from frontend.api.v1_1.base import application as app_v1_1
+from bottle import response
+from frontend.api.v1.errors import process_error
+import frontend.controllers.braintasks as celery_brain
 
 
-application = Bottle()
-application.mount('/v1', app_v1)
-application.mount('/v1.1', app_v1_1)
+def list():
+    """ get active probe list. This list is used to launch a scan.
+    """
+    try:
+        probelist = celery_brain.probe_list()
+
+        response.content_type = "application/json; charset=UTF-8"
+        return {
+            "total": len(probelist),
+            "data": probelist
+        }
+    except Exception as e:
+        process_error(e)

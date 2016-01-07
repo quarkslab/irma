@@ -38,6 +38,7 @@
       errorUpload: errorUpload,
       doneUpload: doneUpload,
       startScan: startScan,
+      stopUpdate: stopUpdate,
       cancelScan: cancelScan,
       updateScan: updateScan,
       setProgress: setProgress,
@@ -130,15 +131,20 @@
 
     function cancelScan() {
       $log.info('Scan was cancelled');
-      $timeout.cancel(this.task);
+      this.stopUpdate();
       if(this.id){
         this.api.scan.cancel(this);
       }
     }
 
+    function stopUpdate(){
+      $timeout.cancel(this.task);
+    }
+
     function updateScan() {
       this.api.scan.getInfos(this).then(function(data) {
         this.setProgress(data.probes_total, data.probes_finished);
+        this.arborescence = buildParents(data.results, this.results);
         this.results = data.results;
 
         if(data.status === 1020){
@@ -172,6 +178,7 @@
 
       return this.api.scan.getResults(this).then(function(data) {
         this.results = data;
+        this.arborescence = buildParents(data);
       }.bind(this), function(data) {
         $rootScope.$broadcast('errorResults', data);
       }.bind(this));
@@ -181,6 +188,34 @@
       $log.info('Retrieve file result ' + resultid);
 
       return api.scan.getResult(this, resultid);
+    }
+
+    function buildParents(list, existing){
+      var result = [];
+
+      result = _.sortBy(_.filter(list, function(item){
+        return !item.parent_file_sha256;
+      }), 'name');
+
+      _.forEach(result, function(item){ populateArbo(item, list, existing);});
+
+      return result;
+    }
+
+    function populateArbo(root, items, existing){
+      var result = [];
+
+      result = _.sortBy(_.filter(items, function(item){
+        return item.parent_file_sha256 === root.file_sha256;
+      }), 'name');
+
+      if(!_.isEmpty(result)){
+        _.forEach(result, function(item){ populateArbo(item, items, existing);});
+        root.children = result;
+
+        var oldOne = _.find(existing, {file_sha256: root.file_sha256});
+        root.displayChildren = (_.isUndefined(oldOne))? true: (_.has(oldOne, 'displayChildren')? oldOne.displayChildren: true);
+      }
     }
   }
 }) ();

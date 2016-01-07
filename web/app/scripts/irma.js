@@ -11,11 +11,12 @@ angular.module('irma', [
   'angular-capitalize-filter',
   'angularMoment',
   'ngTable',
+  'ngTagsInput',
   'angular-svg-round-progress'
 ])
   .constant('constants', {
     fakeDelay: 0,
-    baseApi: '/api/v1',
+    baseApi: '/api/v1.1',
     speed: 1500,
     refresh: 1000,
     forceScanDefault: true,
@@ -59,7 +60,7 @@ angular.module('irma', [
           maintenance: ['state', function(state){ return state.pingApi();}]
         }
       })
-      .when('/scan/:scanId/file/:fileIdx', {
+      .when('/results/:resultId', {
         templateUrl: '/views/details.html',
         controller: 'DetailsCtrl',
         controllerAs: 'vm',

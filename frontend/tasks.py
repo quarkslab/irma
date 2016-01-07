@@ -46,9 +46,9 @@ def scan_launch(scanid):
 
 
 @frontend_app.task(acks_late=True)
-def scan_launched(scanid):
+def scan_launched(scanid, scan_request):
     try:
-        scan_ctrl.set_launched(scanid)
+        scan_ctrl.set_launched(scanid, scan_request)
     except IrmaDatabaseError as e:
         print "Exception has occurred:{0}".format(e)
         raise scan_launched.retry(countdown=2, max_retries=3, exc=e)
@@ -57,6 +57,7 @@ def scan_launched(scanid):
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
     try:
+        scan_ctrl.handle_output_files(scanid, file_hash, probe, result)
         scan_ctrl.set_result(scanid, file_hash, probe, result)
     except IrmaDatabaseError as e:
         print "Exception has occurred:{0}".format(e)

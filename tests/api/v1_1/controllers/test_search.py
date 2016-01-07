@@ -1,7 +1,8 @@
 from unittest import TestCase
 from mock import MagicMock, patch
 
-import frontend.api.controllers.search as api_search
+import frontend.api.v1_1.controllers.search as api_search
+from bottle import FormsDict
 
 
 class TestApiSearch(TestCase):
@@ -11,6 +12,7 @@ class TestApiSearch(TestCase):
         self.old_request = api_search.request
         self.file_web_schema = MagicMock()
         self.request = MagicMock()
+        self.request.query = FormsDict()
         self.db = MagicMock()
         api_search.file_web_schema = self.file_web_schema
         api_search.request = self.request
@@ -22,7 +24,10 @@ class TestApiSearch(TestCase):
         del self.request
 
     def test001_files_raise_none_None(self):
-        with patch("frontend.api.controllers.search.process_error") as mock:
+        self.request.query['name'] = "whatever"
+        self.request.query.hash = "something"
+        process_error = "frontend.api.v1_1.controllers.search.process_error"
+        with patch(process_error) as mock:
             api_search.files("whatever")
             self.assertTrue(mock.called)
             self.assertIsInstance(mock.call_args[0][0], ValueError)
@@ -30,8 +35,9 @@ class TestApiSearch(TestCase):
                              "Can't find using both name and hash")
 
     def test002_files_raise_h_type_None(self):
-        self.request.query.name = None
-        with patch("frontend.api.controllers.search.process_error") as mock:
+        self.request.query.hash = "something"
+        process_error = "frontend.api.v1_1.controllers.search.process_error"
+        with patch(process_error) as mock:
             api_search.files("whatever")
             self.assertTrue(mock.called)
             self.assertIsInstance(mock.call_args[0][0], ValueError)

@@ -16,12 +16,12 @@
 from marshmallow import Schema, fields
 
 
-class ApiErrorSchema(Schema):
+class ApiErrorSchema_v1(Schema):
     class Meta:
         fields = ("type", "message")
 
 
-class FileSchema(Schema):
+class FileSchema_v1(Schema):
     class Meta:
         fields = ("sha256", "sha1", "md5", "timestamp_first_scan",
                   "timestamp_last_scan", "size", "id")
@@ -31,11 +31,11 @@ def get_context_formatted(obj, context):
     return obj.get_probe_results(context['formatted'])
 
 
-class FileWebSchema(Schema):
-    file_infos = fields.Nested(FileSchema, attribute="file")
+class FileWebSchema_v1(Schema):
+    result_id = fields.String(attribute="external_id")
+    file_infos = fields.Nested(FileSchema_v1, attribute="file")
     probe_results = fields.Function(get_context_formatted)
-    result_id = fields.Integer(attribute="scan_file_idx")
-    scan_id = fields.Nested('ScanSchema', attribute="scan", only='id')
+    scan_id = fields.Nested('ScanSchema_v1', attribute="scan", only='id')
 
     class Meta:
         fields = ("name",
@@ -48,9 +48,9 @@ class FileWebSchema(Schema):
                   "status")
 
 
-class ScanSchema(Schema):
+class ScanSchema_v1(Schema):
     id = fields.String(attribute="external_id")
-    results = fields.Nested(FileWebSchema, attribute="files_web", many=True,
+    results = fields.Nested(FileWebSchema_v1, attribute="files_web", many=True,
                             exclude=('probe_results', 'file_infos'))
 
     class Meta:

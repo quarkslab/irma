@@ -50,7 +50,8 @@ class ProbeRealResult(NoSQLDatabaseObject):
 
     def to_json(self, formatted):
         res = self.to_dict()
-        res.pop("_id")
+        res.pop('_id')
+        res.pop('uploaded_files', '')
         # apply or not IrmaFormatter
         if formatted:
             res = IrmaFormatter.format(self.name, res)

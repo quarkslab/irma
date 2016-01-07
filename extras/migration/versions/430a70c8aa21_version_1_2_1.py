@@ -1,4 +1,4 @@
-"""Fix timestamp
+"""version 1.2.1
 
 Revision ID: 430a70c8aa21
 Revises: 2cc69d5c53eb
@@ -38,6 +38,7 @@ def upgrade():
                     existing_type=sa.Float(precision=2),
                     existing_server_default=False,
                     existing_nullable=False)
+
 
 def downgrade():
     op.alter_column('irma_file',

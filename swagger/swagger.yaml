@@ -1,41 +1,38 @@
----
 swagger: '2.0'
 info:
   version: 1.1.0
   title: IRMA API
   license:
     name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-
-basePath: /api/v1
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+basePath: /api/v1.1
 produces:
   - application/json
 consumes:
   - application/json
 schemes:
   - http
-
 paths:
   /scans:
     get:
       summary: List all scans
       description: |
-        List all scan which have been submit to the IRMA plateform.
+        List all scan which have been submitted to IRMA plateform.
       tags:
         - Scans
       parameters:
-          - name: offset
-            in: query
-            description: Offset the list of returned objects. Default is zero.
-            type: integer
-            format: int64
-          - name: limit
-            in: query
-            description: A limit on the number of objects to be returned.
-            type: integer
-            format: int64
+        - name: offset
+          in: query
+          description: Offset the list of returned objects. Default is zero.
+          type: integer
+          format: int64
+        - name: limit
+          in: query
+          description: A limit on the number of objects to be returned.
+          type: integer
+          format: int64
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             type: object
@@ -60,11 +57,11 @@ paths:
     post:
       summary: Create a scan
       description: |
-        Before scanning files, you'll need to create a scan object.
+        Before scanning files, you will need to create a scan object.
       tags:
         - Scans
       responses:
-        201:
+        '201':
           description: Created
           schema:
             $ref: '#/definitions/Scan'
@@ -72,7 +69,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /scans/{scanId}:
+  '/scans/{scanId}':
     get:
       summary: Retrieve a scan
       description: |
@@ -86,11 +83,11 @@ paths:
           description: ID of the scan
           required: true
       responses:
-        200:
+        '200':
           description: A scan
           schema:
             $ref: '#/definitions/Scan'
-        404:
+        '404':
           description: Not Found
           schema:
             $ref: '#/definitions/Error'
@@ -98,12 +95,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /scans/{scanId}/launch:
+  '/scans/{scanId}/launch':
     post:
       summary: Launch a scan
-      description: |
-        You'll need at least one file to be present before launching a scan.
-        If the scan has already been launched, you'll received a 200 response.
+      description: >
+        You will need at least one file to be present before launching a scan.
+
+        If the scan has already been launched, you will received a 200 response.
       tags:
         - Scans
       parameters:
@@ -115,23 +113,18 @@ paths:
         - name: options
           in: body
           schema:
-            type: object
-            properties:
-              force:
-                type: boolean
-              probes:
-                type: string
+            $ref: '#/definitions/ScanOption'
           description: Options passed to the scan
       responses:
-        200:
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/Scan'
-        202:
+        '202':
           description: Accepted
           schema:
             $ref: '#/definitions/Scan'
-        404:
+        '404':
           description: Not Found
           schema:
             $ref: '#/definitions/Error'
@@ -139,12 +132,12 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /scans/{scanId}/cancel:
+  '/scans/{scanId}/cancel':
     post:
       summary: Cancel a scan
       description: |
-        Cancel a scan that has previously been launched. You may not cancel a
-        scan that has not been launched, you'll recieved an Unexpected error.
+        Cancel a scan that has been previously launched. You may cancel a
+        scan in almost all states except Uploading, Finished and Cancelled.
       tags:
         - Scans
       parameters:
@@ -154,11 +147,11 @@ paths:
           description: ID of the scan
           required: true
       responses:
-        200:
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/Scan'
-        404:
+        '404':
           description: Not Found
           schema:
             $ref: '#/definitions/Error'
@@ -166,7 +159,7 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /scans/{scanId}/files:
+  '/scans/{scanId}/files':
     post:
       summary: Create a file upload
       description: |
@@ -185,7 +178,7 @@ paths:
           description: File to add to the scan
           required: true
       responses:
-        200:
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/Scan'
@@ -193,11 +186,11 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /scans/{scanId}/results:
+  '/scans/{scanId}/results':
     get:
       summary: List all results from a scan
       description: |
-        When retrieving a scan, you'll get a results property containing the
+        When retrieving a scan, you will get a results property containing the
         total count of scan results items. With this url you can retrieve the
         full paginated list of items.
       tags:
@@ -224,7 +217,7 @@ paths:
           type: integer
           format: int64
       responses:
-        200:
+        '200':
           description: OK
           schema:
             type: object
@@ -242,7 +235,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/SummaryScanResult'
-        404:
+        '404':
           description: Not Found
           schema:
             $ref: '#/definitions/Error'
@@ -250,19 +243,14 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-  /scans/{scanId}/results/{resultId}:
+  '/results/{resultId}':
     get:
-      summary: Retrieve a result for a specific scan
+      summary: Retrieve a scan result for a specific file
       description: |
         Possibility to display result for a scan of a file
       tags:
-        - Scans
+        - Results
       parameters:
-        - name: scanId
-          in: path
-          type: string
-          description: ID of the scan
-          required: true
         - name: resultId
           in: path
           type: string
@@ -270,16 +258,16 @@ paths:
           required: true
         - name: formatted
           in: query
-          description: Select if format result (if no, there is more informations about the scan result)
+          description: Select if result should be formatted or raw
           type: string
       responses:
-        200:
+        '200':
           description: OK
           schema:
             type: array
             items:
               $ref: '#/definitions/ScanResult'
-        404:
+        '404':
           description: Not Found
           schema:
             $ref: '#/definitions/Error'
@@ -287,17 +275,15 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
-  /probes:
+  '/probes':
     get:
-      summary: Retrieve active probes informations
+      summary: Retrieve active probes information
       description: |
-        The Probes endpoint returns information about probes which are available
-        for a scan.
+        Returns information about availables probes for a scan.
       tags:
         - Probes
       responses:
-        200:
+        '200':
           description: OK
           schema:
             total:
@@ -311,35 +297,39 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-
-  /search/files:
+  '/files':
     get:
-      summary: Search files
+      summary: List all files
       description: |
-        Search files by hash or using name of the file
+        List all files. If a query parameter is passed, Files returned are distinct
+        by names
       tags:
-        - Search
+        - Files
       parameters:
-          - name: hash
-            in: query
-            description: Hash value (can be md5, sha1 or sha256)
-            type: string
-          - name: name
-            in: query
-            description: Filename or regexp
-            type: string
-          - name: offset
-            in: query
-            description: Offset the list of returned objects. Default is zero.
-            type: integer
-            format: int64
-          - name: limit
-            in: query
-            description: A limit on the number of objects to be returned.
-            type: integer
-            format: int64
+        - name: hash
+          in: query
+          description: 'Hash value (can be md5, sha1 or sha256)'
+          type: string
+        - name: name
+          in: query
+          description: Filename or regexp
+          type: string
+        - name: tag
+          in: query
+          description: list of existing tags id comma separated
+          type: string
+        - name: offset
+          in: query
+          description: Offset the list of returned objects. Default is zero.
+          type: integer
+          format: int64
+        - name: limit
+          in: query
+          description: A limit on the number of objects to be returned.
+          type: integer
+          format: int64
       responses:
-        200:
+        '200':
           description: OK
           schema:
             type: object
@@ -353,14 +343,109 @@ paths:
               limit:
                 type: integer
                 format: int64
-              data:
+              items:
                 type: array
                 items:
-                  $ref: '#/definitions/File'
+                  $ref: '#/definitions/SummaryScanResult'
         default:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/files/{sha256}':
+    get:
+      summary: Get files details and all related scans results
+      description: |
+        Get detailled information about the given file identified by its hash value (SHA256).
+        List all known scan results for this file
+      tags:
+        - Files
+      parameters:
+        - name: sha256
+          in: path
+          type: string
+          description: hash value of the file
+          required: true
+        - name: name
+          in: query
+          description: submitted file name
+          type: string
+        - name: offset
+          in: query
+          description: Offset the list of returned objects. Default is zero.
+          type: integer
+          format: int64
+        - name: limit
+          in: query
+          description: A limit on the number of objects to be returned.
+          type: integer
+          format: int64
+        - name: alt
+          in: query
+          description: When value is "media" response will be file content.
+          type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              total:
+                type: integer
+                format: int64
+              offset:
+                type: integer
+                format: int64
+              limit:
+                type: integer
+                format: int64
+              file_infos:
+                $ref: '#/definitions/File'
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/SummaryScanResult'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  '/tags':
+    get:
+      summary: List all tags
+      description: |
+        List all tags.
+      tags:
+        - Tags
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/Tag'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    post:
+      summary: Create a new tag
+      description: |
+        Create a new tag if not already existing.
+      tags:
+        - Tags
+      parameters:
+        - name: text
+          in: body
+          type: string
+          description: tag label
+          required: true
+      responses:
+        '200':
+         description: OK
+         schema:
+          $ref: '#/definitions/Tag'
 
 definitions:
   Scan:
@@ -368,6 +453,12 @@ definitions:
     properties:
       id:
         type: string
+      force:
+        type: boolean
+      resubmit_files:
+        type: boolean
+      mimetype_filtering:
+        type: boolean
       date:
         type: string
         format: date-time
@@ -381,19 +472,32 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/SummaryScanResult'
+
   SummaryScanResult:
     type: object
     properties:
-      result_id:
-        type: integer
-      name:
-        type: string
       status:
-        type: integer
-      probes_total:
         type: integer
       probes_finished:
         type: integer
+      probes_total:
+        type: integer
+      scan_id:
+        type: string
+      scan_date:
+        type: string
+        format: date-time
+      name:
+        type: string
+      file_sha256:
+        type: string
+      parent_file_sha256:
+        type: string
+      path:
+        type: string
+      result_id:
+        type: integer
+
   ScanResult:
     type: object
     properties:
@@ -401,18 +505,27 @@ definitions:
         type: integer
       name:
         type: string
-      status:
-        type: integer
-      probes_total:
-        type: integer
-      probes_finished:
-        type: integer
+      path:
+        type: string
+      file_sha256:
+        type: string
+      parent_file_sha256:
+        type: string
+      scan_id:
+        type: string
       file_infos:
         $ref: '#/definitions/File'
       probe_results:
         type: array
         items:
           $ref: '#/definitions/ProbeResult'
+      probes_total:
+        type: integer
+      probes_finished:
+        type: integer
+      status:
+        type: integer
+
   ProbeResult:
     type: object
     properties:
@@ -434,6 +547,7 @@ definitions:
       duration:
         type: number
         format: float
+
   File:
     type: object
     properties:
@@ -446,6 +560,8 @@ definitions:
         type: string
       md5:
         type: string
+      mimetype:
+        type: string
       timestamp_first_scan:
         type: string
         format: date-time
@@ -455,6 +571,35 @@ definitions:
       size:
         type: integer
         format: int64
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/Tag'
+
+  ScanOption:
+    type: object
+    properties:
+      force:
+        type: boolean
+        default: False
+      probes:
+        type: string
+      mimetype_filtering:
+        type: boolean
+        default: True
+      resubmit_files:
+        type: boolean
+        default: True
+
+  Tag:
+    type: object
+    properties:
+      id:
+        type: number
+        format: double
+      text:
+        type: string
+
   Error:
     type: object
     properties:

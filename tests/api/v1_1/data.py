@@ -7,5 +7,8 @@ test_routes = {
     "/scans/<scanid>/launch": ["POST"],
     "/scans/<scanid>/cancel": ["POST"],
     "/scans/<scanid>/results": ["GET"],
-    "/scans/<scanid>/results/<resultid:int>": ["GET"]
+    "/results/<resultid>": ["GET"],
+    "/tags": ["GET"],
+    "/files/<sha256>/tags/<tagid>/add": ["GET"],
+    "/files/<sha256>/tags/<tagid>/remove": ["GET"],
 }

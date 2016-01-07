@@ -16,16 +16,17 @@
 import os
 from bottle import response, request
 from lib.common import compat
+from lib.common.utils import decode_utf8
 from lib.irma.common.utils import IrmaScanStatus
-from frontend.api.errors import process_error
+from frontend.api.v1_1.errors import process_error
 from frontend.models.sqlobjects import Scan
-from frontend.helpers.schemas import ScanSchema, FileWebSchema
-from frontend.helpers.utils import validate_scanid
+from frontend.api.v1_1.schemas import FileWebSchema_v1_1, ScanSchema_v1_1
+from frontend.helpers.utils import validate_id
 import frontend.controllers.scanctrl as scan_ctrl
 import frontend.controllers.frontendtasks as celery_frontend
 
 
-scan_schema = ScanSchema()
+scan_schema = ScanSchema_v1_1()
 
 
 def list(db):
@@ -34,7 +35,6 @@ def list(db):
     try:
         offset = int(request.query.offset) if request.query.offset else 0
         limit = int(request.query.limit) if request.query.limit else 5
-
         base_query = db.query(Scan)
 
         items = base_query.limit(limit).offset(offset).all()
@@ -78,7 +78,7 @@ def get(scanid, db):
     """ Retrieve information for a specific scan
     """
     try:
-        validate_scanid(scanid)
+        validate_id(scanid)
         scan = Scan.load_from_ext_id(scanid, db)
 
         response.content_type = "application/json; charset=UTF-8"
@@ -92,21 +92,34 @@ def launch(scanid, db):
         The request should be performed using a POST request method.
     """
     try:
-        validate_scanid(scanid)
+        validate_id(scanid)
         scan = Scan.load_from_ext_id(scanid, db)
-
-        force = False
         probes = None
 
-        # handle scan parameter / cached results: "force"
-        if 'force' in request.json and request.json.get('force'):
-            force = True
+        # handle scan parameter
+        # cached results: "force" (default: True)
+        scan.force = False
+        if 'force' in request.json and request.json.get('force') is True:
+            scan.force = True
+
+        # use mimetype for probelist: "mimetype_filtering" (default: True)
+        scan.mimetype_filtering = True
+        if 'mimetype_filtering' in request.json and \
+           request.json.get('mimetype_filtering') is False:
+            scan.mimetype_filtering = False
+
+        # rescan file outputted from probes "resubmit_files" (default: True)
+        scan.resubmit_files = True
+        if 'resubmit_files' in request.json and \
+           request.json.get('resubmit_files') is False:
+            scan.resubmit_files = False
+        db.commit()
 
         # handle scan parameter / probelist: "probes"
         if 'probes' in request.json:
             probes = request.json.get('probes').split(',')
 
-        scan_ctrl.launch_synchronous(scan, force, probes, db)
+        scan_ctrl.check_probe(scan, probes, db)
         # launch_asynchronous scan via frontend task
         celery_frontend.scan_launch(scanid)
 
@@ -121,7 +134,7 @@ def cancel(scanid, db):
         The request should be performed using a POST request method.
     """
     try:
-        validate_scanid(scanid)
+        validate_id(scanid)
         scan = Scan.load_from_ext_id(scanid, db)
 
         scan_ctrl.cancel(scan, db)
@@ -137,13 +150,13 @@ def add_files(scanid, db):
         The request should be performed using a POST request method.
     """
     try:
-        validate_scanid(scanid)
+        validate_id(scanid)
         scan = Scan.load_from_ext_id(scanid, db)
 
         files = {}
         for f in request.files:
             upfile = request.files.get(f)
-            filename = os.path.basename(upfile.filename)
+            filename = decode_utf8(upfile.raw_filename)
             data = upfile.file.read()
             files[filename] = data
 
@@ -158,40 +171,15 @@ def add_files(scanid, db):
 def get_results(scanid, db):
     """ Retrieve results for a scan. Results are the same as in the get()
         method, i.e. a summary for each scanned files.
-        The request should be performed using a POST request method.
+        The request should be performed using a GET request method.
     """
     try:
-        validate_scanid(scanid)
+        validate_id(scanid)
         scan = Scan.load_from_ext_id(scanid, db)
 
-        file_web_schema = FileWebSchema(exclude=('probe_results',
-                                                 'file_infos'))
-
+        file_web_schema = FileWebSchema_v1_1(exclude=('probe_results',
+                                                      'file_infos'))
         response.content_type = "application/json; charset=UTF-8"
         return file_web_schema.dumps(scan.files_web, many=True).data
-    except Exception as e:
-        process_error(e)
-
-
-def get_result(scanid, resultid, db):
-    """ Retrieve a single result, with details.
-        The request should be performed using a POST request method.
-    """
-    try:
-        formatted = False if request.query.formatted == 'no' else True
-
-        validate_scanid(scanid)
-        scan = Scan.load_from_ext_id(scanid, db)
-
-        for fw in scan.files_web:
-            if fw.scan_file_idx == resultid:
-                file_web = fw
-                break
-
-        file_web_schema = FileWebSchema()
-        file_web_schema.context = {'formatted': formatted}
-
-        response.content_type = "application/json; charset=UTF-8"
-        return file_web_schema.dumps(file_web).data
     except Exception as e:
         process_error(e)

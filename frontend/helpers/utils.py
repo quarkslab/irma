@@ -21,10 +21,10 @@ from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaValueError, IrmaFileSystemError
 
 
-def validate_scanid(scanid):
-    """ check scanid format - should be a str(ObjectId)"""
-    if not UUID.validate(scanid):
-        raise ValueError("Malformed Scanid")
+def validate_id(ext_id):
+    """ check external_id format - should be a str(ObjectId)"""
+    if not UUID.validate(ext_id):
+        raise ValueError("Malformed id")
 
 
 def validate_sha256(sha256):

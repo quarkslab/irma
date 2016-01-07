@@ -1,9 +1,22 @@
 <div class="row">
   <div class="col-md-9" role="main">
-    <p><a href="/scan/{{state.scan.id}}">Back to the scan summary</a></p>
+    <p><a href="/scan/{{vm.results.scan_id}}">Back to the scan summary</a></p>
 
     <div class="result-section">
       <h2 id="file-informations">File informations</h2>
+      <tags-input 
+            ng-model="tags"
+            on-tag-added="tagAdded($tag)"
+            on-tag-removed="tagRemoved($tag)"
+            add-from-autocomplete-only="true">
+            <auto-complete
+                    load-on-down-arrow="true"
+                    load-on-empty="true"
+                    load-on-focus="true"
+                    min-length="0"
+                    source="loadAvailableTags($query)">
+            </auto-complete>
+      </tags-input>
       <table class="table table-bordered">
         <tbody>
           <tr>
@@ -13,6 +26,10 @@
           <tr>
             <th>Size (bytes)</th>
             <td>{{vm.results.file_infos.size}}</td>
+          </tr>
+          <tr>
+            <th>Mimetype</th>
+            <td>{{vm.results.file_infos.mimetype}}</td>
           </tr>
           <tr>
             <th>MD5</th>

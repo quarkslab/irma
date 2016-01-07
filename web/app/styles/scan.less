@@ -42,10 +42,10 @@
   }
 
   .scan-files-details {
-    .title {
+    h3 {
       font-family: Raleway, sans-serif;
       font-weight: bold;
-      font-size: 2.8rem;
+      font-size: 3rem;
     }
 
     small {
@@ -58,7 +58,46 @@
     a {
       text-decoration: none;
       font-weight: bold;
-      padding-left: 20px;
+      padding-left: 10px;
+    }
+    .label {
+      margin-top: 2px;
+      margin-right: 3px;
+    }
+
+    .file {
+
+      @grayOne: #eee;
+
+      .infos {
+        border-bottom: 1px solid @grayOne;
+        padding: 2px;
+
+        &:hover {
+          background-color: @grayOne;
+        }
+      }
+      .children {
+        margin-left: 15px;
+        border-left: 3px solid @grayOne;
+        margin-bottom: 20px;
+      }
+
+      button {
+        border: none;
+        background-color: #fff;
+        border-radius: 5px;
+        font-weight: bold;
+        width: 30px;
+        height: 20px;
+        font-size: 2rem;
+        display: block;
+        float: left;
+        text-align: center;
+        padding: 0px;
+        line-height: 20px;
+        outline: none;
+      }
     }
   }
 }

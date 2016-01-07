@@ -15,13 +15,13 @@
 
 from bottle import response, request
 
-from frontend.api.errors import process_error
+from frontend.api.v1.errors import process_error
 from frontend.helpers.utils import guess_hash_type
 from frontend.models.sqlobjects import FileWeb
-from frontend.helpers.schemas import FileWebSchema
+from frontend.api.v1.schemas import FileWebSchema_v1
+from lib.common.utils import decode_utf8
 
-
-file_web_schema = FileWebSchema()
+file_web_schema = FileWebSchema_v1()
 file_web_schema.context = {'formatted': True}
 
 
@@ -36,7 +36,10 @@ def files(db):
         on error 'msg' gives reason message
     """
     try:
-        name = request.query.name or None
+        name = None
+        if 'name' in request.query:
+            name = decode_utf8(request.query['name'])
+
         h_value = request.query.hash or None
 
         if name is not None and h_value is not None:
@@ -47,19 +50,19 @@ def files(db):
         limit = int(request.query.limit) if request.query.limit else 25
 
         if name is not None:
-            base_query = FileWeb.query_find_by_name(name, db)
+            base_query = FileWeb.query_find_by_name(name, None, db)
         elif h_value is not None:
             h_type = guess_hash_type(h_value)
 
             if h_type is None:
                 raise ValueError("Hash not supported")
 
-            base_query = FileWeb.query_find_by_hash(h_type, h_value, db)
+            base_query = FileWeb.query_find_by_hash(h_type, h_value, None, db)
         else:
             # FIXME this is just a temporary way to output
             # all files, need a dedicated
             # file route and controller
-            base_query = FileWeb.query_find_by_name("", db)
+            base_query = FileWeb.query_find_by_name("", None, db)
 
         # TODO: Find a way to move pagination as a BaseQuery like in
         #       flask_sqlalchemy.

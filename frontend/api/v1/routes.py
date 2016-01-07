@@ -13,7 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from frontend.api.controllers import probes, search, scans
+from frontend.api.v1.controllers import probes, search, scans
 
 
 """ Define all routes for the API
@@ -41,5 +41,5 @@ def define_routes(application):
                       callback=scans.cancel)
     application.route("/scans/<scanid>/results",
                       callback=scans.get_results)
-    application.route("/scans/<scanid>/results/<resultid:int>",
+    application.route("/scans/<scanid>/results/<resultid>",
                       callback=scans.get_result)

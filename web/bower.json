@@ -24,6 +24,7 @@
     "moment": "~2.8.3",
     "angular-moment": "~0.8.2",
     "ng-table": "~0.3.3",
+    "ng-tags-input": "~2.3.0",
     "angular-svg-round-progressbar": "~0.2.0"
   },
   "devDependencies": {
