@@ -577,7 +577,6 @@ class FileWeb(Base, SQLDatabaseObject):
     )
     path = Column(
         String(length=255),
-        nullable=False,
         name='path'
     )
     # Many to one FileWeb <-> Scan
