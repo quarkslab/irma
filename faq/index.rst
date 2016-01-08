@@ -3,6 +3,5 @@ Frequently Asked Questions
 
 .. toctree::
 
-    pip.rst
-    daemon.rst
+	tags.rst
     vagrant.rst
