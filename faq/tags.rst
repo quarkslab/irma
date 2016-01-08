@@ -11,6 +11,7 @@ Creating a tag
 You could create tags by using the `command line tools <https://github.com/quarkslab/irma-cli>`_
 
 .. code-block:: python
+
 	>>> from irma.helpers import *
 	>>> tag_list()
 	[]
@@ -31,6 +32,7 @@ or directly from  your terminal by using curl and posting a json with 'text' key
 
 	There is currently no way to create a tag directly from the web IHM.
 
+
 Tagging a File
 ^^^^^^^^^^^^^^
 
@@ -47,6 +49,7 @@ Just click the tag bar and you will see all available tags. You could add multip
 It is also possible to add a tag through command line tools:
 
 .. code-block:: python
+
 	>>> from irma.helpers import *
 	>>> file_tag_add?
 	Signature: file_tag_add(sha256, tagid, verbose=False)
@@ -69,13 +72,15 @@ You could specify one or more tags while searching for files too:
 .. image:: pics/search_tag1.png
    :alt: Add a tag while searching files
 
+choose your tag list then hit the search button:
 
-.. image:: pics/search_tag1.png
+.. image:: pics/search_tag2.png
    :alt: Search by tag
 
 or by command line:
 
 .. code-block:: python
+
 	>>> from irma.helpers import *
 	>>> file_search(tags=[1])
 	(1, [<irma.apiclient.IrmaResults at 0x7f079ca23890>])

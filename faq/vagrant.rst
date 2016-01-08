@@ -1,3 +1,22 @@
+Connect to a vagrant box through ssh
+------------------------------------
+
+If you don't already have it download vagrant insecure_private_key
+
+.. code-block:: bash
+
+	$ wget https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant -O insecure_private_key
+
+
+Then change rights on the key otherwise ssh will complains and connect to your vagrant box
+
+.. code-block:: bash
+
+	$ chmod 700 insecure_private_key
+	$ ssh vagrant@172.16.1.30 -i insecure_private_key
+
+
+
 Enable SSL using OpenSSL in ansible scripts
 -------------------------------------------
 

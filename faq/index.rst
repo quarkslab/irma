@@ -4,4 +4,6 @@ Frequently Asked Questions
 .. toctree::
 
 	tags.rst
-    vagrant.rst
+	migration.rst
+	swagger.rst
+	vagrant.rst
