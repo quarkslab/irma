@@ -1,0 +1,5 @@
+---
+
+mcafee_install_path: "C://VSCL"
+mcafee_url: "http://b2b-download.mcafee.com/products/evaluation/vcl/w32/vscl-w32-604-e.zip"
+mcafee_url_signatures: "ftp://ftp.mcafee.com/commonupdater2/current/vscandat1000/dat/0000/"

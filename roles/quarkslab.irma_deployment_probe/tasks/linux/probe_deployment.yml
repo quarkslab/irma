@@ -34,3 +34,10 @@
     dest: "{{ probe_install_dir }}"
     state: link
   when: irma_deployment_code_version != 'local'
+
+- name: Restart Supervisor services
+  supervisorctl:
+    name: "{{ item.name }}"
+    state: restarted
+  sudo: yes
+  with_items: supervisor_programs_probe

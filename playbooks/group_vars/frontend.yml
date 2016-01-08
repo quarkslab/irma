@@ -129,6 +129,8 @@ postgresql_default_auth_method: "trust"
 postgresql_cluster_name: "main"
 postgresql_cluster_reset: false
 
+postgresql_client_encoding: "UTF8"
+
 ## Databases informations
 postgresql_databases:
   - name: irma-frontend
@@ -160,7 +162,7 @@ supervisor_programs_frontend:
     command: >
       uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
       --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
-      --python-path {{ frontend_install_dir }}/venv --mount /api/v1=frontend/api/base.py --lazy
+      --python-path {{ frontend_install_dir }}/venv --mount /api=frontend/api/base.py --lazy
     user: "{{ irma_user }}"
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_api.log
@@ -191,10 +193,11 @@ nginx_configs:
     - gzip_http_version 1.1
     - gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript
   http:
-    - types_hash_max_size 2048
     - server_names_hash_bucket_size 64
 
 nginx_sites:
+  default:
+    - listen 80
   irma-frontend:
     - listen 80 default_server
     - listen [::]:80 default_server ipv6only=on
@@ -203,9 +206,9 @@ nginx_sites:
     - location ~ /\.ht {
         deny all;
       }
-    - location /api/v1 {
+    - location /api {
         include uwsgi_params;
-        rewrite ^/api/v1/(.+) /$1 break;
+        rewrite ^/api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
     - location /swagger {

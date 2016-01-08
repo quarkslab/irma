@@ -1,0 +1,32 @@
+---
+
+- name: Check if 'probe.tasks' is already launched
+  raw: wmic process where "name Like 'python.exe'" get Commandline
+  register: startup_result
+  ignore_errors: yes
+
+- name: Stop running instance
+  raw: "{{ item.cmd }}"
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    - cmd: wmic Path win32_process Where "CommandLine Like '%-m probe.tasks%'" Call Terminate
+      rc: [0]
+    - cmd: wmic Path win32_process Where "CommandLine Like '%from billard.forking%'" Call Terminate
+      rc: [0]
+  when: startup_result | success
+
+- name: Recreate Launcher
+  win_copy:
+    src: ../../files/irma.bat
+    dest: "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup/irma.bat"
+
+- name: Restart machine (needed to launch IRMA)
+  raw: shutdown /r /t 0 /f /d p:4:1 /c "Restarting for IRMA"
+  async: 0
+  poll: 0
+  ignore_errors: true
+
+- name: Waiting for guest to come back
+  local_action: wait_for host={{ inventory_hostname }}
+                state=started

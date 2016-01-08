@@ -20,6 +20,10 @@
     name: "postgresql-server-dev-{{postgresql_version}}"
     state: present
 
+- name: Enable postgreSQL at boot
+  service: name=postgresql enabled=yes
+  sudo: yes
+
 - pip:
     name: psycopg2
     state: present

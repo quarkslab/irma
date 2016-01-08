@@ -1,0 +1,10 @@
+---
+- name: Unarchiver | Installing dependencies with pip
+  pip:
+    name: "{{ item }}"
+    state: "latest"
+    extra_args: "{{ pip_extra_args | default('') }}"
+  with_items:
+    - patool
+    - pyunpack
+

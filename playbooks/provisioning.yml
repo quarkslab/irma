@@ -1,7 +1,7 @@
 ---
 
-- name: Common tasks to execute on all servers
-  hosts: all
+- name: Common tasks to execute on all Linux servers
+  hosts: all:!windows
   sudo: yes
   roles:
     - { role: quarkslab.apt, tags: 'apt' }
@@ -37,13 +37,12 @@
     - { role: quarkslab.ufw_additional, tags: 'ufw', ufw_additional_rules: "{{ brain_ufw_additional_rules }}" }
 
 
+# NOTE: moved down sudo attributes as windows does not support sudo.
 - name: Probe provisioning
   hosts: probe
-  sudo: yes
   roles:
     - { role: quarkslab.irma_provisioning_probe, tags: 'probe' }
-    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}" }
-
+    - { role: quarkslab.supervisor, sudo: yes, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}", when: "ansible_distribution in ['Debian', 'Ubuntu']"}
 
 # Antivirus section
 - name: ClamAV provisioning
@@ -69,6 +68,12 @@
   sudo: yes
   roles:
     - { role: quarkslab.mcafee_vscl, tags: 'mcafee_vscl' }
+
+- name: McAfee VSCL provisioning (Windows)
+  hosts: mcafee-win
+  sudo: no
+  roles:
+    - { role: quarkslab.mcafee_vscl_windows, tags: 'mcafee_vscl_windows' }
 
 - name: StaticAnalyzer provisioning
   hosts: static-analyzer
@@ -132,5 +137,16 @@
   sudo: yes
   roles:
     - { role: quarkslab.peid, tags: 'peid' }
+
+- name: Emsisoft a2cmd provisioning
+  hosts: emsisoft-win
+  roles:
+    - { role: quarkslab.emsisoft_a2cmd_windows, tags: 'emsisoft' }
+
+- name: Unarchiver provisioning
+  hosts: unarchiver
+  sudo: yes
+  roles:
+    - { role: quarkslab.unarchiver, tags: 'unarchiver' }
 
 # vim: sw=2

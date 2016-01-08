@@ -18,7 +18,7 @@
   name: gdamjan.uwsgi
 
 - src: jdauphant.nginx
-  version: v1.0.0
+  version: v1.5.1
 
 - src: Mayeu.RabbitMQ
   version: 1.4.0
