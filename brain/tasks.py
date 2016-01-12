@@ -88,8 +88,10 @@ def _get_mimetype_probelist(mimetype):
     return probe_list
 
 
-def refresh_probes():
-    probe_ctrl.all_offline()
+def active_probes():
+    # scan all active queues except result queue
+    # to list all probes queues ready
+    res = []
     i = probe_app.control.inspect()
     queues = i.active_queues()
     if queues:
@@ -98,9 +100,15 @@ def refresh_probes():
             for queue in queuelist:
                 # exclude only predefined result queue
                 if queue['name'] != result_queue:
-                    # ask probe to re-register
-                    celery_probe.get_info(queue['name'])
-        return
+                    res.append(queue['name'])
+    return res
+
+
+def refresh_probes():
+    probe_ctrl.all_offline()
+    for probe in active_probes():
+        celery_probe.get_info(probe)
+    return
 
 # Refresh all probes before starting
 refresh_probes()
