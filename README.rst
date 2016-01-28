@@ -37,7 +37,7 @@ Everything will be installed in the same virtual machine named `brain.irma`.
 Requirements
 ````````````
 
-- `Vagrant <http://www.vagrantup.com/>`_ 1.5 or higher has to be installed
+- `Vagrant <http://www.vagrantup.com/>`_ 1.8 or higher has to be installed
 - As the installation work only for `Virtualbox <https://www.virtualbox.org/>`_,
   you’ll need to install it
 

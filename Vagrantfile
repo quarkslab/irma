@@ -82,7 +82,8 @@ Vagrant.configure("2") do |config|
       ansible.playbook = 'playbooks/playbook.yml'
       ansible.extra_vars = ansible_config['extra_vars']
       ansible.groups = ansible_config['groups']
-      
+      ansible.force_remote_user = false
+
       # NOTE: ansible.limit = 'all' is incompatible when provisioning windows
       #ansible.limit = 'all'
       #ansible.tags = ['']
