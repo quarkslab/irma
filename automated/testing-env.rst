@@ -7,7 +7,7 @@ virtual machine, merely for testing purposes.
 Requirements
 ````````````
 
-- `Vagrant <http://www.vagrantup.com/>`_ 1.5 or higher has to be installed.
+- `Vagrant <http://www.vagrantup.com/>`_ 1.8 or higher has to be installed.
 - As the installation work only for `Virtualbox <https://www.virtualbox.org/>`_,
   you will need to install it.
 
