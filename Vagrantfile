@@ -77,10 +77,12 @@ Vagrant.configure("2") do |config|
       if libvirt_config
         machine.vm.provider "libvirt" do |libvirt|
           libvirt.driver = libvirt_config['driver']
-          libvirt.host = libvirt_config['host']
-          libvirt.connect_via_ssh = libvirt_config['connect_via_ssh'] || "false"
-          libvirt.username = libvirt_config['username']
-          libvirt.id_ssh_key_file = libvirt_config['id_ssh_key_file'] || "id_rsa"
+          libvirt.connect_via_ssh = libvirt_config['connect_via_ssh'] || false
+          if libvirt.connect_via_ssh
+            libvirt.username = libvirt_config['username']
+            libvirt.host = libvirt_config['host']
+            libvirt.id_ssh_key_file = libvirt_config['id_ssh_key_file'] || "id_rsa"
+          end
           libvirt.storage_pool_name = libvirt_config['storage_pool_name'] || "default"
           # Equivalent to
           #libvirt.uri = "qemu+ssh://<username>@<host>/system"
