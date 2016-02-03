@@ -3,9 +3,8 @@
 - src: ANXS.openssh
   version: v1.0.1
 
-- src: https://github.com/quarkslab/postgresql.git
-  name: ANXS.postgresql
-  version: master
+- src: ANXS.postgresql
+  version: v1.1.1
 
 - src: franklinkim.sudo
   version: 1.0.0
@@ -26,6 +25,5 @@
 - src: mivok0.users
   version: master
 
-- src: https://github.com/quarkslab/Stouts.mongodb.git
-  name: Stouts.mongodb
-  version: develop
+- src: Stouts.mongodb
+  version: 2.1.11
