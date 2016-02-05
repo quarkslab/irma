@@ -34,7 +34,7 @@ Configuring the services
 ************************
 
 Update the service parameters in ``/etc/default/celeryd.brain`` and
-``/etc/default/celeryd.brain`` to match your setup. In most cases, you should
+``/etc/default/celeryd.results`` to match your setup. In most cases, you should
 pay attention to the following fields:
 
 ================= ===================== ===========================================
