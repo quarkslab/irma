@@ -1,29 +1,36 @@
 ---
 
-- src: ANXS.openssh
-  version: v1.0.1
+- src: https://github.com/ANXS/openssh.git
+  version: v1.1.0
+  name: ANXS.openssh
 
-- src: ANXS.postgresql
-  version: v1.1.1
+- src: https://github.com/ANXS/postgresql.git
+  version: v1.3.0
+  name: ANXS.postgresql
 
-- src: franklinkim.sudo
-  version: 1.0.0
+- src: https://github.com/weareinteractive/ansible-sudo.git
+  version: 1.5.0
+  name: franklinkim.sudo
 
-- src: franklinkim.ufw
-  version: 1.3.0
+- src: https://github.com/weareinteractive/ansible-ufw.git
+  version: 1.4.0
+  name: franklinkim.ufw
 
 - src: https://github.com/quarkslab/ansible-uwsgi.git
   version: master
   name: gdamjan.uwsgi
 
-- src: jdauphant.nginx
-  version: v1.5.1
+- src: https://github.com/jdauphant/ansible-role-nginx.git
+  version: v1.10.0
+  name: jdauphant.nginx
 
-- src: Mayeu.RabbitMQ
-  version: 1.4.0
-
-- src: mivok0.users
+- src: https://github.com/quarkslab/ansible-playbook-rabbitmq.git
   version: master
+  name: Mayeu.RabbitMQ
+
+- src: https://github.com/mivok/ansible-users.git
+  version: master
+  name: mivok0.users
 
 - src: Stouts.mongodb
   version: 2.1.11
