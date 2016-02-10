@@ -480,7 +480,11 @@ class Scan(Base, SQLDatabaseObject):
         """
         if self.status == IrmaScanStatus.finished:
             return True
-        if self.status < IrmaScanStatus.launched:
+        # Check min. status
+        # It could happend that launched status
+        # is not yet received and results are already
+        # there so just check that we are at least at uploaded
+        if self.status < IrmaScanStatus.uploaded:
             return False
         for fw in self.files_web:
             for pr in fw.probe_results:
