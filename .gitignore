@@ -9,8 +9,8 @@ roles/Mayeu.RabbitMQ/
 roles/mivok0.users/
 roles/Stouts.mongodb/
 roles/ANXS.postgresql/
-roles/ANXS.openssh/
 roles/gdamjan.uwsgi/
+roles/willshersystems.sshd
 
 files/*
 !files/.gitkeep

@@ -1,9 +1,5 @@
 ---
 
-- src: https://github.com/ANXS/openssh.git
-  version: v1.1.0
-  name: ANXS.openssh
-
 - src: https://github.com/ANXS/postgresql.git
   version: v1.3.0
   name: ANXS.postgresql
@@ -34,3 +30,7 @@
 
 - src: Stouts.mongodb
   version: 2.1.11
+
+- src: https://github.com/willshersystems/ansible-sshd.git
+  version: 0.4.2
+  name: willshersystems.sshd
