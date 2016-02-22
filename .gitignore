@@ -3,3 +3,6 @@ _build/*
 
 # vim
 *.swp
+
+# JetBrains
+.idea
