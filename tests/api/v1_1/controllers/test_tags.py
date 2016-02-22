@@ -17,7 +17,7 @@ class TestApiTags(TestCase):
         db_mock.query.side_effect = sample
         process_error = "frontend.api.v1_1.controllers.tags.process_error"
         with patch(process_error) as mock:
-            api_tags.list_available_tags(db_mock)
+            api_tags.list(db_mock)
         self.assertTrue(db_mock.query.called)
         self.assertEqual(db_mock.query.call_args, ((Tag,),))
         self.assertTrue(mock.called)
