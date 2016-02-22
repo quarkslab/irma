@@ -63,6 +63,7 @@ One must install first some tools that are necessary to build the whole web
 client:
 
 .. code-block:: bash
+
     $ curl -sL https://deb.nodesource.com/setup | sudo bash -
     [...]
     $ sudo apt-get install -y nodejs
