@@ -22,8 +22,8 @@ def register(name, category, mimetype_regexp):
     with session_transaction() as session:
         try:
             probe = Probe.get_by_name(name, session)
-            print("probe {0} is already registred"
-                  "Updating with new parameters.\n"
+            print("probe {0} is already registred "
+                  "Updating with new parameters: "
                   "Category:{1} Regexp:{2}".format(name,
                                                    category,
                                                    mimetype_regexp))
@@ -55,8 +55,23 @@ def get_all_probename():
 def all_offline():
     with session_transaction() as session:
         probes = Probe.all(session)
-        print("Set all probes offline (%d probes found)" % len(probes))
         for p in probes:
             p.online = False
             p.update(['online'], session)
+        return
+
+
+def set_offline(probe_name):
+    with session_transaction() as session:
+        p = Probe.get_by_name(probe_name, session)
+        p.online = False
+        p.update(['online'], session)
+        return
+
+
+def set_online(probe_name):
+    with session_transaction() as session:
+        p = Probe.get_by_name(probe_name, session)
+        p.online = True
+        p.update(['online'], session)
         return
