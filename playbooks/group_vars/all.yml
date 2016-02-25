@@ -69,6 +69,11 @@ ufw_applications:
   - { name: "OpenSSH" }
 
 ## OpenSSH server config
-openssh_server_settings:
-  # Stop accepting locale on the server
+sshd:
   AcceptEnv: LANG
+  IgnoreRhost: yes
+  LogLevel: INFO
+  PermitEmptyPasswords: no
+  PermitRootLogin: no
+  Protocol: 2
+  X11Forwarding: no
