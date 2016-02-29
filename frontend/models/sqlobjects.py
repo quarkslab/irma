@@ -632,6 +632,25 @@ class FileWeb(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
+    @classmethod
+    def load_by_scanid_fileid(cls, scanid, fileid, session):
+        """Find the list of filewebs in a given scan with
+           same file in the database
+        :param scanid: the scan external id
+        :param fileid: the file id
+        :param session: the session to use
+        :rtype: list of FileWeb
+        :return: list of matching objects
+        :raise: IrmaDatabaseResultNotFound
+        """
+        try:
+            return session.query(cls).filter(
+                cls.id_scan == scanid,
+                cls.id_file == fileid
+            ).all()
+        except NoResultFound as e:
+            raise IrmaDatabaseResultNotFound(e)
+
     @property
     def probes_total(self):
         return len(self.probe_results)
