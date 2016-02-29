@@ -63,7 +63,7 @@ def _new_fileweb(scan, filename, data, session):
 
 
 def _add_empty_result(fw, probelist, scan, session):
-    scan_known_results = _fetch_known_results(fw.file.sha256, scan)
+    scan_known_results = _fetch_known_results(fw.file, scan, session)
     for probe_name in probelist:
         # Fetch the ref results for the file
         ref_results = filter(lambda x: x.name == probe_name,
@@ -107,13 +107,12 @@ def _add_empty_result(fw, probelist, scan, session):
     return
 
 
-def _fetch_known_results(filehash, scan):
+def _fetch_known_results(file, scan, session):
     scan_known_result = []
-    known_fw_list = filter(lambda x: x.file.sha256 == filehash,
-                           scan.files_web)
-    log.info("_fetch_known_results: Found %d file in current scan",
-             len(known_fw_list))
-    if len(known_fw_list) >= 1:
+    known_fw_list = FileWeb.load_by_scanid_fileid(scan.id, file.id, session)
+    if len(known_fw_list) > 1:
+        log.info("_fetch_known_results: Found %d file in current scan",
+                 len(known_fw_list))
         scan_known_result = known_fw_list[0].probe_results
         log.info("_fetch_known_results: %d known results",
                  len(scan_known_result))
@@ -175,8 +174,8 @@ def _resubmit_files(scan, parent_file, resubmit_fws, hash_uploaded, session):
         if fw.file.sha256 in hash_uploaded:
             # grab probelist from filewebs linked to the same file
             # in current scan
-            probelist = [p.name for p in _fetch_known_results(fw.file.sha256,
-                                                              scan)]
+            probelist = [p.name for p in _fetch_known_results(fw.file,
+                                                              scan, session)]
             # and add link to their results
             _add_empty_result(fw, probelist, scan, session)
         else:
