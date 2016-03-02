@@ -9,13 +9,16 @@
     path: "{{ sophos_temp_dir }}/"
     state: directory
 
-- name: Sophos | Copy installation archive
-  copy:
-    src: "{{ sophos_archive_name }}"
+- name: Sophos | Download installation archive
+  get_url:
+    url: "{{ sophos_archive_url }}"
     dest: "{{ sophos_temp_dir }}/{{ sophos_archive_name }}"
 
 - name: Sophos | Dezip archive
-  command: tar zxf "{{ sophos_temp_dir }}/{{ sophos_archive_name }}" -C "{{ sophos_temp_dir }}"
+  unarchive:
+    src: "{{ sophos_temp_dir }}/{{ sophos_archive_name }}"
+    dest: "{{ sophos_temp_dir }}"
+    copy: no
 
 - name: Sophos | Launch install script (Free mode)
   command: "{{ sophos_temp_dir }}/sophos-av/install.sh {{ sophos_install_dir }} --update-free --acceptlicence --autostart=False --enableOnBoot=False --automatic --ignore-existing-installation --update-source-type=s"
