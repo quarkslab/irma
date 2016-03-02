@@ -29,6 +29,7 @@ from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
     IrmaScanRequest
 from lib.common.utils import UUID
 import re
+import time
 
 # Get celery's logger
 log = get_task_logger(__name__)
@@ -87,21 +88,35 @@ def _get_mimetype_probelist(mimetype):
             probe_list.append(probe_name)
     return probe_list
 
+# Time to cache the probe list
+# to avoid asking to rabbitmq
+PROBELIST_CACHE_TIME = 30
+cache_probelist = {'list': None, 'time': None}
+
 
 def active_probes():
-    # scan all active queues except result queue
-    # to list all probes queues ready
-    res = []
-    i = probe_app.control.inspect()
-    queues = i.active_queues()
-    if queues:
-        result_queue = config.brain_config['broker_probe'].queue
-        for queuelist in queues.values():
-            for queue in queuelist:
-                # exclude only predefined result queue
-                if queue['name'] != result_queue:
-                    res.append(queue['name'])
-    return res
+    global cache_probelist
+    # get active queues list from probe celery app
+    now = time.time()
+    if cache_probelist['time'] is not None:
+        cache_time = now - cache_probelist['time']
+    if cache_probelist['time'] is None or cache_time > PROBELIST_CACHE_TIME:
+        # scan all active queues except result queue
+        # to list all probes queues ready
+        plist = []
+        queues = probe_app.control.inspect().active_queues()
+        if queues:
+            result_queue = config.brain_config['broker_probe'].queue
+            for queuelist in queues.values():
+                for queue in queuelist:
+                    # exclude only predefined result queue
+                    if queue['name'] != result_queue:
+                        plist.append(queue['name'])
+        if len(plist) != 0:
+            # activate cache only on non empty list
+            cache_probelist['time'] = now
+        cache_probelist['list'] = sorted(plist)
+    return cache_probelist['list']
 
 
 def refresh_probes():
