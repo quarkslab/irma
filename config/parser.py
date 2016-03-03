@@ -70,6 +70,10 @@ template_brain_config = {
         ('port', TemplatedConfiguration.integer, 21),
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
+        ],
+    'interprocess_lock': [
+        ('path', TemplatedConfiguration.string,
+         "/var/run/lock/irma-brain.lock"),
         ]
     }
 
@@ -213,3 +217,11 @@ def get_sql_db_uri_params():
 
 def get_sql_db_tables_prefix():
     return brain_config.sqldb.tables_prefix
+
+
+# ==================
+#  Database helpers
+# ==================
+
+def get_lock_path():
+    return brain_config.interprocess_lock.path

@@ -15,6 +15,8 @@
 
 import config.parser as config
 
+import re
+import time
 from celery import Celery
 from celery.utils.log import get_task_logger
 from celery.exceptions import TimeoutError
@@ -28,8 +30,8 @@ import brain.controllers.ftpctrl as ftp_ctrl
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
     IrmaScanRequest
 from lib.common.utils import UUID
-import re
-import time
+from fasteners import interprocess_locked
+
 
 # Get celery's logger
 log = get_task_logger(__name__)
@@ -45,6 +47,8 @@ config.configure_syslog(results_app)
 probe_app = Celery('probetasks')
 config.conf_probe_celery(probe_app)
 config.configure_syslog(probe_app)
+
+interprocess_lock_path = config.get_lock_path()
 
 # ===================
 #  Private functions
@@ -94,6 +98,10 @@ PROBELIST_CACHE_TIME = 30
 cache_probelist = {'list': None, 'time': None}
 
 
+# as the method for querying active_queues is not forksafe
+# insure there is only one call running at a time
+# among the different workers
+@interprocess_locked(interprocess_lock_path)
 def active_probes():
     global cache_probelist
     # get active queues list from probe celery app
