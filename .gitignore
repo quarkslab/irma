@@ -16,3 +16,4 @@ web/app/bower_components/
 .idea/*
 .coverage
 *~
+venv/
