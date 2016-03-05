@@ -18,6 +18,8 @@ import logging
 from lib.plugins.manager import PluginManager
 from lib.plugin_result import PluginResult
 
+log = logging.getLogger(__name__)
+
 
 class IrmaFormatter:
 
@@ -45,8 +47,8 @@ class IrmaFormatter:
             for formatter in cls().formatters:
                 if formatter.can_handle_results(res):
                     res = formatter.format(res)
-                    logging.debug("Using formatter {0} for raw results: {1}"
-                                  "".format(formatter.plugin_name, res))
+                    log.debug("using formatter {0} for raw results: {1}"
+                              "".format(formatter.plugin_name, res))
                     break
             # reduce output to hide or to overload the client unnecessarily
             res.pop('platform', None)

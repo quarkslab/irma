@@ -29,7 +29,7 @@ from lib.irma.common.utils import IrmaScanRequest
 from frontend.controllers import braintasks
 import ntpath
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 # ===================
 #  Internals helpers
@@ -40,6 +40,7 @@ def _new_file(data, session):
     try:
         # The file exists
         file_sha256 = hashlib.sha256(data).hexdigest()
+        log.debug("try opening file with sha256: %s", file_sha256)
         file = File.load_from_sha256(file_sha256, session, data)
     except IrmaDatabaseResultNotFound:
         # It doesn't
@@ -48,12 +49,14 @@ def _new_file(data, session):
         # determine file mimetype
         magic = Magic()
         mimetype = magic.from_buffer(data)
+        log.debug("not present, saving, mimetype: %s", mimetype)
         file.save_file_to_fs(data, mimetype)
         session.add(file)
     return file
 
 
 def _new_fileweb(scan, filename, data, session):
+    log.debug("filename: %s", filename)
     file = _new_file(data, session)
     (path, name) = ntpath.split(filename)
     file_web = FileWeb(file, name, path, scan)
@@ -63,6 +66,7 @@ def _new_fileweb(scan, filename, data, session):
 
 
 def _add_empty_result(fw, probelist, scan, session):
+    log.debug("fw: %s", fw.name)
     scan_known_results = _fetch_known_results(fw.file, scan, session)
     for probe_name in probelist:
         # Fetch the ref results for the file
@@ -76,14 +80,14 @@ def _add_empty_result(fw, probelist, scan, session):
             # and we found one use it
             probe_result = ref_results[0]
             fw.probe_results.append(probe_result)
-            log.debug("Link refresult for %s probe %s",
+            log.debug("link refresult for %s probe %s",
                       fw.name,
                       probe_name)
         elif scan.force and len(scan_results) == 1:
             # We ask for a new analysis
             # but there is already one in current scan
             # just link it
-            log.debug("Link scanresult for %s probe %s",
+            log.debug("link scanresult for %s probe %s",
                       fw.name,
                       probe_name)
             probe_result = scan_results[0]
@@ -92,7 +96,7 @@ def _add_empty_result(fw, probelist, scan, session):
             # results is not known or analysis is forced
             # create empty result
             # TODO probe types
-            log.debug("Creating Empty result for %s probe %s",
+            log.debug("creating empty result for %s probe %s",
                       fw.name,
                       probe_name)
             probe_result = ProbeResult(
@@ -111,16 +115,16 @@ def _fetch_known_results(file, scan, session):
     scan_known_result = []
     known_fw_list = FileWeb.load_by_scanid_fileid(scan.id, file.id, session)
     if len(known_fw_list) > 1:
-        log.info("_fetch_known_results: Found %d file in current scan",
-                 len(known_fw_list))
+        log.debug("found %d file in current scan",
+                  len(known_fw_list))
         scan_known_result = known_fw_list[0].probe_results
-        log.info("_fetch_known_results: %d known results",
-                 len(scan_known_result))
+        log.debug("%d known results",
+                  len(scan_known_result))
     return scan_known_result
 
 
 def _add_empty_results(fw_list, scan_request, scan, session):
-    log.info("add_empty results")
+    log.debug("scanid : %s", scan.external_id)
     for fw in fw_list:
         probelist = scan_request.get_probelist(fw.file.sha256)
         _add_empty_result(fw, probelist, scan, session)
@@ -130,6 +134,8 @@ def _create_scan_request(fw_list, probelist, mimetype_filtering):
     # Create scan request
     # dict of sha256 : probe_list
     # force parameter taken into account
+    log.debug("probelist: %s mimetype_filtering: %s",
+              probelist, mimetype_filtering)
     scan_request = IrmaScanRequest()
     for fw in fw_list:
         scan_request.add_file(fw.file.sha256,
@@ -157,8 +163,8 @@ def _append_new_files_to_scan(scan, uploaded_files, session):
     for (file_name, file_sha256) in uploaded_files.items():
         file_data = ftp_ctrl.download_file_data(scan.external_id, file_sha256)
         fw = _new_fileweb(scan, file_name, file_data, session)
-        log.info("scan {0}: new fileweb id {1} for file {2}".format(
-                 scan.external_id, fw.external_id, fw.name))
+        log.debug("scan %s: new fileweb id %s for file %s",
+                  scan.external_id, fw.external_id, fw.name)
         new_fws.append(fw)
     return new_fws
 
@@ -183,8 +189,8 @@ def _resubmit_files(scan, parent_file, resubmit_fws, hash_uploaded, session):
             # (done later in _add_empty_results)
             fws_filtered.append(fw)
 
-    log.info("Scan %s: %d new files to resubmit",
-             scan.external_id, len(fws_filtered))
+    log.debug("scan %s: %d new files to resubmit",
+              scan.external_id, len(fws_filtered))
     if len(fws_filtered) != 0:
         scan_request = _create_scan_request(fws_filtered,
                                             scan.get_probelist(),
@@ -232,6 +238,7 @@ def add_files(scan, files, session):
     :return: int - total number of files for the scan
     :raise: IrmaDataBaseError, IrmaValueError
     """
+    log.debug("scanid: %s", scan.external_id)
     IrmaScanStatus.filter_status(scan.status,
                                  IrmaScanStatus.empty,
                                  IrmaScanStatus.ready)
@@ -242,6 +249,7 @@ def add_files(scan, files, session):
     for (filename, data) in files.items():
         # Using ntpath.split as it handles
         # windows path and Linux path
+        log.debug("filename: %s", filename)
         _new_fileweb(scan, filename, data, session)
     session.commit()
 
@@ -274,6 +282,7 @@ def check_probe(scan, probelist, session):
             raise IrmaValueError(reason)
     else:
         probelist = all_probe_list
+    log.debug("scanid: %s probelist: %s", scan.external_id, probelist)
     scan.set_probelist(probelist)
     session.commit()
 
@@ -288,6 +297,7 @@ def cancel(scan, session):
         informations about number of cancelled jobs by irma-brain
     :raise: IrmaDatabaseError, IrmaTaskError
     """
+    log.debug("scanid: %s", scan.external_id)
     if scan.status < IrmaScanStatus.uploaded:
         # If not launched answer directly
         scan.set_status(IrmaScanStatus.cancelled)
@@ -325,8 +335,8 @@ def cancel(scan, session):
 
 # Used by tasks.py, second part of the scan launch operation
 def launch_asynchronous(scanid):
+    log.debug("scanid: %s", scanid)
     with session_transaction() as session:
-        log.info("{0}: Launching asynchronously".format(scanid))
         scan = Scan.load_from_ext_id(scanid, session=session)
         IrmaScanStatus.filter_status(scan.status,
                                      IrmaScanStatus.ready,
@@ -339,7 +349,7 @@ def launch_asynchronous(scanid):
         if scan_request.nb_files == 0:
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
-            log.info("{0}: Finished nothing to do".format(scanid))
+            log.warning("scanid: %s finished nothing to do", scanid)
             return
 
         try:
@@ -348,7 +358,7 @@ def launch_asynchronous(scanid):
                 upload_list.append(file.path)
             ftp_ctrl.upload_scan(scanid, upload_list)
         except IrmaFtpError as e:
-            log.error("{0}: Ftp upload error {1}".format(scanid, str(e)))
+            log.error("scanid: %s ftp upload error %s", scanid, str(e))
             scan.set_status(IrmaScanStatus.error_ftp_upload)
             session.commit()
             return
@@ -357,7 +367,7 @@ def launch_asynchronous(scanid):
         celery_brain.scan_launch(scanid, scan_request.to_dict())
         scan.set_status(IrmaScanStatus.uploaded)
         session.commit()
-        log.info("{0}: Success: scan uploaded".format(scanid))
+        log.info("scanid: %s uploaded", scanid)
         return
 
 
@@ -369,7 +379,7 @@ def set_launched(scanid, scan_report_dict):
     :raise: IrmaDatabaseError
     """
     with session_transaction() as session:
-        log.info("Scanid %s is now launched", format(scanid))
+        log.info("scanid: %s is now launched", format(scanid))
         scan = Scan.load_from_ext_id(scanid, session=session)
         if scan.status == IrmaScanStatus.uploaded:
             scan.set_status(IrmaScanStatus.launched)
@@ -410,13 +420,14 @@ def set_result(scanid, file_hash, probe, result):
             for pr in fw.probe_results:
                 if pr.nosql_id is not None:
                     probedone.append(pr.name)
-            log.info("Scanid %s result from %s probedone %s",
+            log.info("scanid: %s result from %s probedone %s",
                      scanid, probe, probedone)
 
         if scan.finished():
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
             # launch flush celery task on brain
+            log.debug("scanid: %s calling scan_flush", scanid)
             celery_brain.scan_flush(scanid)
 
 
@@ -425,10 +436,10 @@ def handle_output_files(scanid, parent_file_hash, probe, result):
         scan = Scan.load_from_ext_id(scanid, session=session)
         uploaded_files = result.get('uploaded_files', None)
         if uploaded_files is None or not scan.resubmit_files:
-            log.info("Scanid %s: Nothing to resubmit or resubmit disabled",
-                     scanid)
+            log.debug("scanid: %s Nothing to resubmit or resubmit disabled",
+                      scanid)
             return
-        log.info("Scanid %s: Appending new uploaded files %s",
+        log.info("scanid: %s appending new uploaded files %s",
                  scanid, uploaded_files.keys())
         parent_file = File.load_from_sha256(parent_file_hash, session)
         # filter already present file in current scan

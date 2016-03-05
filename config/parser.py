@@ -14,6 +14,7 @@
 # terms contained in the LICENSE file.
 
 import os
+import logging
 
 from kombu import Queue
 from celery.schedules import crontab
@@ -34,6 +35,7 @@ template_frontend_config = {
     'log': [
         ('syslog', TemplatedConfiguration.integer, 0),
         ('prefix', TemplatedConfiguration.string, "irma-frontend :"),
+        ('debug', TemplatedConfiguration.boolean, False),
     ],
     'mongodb': [
         ('host', TemplatedConfiguration.string, None),
@@ -217,6 +219,20 @@ def setup_log(**args):
     hl.setFormatter(formatter)
     # add new handler to logger
     args['logger'].addHandler(hl)
+
+
+def debug_enabled():
+    return frontend_config.log.debug
+
+
+def setup_debug_logger(logger):
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
+    FORMAT = "%(asctime)-15s %(name)s %(process)d %(filename)s:"
+    FORMAT += "%(lineno)d (%(funcName)s) %(message)s"
+    logging.basicConfig(format=FORMAT)
+    logger.setLevel(logging.DEBUG)
+    return
 
 
 # ==================

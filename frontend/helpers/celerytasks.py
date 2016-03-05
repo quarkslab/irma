@@ -13,8 +13,11 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import logging
 from celery import exceptions as celery_exceptions
 from lib.irma.common.exceptions import IrmaTaskError
+
+log = logging.getLogger(__name__)
 
 
 def sync_call(celery_app, taskpath, taskname, timeout, **kwargs):
@@ -22,11 +25,14 @@ def sync_call(celery_app, taskpath, taskname, timeout, **kwargs):
         and wait until timeout param for result
     """
     try:
+        log.debug("app: %s task: %s.%s timeout:%s",
+                  celery_app, taskpath, taskname, timeout)
         full_task_path = "{0}.{1}".format(taskpath, taskname)
         task = celery_app.send_task(full_task_path, **kwargs)
         (status, res) = task.get(timeout=timeout)
         return (status, res)
-    except celery_exceptions.TimeoutError:
+    except celery_exceptions.TimeoutError as e:
+        log.exception(e)
         raise IrmaTaskError("Celery timeout - {0}".format(taskname))
 
 
@@ -35,7 +41,10 @@ def async_call(celery_app, taskpath, taskname, **kwargs):
         without waiting for results.
     """
     try:
+        log.debug("app: %s task: %s.%s",
+                  celery_app, taskpath, taskname)
         full_task_path = "{0}.{1}".format(taskpath, taskname)
         return celery_app.send_task(full_task_path, **kwargs)
-    except:
+    except Exception as e:
+        log.exception(e)
         raise IrmaTaskError("Celery error - {0}".format(taskname))

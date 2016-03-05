@@ -13,6 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import logging
 from bottle import response, request
 
 from frontend.api.v1.errors import process_error
@@ -23,6 +24,7 @@ from lib.common.utils import decode_utf8
 
 file_web_schema = FileWebSchema_v1()
 file_web_schema.context = {'formatted': True}
+log = logging.getLogger(__name__)
 
 
 def files(db):
@@ -42,6 +44,7 @@ def files(db):
 
         h_value = request.query.hash or None
 
+        log.debug("name %s h_value %s", name, h_value)
         if name is not None and h_value is not None:
             raise ValueError("Can't find using both name and hash")
 
@@ -74,6 +77,7 @@ def files(db):
         else:
             total = base_query.count()
 
+        log.debug("Found %s results", total)
         response.content_type = "application/json; charset=UTF-8"
         return {
             'total': total,
@@ -82,4 +86,5 @@ def files(db):
             'items': file_web_schema.dump(items, many=True).data,
         }
     except Exception as e:
+        log.exception(e)
         process_error(e)
