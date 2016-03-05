@@ -14,6 +14,7 @@
 # terms contained in the LICENSE file.
 
 import celery
+import logging
 import config.parser as config
 
 from celery.utils.log import get_task_logger
@@ -35,32 +36,47 @@ scan_app = celery.Celery('scantasks')
 config.conf_brain_celery(scan_app)
 config.configure_syslog(scan_app)
 
+# IRMA specific debug messages are enables through
+# config file Section: log / Key: debug
+if config.debug_enabled():
+    def after_setup_logger_handler(sender=None, logger=None, loglevel=None,
+                                   logfile=None, format=None,
+                                   colorize=None, **kwds):
+        config.setup_debug_logger(logging.getLogger(__name__))
+        log.debug("debug is enabled")
+    celery.signals.after_setup_logger.connect(after_setup_logger_handler)
+    celery.signals.after_setup_task_logger.connect(after_setup_logger_handler)
+
 
 @frontend_app.task(acks_late=True)
 def scan_launch(scanid):
     try:
+        log.debug("scanid: %s", scanid)
         scan_ctrl.launch_asynchronous(scanid)
     except IrmaDatabaseError as e:
-        print "Exception has occurred:{0}".format(e)
+        log.exception(e)
         raise scan_launch.retry(countdown=2, max_retries=3, exc=e)
 
 
 @frontend_app.task(acks_late=True)
 def scan_launched(scanid, scan_request):
     try:
+        log.debug("scanid: %s", scanid)
         scan_ctrl.set_launched(scanid, scan_request)
     except IrmaDatabaseError as e:
-        print "Exception has occurred:{0}".format(e)
+        log.exception(e)
         raise scan_launched.retry(countdown=2, max_retries=3, exc=e)
 
 
 @frontend_app.task(acks_late=True)
 def scan_result(scanid, file_hash, probe, result):
     try:
+        log.debug("scanid: %s file_hash: %s probe: %s",
+                  scanid, file_hash, probe)
         scan_ctrl.handle_output_files(scanid, file_hash, probe, result)
         scan_ctrl.set_result(scanid, file_hash, probe, result)
     except IrmaDatabaseError as e:
-        print "Exception has occurred:{0}".format(e)
+        log.exception(e)
         raise scan_result.retry(countdown=2, max_retries=3, exc=e)
 
 
@@ -73,9 +89,8 @@ def clean_db():
         max_age_file *= 24 * 60 * 60
         nb_files = file_ctrl.remove_files(max_age_file)
         hage_file = humanize_time_str(max_age_file, 'seconds')
-        print("removed {0} files ".format(nb_files) +
-              "(older than {0})".format(hage_file))
+        log.info("removed %d files (older than %s)", nb_files, hage_file)
         return nb_files
     except (IrmaDatabaseError, IrmaFileSystemError) as e:
-        print "Exception has occurred:{0}".format(e)
+        log.exception(e)
         raise clean_db.retry(countdown=2, max_retries=3, exc=e)

@@ -13,11 +13,16 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import logging
 from frontend.models.sqlobjects import File
 from frontend.helpers.sessions import session_transaction
+
+log = logging.getLogger(__name__)
 
 
 # used by tasks.py
 def remove_files(max_age_sec):
     with session_transaction() as session:
-        return File.remove_old_files(max_age_sec, session)
+        nb_deleted = File.remove_old_files(max_age_sec, session)
+        log.debug("Max_age_sec: %s Nb_deleted: %s", max_age_sec)
+        return nb_deleted

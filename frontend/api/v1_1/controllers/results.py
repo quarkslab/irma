@@ -1,8 +1,11 @@
+import logging
 from bottle import response, request
 from frontend.api.v1_1.errors import process_error
 from frontend.models.sqlobjects import FileWeb
 from frontend.api.v1_1.schemas import FileWebSchema_v1_1
 from frontend.helpers.utils import validate_id
+
+log = logging.getLogger(__name__)
 
 
 def get(resultid, db):
@@ -11,7 +14,7 @@ def get(resultid, db):
     """
     try:
         formatted = False if request.query.formatted == 'no' else True
-
+        log.debug("resultid %s formatted %s", resultid, formatted)
         validate_id(resultid)
         fw = FileWeb.load_from_ext_id(resultid, db)
 
@@ -21,4 +24,5 @@ def get(resultid, db):
         response.content_type = "application/json; charset=UTF-8"
         return file_web_schema.dumps(fw).data
     except Exception as e:
+        log.exception(e)
         process_error(e)

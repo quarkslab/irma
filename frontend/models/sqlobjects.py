@@ -25,7 +25,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 import config.parser as config
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaCoreError, IrmaFileSystemError
-from lib.common import compat, mimetypes
+from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.utils import IrmaScanStatus, IrmaProbeType
 from lib.irma.database.sqlobjects import SQLDatabaseObject

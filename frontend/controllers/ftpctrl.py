@@ -21,7 +21,7 @@ from lib.irma.common.exceptions import IrmaFileSystemError, \
     IrmaFtpError
 
 
-log = logging.getLogger()
+log = logging.getLogger(__name__)
 
 
 def upload_scan(scanid, file_path_list):
@@ -34,7 +34,7 @@ def upload_scan(scanid, file_path_list):
         with FtpTls(host, port, user, pwd) as ftps:
             ftps.mkdir(scanid)
             for file_path in file_path_list:
-                log.info("Uploading file %s", file_path)
+                log.debug("scanid: %s uploading file %s", scanid, file_path)
                 if not os.path.exists(file_path):
                     reason = "File does not exist"
                     log.error(reason)
@@ -49,7 +49,8 @@ def upload_scan(scanid, file_path_list):
                     log.error(reason)
                     raise IrmaFtpError(reason)
         return
-    except Exception:
+    except Exception as e:
+        log.exception(e)
         reason = "Ftp upload Error"
         raise IrmaFtpError(reason)
 
@@ -63,9 +64,10 @@ def download_file_data(scanid, file_sha256):
         pwd = ftp_config.password
 
         with FtpTls(host, port, user, pwd) as ftps:
-            log.info("Downloading file %s", file_sha256)
+            log.debug("scanid: %s downloading file %s", scanid, file_sha256)
             file_data = ftps.download_data(scanid, file_sha256)
         return file_data
-    except Exception:
+    except Exception as e:
+        log.exception(e)
         reason = "Ftp upload Error"
         raise IrmaFtpError(reason)

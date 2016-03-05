@@ -12,6 +12,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import logging
 from bottle import response, request
 
 from frontend.api.v1_1.errors import process_error
@@ -25,6 +26,7 @@ from lib.common.utils import decode_utf8
 file_web_schema = FileWebSchema_v1_1()
 scan_schema = ScanSchema_v1_1()
 file_web_schema.context = {'formatted': True}
+log = logging.getLogger(__name__)
 
 
 def list(db):
@@ -48,6 +50,8 @@ def list(db):
         if search_tags is not None:
             search_tags = search_tags.split(',')
 
+        log.debug("name %s h_value %s search_tags %s",
+                  name, h_value, search_tags)
         if name is not None and h_value is not None:
             raise ValueError("Can't find using both name and hash")
 
@@ -81,6 +85,7 @@ def list(db):
         else:
             total = base_query.count()
 
+        log.debug("Found %s results", total)
         response.content_type = "application/json; charset=UTF-8"
         return {
             'total': total,
@@ -89,6 +94,7 @@ def list(db):
             'items': file_web_schema.dump(items, many=True).data,
         }
     except Exception as e:
+        log.exception(e)
         process_error(e)
 
 
@@ -104,6 +110,7 @@ def get(sha256, db):
         on error 'msg' gives reason message
     """
     try:
+        log.debug("h_value %s", sha256)
         # Check wether its a download attempt or not
         if request.query.alt == "media":
             return download(sha256, db)
@@ -126,6 +133,7 @@ def get(sha256, db):
         else:
             total = base_query.count()
 
+        log.debug("offset %d limit %d total %d", offset, limit, total)
         file_web_schema = FileWebSchema_v1_1(exclude=('probe_results',
                                                       'file_infos'))
         fileinfo_schema = FileSchema_v1_1()
@@ -141,6 +149,7 @@ def get(sha256, db):
             'items': file_web_schema.dump(items, many=True).data,
         }
     except Exception as e:
+        log.exception(e)
         process_error(e)
 
 
@@ -148,10 +157,12 @@ def add_tag(sha256, tagid, db):
     """ Attach a tag to a file.
     """
     try:
+        log.debug("h_value %s tagid %s", sha256, tagid)
         fobj = File.load_from_sha256(sha256, db)
         fobj.add_tag(tagid, db)
         db.commit()
     except Exception as e:
+        log.exception(e)
         process_error(e)
 
 
@@ -159,16 +170,19 @@ def remove_tag(sha256, tagid, db):
     """ Remove a tag attached to a file.
     """
     try:
+        log.debug("h_value %s tagid %s", sha256, tagid)
         fobj = File.load_from_sha256(sha256, db)
         fobj.remove_tag(tagid, db)
         db.commit()
     except Exception as e:
+        log.exception(e)
         process_error(e)
 
 
 def download(sha256, db):
     """Retrieve a file based on its sha256"""
     try:
+        log.debug("h_value %s", sha256)
         fobj = File.load_from_sha256(sha256, db)
 
         # Force download
@@ -180,4 +194,5 @@ def download(sha256, db):
         return open(fobj.path).read()
 
     except Exception as e:
+        log.exception(e)
         process_error(e)
