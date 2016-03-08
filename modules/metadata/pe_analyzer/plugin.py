@@ -109,6 +109,6 @@ class PEAnalyzerPlugin(PluginBase):
                 results.status = self.StaticAnalyzerResults.SUCCESS
                 results.results = response
         except Exception as e:
-            results.status = self.StaticAnalyzerResult.ERROR
+            results.status = self.StaticAnalyzerResults.ERROR
             results.error = str(e)
         return results
