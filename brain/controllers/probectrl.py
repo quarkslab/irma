@@ -75,3 +75,9 @@ def set_online(probe_name):
         p.online = True
         p.update(['online'], session)
         return
+
+
+def get_category(probe_name):
+    with session_query() as session:
+        p = Probe.get_by_name(probe_name, session)
+        return p.category
