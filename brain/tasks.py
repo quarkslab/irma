@@ -306,6 +306,7 @@ def job_error(parent_taskid, jobid):
         result = {}
         result['status'] = -1
         result['name'] = probe
+        result['type'] = probe_ctrl.get_category(probe)
         result['error'] = "Brain job error"
         result['duration'] = job_ctrl.duration(jobid)
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
