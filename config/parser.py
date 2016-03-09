@@ -84,7 +84,7 @@ template_frontend_config = {
         ('password', TemplatedConfiguration.string, None),
     ],
     'cron_frontend': [
-        ('clean_db_file_max_age', TemplatedConfiguration.integer, 2),
+        ('clean_db_file_max_age', TemplatedConfiguration.integer, 0),
         ('clean_db_cron_hour', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),

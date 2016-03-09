@@ -85,6 +85,10 @@ def clean_db():
     try:
         cron_cfg = config.frontend_config['cron_frontend']
         max_age_file = cron_cfg['clean_db_file_max_age']
+        # 0 means disabled
+        if max_age_file == 0:
+            log.debug("disabled by config")
+            return 0
         # days to seconds
         max_age_file *= 24 * 60 * 60
         nb_files = file_ctrl.remove_files(max_age_file)
@@ -93,4 +97,4 @@ def clean_db():
         return nb_files
     except (IrmaDatabaseError, IrmaFileSystemError) as e:
         log.exception(e)
-        raise clean_db.retry(countdown=2, max_retries=3, exc=e)
+        raise clean_db.retry(countdown=30, max_retries=3, exc=e)

@@ -21,6 +21,7 @@ from frontend.models.sqlobjects import FileWeb, File
 from frontend.api.v1_1.schemas import FileWebSchema_v1_1, ScanSchema_v1_1, \
     FileSchema_v1_1
 from lib.common.utils import decode_utf8
+from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
 
 
 file_web_schema = FileWebSchema_v1_1()
@@ -113,7 +114,7 @@ def get(sha256, db):
         log.debug("h_value %s", sha256)
         # Check wether its a download attempt or not
         if request.query.alt == "media":
-            return download(sha256, db)
+            return _download(sha256, db)
         # Options query
         offset = int(request.query.offset) if request.query.offset else 0
         limit = int(request.query.limit) if request.query.limit else 25
@@ -179,20 +180,18 @@ def remove_tag(sha256, tagid, db):
         process_error(e)
 
 
-def download(sha256, db):
+# called by get
+def _download(sha256, db):
     """Retrieve a file based on its sha256"""
-    try:
-        log.debug("h_value %s", sha256)
-        fobj = File.load_from_sha256(sha256, db)
-
-        # Force download
-        ctype = 'application/octet-stream; charset=UTF-8'
-        # Suggest Filename to sha256
-        cdisposition = "attachment; filename={}".format(sha256)
-        response.headers["Content-Type"] = ctype
-        response.headers["Content-Disposition"] = cdisposition
-        return open(fobj.path).read()
-
-    except Exception as e:
-        log.exception(e)
-        process_error(e)
+    log.debug("h_value %s", sha256)
+    fobj = File.load_from_sha256(sha256, db)
+    # check if file is still present
+    if fobj.path is None:
+        raise IrmaDatabaseResultNotFound("downloading a removed file")
+    # Force download
+    ctype = 'application/octet-stream; charset=UTF-8'
+    # Suggest Filename to sha256
+    cdisposition = "attachment; filename={}".format(sha256)
+    response.headers["Content-Type"] = ctype
+    response.headers["Content-Disposition"] = cdisposition
+    return open(fobj.path).read()
