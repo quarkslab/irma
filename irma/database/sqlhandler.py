@@ -18,14 +18,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 from irma.common.exceptions import IrmaDatabaseError
 
-DEBUG = False
-# FIXME take this filename from config
-logging.basicConfig(filename='/var/log/irma/sqlalchemy.log')
-if DEBUG:
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-else:
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
-
 
 class SQLDatabase(object):
     """Internal database.
@@ -39,7 +31,8 @@ class SQLDatabase(object):
         raise Exception('This class must not be instantiated')
 
     @classmethod
-    def connect(cls, dbms, dialect, username, passwd, host, dbname):
+    def connect(cls, dbms, dialect, username, passwd,
+                host, dbname, debug=False):
         """Create a connexion to the db
         :param dbms: the database management system (ex: postgresql)
         :param dialect: the dialect to use (ex: psycopg2 (for postgre))
@@ -58,7 +51,7 @@ class SQLDatabase(object):
                 else:
                     host_and_id = "{0}@{1}".format(username, host)
             url = "{0}://{1}/{2}".format(dbms, host_and_id, dbname)
-            cls.__engine = create_engine(url, echo=DEBUG)
+            cls.__engine = create_engine(url, echo=debug)
 
             session_factory = sessionmaker(bind=cls.__engine)
             cls.__Session = scoped_session(session_factory)
