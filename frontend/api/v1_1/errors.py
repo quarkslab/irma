@@ -49,14 +49,15 @@ def process_error(error):
     # Default options if error does not match known error
     abort_code = ApiError.http_status_code
     api_error = ApiError('api_error')
-    if isinstance(error, ValueError) or isinstance(error, IrmaValueError):
-        api_error = ApiError('invalid_request_error', str(error))
-    if isinstance(error, NoResultFound) or \
-       isinstance(error, IrmaDatabaseResultNotFound):
+    if isinstance(error, (ValueError,
+                          IrmaValueError)):
+        api_error = ApiError('value_error', str(error))
+    elif isinstance(error, (NoResultFound,
+                            IrmaDatabaseResultNotFound)):
         abort_code = 404
-        api_error = ApiError('invalid_request_error', "Object not Found")
-    if isinstance(error, IrmaDatabaseError):
-        api_error = ApiError('api_error')
+        api_error = ApiError('request_error', "Object not Found")
+    elif isinstance(error, IrmaDatabaseError):
+        api_error = ApiError('database_error')
     # Abort raise an exception catch by Bottle Application
     abort(abort_code, api_error)
 
