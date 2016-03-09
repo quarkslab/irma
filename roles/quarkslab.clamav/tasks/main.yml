@@ -1,5 +1,12 @@
 ---
 
+- name: ClamAV | Preconfigure Freshclam to manual update
+  debconf:
+     name: clamav-freshclam
+     question: 'clamav-freshclam/autoupdate_freshclam'
+     value: 'manual'
+     vtype: 'string'
+
 - name: ClamAV | Install package
   apt: name={{ item }} state=latest
   with_items:

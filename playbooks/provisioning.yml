@@ -9,7 +9,7 @@
     - { role: quarkslab.irma_provisioning_common, tags: 'common' }
     - { role: mivok0.users, tags: 'users' }
     - { role: franklinkim.sudo, tags: 'sudo' }
-    - { role: ANXS.openssh, tags: 'openssh' }
+    - { role: willshersystems.sshd, tags: 'openssh' }
 
 
 - name: Frontend provisioning
@@ -57,11 +57,18 @@
   roles:
     - { role: quarkslab.comodo_cavl, tags: 'comodo' }
 
+
 - name: Sophos provisioning
   hosts: sophos
   sudo: yes
   roles:
     - { role: quarkslab.sophos, tags: 'sophos' }
+
+- name: EsetNod32 provisioning
+  hosts: eset-nod32
+  sudo: yes
+  roles:
+    - { role: quarkslab.eset_nod32, tags: 'eset_nod32' }
 
 - name: McAfee VSCL provisioning
   hosts: mcafee
