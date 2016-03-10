@@ -13,10 +13,8 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import re
 import os
 import sys
-import logging
 
 from datetime import datetime
 from lib.common.utils import timestamp
@@ -53,10 +51,6 @@ class TrIDPlugin(PluginBase):
     def __init__(self):
         module = sys.modules['modules.metadata.trid.trid'].TrID
         self.module = module()
-
-    def can_handle(self, mimetype):
-        # accept all mimetypes
-        return True
 
     def run(self, paths):
         results = PluginResult(name=type(self).plugin_name,

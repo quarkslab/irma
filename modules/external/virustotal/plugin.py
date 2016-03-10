@@ -80,10 +80,6 @@ class VirusTotalPlugin(PluginBase):
             module = sys.modules['virus_total_apis'].PublicApi
         self.module = module(self.apikey)
 
-    def can_handle(self, mimetype):
-        # accept all mimetypes
-        return True
-
     def get_file_report(self, filename):
         with open(filename, 'rb') as filedesc:
             digest = hashlib.md5(filedesc.read()).hexdigest()
