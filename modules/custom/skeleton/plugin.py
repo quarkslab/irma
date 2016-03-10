@@ -47,11 +47,6 @@ class SkeletonPlugin(PluginBase):
     def __init__(self):
         pass
 
-    def can_handle(self, mimetype):
-        # filter files on mimetype
-        # return True if supported
-        return True
-
     @classmethod
     def verify(cls):
         raise PluginLoadError("Skeleton plugin is not meant to be loaded")

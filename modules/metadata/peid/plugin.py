@@ -82,9 +82,6 @@ class PEiDPlugin(PluginBase):
         peutils = sys.modules['peutils']
         self.signatures = peutils.SignatureDatabase(sign_path)
 
-    def can_handle(self, mimetype):
-        return re.search('PE32', mimetype, re.IGNORECASE) is not None
-
     def analyze(self, filename):
         pefile = sys.modules['pefile']
         try:

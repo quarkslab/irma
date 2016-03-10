@@ -15,7 +15,6 @@
 
 import os
 import sys
-import hashlib
 
 from ConfigParser import SafeConfigParser
 from datetime import datetime
@@ -69,10 +68,6 @@ class YaraPlugin(PluginBase):
             self.rule_path = rule_path
 
         self.rules = sys.modules['yara'].compile(filepath=self.rule_path)
-
-    def can_handle(self, mimetype):
-        # accept all mimetypes
-        return True
 
     def get_file_report(self, filename):
         try:
