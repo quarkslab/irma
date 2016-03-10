@@ -13,6 +13,7 @@
 # terms contained in the LICENSE file.
 
 import celery
+import logging
 import config.parser as config
 from brain.helpers.celerytasks import route, async_call
 
@@ -22,6 +23,8 @@ config.conf_results_celery(results_app)
 probe_app = celery.Celery('probetasks')
 config.conf_probe_celery(probe_app)
 
+log = logging.getLogger(__name__)
+
 
 # ============
 #  Task calls
@@ -29,6 +32,9 @@ config.conf_probe_celery(probe_app)
 
 def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
     """ send a task to the brain to flush the scan files"""
+    log.debug("scanid %s: ftpuser %s filename %s probe %s" +
+              " job_id %s task_id %s",
+              frontend_scanid, ftpuser, filename, probe, job_id, task_id)
     hook_success = route(
         results_app.signature("brain.tasks.job_success",
                               [job_id]))
@@ -47,10 +53,12 @@ def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
 
 
 def job_cancel(job_list):
+    log.debug("job_list: %s", "-".join(job_list))
     probe_app.control.revoke(job_list, terminate=True)
 
 
 def get_info(queue_name):
+    log.debug("queue_name: %s", queue_name)
     async_call(probe_app,
                "probe.tasks",
                "register",

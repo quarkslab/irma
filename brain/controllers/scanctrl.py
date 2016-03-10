@@ -13,11 +13,14 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import logging
 from brain.models.sqlobjects import Scan
 from brain.helpers.sql import session_query, session_transaction
 from lib.irma.common.utils import IrmaScanStatus
 from lib.irma.common.exceptions import IrmaValueError, \
     IrmaDatabaseResultNotFound
+
+log = logging.getLogger(__name__)
 
 
 def new(frontend_scan_id, user_id, nb_files):
@@ -30,28 +33,35 @@ def new(frontend_scan_id, user_id, nb_files):
             scan = Scan(frontend_scan_id, user_id, nb_files)
             scan.save(session)
         session.commit()
+        log.debug("scanid %s: user_id %s nb_files %s id %s",
+                  frontend_scan_id, user_id, nb_files, scan.id)
         return scan.id
 
 
 def get_scan_id(frontend_scan_id, user_id):
     with session_query() as session:
         scan = Scan.get_scan(frontend_scan_id, user_id, session)
+        log.debug("scanid %s: user_id %s id %s",
+                  frontend_scan_id, user_id, scan.id)
         return scan.id
 
 
 def get_user_id(scan_id):
     with session_query() as session:
         scan = Scan.load(scan_id, session)
+        log.debug("user_id: %s", scan.user_id)
         return scan.user_id
 
 
 def get_nbjobs(scan_id):
     with session_query() as session:
         scan = Scan.load(scan_id, session)
+        log.debug("nb_jobs: %s", scan.nb_jobs)
         return scan.nb_jobs
 
 
 def _set_status(scan_id, code):
+    log.debug("brain_scan_id: %s code %s", scan_id, code)
     with session_transaction() as session:
         scan = Scan.load(scan_id, session)
         scan.status = code
@@ -71,10 +81,12 @@ def launched(scan_id):
 
 
 def progress(scan_id):
+    log.debug("brain_scan_id: %s", scan_id)
     with session_query() as session:
         scan = Scan.load(scan_id, session)
         if IrmaScanStatus.is_error(scan.status):
             status_str = IrmaScanStatus.label[scan.status]
+            log.error("status %s", status_str)
             raise IrmaValueError(status_str)
         status = IrmaScanStatus.label[scan.status]
         progress_details = None
@@ -84,6 +96,7 @@ def progress(scan_id):
             progress_details['total'] = total
             progress_details['finished'] = finished
             progress_details['successful'] = success
+        log.debug("%s", progress_details)
         return (status, progress_details)
 
 
@@ -110,6 +123,7 @@ def flush(scan_id):
         if scan.status == IrmaScanStatus.flushed:
             return
         for job in scan.jobs:
+            log.debug("delete job %s", job.id)
             session.delete(job)
         scan.status = IrmaScanStatus.flushed
 

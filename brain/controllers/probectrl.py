@@ -13,20 +13,22 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
+import logging
 from brain.models.sqlobjects import Probe
 from brain.helpers.sql import session_query, session_transaction
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+
+log = logging.getLogger(__name__)
 
 
 def register(name, category, mimetype_regexp):
     with session_transaction() as session:
         try:
             probe = Probe.get_by_name(name, session)
-            print("probe {0} is already registred "
-                  "Updating with new parameters: "
-                  "Category:{1} Regexp:{2}".format(name,
-                                                   category,
-                                                   mimetype_regexp))
+            log.info("probe %s already registred "
+                     "updating parameters: "
+                     "[cat:%s regexp:%s]",
+                     name, category, mimetype_regexp)
             probe.category = category
             probe.mimetype_regexp = mimetype_regexp
             probe.online = True
@@ -57,6 +59,7 @@ def all_offline():
         probes = Probe.all(session)
         for p in probes:
             p.online = False
+            log.debug("set %s offline", p.name)
             p.update(['online'], session)
         return
 
@@ -65,6 +68,7 @@ def set_offline(probe_name):
     with session_transaction() as session:
         p = Probe.get_by_name(probe_name, session)
         p.online = False
+        log.debug("set %s offline", p.name)
         p.update(['online'], session)
         return
 
@@ -73,6 +77,7 @@ def set_online(probe_name):
     with session_transaction() as session:
         p = Probe.get_by_name(probe_name, session)
         p.online = True
+        log.debug("set %s online", p.name)
         p.update(['online'], session)
         return
 

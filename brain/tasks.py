@@ -17,6 +17,8 @@ import config.parser as config
 
 import re
 import time
+import celery
+import logging
 from celery import Celery
 from celery.utils.log import get_task_logger
 from celery.exceptions import TimeoutError
@@ -50,6 +52,17 @@ config.configure_syslog(probe_app)
 
 interprocess_lock_path = config.get_lock_path()
 
+# IRMA specific debug messages are enables through
+# config file Section: log / Key: debug
+if config.debug_enabled():
+    def after_setup_logger_handler(sender=None, logger=None, loglevel=None,
+                                   logfile=None, format=None,
+                                   colorize=None, **kwds):
+        config.setup_debug_logger(logging.getLogger(__name__))
+        log.debug("debug is enabled")
+    celery.signals.after_setup_logger.connect(after_setup_logger_handler)
+    celery.signals.after_setup_task_logger.connect(after_setup_logger_handler)
+
 # ===================
 #  Private functions
 # ===================
@@ -63,17 +76,17 @@ def _create_scan(frontend_scanid, scan_request_dict):
     # create an initial entry to track future errors
     # tell frontend that frontend_scanid is now known to brain
     # progress available
-    print("Received {0}".format(scan_request_dict))
+    log.debug("scanid: %s received %s", frontend_scanid, scan_request_dict)
     scan_request = IrmaScanRequest(scan_request_dict)
     scan_id = scan_ctrl.new(frontend_scanid, user_id, scan_request.nb_files)
     (remaining, quota) = user_ctrl.get_quota(user_id)
     if remaining is not None:
-        log.info("%s quota remaining {0}/{1}",
+        log.info("scanid %s: quota remaining {0}/{1}",
                  frontend_scanid,
                  remaining,
                  quota)
     else:
-        log.info("%s unlimited quota",
+        log.info("scanid %s: unlimited quota",
                  frontend_scanid)
     if remaining <= 0:
         scan_ctrl.error(scan_id, IrmaScanStatus.error)
@@ -81,8 +94,7 @@ def _create_scan(frontend_scanid, scan_request_dict):
 
 
 def _get_mimetype_probelist(mimetype):
-    log.info("asking what probes handle %s",
-             mimetype)
+    log.debug("asking what probes handle %s", mimetype)
     probe_list = []
     for p in probe_ctrl.get_all():
         probe_name = p.name
@@ -90,6 +102,7 @@ def _get_mimetype_probelist(mimetype):
         if regexp is None or \
            re.search(regexp, mimetype, re.IGNORECASE) is not None:
             probe_list.append(probe_name)
+    log.debug("probes: %s", "-".join(probe_list))
     return probe_list
 
 # Time to cache the probe list
@@ -109,6 +122,7 @@ def active_probes():
     if cache_probelist['time'] is not None:
         cache_time = now - cache_probelist['time']
     if cache_probelist['time'] is None or cache_time > PROBELIST_CACHE_TIME:
+        log.debug("refreshing cached list")
         # scan all active queues except result queue
         # to list all probes queues ready
         plist = []
@@ -124,6 +138,7 @@ def active_probes():
             # activate cache only on non empty list
             cache_probelist['time'] = now
         cache_probelist['list'] = sorted(plist)
+    log.debug("probe_list: %s", "-".join(cache_probelist['list']))
     return cache_probelist['list']
 
 
@@ -143,7 +158,7 @@ refresh_probes()
 
 @scan_app.task(acks_late=True)
 def register_probe(name, category, mimetype_filter):
-    log.info("Probe %s Category %s registered [%s] transfer to scan_app",
+    log.info("probe %s category %s registered [%s] transfer to scan_app",
              name, category, mimetype_filter)
     probe_ctrl.register(name, category, mimetype_filter)
     return
@@ -157,12 +172,12 @@ def probe_list():
     if len(offline_probe) != 0:
         for probe in offline_probe:
             probe_ctrl.set_offline(probe)
-        log.info("Probe list set_offline [%s]", ",".join(offline_probe))
+        log.info("probe list set_offline [%s]", ",".join(offline_probe))
     online_probe = filter(lambda x: x not in probe_list, active_probes_list)
     if len(online_probe) != 0:
         for probe in online_probe:
             probe_ctrl.set_online(probe)
-        log.info("Probe list set_online [%s]", ",".join(online_probe))
+        log.info("probe list set_online [%s]", ",".join(online_probe))
     probe_list = probe_ctrl.get_all_probename()
     return IrmaTaskReturn.success(probe_list)
 
@@ -177,16 +192,20 @@ def mimetype_filter_scan_request(scan_request_dict):
             mimetype = scan_request.get_mimetype(filehash)
             mimetype_probelist = _get_mimetype_probelist(mimetype)
             probe_list = scan_request.get_probelist(filehash)
+            log.debug("filehash: %s probe_list: %s",
+                      filehash, "-".join(probe_list))
             # first check probe_list for unknown probe
             for probe in probe_list:
                 # check if probe exists
                 if probe not in available_probelist:
                     msg = "Unknown probe {0}".format(probe)
-                    log.info("Unknown probe %s",
-                             probe)
+                    log.error(msg)
                     return IrmaTaskReturn.error(msg)
                 if probe in mimetype_probelist:
                     # probe is asked but not supported by mimetype
+                    log.debug("filehash %s probe %s asked but" +
+                              " not supported for %s",
+                              filehash, probe, mimetype)
                     filtered_probelist.append(probe)
             # update probe list in scan request
             scan_request.set_probelist(filehash, filtered_probelist)
@@ -199,11 +218,10 @@ def mimetype_filter_scan_request(scan_request_dict):
 @scan_app.task(ignore_result=False, acks_late=True)
 def scan(frontend_scanid, scan_request_dict):
     try:
-        log.info("%s: new_scan", frontend_scanid)
+        log.debug("scanid %s: new_scan", frontend_scanid)
         scan_id = _create_scan(frontend_scanid, scan_request_dict)
         scan_request = IrmaScanRequest(scan_request_dict)
         available_probelist = probe_ctrl.get_all_probename()
-        log.info("%s: launch_scan", frontend_scanid)
         user_id = scan_ctrl.get_user_id(scan_id)
         (remaining, _) = user_ctrl.get_quota(user_id)
         ftp_user = user_ctrl.get_ftpuser(user_id)
@@ -215,20 +233,22 @@ def scan(frontend_scanid, scan_request_dict):
                 if probe not in available_probelist:
                     scan_ctrl.error(scan_id,
                                     IrmaScanStatus.error_probe_missing)
-                    msg = "Unknown probe {0}".format(probe)
-                    log.info("%s Unknown probe %s",
-                             frontend_scanid,
-                             probe)
+                    msg = "unknown probe {0}".format(probe)
+                    log.error("scanid %s: unknown probe %s",
+                              frontend_scanid,
+                              probe)
                     return IrmaTaskReturn.error(msg)
             if probe_list is None:
                 scan_ctrl.error(scan_id, IrmaScanStatus.error_probe_missing)
-                log.info("%s Empty probe list", frontend_scanid)
+                log.error("scanid %s empty probe list", frontend_scanid)
                 return IrmaTaskReturn.error("empty probe list on brain")
             # Now, create one subtask per file to
             # scan per probe according to quota
             for probe in probe_list:
                 if remaining is not None:
                     if remaining <= 0:
+                        log.error("scanid %s: scan quota exceeded",
+                                  frontend_scanid)
                         break
                     else:
                         remaining -= 1
@@ -242,28 +262,32 @@ def scan(frontend_scanid, scan_request_dict):
                                         task_id)
         scan_ctrl.launched(scan_id)
         celery_frontend.scan_launched(frontend_scanid, scan_request.to_dict())
-        log.info("%s %d file(s) received / %d active probe(s) / "
+        log.info("scanid %s: %d file(s) received / %d active probe(s) / "
                  "%d job(s) launched",
                  frontend_scanid,
                  scan_request.nb_files,
                  len(available_probelist),
                  scan_ctrl.get_nbjobs(scan_id))
-    except:
-        log.info("exception", exc_info=True)
+    except Exception as e:
+        log.exception(e)
         raise
 
 
 @scan_app.task(acks_late=True)
 def scan_cancel(frontend_scanid):
     try:
-        log.info("scanid %s", frontend_scanid)
+        log.info("scanid %s: cancelling", frontend_scanid)
         rmqvhost = config.get_frontend_rmqvhost()
         user_id = user_ctrl.get_userid(rmqvhost)
         scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
         (status, progress_details) = scan_ctrl.progress(scan_id)
+        log.debug("scanid %s: progress_details %s",
+                  frontend_scanid, progress_details)
         scan_ctrl.cancelling(scan_id)
         pending_jobs = scan_ctrl.get_pending_jobs(scan_id)
         cancel_details = None
+        log.info("scanid %s: %d pending jobs",
+                 frontend_scanid, len(pending_jobs))
         if len(pending_jobs) != 0:
             celery_probe.job_cancel(pending_jobs)
             cancel_details = {}
@@ -276,8 +300,8 @@ def scan_cancel(frontend_scanid):
         res['status'] = status
         res['cancel_details'] = cancel_details
         return IrmaTaskReturn.success(res)
-    except:
-        log.info("exception", exc_info=True)
+    except Exception as e:
+        log.exception(e)
         return IrmaTaskReturn.error("cancel error on brain")
 
 
@@ -285,14 +309,12 @@ def scan_cancel(frontend_scanid):
 def job_success(result, jobid):
     try:
         (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
-        log.info("scanid %s jobid:%d probe %s",
-                 frontend_scanid,
-                 jobid,
-                 probe)
+        log.info("scanid %s: jobid:%d probe %s",
+                 frontend_scanid, jobid, probe)
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
         job_ctrl.success(jobid)
-    except:
-        log.info("exception", exc_info=True)
+    except Exception as e:
+        log.exception(e)
         return
 
 
@@ -300,7 +322,7 @@ def job_success(result, jobid):
 def job_error(parent_taskid, jobid):
     try:
         (frontend_scanid, filename, probe) = job_ctrl.info(jobid)
-        log.info("scanid %s jobid:%d probe %s",
+        log.info("scanid %s: jobid:%d probe %s",
                  frontend_scanid, jobid, probe)
         job_ctrl.error(jobid)
         result = {}
@@ -310,21 +332,22 @@ def job_error(parent_taskid, jobid):
         result['error'] = "Brain job error"
         result['duration'] = job_ctrl.duration(jobid)
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
-    except:
-        log.info("exception", exc_info=True)
+    except Exception as e:
+        log.exception(e)
         return
 
 
 @results_app.task(ignore_result=True, acks_late=True)
 def scan_flush(frontend_scanid):
     try:
-        log.info("scan_id %s scan flush requested", frontend_scanid)
+        log.info("scan_id %s: scan flush requested", frontend_scanid)
         rmqvhost = config.get_frontend_rmqvhost()
         user_id = user_ctrl.get_userid(rmqvhost)
         scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
+        log.info("flush brain_scan_id %s", scan_id)
         scan_ctrl.flush(scan_id)
         ftpuser = user_ctrl.get_ftpuser(user_id)
         ftp_ctrl.flush_dir(ftpuser, frontend_scanid)
-    except:
-        log.info("exception", exc_info=True)
+    except Exception as e:
+        log.exception(e)
         return
