@@ -20,6 +20,8 @@ import os
 import sys
 import uuid
 import config.parser as config
+import celery
+import logging
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
@@ -36,6 +38,18 @@ from probe.controllers.braintasks import register_probe
 ##############################################################################
 
 log = get_task_logger(__name__)
+
+# IRMA specific debug messages are enables through
+# config file Section: log / Key: debug
+if config.debug_enabled():
+    def after_setup_logger_handler(sender=None, logger=None, loglevel=None,
+                                   logfile=None, format=None,
+                                   colorize=None, **kwds):
+        config.setup_debug_logger(logging.getLogger(__name__))
+        log.debug("debug is enabled")
+    celery.signals.after_setup_logger.connect(after_setup_logger_handler)
+    celery.signals.after_setup_task_logger.connect(after_setup_logger_handler)
+
 
 # disable insecure serializer (disabled by default from 3.x.x)
 if (kombu.VERSION.major) < 3:
@@ -136,6 +150,8 @@ def register():
     probe_name = type(probe).plugin_name
     probe_category = type(probe).plugin_category
     probe_regexp = type(probe).plugin_mimetype_regexp
+    log.debug("probe %s category %s probe_regexp %s",
+              probe_name, probe_category, probe_regexp)
     register_probe(probe_name, probe_category, probe_regexp)
 
 
@@ -145,6 +161,7 @@ def probe_scan(frontend, scanid, filename):
         # retrieve queue name and the associated plugin
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
+        log.debug("scanid %s: filename %s probe %s", scanid, filename, probe)
         conf_ftp = config.probe_config.ftp_brain
         (fd, tmpname) = tempfile.mkstemp()
         os.close(fd)
@@ -157,11 +174,13 @@ def probe_scan(frontend, scanid, filename):
         results = probe.run(tmpname)
         # Some AV always delete suspicious file
         if os.path.exists(tmpname):
+            log.debug("scanid %s: filename %s probe %s removing tmp_name %s",
+                      scanid, filename, probe, tmpname)
             os.remove(tmpname)
         handle_output_files(results, path)
         return to_unicode(results)
     except Exception as e:
-        log.exception("Exception has occured: {0}".format(e))
+        log.exception(e)
         raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
 
 ##############################################################################

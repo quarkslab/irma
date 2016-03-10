@@ -14,7 +14,7 @@
 # terms contained in the LICENSE file.
 
 import os
-
+import logging
 from kombu import Queue
 from logging import BASIC_FORMAT, Formatter
 from logging.handlers import SysLogHandler
@@ -31,6 +31,7 @@ template_probe_config = {
     'log': [
         ('syslog', TemplatedConfiguration.integer, 0),
         ('prefix', TemplatedConfiguration.string, "irma-probe :"),
+        ('debug', TemplatedConfiguration.boolean, False),
     ],
     'broker_probe': [
         ('host', TemplatedConfiguration.string, None),
@@ -145,3 +146,17 @@ def setup_log(**args):
     hl.setFormatter(formatter)
     # add new handler to logger
     args['logger'].addHandler(hl)
+
+
+def debug_enabled():
+    return probe_config.log.debug
+
+
+def setup_debug_logger(logger):
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
+    FORMAT = "%(asctime)-15s %(name)s %(process)d %(filename)s:"
+    FORMAT += "%(lineno)d (%(funcName)s) %(message)s"
+    logging.basicConfig(format=FORMAT)
+    logger.setLevel(logging.DEBUG)
+    return
