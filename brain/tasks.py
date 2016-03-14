@@ -158,10 +158,14 @@ refresh_probes()
 
 @scan_app.task(acks_late=True)
 def register_probe(name, category, mimetype_filter):
-    log.info("probe %s category %s registered [%s] transfer to scan_app",
-             name, category, mimetype_filter)
-    probe_ctrl.register(name, category, mimetype_filter)
-    return
+    try:
+        log.info("probe %s category %s registered [%s] transfer to scan_app",
+                 name, category, mimetype_filter)
+        probe_ctrl.register(name, category, mimetype_filter)
+        return
+    except Exception as e:
+        log.exception(e)
+        raise register_probe.retry(countdown=5, max_retries=3, exc=e)
 
 
 @scan_app.task(acks_late=True)
@@ -210,8 +214,8 @@ def mimetype_filter_scan_request(scan_request_dict):
             # update probe list in scan request
             scan_request.set_probelist(filehash, filtered_probelist)
         return IrmaTaskReturn.success(scan_request.to_dict())
-    except:
-        log.info("exception", exc_info=True)
+    except Exception as e:
+        log.exception(e)
         raise
 
 
@@ -313,9 +317,10 @@ def job_success(result, jobid):
                  frontend_scanid, jobid, probe)
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
         job_ctrl.success(jobid)
+        return
     except Exception as e:
         log.exception(e)
-        return
+        raise job_success.retry(countdown=5, max_retries=3, exc=e)
 
 
 @results_app.task(ignore_result=True, acks_late=True)
@@ -334,7 +339,7 @@ def job_error(parent_taskid, jobid):
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
     except Exception as e:
         log.exception(e)
-        return
+        raise job_error.retry(countdown=5, max_retries=3, exc=e)
 
 
 @results_app.task(ignore_result=True, acks_late=True)
