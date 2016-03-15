@@ -344,7 +344,7 @@ def scan_flush(frontend_scanid):
         rmqvhost = config.get_frontend_rmqvhost()
         user_id = user_ctrl.get_userid(rmqvhost)
         scan_id = scan_ctrl.get_scan_id(frontend_scanid, user_id)
-        log.info("flush brain_scan_id %s", scan_id)
+        log.debug("flush brain_scan_id %s", scan_id)
         scan_ctrl.flush(scan_id)
         ftpuser = user_ctrl.get_ftpuser(user_id)
         ftp_ctrl.flush_dir(ftpuser, frontend_scanid)
