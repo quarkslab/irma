@@ -23,6 +23,8 @@ from logging.handlers import SysLogHandler
 from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
 from lib.irma.configuration.ini import TemplatedConfiguration
+from lib.irma.ftp.sftp import IrmaSFTP
+from lib.irma.ftp.ftps import IrmaFTPS
 
 
 # ==========
@@ -50,9 +52,12 @@ template_probe_config = {
         ('password', TemplatedConfiguration.string, None),
         ('queue', TemplatedConfiguration.string, None)
     ],
+    'ftp': [
+        ('protocol', TemplatedConfiguration.string, "sftp"),
+    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 21),
+        ('port', TemplatedConfiguration.integer, 22),
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
     ],
@@ -65,7 +70,7 @@ template_probe_config = {
 }
 
 cwd = os.path.abspath(os.path.dirname(__file__))
-cfg_file = "{0}/{1}".format(cwd, "probe.ini")
+cfg_file = os.path.join(cwd, "probe.ini")
 probe_config = TemplatedConfiguration(cfg_file, template_probe_config)
 
 
@@ -189,3 +194,16 @@ def setup_debug_logger(logger):
     logging.basicConfig(format=FORMAT)
     logger.setLevel(logging.DEBUG)
     return
+
+
+# =============
+#  FTP helpers
+# =============
+
+def get_ftp_class():
+    protocol = probe_config.ftp.protocol
+    if protocol == "sftp":
+        return IrmaSFTP
+    elif protocol == "ftps":
+        return IrmaFTPS
+
