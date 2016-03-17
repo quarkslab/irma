@@ -89,7 +89,7 @@ class NoSQLDatabase(Singleton):
         if not self._db_conn:
             return
         try:
-            self._db_conn.disconnect()
+            self._db_conn.close()
             self._db_conn = None
             self._db_cache = dict()
             self._coll_cache = dict()
