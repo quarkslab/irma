@@ -48,10 +48,10 @@ frontend_deployment_configs:
     value: "{{irma_configurations.brain_addr}}"
   - section: ftp_brain
     option: username
-    value: "{{irma_configurations.pureftpd.frontend.username}}"
+    value: "{{irma_configurations.ftpd.frontend.username}}"
   - section: ftp_brain
     option: password
-    value: "{{irma_configurations.pureftpd.frontend.password}}"
+    value: "{{irma_configurations.ftpd.frontend.password}}"
   - section: sqldb
     option: dbms
     value: postgresql

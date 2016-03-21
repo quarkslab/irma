@@ -45,10 +45,10 @@ probe_deployment_configs:
     value: "{{irma_configurations.brain_addr}}"
   - section: ftp_brain
     option: username
-    value: "{{irma_configurations.pureftpd.probe.username}}"
+    value: "{{irma_configurations.ftpd.probe.username}}"
   - section: ftp_brain
     option: password
-    value: "{{irma_configurations.pureftpd.probe.password}}"
+    value: "{{irma_configurations.ftpd.probe.password}}"
 
 ## Supervisor Role
 supervisor_programs_probe:
