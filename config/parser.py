@@ -15,6 +15,8 @@
 
 import os
 import logging
+import ssl
+
 from kombu import Queue
 from logging import BASIC_FORMAT, Formatter
 from logging.handlers import SysLogHandler
@@ -54,6 +56,12 @@ template_probe_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
     ],
+    'ssl_config': [
+        ('activate_ssl', TemplatedConfiguration.boolean, False),
+        ('ca_certs', TemplatedConfiguration.string, None),
+        ('keyfile', TemplatedConfiguration.string, None),
+        ('certfile', TemplatedConfiguration.string, None),
+    ],
 }
 
 cwd = os.path.abspath(os.path.dirname(__file__))
@@ -80,6 +88,27 @@ def _conf_celery(app, broker, backend=None, queue=None):
                         # (don't survive to a server restart)
                         CELERY_QUEUES=(Queue(queue, routing_key=queue),)
                         )
+    if probe_config.ssl_config.activate_ssl:
+        ca_certs = probe_config.ssl_config.ca_certs
+        keyfile = probe_config.ssl_config.keyfile
+        certfile = probe_config.ssl_config.certfile
+
+        ssl_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                os.path.pardir))
+        ca_certs_path = '{ssl_path}/ssl/{ca_certs}'.format(ca_certs=ca_certs,
+                                                           ssl_path=ssl_path)
+        keyfile_path = '{ssl_path}/ssl/{keyfile}'.format(keyfile=keyfile,
+                                                         ssl_path=ssl_path)
+        certfile_path = '{ssl_path}/ssl/{certfile}'.format(certfile=certfile,
+                                                           ssl_path=ssl_path)
+        app.conf.update(
+            BROKER_USE_SSL={
+               'ca_certs': ca_certs_path,
+               'keyfile': keyfile_path,
+               'certfile': certfile_path,
+               'cert_reqs': ssl.CERT_REQUIRED
+            }
+        )
     return
 
 
