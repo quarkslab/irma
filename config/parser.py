@@ -15,6 +15,7 @@
 
 import os
 import logging
+import ssl
 
 from kombu import Queue
 from celery.schedules import crontab
@@ -89,6 +90,12 @@ template_frontend_config = {
         ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),
     ],
+    'ssl_config': [
+        ('activate_ssl', TemplatedConfiguration.boolean, False),
+        ('ca_certs', TemplatedConfiguration.string, None),
+        ('keyfile', TemplatedConfiguration.string, None),
+        ('certfile', TemplatedConfiguration.string, None),
+    ],
 }
 
 config_path = os.environ.get('IRMA_FRONTEND_CFG_PATH')
@@ -123,6 +130,29 @@ def _conf_celery(app, broker, backend=None, queue=None):
             # (don't survive to a server restart)
             CELERY_QUEUES=(Queue(queue, routing_key=queue),)
             )
+
+    if frontend_config.ssl_config.activate_ssl:
+        ca_certs = frontend_config.ssl_config.ca_certs
+        keyfile = frontend_config.ssl_config.keyfile
+        certfile = frontend_config.ssl_config.certfile
+
+        ssl_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                os.path.pardir))
+        ca_certs_path = '{ssl_path}/ssl/{ca_certs}'.format(ca_certs=ca_certs,
+                                                           ssl_path=ssl_path)
+        keyfile_path = '{ssl_path}/ssl/{keyfile}'.format(keyfile=keyfile,
+                                                         ssl_path=ssl_path)
+        certfile_path = '{ssl_path}/ssl/{certfile}'.format(certfile=certfile,
+                                                           ssl_path=ssl_path)
+        app.conf.update(
+            BROKER_USE_SSL={
+               'ca_certs': ca_certs_path,
+               'keyfile': keyfile_path,
+               'certfile': certfile_path,
+               'cert_reqs': ssl.CERT_REQUIRED
+            }
+        )
+
     return
 
 

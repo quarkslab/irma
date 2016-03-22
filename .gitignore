@@ -17,3 +17,6 @@ web/app/bower_components/
 .coverage
 *~
 venv/
+
+#ssl certificate
+ssl/*.pem
