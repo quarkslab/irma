@@ -7,3 +7,6 @@ config/brain.ini
 # for tests
 tests/results/
 .coverage
+
+# ssl certificate
+ssl/*.pem
