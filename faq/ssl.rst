@@ -4,6 +4,12 @@ SSL settings
 Making RabbitMQ running SSL
 +++++++++++++++++++++++++++
 
+Certificates generation
+^^^^^^^^^^^^^^^^^^^^^^^
+
+See rabbitmq detailled guide on how to generate server and clients certificates `here <https://www.rabbitmq.com/ssl.html>`_
+
+
 Update server settings on brain
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -41,9 +47,9 @@ according to the filenames in "./ssl"
 
     [ssl_config]
     activate_ssl = yes
-    ca_certs = <path to ca_cert>
-    keyfile = <path to key_file>
-    certfile = <path to cert_file>
+    ca_certs = <ca_cert_filename>
+    keyfile = <key_filename>
+    certfile = <cert_filename>
 
 
 
