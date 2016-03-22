@@ -3,3 +3,6 @@
 
 # for dev configuration files
 config/probe.ini
+
+# ssl certificates
+ssl/*.pem
