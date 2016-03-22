@@ -25,9 +25,26 @@ Update server settings on brain
 Allow irma to use SSL with RabbitMQ
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Update PORT in brain.ini from 5672 to 5671. Except if you change the default port defined in the the RabbitMQ configuration template provided in the precedent paragraph.
+.. note::
 
-Update activate_ssl switch in brain.ini:
+    Frontend configuration file is ``<irma dir>/config/frontend.ini``
+
+    Brain configuration file is ``<irma dir>/config/brain.ini``
+
+    Probe configuration file is ``<irma dir>/config/probe.ini``
+
+
+Update PORT in configuration file from 5672 to 5671. Except if you change the default port defined in the the RabbitMQ configuration template provided in the precedent paragraph.
+
+.. code-block:: bash
+   :emphasize-lines: 3
+
+    [broker_xxxx]
+    host = 127.0.0.1
+    port = 5671
+
+
+Update activate_ssl switch in configuration file:
 
 .. code-block:: bash
    :emphasize-lines: 2
@@ -39,8 +56,7 @@ Update activate_ssl switch in brain.ini:
     certfile =
 
 Put the SSL certificates (``ca_cert``, ``key_file``, ``cert_file``) in ``<irma dir>/ssl``
-Update ca_certs, keyfile and certfile in configuration file (config/{frontend,brain,probe}.ini)
-according to the filenames in "./ssl"
+Update ca_certs, keyfile and certfile in configuration file according to the filenames in "./ssl"
 
 .. code-block:: bash
    :emphasize-lines: 3-5
