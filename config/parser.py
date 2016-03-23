@@ -206,4 +206,3 @@ def get_ftp_class():
         return IrmaSFTP
     elif protocol == "ftps":
         return IrmaFTPS
-
