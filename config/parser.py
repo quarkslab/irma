@@ -23,7 +23,8 @@ from logging.handlers import SysLogHandler
 from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
 from lib.irma.configuration.ini import TemplatedConfiguration
-
+from lib.irma.ftp.sftp import IrmaSFTP
+from lib.irma.ftp.ftps import IrmaFTPS
 
 # ==========
 #  TEMPLATE
@@ -68,9 +69,12 @@ template_brain_config = {
         ('dbname', TemplatedConfiguration.string, None),
         ('tables_prefix', TemplatedConfiguration.string, None),
     ],
+    'ftp': [
+        ('protocol', TemplatedConfiguration.string, "sftp"),
+    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 21),
+        ('port', TemplatedConfiguration.integer, 22),
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
         ],
@@ -92,7 +96,7 @@ if config_path is None:
     # current working directory
     config_path = os.path.abspath(os.path.dirname(__file__))
 
-cfg_file = "{0}/{1}".format(config_path, "brain.ini")
+cfg_file = os.path.join(config_path, "brain.ini")
 brain_config = TemplatedConfiguration(cfg_file, template_brain_config)
 
 
@@ -270,3 +274,15 @@ def get_sql_db_tables_prefix():
 
 def get_lock_path():
     return brain_config.interprocess_lock.path
+
+
+# =============
+#  FTP helpers
+# =============
+
+def get_ftp_class():
+    protocol = brain_config.ftp.protocol
+    if protocol == "sftp":
+        return IrmaSFTP
+    elif protocol == "ftps":
+        return IrmaFTPS

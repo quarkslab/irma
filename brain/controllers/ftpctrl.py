@@ -13,15 +13,16 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from lib.irma.ftp.handler import FtpTls
 import config.parser as config
 
 
 def flush_dir(ftpuser, scanid):
     print("Flushing dir {0}".format(scanid))
+    IrmaFTP = config.get_ftp_class()
     conf_ftp = config.brain_config['ftp_brain']
-    with FtpTls(conf_ftp.host,
-                conf_ftp.port,
-                conf_ftp.username,
-                conf_ftp.password) as ftps:
-        ftps.deletepath("{0}/{1}".format(ftpuser, scanid), deleteParent=True)
+    with IrmaFTP(conf_ftp.host,
+                 conf_ftp.port,
+                 conf_ftp.username,
+                 conf_ftp.password,
+                 dst_user=ftpuser) as ftp:
+        ftp.deletepath(scanid, deleteParent=True)
