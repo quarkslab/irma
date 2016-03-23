@@ -10,3 +10,4 @@ coverage
 nose
 requests
 python-magic
+paramiko

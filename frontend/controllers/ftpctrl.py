@@ -16,7 +16,6 @@
 import os
 import logging
 import config.parser as config
-from lib.irma.ftp.handler import FtpTls
 from lib.irma.common.exceptions import IrmaFileSystemError, \
     IrmaFtpError
 
@@ -26,13 +25,14 @@ log = logging.getLogger(__name__)
 
 def upload_scan(scanid, file_path_list):
     try:
+        IrmaFTP = config.get_ftp_class()
         ftp_config = config.frontend_config['ftp_brain']
         host = ftp_config.host
         port = ftp_config.port
         user = ftp_config.username
         pwd = ftp_config.password
-        with FtpTls(host, port, user, pwd) as ftps:
-            ftps.mkdir(scanid)
+        with IrmaFTP(host, port, user, pwd) as ftp:
+            ftp.mkdir(scanid)
             for file_path in file_path_list:
                 log.debug("scanid: %s uploading file %s", scanid, file_path)
                 if not os.path.exists(file_path):
@@ -40,7 +40,7 @@ def upload_scan(scanid, file_path_list):
                     log.error(reason)
                     raise IrmaFileSystemError(reason)
                 # our ftp handler store file under its sha256 name
-                hashname = ftps.upload_file(scanid, file_path)
+                hashname = ftp.upload_file(scanid, file_path)
                 # and file are stored under their sha256 value
                 sha256 = os.path.basename(file_path)
                 if hashname != sha256:
@@ -57,17 +57,18 @@ def upload_scan(scanid, file_path_list):
 
 def download_file_data(scanid, file_sha256):
     try:
+        IrmaFTP = config.get_ftp_class()
         ftp_config = config.frontend_config['ftp_brain']
         host = ftp_config.host
         port = ftp_config.port
         user = ftp_config.username
         pwd = ftp_config.password
 
-        with FtpTls(host, port, user, pwd) as ftps:
+        with IrmaFTP(host, port, user, pwd) as ftp:
             log.debug("scanid: %s downloading file %s", scanid, file_sha256)
-            file_data = ftps.download_data(scanid, file_sha256)
+            file_data = ftp.download_data(scanid, file_sha256)
         return file_data
     except Exception as e:
         log.exception(e)
-        reason = "Ftp upload Error"
+        reason = "Ftp download Error"
         raise IrmaFtpError(reason)
