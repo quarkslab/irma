@@ -27,11 +27,11 @@ from celery import Celery, current_task
 from celery.utils.log import get_task_logger
 from celery.exceptions import TimeoutError
 
-from lib.irma.ftp.handler import FtpTls
 from lib.plugins import PluginManager
 from lib.common.utils import to_unicode
 
 from probe.controllers.braintasks import register_probe
+import probe.controllers.ftpctrl as ftp_ctrl
 
 ##############################################################################
 # celery application configuration
@@ -115,29 +115,17 @@ probes = dict((probe.plugin_name, probe()) for probe in probes)
 # declare celery tasks
 ##############################################################################
 
-def handle_output_files(results, dstpath):
+def handle_output_files(results, frontend, scanid):
     # First check if there is some output files
     output_files = results.pop('output_files', None)
     if output_files is None:
         return
     tmpdir = output_files.get('output_dir', None)
     file_list = output_files.get('file_list', None)
-    log.debug("handle_output_files with %s", ",".join(file_list))
     if tmpdir is None or file_list is None:
         return
-    conf_ftp = config.probe_config.ftp_brain
-    uploaded_files = {}
-    with FtpTls(conf_ftp.host,
-                conf_ftp.port,
-                conf_ftp.username,
-                conf_ftp.password) as ftps:
-        for path in file_list:
-            if os.path.isdir(path):
-                continue
-            log.debug("handle_output_files uploading %s", path)
-            full_path = os.path.join(tmpdir, path)
-            hashname = ftps.upload_file(dstpath, full_path)
-            uploaded_files[path] = hashname
+    uploaded_files = ftp_ctrl.upload_files(frontend, tmpdir, file_list, scanid)
+    log.debug("handle_output_files: uploaded %s", ",".join(file_list))
     results['uploaded_files'] = uploaded_files
     shutil.rmtree(tmpdir)
     return
@@ -162,22 +150,16 @@ def probe_scan(frontend, scanid, filename):
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
         log.debug("scanid %s: filename %s probe %s", scanid, filename, probe)
-        conf_ftp = config.probe_config.ftp_brain
         (fd, tmpname) = tempfile.mkstemp()
         os.close(fd)
-        with FtpTls(conf_ftp.host,
-                    conf_ftp.port,
-                    conf_ftp.username,
-                    conf_ftp.password) as ftps:
-            path = "{0}/{1}".format(frontend, scanid)
-            ftps.download(path, filename, tmpname)
+        ftp_ctrl.download_file(frontend, scanid, filename, tmpname)
         results = probe.run(tmpname)
         # Some AV always delete suspicious file
         if os.path.exists(tmpname):
             log.debug("scanid %s: filename %s probe %s removing tmp_name %s",
                       scanid, filename, probe, tmpname)
             os.remove(tmpname)
-        handle_output_files(results, path)
+        handle_output_files(results, frontend, scanid)
         return to_unicode(results)
     except Exception as e:
         log.exception(e)
