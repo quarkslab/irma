@@ -19,7 +19,7 @@ from irma.database.nosqlhandler import NoSQLDatabase
 from pymongo import MongoClient
 
 # Test config
-test_db_uri = "mongodb://localhost"
+test_db_uri = "mongodb://irma.test"
 test_db_name = "unitest"
 test_db_collection = "testobject"
 
