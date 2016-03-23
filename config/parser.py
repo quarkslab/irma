@@ -26,7 +26,8 @@ from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
 
 from lib.irma.configuration.ini import TemplatedConfiguration
-
+from lib.irma.ftp.sftp import IrmaSFTP
+from lib.irma.ftp.ftps import IrmaFTPS
 
 # ==========
 #  Template
@@ -78,9 +79,12 @@ template_frontend_config = {
         ('password', TemplatedConfiguration.string, None),
         ('queue', TemplatedConfiguration.string, None),
     ],
+    'ftp': [
+        ('protocol', TemplatedConfiguration.string, "sftp"),
+    ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 21),
+        ('port', TemplatedConfiguration.integer, 22),
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
     ],
@@ -104,7 +108,7 @@ if config_path is None:
     # current working directory
     config_path = os.path.abspath(os.path.dirname(__file__))
 
-cfg_file = "{0}/{1}".format(config_path, "frontend.ini")
+cfg_file = os.path.join(config_path, "frontend.ini")
 frontend_config = TemplatedConfiguration(cfg_file, template_frontend_config)
 
 
@@ -315,3 +319,15 @@ def get_sql_db_tables_prefix():
 
 def get_samples_storage_path():
     return os.path.abspath(frontend_config.samples_storage.path)
+
+
+# =============
+#  FTP helpers
+# =============
+
+def get_ftp_class():
+    protocol = frontend_config.ftp.protocol
+    if protocol == "sftp":
+        return IrmaSFTP
+    elif protocol == "ftps":
+        return IrmaFTPS
