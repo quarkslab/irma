@@ -32,7 +32,7 @@
   roles:
     - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_brain }}" }
     - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
-    - { role: quarkslab.pureftpd, tags: 'pureftpd' }
+   # - { role: quarkslab.pureftpd, tags: 'pureftpd' }
     - { role: quarkslab.irma_provisioning_brain, tags: 'brain' }
     - { role: quarkslab.ufw_additional, tags: 'ufw', ufw_additional_rules: "{{ brain_ufw_additional_rules }}" }
 

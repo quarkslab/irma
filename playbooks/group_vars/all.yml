@@ -44,7 +44,7 @@ irma_configurations:
       vhost: mqprobe
       user: probe
       password: probe
-  pureftpd:
+  ftpd:
     frontend:
       username: frontend
       password: frontend
