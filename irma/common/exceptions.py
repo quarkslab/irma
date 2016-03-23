@@ -64,6 +64,16 @@ class IrmaFtpError(IrmaCoreError):
     pass
 
 
+class IrmaFTPSError(IrmaFtpError):
+    """Error on ftp/tls manager."""
+    pass
+
+
+class IrmaSFTPError(IrmaFtpError):
+    """Error on sftp manager."""
+    pass
+
+
 class IrmaTaskError(IrmaCoreError):
     """Error while processing celery tasks."""
     pass
