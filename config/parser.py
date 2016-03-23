@@ -119,7 +119,8 @@ def _conf_celery(app, broker, backend=None, queue=None):
     keyfile = brain_config['ssl_config']['keyfile']
     certfile = brain_config['ssl_config']['certfile']
 
-    ssl_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+    ssl_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                            os.path.pardir))
 
     if brain_config.ssl_config.activate_ssl:
         ca_certs = brain_config.ssl_config.ca_certs
