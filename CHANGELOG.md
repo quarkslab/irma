@@ -1,3 +1,13 @@
+1.3.2  (released 10/03/2016)
+============================
+    * [all] add a debug option for log
+    * [brain] bugfix (probelist issue, sometimes returning an empty list)
+
+1.3.1 (released 01/03/2016)
+===========================
+    * [brain] bugfix (probe offline was not detected)
+    * [frontend] bugfix (fast scan, in some cases, was running forever)
+
 1.3.0 (released 07/01/2016)
 ===========================
 
