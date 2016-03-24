@@ -44,7 +44,7 @@ def enable_logging(level=logging.INFO, handler=None, formatter=None):
 class SFTPTestCase(FTPSTestCase):
     # Test config
     test_ftp_host = "irma.test"
-    test_ftp_port = 2222
+    test_ftp_port = 22022
     test_ftp_user = "testuser"
     test_ftp_passwd = "testpwd"
     # needed if not chrooted in user home
