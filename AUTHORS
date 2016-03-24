@@ -10,15 +10,15 @@ IRMA is a project co-funded by the following actors:
 The PRIMARY AUTHORS are (and/or have been):
 
     * Alexandre Quint - Lead Developer, QuarksLab
-    * Fernand Lone-Sang - QuarksLab
-    * Bruno Dorsemaine - Orange Group IS&T
     * David Carle - QuarksLab
     * Guillaume Dedrie - QuarksLab
+    * Fernand Lone-Sang - QuarksLab
+
 
 And here is an inevitably incomplete list of MUCH-APPRECIATED CONTRIBUTORS --
 people who have submitted patches, reported bugs, helped answer newbie questions,
 and generally made IRMA that much better:
 
-    * jhemp
-    * @y0ug
-    * @BryanNolen
+     * lpecheur
+     * y0ug
+     * mdeloitte
