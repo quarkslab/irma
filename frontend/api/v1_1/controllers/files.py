@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2015 QuarksLab.
+# Copyright (c) 2013-2016 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
