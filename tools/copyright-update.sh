@@ -1,6 +1,6 @@
 #!/bin/sh -e 
 #
-# Copyright (c) 2013-2015 QuarksLab.
+# Copyright (c) 2013-2016 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,8 @@
 
 ## Setting defaults
 DROOTDIR="$PWD"
-DPATTERN="# Copyright (c) 2013-[0-9]\{4\} QuarksLab."
-DRSTRING="# Copyright (c) 2013-$(date +%Y) QuarksLab."
+DPATTERN="# Copyright (c) 2013-[0-9]\{4\} Quarkslab."
+DRSTRING="# Copyright (c) 2013-$(date +%Y) Quarkslab."
 
 usage() {
     printf "\n"
@@ -27,8 +27,8 @@ usage() {
     printf "usage: $0 [basedir] [pattern] [new string]\n"
     printf "\n"
     printf "       <basedir>    defaults to '.'\n"
-    printf "       [pattern]    defaults to 'Copyright (c) 2013-[] QuarksLab.'\n"
-    printf "       [new string] defaults to 'Copyright (c) 2013-[] QuarksLab.'\n"
+    printf "       [pattern]    defaults to 'Copyright (c) 2013-[] Quarkslab.'\n"
+    printf "       [new string] defaults to 'Copyright (c) 2013-[] Quarkslab.'\n"
     printf "\n"
     exit 1
 }
