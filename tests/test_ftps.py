@@ -16,10 +16,10 @@
 import logging
 import hashlib
 import unittest
-import tempfile
 import os
 from irma.ftp.ftps import IrmaFTPS
 from irma.common.exceptions import IrmaFtpError
+from tempfile import TemporaryFile, mkstemp
 
 
 # =================
@@ -105,15 +105,16 @@ class FTPSTestCase(unittest.TestCase):
         self.assertEqual(hashname,
                          hashlib.sha256(open(filename).read()).hexdigest())
 
-    def test_ftp_upload_data(self):
+    def test_ftp_upload_fobj(self):
         ftp = self.ftp_connect()
-        filename = os.path.join(self.cwd, "test.ini")
-        ftp.upload_file("/", filename)
-        with open(filename, 'rb') as f:
-            hashname = ftp.upload_data("/", f.read())
+        t = TemporaryFile()
+        data = "TEST TEST TEST TEST"
+        t.write(data)
+        hashname = ftp.upload_fobj("/", t)
         self.assertEqual(len(ftp.list("/")), 1)
         self.assertEqual(hashname,
-                         hashlib.sha256(open(filename).read()).hexdigest())
+                         hashlib.sha256(data).hexdigest())
+        t.close()
 
     def test_ftp_create_dir(self):
         ftp = self.ftp_connect()
@@ -158,27 +159,34 @@ class FTPSTestCase(unittest.TestCase):
         altered_name = "0000" + hashname[4:]
         ftp.rename(hashname, altered_name)
         self.assertEqual(len(hashname), len(altered_name))
-        _, tmpname = tempfile.mkstemp(prefix="test_ftp")
+        t = TemporaryFile()
         with self.assertRaises(IrmaFtpError):
-            ftp.download("/", altered_name, tmpname)
-        os.unlink(tmpname)
+            ftp.download_file("/", altered_name, t)
+        t.close()
 
-    def test_ftp_download(self):
+    def test_ftp_download_file(self):
         ftp = self.ftp_connect()
+        t = TemporaryFile()
         data = "TEST TEST TEST TEST"
-        hashname = ftp.upload_data(".", data)
-        _, tmpname = tempfile.mkstemp(prefix="test_ftp")
-        ftp.download(".", hashname, tmpname)
+        t.write(data)
+        hashname = ftp.upload_fobj("/", t)
+        _, tmpname = mkstemp(prefix="test_ftp")
+        ftp.download_file(".", hashname, tmpname)
         data2 = open(tmpname).read()
         os.unlink(tmpname)
         self.assertEqual(data, data2)
+        t.close()
 
-    def test_ftp_download_data(self):
+    def test_ftp_download_fobj(self):
         ftp = self.ftp_connect()
+        t1, t2 = TemporaryFile(), TemporaryFile()
         data = "TEST TEST TEST TEST"
-        hashname = ftp.upload_data(".", data)
-        data2 = ftp.download_data(".", hashname)
-        self.assertEqual(data, data2)
+        t1.write(data)
+        hashname = ftp.upload_fobj(".", t1)
+        ftp.download_fobj(".", hashname, t2)
+        self.assertEqual(t2.read(), data)
+        t1.close()
+        t2.close()
 
     def test_ftp_already_connected(self):
         ftp = self.ftp(self.test_ftp_host,

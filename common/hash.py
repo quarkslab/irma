@@ -31,15 +31,17 @@ def generic_sum(algorithm):
     :return: digest returned by the algorithm
     """
 
-    def hash_sum(filename):
+    def hash_sum(fileobj):
         """compute digest by chunks multiple of the block_size
 
-        :param filename: name of the file from which we get data
+        :param fileobj:  Open file(-like) object (BytesIO buffer)
+           Note that fileobj will be returned after a seek(0)
         """
+        fileobj.seek(0)
         handle = algorithm()
-        with open(filename, 'rb') as fds:
-            for chunk in iter(lambda: fds.read(128 * handle.block_size), b''):
-                handle.update(chunk)
+        for chunk in iter(lambda: fileobj.read(4096 * handle.block_size), b''):
+            handle.update(chunk)
+        fileobj.seek(0)
         return handle.hexdigest()
     return hash_sum
 
