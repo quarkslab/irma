@@ -35,6 +35,7 @@ template_brain_config = {
         ('syslog', TemplatedConfiguration.integer, 0),
         ('prefix', TemplatedConfiguration.string, "irma-brain :"),
         ('debug', TemplatedConfiguration.boolean, False),
+        ('sql_debug', TemplatedConfiguration.boolean, False),
     ],
     'broker_brain': [
         ('host', TemplatedConfiguration.string, None),
@@ -237,6 +238,10 @@ def setup_log(**args):
 
 def debug_enabled():
     return brain_config.log.debug
+
+
+def sql_debug_enabled():
+    return brain_config.log.sql_debug
 
 
 def setup_debug_logger(logger):
