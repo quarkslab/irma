@@ -148,3 +148,17 @@ def decode_utf8(utf8_str):
     unquoted = urllib.unquote(utf8_str)
     decoded = unquoted.decode("utf8", "replace")
     return decoded
+
+
+def save_to_file(fileobj, dst_path, chunk_size=2 ** 20):
+    size = 0
+    fileobj.seek(0)
+    with open(dst_path, "wb") as dst:
+        while 1:
+            buf = fileobj.read(chunk_size)
+            if not buf:
+                break
+            dst.write(buf)
+            size += len(buf)
+    fileobj.seek(0)
+    return size

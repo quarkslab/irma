@@ -14,8 +14,8 @@
 # terms contained in the LICENSE file.
 
 import logging
-import hashlib
 from irma.common.exceptions import IrmaFTPSError
+from irma.ftp.ftp import IrmaFTP
 from ftplib import FTP_TLS
 import ssl
 import os
@@ -31,17 +31,15 @@ class FTP_TLS_Data(FTP_TLS):
 
     def storbinarydata(self,
                        cmd,
-                       data,
-                       blocksize=8192,
+                       fobj,
+                       blocksize=2 ** 16,
                        callback=None,
                        rest=None):
         self.voidcmd('TYPE I')
         conn = self.transfercmd(cmd, rest)
         try:
-            index = 0
             while 1:
-                buf = data[index:index + blocksize]
-                index += blocksize
+                buf = fobj.read(blocksize)
                 if len(buf) == 0:
                     break
                 conn.sendall(buf)
@@ -55,50 +53,25 @@ class FTP_TLS_Data(FTP_TLS):
         return self.voidresp()
 
 
-class IrmaFTPS(object):
-    """Internal database.
+class IrmaFTPS(IrmaFTP):
+    """Irma FTP/TLS handler
 
-    This class handles the conection with ftp server over tls
+    This class handles the connection with a ftp server over tls
     functions for interacting with it.
     """
-    # hash function for integrity
-    # each uploaded file is renamed after its digest value
-    # and checked at retrieval
-    hashfunc = hashlib.sha256
-
     # ==================================
     #  Constructor and Destructor stuff
     # ==================================
     def __init__(self, host, port, user, passwd,
                  dst_user=None, upload_path=None):
-        self._host = host
-        self._port = port
+        super(IrmaFTPS, self).__init__(host, port, user,
+                                       passwd, dst_user, upload_path)
         # TODO support connection on non standard port
         if self._port != FTP_TLS.port:
             reason = ("connection supported " +
                       "only on port {0}".format(FTP_TLS.port))
             raise IrmaFTPSError(reason)
-        self._user = user
-        self._passwd = passwd
-        self._dst_user = dst_user
-        self._upload_path = upload_path
-        self._conn = None
         self._connect()
-
-    def __del__(self):
-        try:
-            if self._conn is not None:
-                self._disconnect()
-        except AttributeError:
-            # if exception raised in init
-            # there is no _conn
-            pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_):
-        self.__del__()
 
     # =================
     #  Private methods
@@ -106,7 +79,7 @@ class IrmaFTPS(object):
 
     def _connect(self):
         if self._conn is not None:
-            log.warn("Already connected to ftp server")
+            log.warn("Already connected to ftps server")
             return
         try:
             self._conn = FTP_TLS_Data(self._host, self._user, self._passwd)
@@ -114,46 +87,6 @@ class IrmaFTPS(object):
             self._conn.prot_p()
         except Exception as e:
             raise IrmaFTPSError("{0}".format(e))
-
-    def _disconnect(self):
-        if self._conn is None:
-            return
-        try:
-            self._conn.close()
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
-
-    def _hash(self, data):
-        try:
-            return self.hashfunc(data).hexdigest()
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
-
-    def _check_hash(self, digest, data):
-        try:
-            if self.hashfunc(data).hexdigest() != digest:
-                raise IrmaFTPSError("Integrity check file failed")
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
-
-    def _get_realpath(self, path):
-
-        def tweaked_join(path1, path2):
-            # Ensure path2 will not be treated as an absolute path
-            # as os.path.join("/a/b/c","/") returns "/" and not "/a/b/c/"
-            if path2.startswith("/"):
-                return os.path.join(path1, "." + path2)
-            else:
-                return os.path.join(path1, path2)
-
-        real_path = path
-        if self._upload_path is not None:
-            real_path = tweaked_join(self._upload_path, real_path)
-        # if acting as a dst_user prefix path with
-        # user home chroot
-        if self._dst_user is not None:
-            real_path = tweaked_join(self._dst_user, real_path)
-        return real_path
 
     # ================
     #  Public methods
@@ -175,54 +108,26 @@ class IrmaFTPS(object):
         except Exception as e:
             raise IrmaFTPSError("{0}".format(e))
 
-    def upload_file(self, path, filename):
-        """ Upload <filename> content into directory <path>"""
-        try:
-            with open(filename, 'rb') as f:
-                dstname = self.upload_data(path, f.read())
-            return dstname
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
-
-    def upload_data(self, path, data):
+    def upload_fobj(self, path, fobj):
         """ Upload <data> to remote directory <path>"""
         try:
-            dstname = self._hash(data)
+            dstname = self._hash(fobj)
             path = os.path.join(path, dstname)
             dstpath = self._get_realpath(path)
             self._conn.storbinarydata("STOR {0}".format(dstpath),
-                                      data)
+                                      fobj)
             return dstname
         except Exception as e:
             raise IrmaFTPSError("{0}".format(e))
 
-    def download(self, path, remotename, dstname):
-        """ Download <remotename> found in <path> to <dstname>"""
-        try:
-            dstpath = self._get_realpath(path)
-            data = []
-            with open(dstname, 'wb') as f:
-                dstpath = os.path.join(path, remotename)
-                self._conn.retrbinary("RETR {0}".format(dstpath),
-                                      lambda x: data.append(x))
-                buf = ''.join(data)
-                # remotename is hashvalue of data
-                self._check_hash(remotename, buf)
-                f.write(buf)
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
-
-    def download_data(self, path, remotename):
+    def download_fobj(self, path, remotename, fobj):
         """ returns <remotename> found in <path>"""
         try:
             dstpath = self._get_realpath(path)
-            data = []
             dstpath = os.path.join(path, remotename)
             self._conn.retrbinary("RETR {0}".format(dstpath),
-                                  lambda x: data.append(x))
-            buf = ''.join(data)
-            self._check_hash(remotename, buf)
-            return buf
+                                  lambda x: fobj.write(x))
+            self._check_hash(remotename, fobj)
         except Exception as e:
             raise IrmaFTPSError("{0}".format(e))
 

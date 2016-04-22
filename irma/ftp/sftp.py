@@ -14,56 +14,31 @@
 # terms contained in the LICENSE file.
 
 import logging
-import hashlib
 import os
 import stat
 from irma.common.exceptions import IrmaSFTPError
+from irma.ftp.ftp import IrmaFTP
 from paramiko import SFTPClient, Transport
 
 log = logging.getLogger(__name__)
 logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 
-class IrmaSFTP(object):
-    """Internal database.
+class IrmaSFTP(IrmaFTP):
+    """Irma SFTP handler
 
-    This class handles the conection with ftp server over tls
+    This class handles the connection with a sftp server
     functions for interacting with it.
     """
-    # hash function for integrity
-    # each uploaded file is renamed after its digest value
-    # and checked at retrieval
-    hashfunc = hashlib.sha256
-
     # ==================================
     #  Constructor and Destructor stuff
     # ==================================
     def __init__(self, host, port, user, passwd,
                  dst_user=None, upload_path='uploads'):
-        self._host = host
-        self._port = port
-        self._user = user
-        self._passwd = passwd
-        self._conn = None
+        super(IrmaSFTP, self).__init__(host, port, user,
+                                       passwd, dst_user, upload_path)
         self._client = None
-        self._dst_user = dst_user
-        self._upload_path = upload_path
         self._connect()
-
-    def __del__(self):
-        try:
-            if self._conn is not None:
-                self._disconnect()
-        except AttributeError:
-            # if exception raised in init
-            # there is no _conn
-            pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_):
-        self.__del__()
 
     # =================
     #  Private methods
@@ -75,50 +50,13 @@ class IrmaSFTP(object):
             return
         try:
             self._conn = Transport((self._host, self._port))
+            self._conn.window_size = pow(2, 27)
+            self._conn.packetizer.REKEY_BYTES = pow(2, 32)
+            self._conn.packetizer.REKEY_PACKETS = pow(2, 32)
             self._conn.connect(username=self._user, password=self._passwd)
             self._client = SFTPClient.from_transport(self._conn)
         except Exception as e:
             raise IrmaSFTPError("{0}".format(e))
-
-    def _disconnect(self):
-        if self._conn is None:
-            return
-        try:
-            self._conn.close()
-        except Exception as e:
-            raise IrmaSFTPError("{0}".format(e))
-
-    def _hash(self, data):
-        try:
-            return self.hashfunc(data).hexdigest()
-        except Exception as e:
-            raise IrmaSFTPError("{0}".format(e))
-
-    def _check_hash(self, digest, data):
-        try:
-            if self.hashfunc(data).hexdigest() != digest:
-                raise IrmaSFTPError("Integrity check file failed")
-        except Exception as e:
-            raise IrmaSFTPError("{0}".format(e))
-
-    def _get_realpath(self, path):
-
-        def tweaked_join(path1, path2):
-            # Ensure path2 will not be treated as an absolute path
-            # as os.path.join("/a/b/c","/") returns "/" and not "/a/b/c/"
-            if path2.startswith("/"):
-                return os.path.join(path1, "." + path2)
-            else:
-                return os.path.join(path1, path2)
-
-        real_path = path
-        if self._upload_path is not None:
-            real_path = tweaked_join(self._upload_path, real_path)
-        # if acting as a dst_user prefix path with
-        # user home chroot
-        if self._dst_user is not None:
-            real_path = tweaked_join(self._dst_user, real_path)
-        return real_path
 
     # ================
     #  Public methods
@@ -140,51 +78,26 @@ class IrmaSFTP(object):
         except Exception as e:
             raise IrmaSFTPError("{0}".format(e))
 
-    def upload_file(self, path, filename):
-        """ Upload <filename> content into directory <path>"""
-        try:
-            with open(filename, 'rb') as f:
-                dstname = self.upload_data(path, f.read())
-            return dstname
-        except Exception as e:
-            raise IrmaSFTPError("{0}".format(e))
-
-    def upload_data(self, path, data):
+    def upload_fobj(self, path, fobj):
         """ Upload <data> to remote directory <path>"""
         try:
-            dstname = self._hash(data)
+            dstname = self._hash(fobj)
             path = os.path.join(path, dstname)
             dstpath = self._get_realpath(path)
-            with self._client.open(dstpath, 'wb') as dstfile:
-                dstfile.write(data)
+            self._client.putfo(fobj, dstpath)
             return dstname
         except Exception as e:
             raise IrmaSFTPError("{0}".format(e))
 
-    def download(self, path, remotename, dstname):
-        """ Download <remotename> found in <path> to <dstname>"""
-        try:
-            dstpath = self._get_realpath(path)
-            full_dstpath = os.path.join(dstpath, remotename)
-            with self._client.open(full_dstpath, 'rb') as srcfile:
-                buf = srcfile.read()
-                # remotename is hashvalue of data
-                self._check_hash(remotename, buf)
-                with open(dstname, "wb") as f:
-                    f.write(buf)
-        except Exception as e:
-            raise IrmaSFTPError("{0}".format(e))
-
-    def download_data(self, path, remotename):
+    def download_fobj(self, path, remotename, fobj):
         """ returns <remotename> found in <path>"""
+        # self._client.getfo(fobj, dstpath)
         try:
             dstpath = self._get_realpath(path)
             full_dstpath = os.path.join(dstpath, remotename)
-            with self._client.open(full_dstpath, 'rb') as srcfile:
-                buf = srcfile.read()
-                # remotename is hashvalue of data
-                self._check_hash(remotename, buf)
-                return buf
+            self._client.getfo(full_dstpath, fobj)
+            # remotename is hashvalue of data
+            self._check_hash(remotename, fobj)
         except Exception as e:
             raise IrmaSFTPError("{0}".format(e))
 
