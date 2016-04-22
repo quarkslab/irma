@@ -15,7 +15,7 @@ def sql_db_connect():
         # TODO args* style argument
         SQLDatabase.connect(uri_params[0], uri_params[1], uri_params[2],
                             uri_params[3], uri_params[4], uri_params[5],
-                            debug=config.debug_enabled())
+                            debug=config.sql_debug_enabled())
     except Exception as e:
         log.exception(e)
         msg = "SQL: can't connect"
