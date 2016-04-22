@@ -29,7 +29,7 @@ def download_file(frontend, path, srcname, dstname):
                  ftp_config.username,
                  ftp_config.password,
                  dst_user=frontend) as ftp:
-        ftp.download(path, srcname, dstname)
+        ftp.download_file(path, srcname, dstname)
         log.debug("download %s/%s in %s frontend %s", path, srcname,
                   dstname, frontend)
 
