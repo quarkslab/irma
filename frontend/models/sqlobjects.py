@@ -15,11 +15,12 @@
 import os
 
 from sqlalchemy import Table, Column, Integer, Numeric, Boolean, ForeignKey, \
-    String, event, UniqueConstraint
+    String, event, UniqueConstraint, and_
 from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.sql import func
 
 import config.parser as config
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
@@ -677,10 +678,16 @@ class FileWeb(Base, SQLDatabaseObject):
 
     @classmethod
     def query_find_by_name(cls, name, tags, session):
+        last_ids = session.query(FileWeb.id_file,
+                                 func.max(FileWeb.id).label('last_id'))\
+            .group_by(FileWeb.id_file).subquery()
+
         query = session.query(FileWeb)\
-            .distinct(FileWeb.name)\
+            .join((last_ids, and_(FileWeb.id_file == last_ids.c.id_file,
+                                  FileWeb.id == last_ids.c.last_id)))\
             .join(File, File.id == FileWeb.id_file)\
-            .filter(FileWeb.name.like(u"%{0}%".format(name)))
+            .filter(FileWeb.name.like(u"%{0}%".format(name)))\
+            .order_by(FileWeb.name)
 
         # Update the query with tags if user asked for it
         if tags is not None:
@@ -695,13 +702,21 @@ class FileWeb(Base, SQLDatabaseObject):
     @classmethod
     def query_find_by_hash(cls, hash_type, hash_value, tags, session,
                            distinct_name=True):
-        query = session.query(FileWeb)
         if distinct_name:
-            query = query.distinct(FileWeb.name)
+            last_ids = session.query(FileWeb.id_file,
+                                     func.max(FileWeb.id).label('last_id'))\
+                .group_by(FileWeb.id_file).subquery()
+
+            query = session.query(FileWeb)\
+                .join((last_ids, and_(FileWeb.id_file == last_ids.c.id_file,
+                                      FileWeb.id == last_ids.c.last_id)))
+        else:
+            query = session.query(FileWeb)
+
         query = query.join(File, File.id == FileWeb.id_file)
 
-        query = query.filter(getattr(File, hash_type) == hash_value)
-
+        query = query.filter(getattr(File, hash_type) == hash_value)\
+            .order_by(FileWeb.name)
         # Update the query with tags if user asked for it
         if tags is not None:
             query = query.join(File.tags)
