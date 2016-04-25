@@ -13,7 +13,6 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import hashlib
 import logging
 from lib.common import compat
 from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus, IrmaProbeType
@@ -28,6 +27,9 @@ from lib.common.mimetypes import Magic
 from lib.irma.common.utils import IrmaScanRequest
 from frontend.controllers import braintasks
 import ntpath
+from lib.common.utils import save_to_file
+from lib.common.hash import sha256sum, sha1sum, md5sum
+from frontend.helpers.utils import build_sha256_path
 
 log = logging.getLogger(__name__)
 
@@ -36,28 +38,36 @@ log = logging.getLogger(__name__)
 # ===================
 
 
-def _new_file(data, session):
+def _new_file(fileobj, session):
+    sha256 = sha256sum(fileobj)
     try:
         # The file exists
-        file_sha256 = hashlib.sha256(data).hexdigest()
-        log.debug("try opening file with sha256: %s", file_sha256)
-        file = File.load_from_sha256(file_sha256, session, data)
+        log.debug("try opening file with sha256: %s", sha256)
+        file = File.load_from_sha256(sha256, session, fileobj)
     except IrmaDatabaseResultNotFound:
         # It doesn't
         time = compat.timestamp()
-        file = File(time, time)
+        sha1 = sha1sum(fileobj)
+        md5 = md5sum(fileobj)
         # determine file mimetype
         magic = Magic()
-        mimetype = magic.from_buffer(data)
-        log.debug("not present, saving, mimetype: %s", mimetype)
-        file.save_file_to_fs(data, mimetype)
+        # magic only deal with buffer
+        # feed it with a 4MB buffer
+        mimetype = magic.from_buffer(fileobj.read(2 ** 22))
+        # split files between subdirs
+        path = build_sha256_path(sha256)
+        size = save_to_file(fileobj, path)
+        log.debug("not present, saving, sha256 %s sha1 %s"
+                  "md5 %s size %s mimetype: %s",
+                  sha256, sha1, md5, size, mimetype)
+        file = File(sha256, sha1, md5, size, mimetype, path, time, time)
         session.add(file)
     return file
 
 
-def _new_fileweb(scan, filename, data, session):
+def _new_fileweb(scan, filename, fileobj, session):
     log.debug("filename: %s", filename)
-    file = _new_file(data, session)
+    file = _new_file(fileobj, session)
     (path, name) = ntpath.split(filename)
     file_web = FileWeb(file, name, path, scan)
     session.add(file_web)
@@ -161,8 +171,9 @@ def _sanitize_dict(d):
 def _append_new_files_to_scan(scan, uploaded_files, session):
     new_fws = []
     for (file_name, file_sha256) in uploaded_files.items():
-        file_data = ftp_ctrl.download_file_data(scan.external_id, file_sha256)
-        fw = _new_fileweb(scan, file_name, file_data, session)
+        file_obj = ftp_ctrl.download_file_data(scan.external_id, file_sha256)
+        fw = _new_fileweb(scan, file_name, file_obj, session)
+        file_obj.close()
         log.debug("scan %s: new fileweb id %s for file %s",
                   scan.external_id, fw.external_id, fw.name)
         new_fws.append(fw)
@@ -233,7 +244,7 @@ def add_files(scan, files, session):
     """ add file(s) to the specified scan
 
     :param scanid: id returned by scan_new
-    :param files: dict of 'filename':str, 'data':str
+    :param files: dict of {filename, file-obj}
     :rtype: int
     :return: int - total number of files for the scan
     :raise: IrmaDataBaseError, IrmaValueError

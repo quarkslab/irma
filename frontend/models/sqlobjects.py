@@ -12,7 +12,6 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import hashlib
 import os
 
 from sqlalchemy import Table, Column, Integer, Numeric, Boolean, ForeignKey, \
@@ -208,9 +207,16 @@ class File(Base, SQLDatabaseObject):
         name='path'
     )
 
-    def __init__(self, timestamp_first_scan, timestamp_last_scan, tags=[]):
+    def __init__(self, sha256, sha1, md5, size, mimetype, path,
+                 timestamp_first_scan, timestamp_last_scan, tags=[]):
         super(File, self).__init__()
 
+        self.sha256 = sha256
+        self.sha1 = sha1
+        self.md5 = md5
+        self.size = size
+        self.mimetype = mimetype
+        self.path = path
         self.timestamp_first_scan = timestamp_first_scan
         self.timestamp_last_scan = timestamp_last_scan
         self.tags = tags
@@ -234,11 +240,12 @@ class File(Base, SQLDatabaseObject):
         return dict((k, v) for (k, v) in self.to_dict().items() if k in keys)
 
     @classmethod
-    def load_from_sha256(cls, sha256, session, data=None):
+    def load_from_sha256(cls, sha256, session, fileobj=None):
         """Find the object in the database, update data if file was previously deleted
         :param sha256: the sha256 to look for
         :param session: the session to use
-        :param data: the file's data, in case it was deleted (default is None)
+        :param fileobj: Open file(-like) object (BytesIO buffer),
+            in case it was deleted (default is None)
         :rtype: cls
         :return: the object that corresponds to the sha256
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError,
@@ -252,27 +259,12 @@ class File(Base, SQLDatabaseObject):
             raise IrmaDatabaseResultNotFound(e)
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
-        if asked_file.path is None and data is not None:
-            asked_file.path = write_sample_on_disk(sha256, data)
+        if asked_file.path is None and fileobj is not None:
+            path = write_sample_on_disk(sha256, fileobj)
+            asked_file.path = path
         # Note: nothing is done if path is None and data is None too.
         #       Further manipulation of *asked_file* may be dangerous
         return asked_file
-
-    def save_file_to_fs(self, data, mimetype):
-        """Add a sample
-        :param data: the sample file
-        :raise: IrmaFileSystemError if there is a problem with the filesystem
-        """
-
-        sha256 = hashlib.sha256(data).hexdigest()
-        # split files between subdirs
-        path = write_sample_on_disk(sha256, data)
-        self.sha256 = sha256
-        self.sha1 = hashlib.sha1(data).hexdigest()
-        self.md5 = hashlib.md5(data).hexdigest()
-        self.size = len(data)
-        self.path = path
-        self.mimetype = mimetype
 
     def remove_file_from_fs(self):
         """Remove the sample

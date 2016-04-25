@@ -167,11 +167,14 @@ def add_files(scanid, db):
         validate_id(scanid)
         scan = Scan.load_from_ext_id(scanid, db)
 
+        if len(request.files) == 0:
+            raise ValueError("No files uploaded")
+
         files = {}
         for f in request.files:
             upfile = request.files.get(f)
             filename = decode_utf8(upfile.raw_filename)
-            data = upfile.file.read()
+            data = upfile.file
             files[filename] = data
 
         scan_ctrl.add_files(scan, files, db)
