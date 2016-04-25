@@ -93,18 +93,18 @@ def build_sha256_path(sha256):
     return os.path.join(path, sha256)
 
 
-def write_sample_on_disk(sha256, data):
+def write_sample_on_disk(sha256, fileobj, chunk_size=2 ** 16):
     """Write file data on the location calculated from file sha256
     :param sha256: the file's sha256
-    :param data: the file's data
+    :param fileobj: Open file(-like) object (BytesIO buffer)
     :rtype: string
     :return: the path build from the sha256
     :raise: IrmaFileSystemError
     """
     path = build_sha256_path(sha256)
     try:
-        with open(path, 'wb') as filee:
-            filee.write(data)
+        with open(path, 'wb') as dst_file:
+            dst_file.write(fileobj.read(chunk_size), chunk_size)
     except IOError:
         raise IrmaFileSystemError(
             'Cannot add the sample {0} to the collection'.format(sha256)

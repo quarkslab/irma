@@ -66,8 +66,8 @@ def download_file_data(scanid, file_sha256):
 
         with IrmaFTP(host, port, user, pwd) as ftp:
             log.debug("scanid: %s downloading file %s", scanid, file_sha256)
-            file_data = ftp.download_data(scanid, file_sha256)
-        return file_data
+            fobj = ftp.download_fobj(scanid, file_sha256)
+        return fobj
     except Exception as e:
         log.exception(e)
         reason = "Ftp download Error"

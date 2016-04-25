@@ -2,6 +2,7 @@ from unittest import TestCase
 from mock import MagicMock, patch
 
 import frontend.helpers.utils as module
+from tempfile import TemporaryFile
 from lib.irma.common.exceptions import IrmaValueError, IrmaFileSystemError
 
 
@@ -64,27 +65,38 @@ class TestModuleUtils(TestCase):
         self.assertFalse(module.os.makedirs.called)
 
     def test005_write_sample_on_disk_ok(self):
-        sha, data = "sha_test", "data_test"
+        sha = "sha_test"
+        tempfile = TemporaryFile()
+        data = "data_test"
+        tempfile.write(data)
+        tempfile.seek(0)
         with patch("%s.build_sha256_path" % module.__name__,
                    create=True) as mock_build_path:
             with patch("%s.open" % module.__name__, create=True) as mock_open:
-                result = module.write_sample_on_disk(sha, data)
+                result = module.write_sample_on_disk(sha, tempfile)
         self.assertEqual(mock_build_path.call_count, 1)
         self.assertEqual(mock_build_path.call_args, ((sha,),))
         self.assertEqual(mock_open.call_count, 1)
         self.assertEqual(mock_open.call_args, ((mock_build_path(sha), "wb"),))
         self.assertEqual(mock_open().__enter__().write.call_count, 1)
-        self.assertEqual(mock_open().__enter__().write.call_args, ((data,),))
+        self.assertEqual(mock_open().__enter__().write.call_args,
+                         ((data, 2 ** 16),))
         self.assertEqual(result, mock_build_path(sha))
+        tempfile.close()
 
     def test006_write_sample_on_disk_raises_IrmaFileSystemError(self):
-        sha, data = "sha_test", "data_test"
+        sha = "sha_test"
+        tempfile = TemporaryFile()
+        data = "data_test"
+        tempfile.write(data)
+        tempfile.seek(0)
         with patch("%s.build_sha256_path" % module.__name__,
                    create=True) as mock_build_path:
             with patch("%s.open" % module.__name__, create=True) as mock_open:
                 mock_open().__enter__().write.side_effect = IOError()
                 with self.assertRaises(IrmaFileSystemError) as context:
-                    result = module.write_sample_on_disk(sha, data)
+                    result = module.write_sample_on_disk(sha, tempfile)
         expected = "Cannot add the sample {0} to the collection".format(sha)
         self.assertEqual(str(context.exception),
                          expected)
+        tempfile.close()
