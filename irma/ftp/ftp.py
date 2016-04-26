@@ -73,23 +73,24 @@ class IrmaFTP(object):
         if self._hash(fobj) != digest:
             raise IrmaFtpError("Integrity check file failed")
 
+    def _tweaked_join(self, path1, path2):
+        # Ensure path2 will not be treated as an absolute path
+        # as os.path.join("/a/b/c","/") returns "/" and not "/a/b/c/"
+        if path2.startswith("/"):
+            path = os.path.join(path1, "." + path2)
+        else:
+            path = os.path.join(path1, path2)
+        # Also ensure final path on windows does not contain "\"
+        return path.replace("\\", "/")
+
     def _get_realpath(self, path):
-
-        def tweaked_join(path1, path2):
-            # Ensure path2 will not be treated as an absolute path
-            # as os.path.join("/a/b/c","/") returns "/" and not "/a/b/c/"
-            if path2.startswith("/"):
-                return os.path.join(path1, "." + path2)
-            else:
-                return os.path.join(path1, path2)
-
         real_path = path
         if self._upload_path is not None:
-            real_path = tweaked_join(self._upload_path, real_path)
+            real_path = self._tweaked_join(self._upload_path, real_path)
         # if acting as a dst_user prefix path with
         # user home chroot
         if self._dst_user is not None:
-            real_path = tweaked_join(self._dst_user, real_path)
+            real_path = self._tweaked_join(self._dst_user, real_path)
         return real_path
 
     # ================

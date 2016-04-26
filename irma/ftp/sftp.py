@@ -82,7 +82,7 @@ class IrmaSFTP(IrmaFTP):
         """ Upload <data> to remote directory <path>"""
         try:
             dstname = self._hash(fobj)
-            path = os.path.join(path, dstname)
+            path = self._tweaked_join(path, dstname)
             dstpath = self._get_realpath(path)
             self._client.putfo(fobj, dstpath)
             return dstname
@@ -94,7 +94,7 @@ class IrmaSFTP(IrmaFTP):
         # self._client.getfo(fobj, dstpath)
         try:
             dstpath = self._get_realpath(path)
-            full_dstpath = os.path.join(dstpath, remotename)
+            full_dstpath = self._tweaked_join(dstpath, remotename)
             self._client.getfo(full_dstpath, fobj)
             # remotename is hashvalue of data
             self._check_hash(remotename, fobj)
@@ -105,7 +105,7 @@ class IrmaSFTP(IrmaFTP):
         """ Delete <filename> into directory <path>"""
         try:
             dstpath = self._get_realpath(path)
-            full_dstpath = os.path.join(dstpath, filename)
+            full_dstpath = self._tweaked_join(dstpath, filename)
             self._client.remove(full_dstpath)
         except Exception as e:
             raise IrmaSFTPError("{0}".format(e))
@@ -117,7 +117,7 @@ class IrmaSFTP(IrmaFTP):
                 if self.is_file(path, f):
                     self.delete(path, f)
                 else:
-                    self.deletepath(os.path.join(path, f),
+                    self.deletepath(self._tweaked_join(path, f),
                                     deleteParent=True)
             if deleteParent:
                 dstpath = self._get_realpath(path)
@@ -129,7 +129,7 @@ class IrmaSFTP(IrmaFTP):
     def is_file(self, path, filename):
         try:
             dstpath = self._get_realpath(path)
-            full_dstpath = os.path.join(dstpath, filename)
+            full_dstpath = self._tweaked_join(dstpath, filename)
             st = self._client.stat(full_dstpath)
             return not stat.S_ISDIR(st.st_mode)
         except Exception as e:
