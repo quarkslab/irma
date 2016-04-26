@@ -124,7 +124,7 @@ class IrmaFTPS(IrmaFTP):
         """ returns <remotename> found in <path>"""
         try:
             dstpath = self._get_realpath(path)
-            dstpath = os.path.join(path, remotename)
+            dstpath = self._tweaked_join(path, remotename)
             self._conn.retrbinary("RETR {0}".format(dstpath),
                                   lambda x: fobj.write(x))
             self._check_hash(remotename, fobj)
@@ -135,7 +135,7 @@ class IrmaFTPS(IrmaFTP):
         """ Delete <filename> into directory <path>"""
         try:
             dstpath = self._get_realpath(path)
-            full_dstpath = os.path.join(dstpath, filename)
+            full_dstpath = self._tweaked_join(dstpath, filename)
             self._conn.delete(full_dstpath)
         except Exception as e:
             raise IrmaFTPSError("{0}".format(e))
@@ -147,7 +147,7 @@ class IrmaFTPS(IrmaFTP):
                 if self.is_file(path, f):
                     self.delete(path, f)
                 else:
-                    self.deletepath(os.path.join(path, f),
+                    self.deletepath(self._tweaked_join(path, f),
                                     deleteParent=True)
             if deleteParent:
                 dstpath = self._get_realpath(path)
@@ -159,7 +159,7 @@ class IrmaFTPS(IrmaFTP):
     def is_file(self, path, filename):
         try:
             dstpath = self._get_realpath(path)
-            pathfilename = os.path.join(dstpath, filename)
+            pathfilename = self._tweaked_join(dstpath, filename)
             current = self._conn.pwd()
             self._conn.cwd(pathfilename)
             self._conn.cwd(current)
