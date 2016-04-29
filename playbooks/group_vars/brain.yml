@@ -53,10 +53,10 @@ brain_deployment_configs:
     value: "{{irma_configurations.brain_addr}}"
   - section: ftp_brain
     option: username
-    value: "{{irma_configurations.pureftpd.probe.username}}"
+    value: "{{irma_configurations.ftpd.probe.username}}"
   - section: ftp_brain
     option: password
-    value: "{{irma_configurations.pureftpd.probe.password}}"
+    value: "{{irma_configurations.ftpd.probe.password}}"
 
 
 ## UFW Rules
@@ -67,9 +67,9 @@ brain_ufw_additional_rules:
   - port: 5672
     rule: allow
     proto: tcp
-  - port: "65435:65535"
-    rule: allow
-    proto: tcp
+  #- port: "65435:65535"
+  #  rule: allow
+  #  proto: tcp
 
 
 ## RabbitMQ role
@@ -96,31 +96,59 @@ rabbitmq_users_definitions:
 
 
 ## Pure-FTPD role
-# Standalone role
-pureftpd_options:
-  CreateHomeDir: "yes"
-  PAMAuthentication: "no"
-  TLS: "2"
-  PassivePortRange: "65435 65535"
-  # NOTE: vulnerable to POODLE but cannot find a workaround to make
-  # Python's 2.7.9 ftplib module work with Debian 8.1 pure-ftpd configured with
-  # TLSv1 only (-S:HIGH:MEDIUM:+TLSv1:!SSLv2:!SSLv3)
-  TLSCipherSuite: "-S:HIGH:MEDIUM:+TLSv1"
+#Standalone role
+#pureftpd_options:
+#  CreateHomeDir: "yes"
+#  PAMAuthentication: "no"
+#  TLS: "2"
+#  PassivePortRange: "65435 65535"
+#  # NOTE: vulnerable to POODLE but cannot find a workaround to make
+#  # Python's 2.7.9 ftplib module work with Debian 8.1 pure-ftpd configured with
+#  # TLSv1 only (-S:HIGH:MEDIUM:+TLSv1:!SSLv2:!SSLv3)
+#  TLSCipherSuite: "-S:HIGH:MEDIUM:+TLSv1"
 
+## SSHD SFTP server
+sshd_sftp_server: internal-sftp
+sshd_match:
+  - Condition: "User {{irma_configurations.ftpd.frontend.username}}"
+    X11Forwarding: no
+    AllowTcpForwarding: no
+    PermitTunnel: no
+    ChrootDirectory: "{{ brain_sftpd_rootdir }}/{{irma_configurations.ftpd.frontend.username}}"
+    ForceCommand: "{{ sshd_sftp_server }} -u 2"
+  - Condition: "User {{irma_configurations.ftpd.probe.username}}"
+    X11Forwarding: no
+    AllowTcpForwarding: no
+    PermitTunnel: no
+    ChrootDirectory: "{{ brain_sftpd_rootdir }}"
+    ForceCommand: "{{ sshd_sftp_server }} -u 2"
+
+## Brain role PureFtpd
+#brain_pureftpd_virtual_users:
+#  - username: "{{irma_configurations.ftpd.frontend.username}}"
+#    virtual_user: "ftpuser"
+#    virtual_home: "/home/ftpuser/frontend"
+#    password: "{{irma_configurations.ftpd.frontend.password}}"
+#  - username: "{{irma_configurations.ftpd.probe.username}}"
+#    virtual_user: "ftpuser"
+#    virtual_home: "/home/ftpuser"
+#    password: "{{irma_configurations.ftpd.probe.password}}"
+
+#brain_pureftpd_openssl_subj: "/C=FR/ST=Paris/L=Paris/O=IRMA"
 
 # Brain role
-brain_pureftpd_virtual_users:
-  - username: "{{irma_configurations.pureftpd.frontend.username}}"
-    virtual_user: "ftpuser"
-    virtual_home: "/home/ftpuser/frontend"
-    password: "{{irma_configurations.pureftpd.frontend.password}}"
-  - username: "{{irma_configurations.pureftpd.probe.username}}"
-    virtual_user: "ftpuser"
-    virtual_home: "/home/ftpuser"
-    password: "{{irma_configurations.pureftpd.probe.password}}"
+brain_sftpd_groupname: sftpusers
+brain_sftpd_rootdir: /sftp
+brain_sftpd_default_upload_dir : uploads
 
-brain_pureftpd_openssl_subj: "/C=FR/ST=Paris/L=Paris/O=IRMA"
+brain_sftpd_virtual_users:
+  - username: "{{irma_configurations.ftpd.frontend.username}}"
+    password: "{{irma_configurations.ftpd.frontend.password}}"
+  - username: "{{irma_configurations.ftpd.probe.username}}"
+    password: "{{irma_configurations.ftpd.probe.password}}"
 
+brain_sftpd_virtual_writers:
+  - user: "{{irma_configurations.ftpd.frontend.username}}"
 
 ## Supervisor role
 # supervisor_extra_confs:

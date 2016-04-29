@@ -1,6 +1,8 @@
 ---
 
-- include: pureftpd.yml
+- include: sftpd.yml
+
+#- include: pureftpd.yml
 
 - name: Ensure good rights on IRMA-Brain install directory
   file:

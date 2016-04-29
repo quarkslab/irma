@@ -10,6 +10,7 @@ frontend_project_dir: /opt/irma/irma-frontend
 frontend_install_dir: "{{ frontend_project_dir }}/current"
 frontend_releases_dir: "{{ frontend_project_dir }}/releases"
 frontend_venv_dir: "{{ frontend_install_dir }}/venv"
+frontend_beat_schedule: /var/irma/db/frontend_beat_schedule
 
 
 ## Deployment
@@ -47,10 +48,10 @@ frontend_deployment_configs:
     value: "{{irma_configurations.brain_addr}}"
   - section: ftp_brain
     option: username
-    value: "{{irma_configurations.pureftpd.frontend.username}}"
+    value: "{{irma_configurations.ftpd.frontend.username}}"
   - section: ftp_brain
     option: password
-    value: "{{irma_configurations.pureftpd.frontend.password}}"
+    value: "{{irma_configurations.ftpd.frontend.password}}"
   - section: sqldb
     option: dbms
     value: postgresql
@@ -139,7 +140,7 @@ postgresql_user_privileges:
 ## Supervisor role
 supervisor_programs_frontend:
   - name: frontend_app
-    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}}"
+    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}} --beat --schedule={{ frontend_beat_schedule }}"
     directory: "{{ frontend_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1
