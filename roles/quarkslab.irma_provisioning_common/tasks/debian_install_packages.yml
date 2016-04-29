@@ -8,5 +8,3 @@
     - git
     - python-pip
     - python-virtualenv
-    - python-dev
-    - libffi-dev
