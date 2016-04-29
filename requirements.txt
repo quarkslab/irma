@@ -1,4 +1,4 @@
 celery<3.2
 redis>=2.9.1
 python-magic
-paramiko
+paramiko<2.0
