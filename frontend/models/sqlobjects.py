@@ -679,11 +679,13 @@ class FileWeb(Base, SQLDatabaseObject):
     @classmethod
     def query_find_by_name(cls, name, tags, session):
         last_ids = session.query(FileWeb.id_file,
+                                 FileWeb.name,
                                  func.max(FileWeb.id).label('last_id'))\
-            .group_by(FileWeb.id_file).subquery()
+            .group_by(FileWeb.id_file, FileWeb.name).subquery()
 
         query = session.query(FileWeb)\
             .join((last_ids, and_(FileWeb.id_file == last_ids.c.id_file,
+                                  FileWeb.name == last_ids.c.name,
                                   FileWeb.id == last_ids.c.last_id)))\
             .join(File, File.id == FileWeb.id_file)\
             .filter(FileWeb.name.like(u"%{0}%".format(name)))\
@@ -704,11 +706,13 @@ class FileWeb(Base, SQLDatabaseObject):
                            distinct_name=True):
         if distinct_name:
             last_ids = session.query(FileWeb.id_file,
+                                     FileWeb.name,
                                      func.max(FileWeb.id).label('last_id'))\
-                .group_by(FileWeb.id_file).subquery()
+                .group_by(FileWeb.id_file, FileWeb.name).subquery()
 
             query = session.query(FileWeb)\
                 .join((last_ids, and_(FileWeb.id_file == last_ids.c.id_file,
+                                      FileWeb.name == last_ids.c.name,
                                       FileWeb.id == last_ids.c.last_id)))
         else:
             query = session.query(FileWeb)
