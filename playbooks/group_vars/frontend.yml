@@ -10,7 +10,7 @@ frontend_project_dir: /opt/irma/irma-frontend
 frontend_install_dir: "{{ frontend_project_dir }}/current"
 frontend_releases_dir: "{{ frontend_project_dir }}/releases"
 frontend_venv_dir: "{{ frontend_install_dir }}/venv"
-frontend_beat_schedule: /var/irma/db/frontend_beat_schedule
+frontend_beat_schedule: /var/irma/frontend_beat_schedule
 
 
 ## Deployment
