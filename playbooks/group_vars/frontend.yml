@@ -115,7 +115,7 @@ nodejs_global_packages:
 
 ## MongoDB
 mongodb_package: "{{'mongodb' if default_use_debian_repo|default(False) else 'mongodb-org'}}"
-
+mongodb_conf_dbpath: /var/irma/db
 
 ## PostgreSQL role
 # Basic settings
