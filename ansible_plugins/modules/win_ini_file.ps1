@@ -15,6 +15,8 @@
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
 # WANT_JSON
+# POWERSHELL_COMMON
+
 # This particular file snippet, and this file snippet only, is BSD licensed.
 # Modules you write using this snippet, which is embedded dynamically by Ansible
 # still belong to the author of the module, and may assign their own license
@@ -43,98 +45,6 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-# Helper function to parse Ansible JSON arguments from a file passed as
-# the single argument to the module
-# Example: $params = Parse-Args $args
-Function Parse-Args($arguments)
-{
-    $parameters = New-Object psobject;
-    If ($arguments.Length -gt 0)
-    {
-        $parameters = Get-Content $arguments[0] | ConvertFrom-Json;
-    }
-    $parameters;
-}
-
-# Helper function to set an "attribute" on a psobject instance in powershell.
-# This is a convenience to make adding Members to the object easier and
-# slightly more pythonic
-# Example: Set-Attr $result "changed" $true
-Function Set-Attr($obj, $name, $value)
-{
-    # If the provided $obj is undefined, define one to be nice
-    If (-not $obj.GetType)
-    {
-        $obj = New-Object psobject
-    }
-
-    $obj | Add-Member -Force -MemberType NoteProperty -Name $name -Value $value
-}
-
-# Helper function to convert a powershell object to JSON to echo it, exiting
-# the script
-# Example: Exit-Json $result
-Function Exit-Json($obj)
-{
-    # If the provided $obj is undefined, define one to be nice
-    If (-not $obj.GetType)
-    {
-        $obj = New-Object psobject
-    }
-
-    echo $obj | ConvertTo-Json -Depth 99
-    Exit
-}
-
-# Helper function to add the "msg" property and "failed" property, convert the
-# powershell object to JSON and echo it, exiting the script
-# Example: Fail-Json $result "This is the failure message"
-Function Fail-Json($obj, $message = $null)
-{
-    # If we weren't given 2 args, and the only arg was a string, create a new
-    # psobject and use the arg as the failure message
-    If ($message -eq $null -and $obj.GetType().Name -eq "String")
-    {
-        $message = $obj
-        $obj = New-Object psobject
-    }
-    # If the first args is undefined or not an object, make it an object
-    ElseIf (-not $obj.GetType -or $obj.GetType().Name -ne "PSCustomObject")
-    {
-        $obj = New-Object psobject
-    }
-
-    Set-Attr $obj "msg" $message
-    Set-Attr $obj "failed" $true
-    echo $obj | ConvertTo-Json -Depth 99
-    Exit 1
-}
-
-# Helper function to get an "attribute" from a psobject instance in powershell.
-# This is a convenience to make getting Members from an object easier and
-# slightly more pythonic
-# Example: $attr = Get-Attr $response "code" -default "1"
-#Note that if you use the failifempty option, you do need to specify resultobject as well.
-Function Get-Attr($obj, $name, $default = $null,$resultobj, $failifempty=$false, $emptyattributefailmessage)
-{
-    # Check if the provided Member $name exists in $obj and return it or the
-    # default
-    If ($obj.$name.GetType)
-    {
-        $obj.$name
-    }
-    Elseif($failifempty -eq $false)
-    {
-        $default
-    }
-    else
-    {
-        if (!$emptyattributefailmessage) {$emptyattributefailmessage = "Missing required argument: $name"}
-        Fail-Json -obj $resultobj -message $emptyattributefailmessage
-    }
-    return
-}
-
 # Helper filter/pipeline function to convert a value to boolean following current
 # Ansible practices
 # Example: $is_true = "true" | ConvertTo-Bool
@@ -160,7 +70,7 @@ Function ConvertTo-Bool
 }
 
 
-function Get-IniContent
+Function Get-IniContent
 {
 <#
 .Synopsis
@@ -452,11 +362,6 @@ function Out-IniFile
           {
             Write-Verbose "[INFO]: Writing section [$($_.Key)] of $sectionName"
             WriteKeyValuePairs $_.Value $_.Key ($depth + 1)
-          }
-          elseif ($_.Value.IsComment -or ($_.Key -match '^\{Comment\-[\d]+\}'))
-          {
-            Write-Verbose "[INFO]: Writing comment $($_.Value)"
-            Add-Content -Path $outFile -Value $_.Value -Encoding $Encoding
           }
           else
           {

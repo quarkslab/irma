@@ -7,13 +7,15 @@
   when: irma_deployment_code_version != 'local'
 
 - name: Clone irma-probe repository
-  raw: "{{ item.cmd }}"
+  raw: CMD /C '"{{ item.cmd }}"'
   register: result
   failed_when: result.rc not in {{ item.rc | default([0]) }}
   with_items:
-    - cmd: git clone "{{ probe_deployment_repository }}" "{{ probe_deployment_dir }}" --recursive
+    - cmd: git clone "{{ probe_deployment_repository }}" "{{ probe_deployment_dir }}"
       rc: [0, 128] # 128 as an existing AV may cause an error when cloning test directory
-    - cmd: cd "{{ probe_deployment_dir }}" && git reset --hard "{{ irma_deployment_code_version }}"
+    - cmd: cd "{{ probe_deployment_dir }}" && git checkout "{{ irma_deployment_code_version }}"
+      rc: [0, 128] # 128 as an existing AV may cause an error when cloning test directory
+    - cmd: cd "{{ probe_deployment_dir }}" && git reset --hard && git submodule update --init
       rc: [0, 128] # 128 as an existing AV may cause an error when cloning test directory
   when: irma_deployment_code_version != 'local'
 
@@ -35,13 +37,13 @@
   with_items: probe_deployment_configs
 
 - name: Create symlink release -> current
-  raw: "{{ item.cmd }}"
+  raw: cmd /C '"{{ item.cmd }}"'
   register: result
   failed_when: result.rc not in {{ item.rc | default([0]) }}
   with_items:
-    - cmd: 'rmdir /q /s "{{ probe_install_dir }}"'
-      rc: [0, 2]
-    - cmd: 'mklink /d "{{ probe_install_dir }}" "{{ probe_deployment_dir }}"'
+    - cmd: rmdir /q /s "{{ probe_install_dir }}"
+      rc: [0, 1, 2]
+    - cmd: mklink /d "{{ probe_install_dir }}" "{{ probe_deployment_dir }}"
       rc: [0, 2]
   when: irma_deployment_code_version != 'local'
 
