@@ -18,7 +18,7 @@
 
 - name: Recreate Launcher
   win_copy:
-    src: ../../files/irma.bat
+    src: irma.bat
     dest: "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup/irma.bat"
 
 - name: Restart machine (needed to launch IRMA)
@@ -28,5 +28,10 @@
   ignore_errors: true
 
 - name: Waiting for guest to come back
-  local_action: wait_for host={{ inventory_hostname }}
-                state=started
+  local_action:
+    module: wait_for
+      host="{{ ansible_ssh_host | default(inventory_hostname) }}"
+      port={{ ansible_ssh_port | default(5985) }}
+      state=started
+      delay=30
+      timeout=120

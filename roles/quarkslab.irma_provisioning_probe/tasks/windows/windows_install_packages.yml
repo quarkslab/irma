@@ -7,7 +7,6 @@
 #       This is the reason why we prefer using our own scripts
 - include: chocolatey.yml
 - include: chocopacks.yml
-- include: custompacks.yml
 
 # Installing pip packages
 - include: pip.yml
