@@ -33,6 +33,7 @@ from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
     IrmaScanRequest
 from lib.common.utils import UUID
 from fasteners import interprocess_locked
+import multiprocessing
 
 
 # Get celery's logger
@@ -108,7 +109,8 @@ def _get_mimetype_probelist(mimetype):
 # Time to cache the probe list
 # to avoid asking to rabbitmq
 PROBELIST_CACHE_TIME = 30
-cache_probelist = {'list': None, 'time': None}
+manager = multiprocessing.Manager()
+cache_probelist = manager.dict()
 
 
 # as the method for querying active_queues is not forksafe
@@ -118,14 +120,18 @@ cache_probelist = {'list': None, 'time': None}
 def active_probes():
     global cache_probelist
     # get active queues list from probe celery app
+    log.debug("cache_probelist: %s id: %x", cache_probelist,
+              id(cache_probelist))
     now = time.time()
-    if cache_probelist['time'] is not None:
-        cache_time = now - cache_probelist['time']
-    if cache_probelist['time'] is None or cache_time > PROBELIST_CACHE_TIME:
+    cache_time = cache_probelist.values()
+    if len(cache_time) != 0:
+        cache_age = now - min(cache_time)
+        log.debug("cache age: %s", cache_age)
+    if len(cache_time) == 0 or cache_age > PROBELIST_CACHE_TIME:
         log.debug("refreshing cached list")
+        cache_probelist.clear()
         # scan all active queues except result queue
         # to list all probes queues ready
-        plist = []
         queues = probe_app.control.inspect().active_queues()
         if queues:
             result_queue = config.brain_config['broker_probe'].queue
@@ -133,13 +139,15 @@ def active_probes():
                 for queue in queuelist:
                     # exclude only predefined result queue
                     if queue['name'] != result_queue:
-                        plist.append(queue['name'])
-        if len(plist) != 0:
-            # activate cache only on non empty list
-            cache_probelist['time'] = now
-        cache_probelist['list'] = sorted(plist)
-    log.debug("probe_list: %s", "-".join(cache_probelist['list']))
-    return cache_probelist['list']
+                        # Store name and time to have a
+                        # list cache per queue
+                        # TODO updated on success result
+                        probe = queue['name']
+                        log.info("add/refresh probe %s cache %s", probe, now)
+                        cache_probelist.update({probe: now})
+    probelist = sorted(cache_probelist.keys())
+    log.debug("probe_list: %s", "-".join(probelist))
+    return probelist
 
 
 def refresh_probes():
@@ -157,6 +165,7 @@ refresh_probes()
 # ===================
 
 @scan_app.task(acks_late=True)
+@interprocess_locked(interprocess_lock_path)
 def register_probe(name, category, mimetype_filter):
     try:
         log.info("probe %s category %s registered [%s] transfer to scan_app",
