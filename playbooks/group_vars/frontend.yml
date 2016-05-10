@@ -113,13 +113,9 @@ nodejs_global_packages:
   - debug
 
 
-## MongoDB
-mongodb_package: "{{'mongodb' if default_use_debian_repo|default(False) else 'mongodb-org'}}"
-mongodb_conf_dbpath: /var/data/db
-
 ## PostgreSQL role
 # Basic settings
-postgresql_version: "9.3"
+postgresql_version: "9.4"
 postgresql_client_encoding: "UTF8"
 
 ## Databases informations

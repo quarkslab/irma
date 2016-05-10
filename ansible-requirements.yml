@@ -28,9 +28,6 @@
   version: master
   name: mivok0.users
 
-- src: Stouts.mongodb
-  version: 2.1.11
-
 - src: https://github.com/willshersystems/ansible-sshd.git
   version: 0.4.2
   name: willshersystems.sshd

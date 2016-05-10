@@ -18,7 +18,6 @@
   roles:
     - { role: quarkslab.nodejs, tags: 'nodejs' }
     - { role: gdamjan.uwsgi, tags: 'uwsgi' }
-    - { role: Stouts.mongodb, tags: 'mongodb' }
     - { role: ANXS.postgresql, tags: 'postgresql' }
     - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_frontend }}" }
     - { role: quarkslab.irma_provisioning_frontend, tags: 'frontend' }
