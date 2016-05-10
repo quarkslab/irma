@@ -116,9 +116,6 @@ nodejs_global_packages:
   - debug
 
 
-## MongoDB
-mongodb_package: "{{'mongodb' if default_use_debian_repo|default(False) else 'mongodb-org'}}"
-
 
 ## PostgreSQL role
 # Basic settings
