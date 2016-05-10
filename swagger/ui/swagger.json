@@ -15,9 +15,6 @@
     "consumes": [
         "application/json"
     ],
-    "schemes": [
-        "http"
-    ],
     "paths": {
         "/scans": {
             "get": {

@@ -10,8 +10,6 @@ produces:
   - application/json
 consumes:
   - application/json
-schemes:
-  - http
 paths:
   /scans:
     get:
