@@ -34,4 +34,4 @@ uri_params = config.get_sql_db_uri_params()
 url = generate_url(uri_params[0], uri_params[1], uri_params[2], uri_params[3],
                    uri_params[4], uri_params[5])
 
-engine = create_engine(url, echo=config.debug_enabled())
+engine = create_engine(url, echo=config.sql_debug_enabled())
