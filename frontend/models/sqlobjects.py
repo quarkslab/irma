@@ -30,7 +30,6 @@ from lib.common.utils import UUID
 from lib.irma.common.utils import IrmaScanStatus, IrmaProbeType
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 from frontend.models.nosqlobjects import ProbeRealResult
-from frontend.helpers.utils import write_sample_on_disk
 
 
 # SQLite fix for ForeignKey support
@@ -260,11 +259,9 @@ class File(Base, SQLDatabaseObject):
             raise IrmaDatabaseResultNotFound(e)
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
-        if asked_file.path is None and fileobj is not None:
-            path = write_sample_on_disk(sha256, fileobj)
-            asked_file.path = path
-        # Note: nothing is done if path is None and data is None too.
-        #       Further manipulation of *asked_file* may be dangerous
+        # Check if file is still present
+        if not os.path.exists(asked_file.path):
+            asked_file.path = None
         return asked_file
 
     def remove_file_from_fs(self):
