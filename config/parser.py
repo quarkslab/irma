@@ -38,6 +38,7 @@ template_frontend_config = {
         ('syslog', TemplatedConfiguration.integer, 0),
         ('prefix', TemplatedConfiguration.string, "irma-frontend :"),
         ('debug', TemplatedConfiguration.boolean, False),
+        ('sql_debug', TemplatedConfiguration.boolean, False),
     ],
     'mongodb': [
         ('host', TemplatedConfiguration.string, None),
@@ -257,6 +258,10 @@ def setup_log(**args):
 
 def debug_enabled():
     return frontend_config.log.debug
+
+
+def sql_debug_enabled():
+    return frontend_config.log.sql_debug
 
 
 def setup_debug_logger(logger):
