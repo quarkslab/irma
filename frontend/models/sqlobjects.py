@@ -15,8 +15,8 @@
 import os
 
 from sqlalchemy import Table, Column, Integer, Numeric, Boolean, ForeignKey, \
-    String, event, UniqueConstraint, and_
-from sqlalchemy.engine import Engine
+    String, UniqueConstraint, and_
+from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -29,36 +29,12 @@ from lib.common import compat
 from lib.common.utils import UUID
 from lib.irma.common.utils import IrmaScanStatus, IrmaProbeType
 from lib.irma.database.sqlobjects import SQLDatabaseObject
-from frontend.models.nosqlobjects import ProbeRealResult
-
+from frontend.helpers.format import IrmaFormatter
 
 # SQLite fix for ForeignKey support
 # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-if config.get_sql_db_uri_params()[0] == 'sqlite':
-    @event.listens_for(Engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, connection_record):
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
-
-    # Auto-create directory for sqlite db
-    db_name = os.path.abspath(config.get_sql_db_uri_params()[5])
-    dirname = os.path.dirname(db_name)
-    if not os.path.exists(dirname):
-        print("SQL directory does not exist {0}"
-              "..creating".format(dirname))
-        os.makedirs(dirname)
-        os.chmod(dirname, 0777)
-    elif not (os.path.isdir(dirname)):
-        print("Error. SQL directory is a not a dir {0}"
-              "".format(dirname))
-        raise IrmaDatabaseError("Can not create Frontend database dir")
-
-    if not os.path.exists(db_name):
-        # touch like method to create a rw-rw-rw- file for db
-        open(db_name, 'a').close()
-        os.chmod(db_name, 0666)
-
+if config.get_sql_db_uri_params()[0] != 'postgresql':
+    raise IrmaDatabaseError("As Irma uses JSONB Only PostgreSQL is supported")
 
 Base = declarative_base()
 tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
@@ -339,9 +315,9 @@ class ProbeResult(Base, SQLDatabaseObject):
         nullable=False,
         name='name'
     )
-    nosql_id = Column(
-        String,
-        name='nosql_id'
+    doc = Column(
+        JSONB,
+        name='doc'
     )
     status = Column(
         Integer,
@@ -367,19 +343,24 @@ class ProbeResult(Base, SQLDatabaseObject):
     def __init__(self,
                  type,
                  name,
-                 nosql_id,
+                 doc,
                  status,
                  file_web=None):
         super(ProbeResult, self).__init__()
 
         self.type = type
         self.name = name
-        self.nosql_id = nosql_id
+        self.doc = doc
         self.status = status
         self.files_web = [file_web]
 
-    def get_details(self):
-        return ProbeRealResult(id=self.nosql_id)
+    def get_details(self, formatted=True):
+        res = self.doc.copy()
+        res.pop('uploaded_files', '')
+        # apply or not IrmaFormatter
+        if formatted:
+            res = IrmaFormatter.format(self.name, res)
+        return res
 
 
 class Scan(Base, SQLDatabaseObject):
@@ -478,7 +459,7 @@ class Scan(Base, SQLDatabaseObject):
             return False
         for fw in self.files_web:
             for pr in fw.probe_results:
-                if pr.nosql_id is None:
+                if pr.doc is None:
                     return False
         return True
 
@@ -649,17 +630,17 @@ class FileWeb(Base, SQLDatabaseObject):
     def probes_finished(self):
         finished = 0
         for pr in self.probe_results:
-            if pr.nosql_id is not None:
+            if pr.doc is not None:
                 finished += 1
         return finished
 
     @property
     def status(self):
         for pr in self.probe_results:
-            if pr.nosql_id is not None:
-                probe_result = ProbeRealResult(id=pr.nosql_id)
-                if probe_result.type == IrmaProbeType.antivirus and \
-                   probe_result.status == 1:
+            if pr.doc is not None:
+                probe_result = pr.doc
+                if probe_result['type'] == IrmaProbeType.antivirus and \
+                   probe_result['status'] == 1:
                     return 1
         return 0
 
@@ -667,9 +648,8 @@ class FileWeb(Base, SQLDatabaseObject):
         results = []
 
         for pr in self.probe_results:
-            if pr.nosql_id is not None:
-                probe_result = ProbeRealResult(id=pr.nosql_id)
-                results.append(probe_result.to_json(formatted))
+            if pr.doc is not None:
+                results.append(pr.get_details(formatted))
 
         return results
 

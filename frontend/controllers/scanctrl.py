@@ -21,7 +21,6 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
 import frontend.controllers.braintasks as celery_brain
 import frontend.controllers.ftpctrl as ftp_ctrl
 from frontend.helpers.sessions import session_transaction
-from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common.mimetypes import Magic
 from lib.irma.common.utils import IrmaScanRequest
@@ -420,21 +419,16 @@ def set_result(scanid, file_hash, probe, result):
             pr = _fetch_probe_result(fw, probe)
             _update_ref_results(fw, fw.file, pr)
             fw.file.update(session=session)
-            # init empty NoSql record to get
-            # all mandatory fields initialized
-            prr = ProbeRealResult()
-            # and fill with probe raw results
-            prr.update(sanitized_res)
-            # link it to Sql record
-            pr.nosql_id = prr.id
+            # fill ProbeResult with probe raw results
+            pr.doc = sanitized_res
             pr.status = sanitized_res.get('status', None)
             s_type = sanitized_res.get('type', None)
             pr.type = IrmaProbeType.normalize(s_type)
             pr.update(session=session)
             probedone = []
-            for pr in fw.probe_results:
-                if pr.nosql_id is not None:
-                    probedone.append(pr.name)
+            for fw_pr in fw.probe_results:
+                if fw_pr.doc is not None:
+                    probedone.append(fw_pr.name)
             log.info("scanid: %s result from %s probedone %s",
                      scanid, probe, probedone)
 
