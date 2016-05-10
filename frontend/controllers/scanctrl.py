@@ -40,10 +40,16 @@ log = logging.getLogger(__name__)
 
 def _new_file(fileobj, session):
     sha256 = sha256sum(fileobj)
+    # split files between subdirs
+    path = build_sha256_path(sha256)
     try:
         # The file exists
         log.debug("try opening file with sha256: %s", sha256)
         file = File.load_from_sha256(sha256, session, fileobj)
+        if file.path is None:
+            log.debug("file sample missing writing it")
+            save_to_file(fileobj, path)
+            file.path = path
     except IrmaDatabaseResultNotFound:
         # It doesn't
         time = compat.timestamp()
@@ -54,8 +60,6 @@ def _new_file(fileobj, session):
         # magic only deal with buffer
         # feed it with a 4MB buffer
         mimetype = magic.from_buffer(fileobj.read(2 ** 22))
-        # split files between subdirs
-        path = build_sha256_path(sha256)
         size = save_to_file(fileobj, path)
         log.debug("not present, saving, sha256 %s sha1 %s"
                   "md5 %s size %s mimetype: %s",
