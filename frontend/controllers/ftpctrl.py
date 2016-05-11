@@ -18,6 +18,7 @@ import logging
 import config.parser as config
 from lib.irma.common.exceptions import IrmaFileSystemError, \
     IrmaFtpError
+from tempfile import TemporaryFile
 
 
 log = logging.getLogger(__name__)
@@ -64,9 +65,10 @@ def download_file_data(scanid, file_sha256):
         user = ftp_config.username
         pwd = ftp_config.password
 
+        fobj = TemporaryFile()
         with IrmaFTP(host, port, user, pwd) as ftp:
             log.debug("scanid: %s downloading file %s", scanid, file_sha256)
-            fobj = ftp.download_fobj(scanid, file_sha256)
+            ftp.download_fobj(scanid, file_sha256, fobj)
         return fobj
     except Exception as e:
         log.exception(e)
