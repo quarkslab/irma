@@ -48,7 +48,7 @@ def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
                       queue=probe,
                       link=hook_success,
                       link_error=hook_error,
-                      uuid=task_id)
+                      task_id=task_id)
     return task.id
 
 
