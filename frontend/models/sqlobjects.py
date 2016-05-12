@@ -260,7 +260,7 @@ class File(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
         # Check if file is still present
-        if not os.path.exists(asked_file.path):
+        if asked_file.path is not None and not os.path.exists(asked_file.path):
             asked_file.path = None
         return asked_file
 
