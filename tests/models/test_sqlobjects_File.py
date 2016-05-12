@@ -3,8 +3,9 @@ from mock import MagicMock
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import frontend.models.sqlobjects as module
-import frontend.helpers.utils as mod_utils
+import lib.common.utils as mod_utils
 from frontend.models.sqlobjects import File
+from frontend.helpers.utils import build_sha256_path
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 from lib.irma.common.exceptions import IrmaDatabaseError
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
@@ -25,12 +26,12 @@ class TestFile(TestCase):
 
         self.file = File(self.sha256, self.sha1, self.md5, self.size,
                          self.mimetype, self.path, self.first_ts, self.last_ts)
-        self.old_write_sample_on_disk = mod_utils.write_sample_on_disk
-        mod_utils.write_sample_on_disk = MagicMock()
+        self.old_save_to_file = mod_utils.save_to_file
+        mod_utils.save_to_file = MagicMock()
 
     def tearDown(self):
         del self.file
-        module.write_sample_on_disk = self.old_write_sample_on_disk
+        module.save_to_file = self.old_save_to_file
 
     def test001___init__(self):
         self.assertEqual(self.file.timestamp_first_scan, self.first_ts)
@@ -67,7 +68,7 @@ class TestFile(TestCase):
         with self.assertRaises(IrmaDatabaseResultNotFound) as context:
             File.load_from_sha256("whatever", session)
         self.assertEqual(str(context.exception), sample)
-        self.assertFalse(mod_utils.write_sample_on_disk.called)
+        self.assertFalse(mod_utils.save_to_file.called)
 
     def test005_classmethod_load_from_sha256_raise_MultipleResultNotFound(self):  # nopep8
         sample = "test"
@@ -76,7 +77,7 @@ class TestFile(TestCase):
         with self.assertRaises(IrmaDatabaseError) as context:
             File.load_from_sha256("whatever", session)
         self.assertEqual(str(context.exception), sample)
-        self.assertFalse(mod_utils.write_sample_on_disk.called)
+        self.assertFalse(mod_utils.save_to_file.called)
 
     def test006_classmethod_load_from_sha256_True(self):
         sha = "sha_test"
@@ -91,7 +92,7 @@ class TestFile(TestCase):
         self.assertTrue(session.query().filter().one.called)
         self.assertEqual(session.query().filter().one.call_args, (tuple(),))
         self.assertEqual(result, session.query().filter().one())
-        self.assertFalse(mod_utils.write_sample_on_disk.called)
+        self.assertFalse(mod_utils.save_to_file.called)
 
     def test007_classmethod_load_from_sha256_path_is_None(self):
         sha, data = "sha_test", TemporaryFile()
@@ -107,9 +108,6 @@ class TestFile(TestCase):
         self.assertTrue(session.query().filter().one.called)
         self.assertEqual(session.query().filter().one.call_args, (tuple(),))
         self.assertEqual(result, session.query().filter().one())
-        self.assertTrue(module.write_sample_on_disk.called)
-        self.assertEquals(module.write_sample_on_disk.call_args,
-                          ((sha, data),))
 
     def test008_get_file_names_empty(self):
         self.assertEqual(self.file.get_file_names(), list())
