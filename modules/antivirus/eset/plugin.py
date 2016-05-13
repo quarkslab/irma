@@ -28,6 +28,7 @@ class EsetNod32Plugin(PluginBase, EsetNod32, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "EsetNod32"
+    _plugin_display_name_ = EsetNod32._name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus

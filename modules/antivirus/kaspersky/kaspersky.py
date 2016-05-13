@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class Kaspersky(Antivirus):
+    _name = "Kaspersky Anti-Virus"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,8 +32,6 @@ class Kaspersky(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(Kaspersky, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "Kaspersky Anti-Virus"
         # scan tool variables
         self._scan_args = (
             "scan "  # scan command

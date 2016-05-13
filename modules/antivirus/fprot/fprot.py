@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class FProt(Antivirus):
+    _name = "F-PROT Antivirus"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,8 +32,6 @@ class FProt(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(FProt, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "F-PROT Antivirus"
         # scan tool variables
         # for scan code meanings, do fpscan -x <code>
         code_infected = self.ScanResult.INFECTED

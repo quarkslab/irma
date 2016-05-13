@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 
 
 class AVGAntiVirusFree(Antivirus):
+    _name = "AVG AntiVirus Free"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -32,8 +33,6 @@ class AVGAntiVirusFree(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(AVGAntiVirusFree, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "AVG AntiVirus Free"
         # scan tool variables
         self._scan_args = (
             "--heur "      # use heuristics for scanning

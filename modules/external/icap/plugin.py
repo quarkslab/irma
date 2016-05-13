@@ -39,6 +39,7 @@ class ICAPPlugin(PluginBase):
     # =================
 
     _plugin_name_ = "ICAP"
+    _plugin_display_name_ = "ICAP"
     _plugin_author_ = "Vincent Rasneur <vrasneur@free.fr>"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.external
@@ -131,7 +132,7 @@ class ICAPPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        results = PluginResult(name=type(self).plugin_name,
+        results = PluginResult(name=type(self).plugin_display_name,
                                type=type(self).plugin_category,
                                version=None)
         try:

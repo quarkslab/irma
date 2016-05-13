@@ -38,6 +38,7 @@ class UnarchivePlugin(PluginBase):
     # =================
 
     _plugin_name_ = "Unarchive"
+    _plugin_display_name_ = "Unarchive"
     _plugin_author_ = "Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = "tools"  # TODO add an IrmaProbetype

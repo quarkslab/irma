@@ -40,6 +40,7 @@ class PEiDPlugin(PluginBase):
     # =================
 
     _plugin_name_ = "PEiD"
+    _plugin_display_name_ = "PEiD PE Packer Identifier"
     _plugin_author_ = "Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.metadata
@@ -99,7 +100,7 @@ class PEiDPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        results = PluginResult(name=type(self).plugin_name,
+        results = PluginResult(name=type(self).plugin_display_name,
                                type=type(self).plugin_category,
                                version=None)
         try:

@@ -26,6 +26,7 @@ log = logging.getLogger(__name__)
 
 class McAfeeDaemon(McAfeeVSCL):
     _daemon_config = '/etc/mcafee-daemon/server.ini'
+    _name = "McAfee VirusScan Daemon"
     # ==================================
     #  Constructor and destructor stuff
     # ==================================
@@ -33,8 +34,6 @@ class McAfeeDaemon(McAfeeVSCL):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(McAfeeDaemon, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "McAfee VirusScan Daemon"
         self._socket_path = kwargs.get("socket_path", None)
 
     def scan(self, paths):

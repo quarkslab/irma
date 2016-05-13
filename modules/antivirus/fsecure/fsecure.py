@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class FSecure(Antivirus):
+    _name = "FSecure Antivirus for Linux Desktop"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,8 +34,6 @@ class FSecure(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(FSecure, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "FSecure Antivirus for Linux Desktop"
         # scan tool variables
         self._scan_args = (
             "--allfiles=yes ",

@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class GData(Antivirus):
+    _name = "GData Anti-Virus"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,8 +32,6 @@ class GData(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(GData, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "GData Anti-Virus"
         # scan tool variables
         self._scan_patterns = [
             re.compile(r"Infected:\s+(?P<file>.*); (?P<name>.*)")

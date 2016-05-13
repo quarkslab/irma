@@ -33,6 +33,7 @@ class SkeletonPlugin(PluginBase):
     #  plugin metadata
     # =================
     _plugin_name_ = "Skeleton"
+    _plugin_display_name = "Skeleton Display Name"
     _plugin_author_ = "<author name>"
     _plugin_version_ = "<version>"
     _plugin_category_ = "custom"
@@ -55,7 +56,7 @@ class SkeletonPlugin(PluginBase):
     #  probe interfaces
     # ==================
     def run(self, paths):
-        response = PluginResult(name=type(self).plugin_name,
+        response = PluginResult(name=type(self).plugin_display_name,
                                 type=type(self).plugin_category,
                                 version=None)
         try:

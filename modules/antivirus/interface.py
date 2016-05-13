@@ -25,7 +25,7 @@ class AntivirusPluginInterface(object):
     """Antivirus Plugin"""
 
     def run(self, paths):
-        results = PluginResult(name=self.module.name,
+        results = PluginResult(name=type(self).plugin_display_name,
                                type=type(self).plugin_category,
                                version=self.module.version)
         try:

@@ -39,6 +39,7 @@ class VirusTotalPlugin(PluginBase):
     # =================
 
     _plugin_name_ = "VirusTotal"
+    _plugin_display_name_ = "VirusTotal"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.external
@@ -90,7 +91,7 @@ class VirusTotalPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        results = PluginResult(name=type(self).plugin_name,
+        results = PluginResult(name=type(self).plugin_display_name,
                                type=type(self).plugin_category,
                                version=None)
         try:

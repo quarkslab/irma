@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class Sophos(Antivirus):
+    _name = "Sophos Anti-Virus"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,8 +34,6 @@ class Sophos(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(Sophos, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "Sophos Anti-Virus"
         # scan tool variables
         self._scan_args = (
             "-archive "   # scan inside archives
