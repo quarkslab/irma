@@ -65,6 +65,10 @@ class PluginMetaClass(type):
         return cls._plugin_name_
 
     @property
+    def plugin_display_name(cls):
+        return cls._plugin_display_name_
+
+    @property
     def plugin_version(cls):
         return cls._plugin_version_
 
