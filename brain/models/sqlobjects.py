@@ -255,6 +255,12 @@ class Probe(Base, SQLDatabaseObject):
         index=True,
         name='name'
     )
+    display_name = Column(
+        String,
+        nullable=False,
+        index=True,
+        name='display_name'
+    )
     category = Column(
         String,
         nullable=False,
@@ -269,8 +275,9 @@ class Probe(Base, SQLDatabaseObject):
         name='online'
     )
 
-    def __init__(self, name, category, mimetype_regexp, online):
+    def __init__(self, name, display_name, category, mimetype_regexp, online):
         self.name = name
+        self.display_name = display_name
         self.category = category
         self.mimetype_regexp = mimetype_regexp
         self.online = online

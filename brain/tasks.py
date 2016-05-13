@@ -166,11 +166,11 @@ refresh_probes()
 
 @scan_app.task(acks_late=True)
 @interprocess_locked(interprocess_lock_path)
-def register_probe(name, category, mimetype_filter):
+def register_probe(name, display_name, category, mimetype_filter):
     try:
         log.info("probe %s category %s registered [%s] transfer to scan_app",
                  name, category, mimetype_filter)
-        probe_ctrl.register(name, category, mimetype_filter)
+        probe_ctrl.register(name, display_name, category, mimetype_filter)
         return
     except Exception as e:
         log.exception(e)
@@ -330,11 +330,12 @@ def job_error(parent_taskid, frontend_scanid, filename, probe):
     try:
         log.info("scanid %s: filename:%s probe %s",
                  frontend_scanid, filename, probe)
+        (display_name, category) = probe_ctrl.get_display_name_category(probe)
         result = {}
         result['status'] = -1
-        result['name'] = probe
-        result['type'] = probe_ctrl.get_category(probe)
-        result['error'] = "Brain job error"
+        result['name'] = display_name
+        result['type'] = category
+        result['error'] = "job error"
         result['duration'] = None
         celery_frontend.scan_result(frontend_scanid, filename, probe, result)
     except Exception as e:
