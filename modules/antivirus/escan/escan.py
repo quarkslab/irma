@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class Escan(Antivirus):
+    _name = "eScan Antivirus for Linux Desktop"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,8 +34,6 @@ class Escan(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(Escan, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "eScan Antivirus for Linux Desktop"
         # scan tool variables
         self._scan_args = (
             "--log-only "

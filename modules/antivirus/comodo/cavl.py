@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class ComodoCAVL(Antivirus):
+    _name = "Comodo Antivirus for Linux"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,8 +32,6 @@ class ComodoCAVL(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(ComodoCAVL, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "Comodo Antivirus for Linux"
         # Comodo does not use return value as infection indicator
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [0]
         # scan tool variables

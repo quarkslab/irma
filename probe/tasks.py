@@ -92,15 +92,15 @@ probe_app.conf.update(
 
 for p in probes:
     # register probe on Brain
-    probe_name = p.plugin_name
-    probe_category = p.plugin_category
-    mimetype_regexp = p.plugin_mimetype_regexp
-    log.info('Register probe %s' % probe_name)
+    log.info('Register probe %s' % p.plugin_name)
     try_nb = 1
     while True:
         try:
             try_nb += 1
-            task = register_probe(probe_name, probe_category, mimetype_regexp)
+            task = register_probe(p.plugin_name,
+                                  p.plugin_display_name,
+                                  p.plugin_category,
+                                  p.plugin_mimetype_regexp)
             task.get(timeout=10)
             break
         except TimeoutError:
@@ -136,11 +136,13 @@ def register():
     routing_key = current_task.request.delivery_info['routing_key']
     probe = probes[routing_key]
     probe_name = type(probe).plugin_name
+    probe_display_name = type(probe).plugin_display_name
     probe_category = type(probe).plugin_category
     probe_regexp = type(probe).plugin_mimetype_regexp
-    log.debug("probe %s category %s probe_regexp %s",
-              probe_name, probe_category, probe_regexp)
-    register_probe(probe_name, probe_category, probe_regexp)
+    log.debug("queue %s probe %s category %s probe_regexp %s",
+              probe_name, probe_display_name, probe_category, probe_regexp)
+    register_probe(probe_name, probe_display_name,
+                   probe_category, probe_regexp)
 
 
 @probe_app.task(acks_late=True)

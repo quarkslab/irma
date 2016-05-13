@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class ASquaredCmd(Antivirus):
+    _name = "Emsisoft Commandline Scanner"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,8 +32,6 @@ class ASquaredCmd(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(ASquaredCmd, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "Emsisoft Commandline Scanner"
         # scan tool variables
         self._scan_args = (
             "/h "

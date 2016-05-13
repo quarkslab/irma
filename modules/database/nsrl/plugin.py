@@ -41,6 +41,7 @@ class NSRLPlugin(PluginBase):
     # =================
 
     _plugin_name_ = "NSRL"
+    _plugin_display_name = "National Software Reference Library"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.database
@@ -115,7 +116,7 @@ class NSRLPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        results = PluginResult(name="National Software Reference Library",
+        results = PluginResult(name=type(self).display_name,
                                type=type(self).plugin_category,
                                version=None)
         try:

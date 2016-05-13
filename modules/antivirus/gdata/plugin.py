@@ -29,6 +29,7 @@ class GDataPlugin(PluginBase, GData, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "GData"
+    _plugin_display_name_ = GData._name
     _plugin_author_ = "y0ug"
     _plugin_version_ = "0.0.1"
     _plugin_category_ = "antivirus"

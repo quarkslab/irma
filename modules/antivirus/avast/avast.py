@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 
 
 class AvastCoreSecurity(Antivirus):
+    _name = "Avast Core Security"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -32,8 +33,6 @@ class AvastCoreSecurity(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(AvastCoreSecurity, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "Avast Core Security"
         # scan tool variables
         self._scan_args = (
             "-b "  # Report decompression bombs as infections

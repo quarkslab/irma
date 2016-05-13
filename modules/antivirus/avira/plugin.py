@@ -29,6 +29,7 @@ class AviraPlugin(PluginBase, Avira, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "Avira"
+    _plugin_display_name_ = Avira._name
     _plugin_author_ = "y0ug"
     _plugin_version_ = "0.0.1"
     _plugin_category_ = "antivirus"
