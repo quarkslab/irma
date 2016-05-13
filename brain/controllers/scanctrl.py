@@ -17,8 +17,7 @@ import logging
 from brain.models.sqlobjects import Scan
 from brain.helpers.sql import session_query, session_transaction
 from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.common.exceptions import IrmaValueError, \
-    IrmaDatabaseResultNotFound
+from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
 
 log = logging.getLogger(__name__)
 
@@ -38,12 +37,12 @@ def new(frontend_scan_id, user_id, nb_files):
         return scan.id
 
 
-def get_scan_id(frontend_scan_id, user_id):
+def get_scan_id_status(frontend_scan_id, user_id):
     with session_query() as session:
         scan = Scan.get_scan(frontend_scan_id, user_id, session)
         log.debug("scanid %s: user_id %s id %s",
                   frontend_scan_id, user_id, scan.id)
-        return scan.id
+        return (scan.status, scan.id)
 
 
 def get_user_id(scan_id):
@@ -80,26 +79,6 @@ def launched(scan_id):
     _set_status(scan_id, IrmaScanStatus.launched)
 
 
-def progress(scan_id):
-    log.debug("brain_scan_id: %s", scan_id)
-    with session_query() as session:
-        scan = Scan.load(scan_id, session)
-        if IrmaScanStatus.is_error(scan.status):
-            status_str = IrmaScanStatus.label[scan.status]
-            log.error("status %s", status_str)
-            raise IrmaValueError(status_str)
-        status = IrmaScanStatus.label[scan.status]
-        progress_details = None
-        if scan.status == IrmaScanStatus.launched:
-            (total, finished, success) = scan.progress()
-            progress_details = {}
-            progress_details['total'] = total
-            progress_details['finished'] = finished
-            progress_details['successful'] = success
-        log.debug("%s", progress_details)
-        return (status, progress_details)
-
-
 def get_pending_jobs(scan_id):
     with session_query() as session:
         scan = Scan.load(scan_id, session)
@@ -122,10 +101,11 @@ def flush(scan_id):
         scan = Scan.load(scan_id, session)
         if scan.status == IrmaScanStatus.flushed:
             return
-        for job in scan.jobs:
-            log.debug("delete job %s", job.id)
-            session.delete(job)
         scan.status = IrmaScanStatus.flushed
+        jobs = scan.jobs
+        log.debug("brain_scan_id: %s delete %s jobs", scan_id, len(jobs))
+        for job in jobs:
+            session.delete(job)
 
 
 def error(scan_id, code):

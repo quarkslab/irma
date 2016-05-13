@@ -115,11 +115,11 @@ class Scan(Base, SQLDatabaseObject):
         self.nb_files = nb_files
         self.user_id = user_id
 
-    @staticmethod
-    def get_scan(scan_id, user_id, session):
+    @classmethod
+    def get_scan(cls, scan_id, user_id, session):
         try:
-            return session.query(Scan).filter(
-                Scan.scan_id == scan_id and Scan.user_id == user_id
+            return session.query(cls).filter(
+                cls.scan_id == scan_id and cls.user_id == user_id
                 ).one()
         except NoResultFound as e:
             raise IrmaDatabaseResultNotFound(e)
@@ -130,28 +130,9 @@ class Scan(Base, SQLDatabaseObject):
     def nb_jobs(self):
         return len(self.jobs)
 
-    def progress(self):
-        finished = success = total = 0
-        for job in self.jobs:
-            total += 1
-            if job.finished():
-                finished += 1
-                if job.status == Job.success:
-                    success += 1
-        return (total, finished, success)
-
     def get_pending_jobs_taskid(self):
-        pending_jobs_taskid = []
-        for job in self.jobs:
-            if not job.finished():
-                pending_jobs_taskid.append(job.task_id)
+        pending_jobs_taskid = [job.task_id for job in self.jobs]
         return pending_jobs_taskid
-
-    def finished(self):
-        for job in self.jobs:
-            if not job.finished():
-                return False
-        return True
 
 
 class User(Base, SQLDatabaseObject):
@@ -232,52 +213,12 @@ class User(Base, SQLDatabaseObject):
 
 class Job(Base, SQLDatabaseObject):
     __tablename__ = '{0}job'.format(tables_prefix)
-    success = 1
-    running = 0
-    error = -1
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
-    id = Column(
-        Integer,
-        autoincrement=True,
-        nullable=False,
-        primary_key=True,
-        name='id'
-    )
-    filename = Column(
-        String,
-        nullable=False,
-        index=True,
-        name='filename'
-    )
-    probename = Column(
-        String,
-        nullable=False,
-        index=True,
-        name='probename'
-    )
-    status = Column(
-        Integer,
-        nullable=False,
-        name='status'
-    )
-    ts_start = Column(
-        Integer,
-        nullable=False,
-        name='ts_start'
-    )
-    ts_end = Column(
-        Integer,
-        name='ts_end'
-    )
     task_id = Column(
         String,
-        name="task_id"
+        name="task_id",
+        primary_key=True,
     )
     # Many to one Job <-> Scan
     scan_id = Column(
@@ -287,16 +228,9 @@ class Job(Base, SQLDatabaseObject):
         nullable=False,
     )
 
-    def __init__(self, filename, probename, scanid, taskid):
-        self.filename = filename
-        self.probename = probename
-        self.ts_start = timestamp()
-        self.status = self.running
+    def __init__(self, scanid, taskid):
         self.scan_id = scanid
         self.task_id = taskid
-
-    def finished(self):
-        return self.status != self.running
 
 
 class Probe(Base, SQLDatabaseObject):
