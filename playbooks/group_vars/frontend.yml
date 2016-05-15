@@ -231,8 +231,11 @@ nginx_sites:
     #     index index.html;
     #   }
     #- location / {
-        #alias {{ frontend_install_dir }}/web/dist/;
-        #index index.html;
+        # expires -1;
+        # add_header Pragma "no-cache";
+        # add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        # root {{ frontend_install_dir }}/web/dist;
+        # try_files $uri $uri/ /index.html =404;
       #}
     #- error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
     #- access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
