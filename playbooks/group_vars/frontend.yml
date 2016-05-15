@@ -221,11 +221,15 @@ nginx_sites:
     #- location ~ /\.ht {
         #deny all;
       #}
-    #- location /_api {
+    #- location /api {
         #include uwsgi_params;
-        #rewrite ^/_api/(.+) /$1 break;
+        #rewrite ^/api/(.+) /$1 break;
         #uwsgi_pass 127.0.0.1:8081;
       #}
+    # - location /swagger {
+    #     alias {{ frontend_install_dir }}/swagger/ui;
+    #     index index.html;
+    #   }
     #- location / {
         #alias {{ frontend_install_dir }}/web/dist/;
         #index index.html;
