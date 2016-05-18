@@ -161,14 +161,20 @@ def _create_scan_request(fw_list, probelist, mimetype_filtering):
     return scan_request
 
 
-def _sanitize_dict(d):
-    new = {}
-    for k, v in d.iteritems():
-        if isinstance(v, dict):
-            v = _sanitize_dict(v)
-        newk = k.replace('.', '_').replace('$', '')
-        new[newk] = v
-    return new
+def _sanitize_res(d):
+    if isinstance(d, unicode):
+        # Fix for JSONB
+        return d.replace("\u0000", "").replace(u"\x00", "")
+    elif isinstance(d, list):
+        return [_sanitize_res(x) for x in d]
+    elif isinstance(d, dict):
+        new = {}
+        for k, v in d.iteritems():
+            newk = k.replace('.', '_').replace('$', '')
+            new[newk] = _sanitize_res(v)
+        return new
+    else:
+        return d
 
 
 def _append_new_files_to_scan(scan, uploaded_files, session):
@@ -411,7 +417,7 @@ def set_result(scanid, file_hash, probe, result):
         fws_file = File.load_from_sha256(file_hash, session)
         fws_file.timestamp_last_scan = compat.timestamp()
         fws_file.update(['timestamp_last_scan'], session=session)
-        sanitized_res = _sanitize_dict(result)
+        sanitized_res = _sanitize_res(result)
 
         # update results for all files with same sha256
         for fw in fws:
