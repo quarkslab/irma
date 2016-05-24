@@ -1,4 +1,5 @@
-# Copyright (c) 2014 QuarksLab.
+#
+# Copyright (c) 2013-2016 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,8 +32,8 @@ from lib.irma.common.utils import IrmaScanStatus, IrmaProbeType
 from lib.irma.database.sqlobjects import SQLDatabaseObject
 from frontend.helpers.format import IrmaFormatter
 
-# SQLite fix for ForeignKey support
-# see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
+
+# As we used JSONB only PSQL is supported
 if config.get_sql_db_uri_params()[0] != 'postgresql':
     raise IrmaDatabaseError("As Irma uses JSONB Only PostgreSQL is supported")
 
@@ -64,7 +65,6 @@ probe_result_file_web = Table(
         # see FileWeb.id_file
         ForeignKey('{0}fileWeb.id'.format(tables_prefix))
     ),
-    # Removed from FileWeb FK due to SQLite limitation, conceptually it
     # should be a PKF in FileWeb
     # https://groups.google.com/forum/#!topic/sqlalchemy/TxISzgW7xUg
     # Column(
@@ -89,11 +89,6 @@ probe_result_file_web = Table(
 
 class Tag(Base, SQLDatabaseObject):
     __tablename__ = '{0}tag'.format(tables_prefix)
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
     id = Column(
@@ -131,11 +126,6 @@ class Tag(Base, SQLDatabaseObject):
 
 class File(Base, SQLDatabaseObject):
     __tablename__ = '{0}file'.format(tables_prefix)
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
     id = Column(
@@ -284,19 +274,11 @@ class File(Base, SQLDatabaseObject):
         from_web = []
         for fw in self.files_web:
             from_web.append(fw.name)
-        from_submission = []
-        for fa in self.files_agent:
-            from_submission.append(os.path.split(fa.submission_path)[1])
-        return list(set(from_web + from_submission))
+        return list(set(from_web))
 
 
 class ProbeResult(Base, SQLDatabaseObject):
     __tablename__ = '{0}probeResult'.format(tables_prefix)
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
     id = Column(
@@ -365,11 +347,6 @@ class ProbeResult(Base, SQLDatabaseObject):
 
 class Scan(Base, SQLDatabaseObject):
     __tablename__ = '{0}scan'.format(tables_prefix)
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
     id = Column(
@@ -511,11 +488,6 @@ class Scan(Base, SQLDatabaseObject):
 class FileWeb(Base, SQLDatabaseObject):
     __tablename__ = '{0}fileWeb'.format(tables_prefix)
 
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
-
     # Fields
     id = Column(
         Integer,
@@ -535,8 +507,7 @@ class FileWeb(Base, SQLDatabaseObject):
         Integer,
         ForeignKey('{0}file.id'.format(tables_prefix)),
         nullable=False,
-        # conceptually it should be a PFK, but due to limitation in sqlite,
-        # only is a FK
+        # should be a PFK only a FK
         # https://groups.google.com/forum/#!topic/sqlalchemy/TxISzgW7xUg
         # primary_key=True
     )
@@ -709,138 +680,8 @@ class FileWeb(Base, SQLDatabaseObject):
         return query
 
 
-class FileAgent(Base, SQLDatabaseObject):
-    __tablename__ = '{0}fileAgent'.format(tables_prefix)
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
-
-    # Fields
-    id = Column(
-        Integer,
-        autoincrement=True,
-        nullable=False,
-        primary_key=True,
-        name='id'
-    )
-    submission_path = Column(
-        String(length=255),
-        nullable=False,
-        name='submission_path'
-    )
-    # Many to one FileAgent <-> File as part of the primary key
-    id_file = Column(
-        Integer,
-        ForeignKey('{0}file.id'.format(tables_prefix)),
-        nullable=False,
-        # conceptually it should be a PFK, but due to limitation in sqlite,
-        # only is a FK
-        # https://groups.google.com/forum/#!topic/sqlalchemy/TxISzgW7xUg
-        # primary_key=True
-    )
-    file = relationship(
-        "File",
-        backref=backref('files_agent')
-    )
-    # Many to one FileAgent <-> Submission
-    id_s = Column(
-        Integer,
-        ForeignKey('{0}submission.id'.format(tables_prefix)),
-        nullable=False
-    )
-    submission = relationship(
-        "Submission",
-        backref=backref('files_agent')
-    )
-
-    def __init__(self, file, submission_path, submission):
-        super(FileAgent, self).__init__()
-
-        self.file = file
-        self.submission_path = submission_path
-        self.submission = submission
-
-
-class Submission(Base, SQLDatabaseObject):
-    __tablename__ = '{0}submission'.format(tables_prefix)
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
-
-    # Fields
-    id = Column(
-        Integer,
-        autoincrement=True,
-        nullable=False,
-        primary_key=True,
-        name='id'
-    )
-    external_id = Column(
-        String(length=36),
-        index=True,
-        nullable=False,
-        name='external_id'
-    )
-    os_name = Column(
-        String,
-        nullable=False,
-        name='os_name'
-    )
-    username = Column(
-        String,
-        nullable=False,
-        name='username'
-    )
-    ip = Column(
-        String,
-        nullable=False,
-        name='ip'
-    )
-    date = Column(
-        Integer,
-        nullable=False,
-        name='date'
-    )
-
-    def __init__(self, os_name, username, ip, date):
-        super(Submission, self).__init__()
-
-        self.external_id = UUID.generate()
-        self.os_name = os_name
-        self.username = username
-        self.ip = ip
-        self.date = date
-
-    @classmethod
-    def load_from_ext_id(cls, external_id, session):
-        """Find the object in the database
-        :param external_id: the id to look for
-        :param session: the session to use
-        :rtype: cls
-        :return: the object that corresponds to the external_id
-        :raise IrmaDatabaseResultNotFound, IrmaDatabaseError
-        """
-        try:
-            return session.query(cls).filter(
-                cls.external_id == external_id
-            ).one()
-        except NoResultFound as e:
-            raise IrmaDatabaseResultNotFound(e)
-        except MultipleResultsFound as e:
-            raise IrmaDatabaseError(e)
-
-
 class ScanEvents(Base, SQLDatabaseObject):
     __tablename__ = '{0}scanEvents'.format(tables_prefix)
-
-    # SQLite fix for auto increment on ids
-    # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
-        __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
     id = Column(
