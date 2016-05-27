@@ -36,7 +36,7 @@ def upload_scan(scanid, file_path_list):
             ftp.mkdir(scanid)
             for file_path in file_path_list:
                 log.debug("scanid: %s uploading file %s", scanid, file_path)
-                if not os.path.exists(file_path):
+                if not os.path.isfile(file_path):
                     reason = "File does not exist"
                     log.error(reason)
                     raise IrmaFileSystemError(reason)

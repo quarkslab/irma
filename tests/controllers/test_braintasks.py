@@ -80,3 +80,11 @@ class TestModuleBraintasks(TestCase):
         self.assertTrue(mock.called)
         self.assertEqual(mock.call_args, expected)
         self.assertEqual(result, mock())
+
+    def test008_mimetype_filter_raise_task(self):
+        expected = "test"
+        with patch("frontend.controllers.braintasks.sync_call") as mock:
+            mock.return_value = (IrmaReturnCode.error, expected)
+            with self.assertRaises(IrmaTaskError) as context:
+                module.mimetype_filter_scan_request("whatever")
+        self.assertEqual(str(context.exception), expected)
