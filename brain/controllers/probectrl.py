@@ -21,20 +21,26 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
 log = logging.getLogger(__name__)
 
 
-def register(name, category, mimetype_regexp):
+def register(name, display_name, category, mimetype_regexp):
     with session_transaction() as session:
         try:
             probe = Probe.get_by_name(name, session)
             log.info("probe %s already registred "
                      "updating parameters: "
-                     "[cat:%s regexp:%s]",
-                     name, category, mimetype_regexp)
+                     "[display_name:%s cat:%s regexp:%s]",
+                     name, display_name, category, mimetype_regexp)
+            probe.display_name = display_name
             probe.category = category
             probe.mimetype_regexp = mimetype_regexp
             probe.online = True
             probe.update(['category', 'mimetype_regexp', 'online'], session)
         except IrmaDatabaseResultNotFound:
+            log.info("register probe %s"
+                     " with parameters: "
+                     "[display_name:%s cat:%s regexp:%s]",
+                     name, display_name, category, mimetype_regexp)
             probe = Probe(name=name,
+                          display_name=display_name,
                           category=category,
                           mimetype_regexp=mimetype_regexp,
                           online=True)
@@ -82,7 +88,7 @@ def set_online(probe_name):
         return
 
 
-def get_category(probe_name):
+def get_display_name_category(probe_name):
     with session_query() as session:
         p = Probe.get_by_name(probe_name, session)
-        return p.category
+        return (p.display_name, p.category)

@@ -30,17 +30,17 @@ log = logging.getLogger(__name__)
 #  Task calls
 # ============
 
-def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
+def job_launch(ftpuser, frontend_scanid, filename, probe, task_id):
     """ send a task to the brain to flush the scan files"""
     log.debug("scanid %s: ftpuser %s filename %s probe %s" +
-              " job_id %s task_id %s",
-              frontend_scanid, ftpuser, filename, probe, job_id, task_id)
+              " task_id %s",
+              frontend_scanid, ftpuser, filename, probe, task_id)
     hook_success = route(
         results_app.signature("brain.tasks.job_success",
-                              [job_id]))
+                              [frontend_scanid, filename, probe]))
     hook_error = route(
         results_app.signature("brain.tasks.job_error",
-                              [job_id]))
+                              [frontend_scanid, filename, probe]))
     task = async_call(probe_app,
                       "probe.tasks",
                       "probe_scan",
@@ -48,12 +48,12 @@ def job_launch(ftpuser, frontend_scanid, filename, probe, job_id, task_id):
                       queue=probe,
                       link=hook_success,
                       link_error=hook_error,
-                      uuid=task_id)
+                      task_id=task_id)
     return task.id
 
 
 def job_cancel(job_list):
-    log.debug("job_list: %s", "-".join(job_list))
+    log.debug("job_list: %s", " / ".join(job_list))
     probe_app.control.revoke(job_list, terminate=True)
 
 
