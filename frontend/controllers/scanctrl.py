@@ -21,7 +21,6 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
 import frontend.controllers.braintasks as celery_brain
 import frontend.controllers.ftpctrl as ftp_ctrl
 from frontend.helpers.sessions import session_transaction
-from frontend.models.nosqlobjects import ProbeRealResult
 from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
 from lib.common.mimetypes import Magic
 from lib.irma.common.utils import IrmaScanRequest
@@ -162,14 +161,20 @@ def _create_scan_request(fw_list, probelist, mimetype_filtering):
     return scan_request
 
 
-def _sanitize_dict(d):
-    new = {}
-    for k, v in d.iteritems():
-        if isinstance(v, dict):
-            v = _sanitize_dict(v)
-        newk = k.replace('.', '_').replace('$', '')
-        new[newk] = v
-    return new
+def _sanitize_res(d):
+    if isinstance(d, unicode):
+        # Fix for JSONB
+        return d.replace("\u0000", "").replace(u"\x00", "")
+    elif isinstance(d, list):
+        return [_sanitize_res(x) for x in d]
+    elif isinstance(d, dict):
+        new = {}
+        for k, v in d.iteritems():
+            newk = k.replace('.', '_').replace('$', '')
+            new[newk] = _sanitize_res(v)
+        return new
+    else:
+        return d
 
 
 def _append_new_files_to_scan(scan, uploaded_files, session):
@@ -412,7 +417,7 @@ def set_result(scanid, file_hash, probe, result):
         fws_file = File.load_from_sha256(file_hash, session)
         fws_file.timestamp_last_scan = compat.timestamp()
         fws_file.update(['timestamp_last_scan'], session=session)
-        sanitized_res = _sanitize_dict(result)
+        sanitized_res = _sanitize_res(result)
 
         # update results for all files with same sha256
         for fw in fws:
@@ -420,21 +425,16 @@ def set_result(scanid, file_hash, probe, result):
             pr = _fetch_probe_result(fw, probe)
             _update_ref_results(fw, fw.file, pr)
             fw.file.update(session=session)
-            # init empty NoSql record to get
-            # all mandatory fields initialized
-            prr = ProbeRealResult()
-            # and fill with probe raw results
-            prr.update(sanitized_res)
-            # link it to Sql record
-            pr.nosql_id = prr.id
+            # fill ProbeResult with probe raw results
+            pr.doc = sanitized_res
             pr.status = sanitized_res.get('status', None)
             s_type = sanitized_res.get('type', None)
             pr.type = IrmaProbeType.normalize(s_type)
             pr.update(session=session)
             probedone = []
-            for pr in fw.probe_results:
-                if pr.nosql_id is not None:
-                    probedone.append(pr.name)
+            for fw_pr in fw.probe_results:
+                if fw_pr.doc is not None:
+                    probedone.append(fw_pr.name)
             log.info("scanid: %s result from %s probedone %s",
                      scanid, probe, probedone)
 
