@@ -38,6 +38,7 @@ class YaraPlugin(PluginBase):
     # =================
 
     _plugin_name_ = "Yara"
+    _plugin_display_name_ = "Yara"
     _plugin_author_ = "Bryan Nolen @BryanNolen"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.metadata
@@ -82,7 +83,7 @@ class YaraPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        results = PluginResult(name=type(self).plugin_name,
+        results = PluginResult(name=type(self).plugin_display_name,
                                type=type(self).plugin_category,
                                version=None)
         try:

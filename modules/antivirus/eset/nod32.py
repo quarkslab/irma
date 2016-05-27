@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 
 
 class EsetNod32(Antivirus):
+    _name = "ESET NOD32 Antivirus Business Edition for Linux Desktop"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -30,8 +31,6 @@ class EsetNod32(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(EsetNod32, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "ESET NOD32 Antivirus Business Edition for Linux Desktop"
         # Modify retun codes (see --help for details)
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [1, 50]
         # scan tool variables

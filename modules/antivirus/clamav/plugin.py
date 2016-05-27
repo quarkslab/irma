@@ -28,6 +28,7 @@ class ClamAntivirusPlugin(PluginBase, Clam, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "ClamAV"
+    _plugin_display_name_ = Clam._name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus

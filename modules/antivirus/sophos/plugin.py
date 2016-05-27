@@ -19,7 +19,6 @@ from .sophos import Sophos
 from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase, PluginLoadError
-from lib.plugins import BinaryDependency, PlatformDependency
 from lib.irma.common.utils import IrmaProbeType
 
 
@@ -30,6 +29,7 @@ class SophosPlugin(PluginBase, Sophos, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "Sophos"
+    _plugin_display_name_ = Sophos._name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus

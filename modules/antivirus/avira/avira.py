@@ -23,6 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class Avira(Antivirus):
+    _name = "Avira Anti-Virus"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,8 +32,6 @@ class Avira(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(Avira, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "Avira Anti-Virus"
         # scan tool variables
         # other flag
         # archivemaxrecursion=N default 10

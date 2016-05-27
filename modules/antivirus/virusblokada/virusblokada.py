@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class VirusBlokAda(Antivirus):
+    _name = "VirusBlokAda (Console Scanner)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,8 +34,6 @@ class VirusBlokAda(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(VirusBlokAda, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "VirusBlokAda (Console Scanner)"
         # scan tool variables
         self._scan_args = (
             "-M=3 "   # action to take for an infected file

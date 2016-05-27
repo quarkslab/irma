@@ -19,7 +19,7 @@ from .symantec import Symantec
 from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase, PluginLoadError
-from lib.plugins import BinaryDependency, PlatformDependency
+from lib.plugins import PlatformDependency
 from lib.irma.common.utils import IrmaProbeType
 
 
@@ -30,6 +30,7 @@ class SymantecPlugin(PluginBase, Symantec, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "Symantec"
+    _plugin_display_name_ = Symantec._name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus

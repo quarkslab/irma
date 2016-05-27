@@ -30,6 +30,7 @@ class McAfeeDaemonPlugin(PluginBase, McAfeeDaemon, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "McAfee-Daemon"
+    _plugin_display_name_ = McAfeeDaemon._name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus

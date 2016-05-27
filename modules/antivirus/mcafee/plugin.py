@@ -29,6 +29,7 @@ class McAfeeVSCLPlugin(PluginBase, McAfeeVSCL, AntivirusPluginInterface):
     # =================
 
     _plugin_name_ = "McAfeeVSCL"
+    _plugin_display_name_ = McAfeeVSCL._name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus

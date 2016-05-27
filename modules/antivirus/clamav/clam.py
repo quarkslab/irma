@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 
 
 class Clam(Antivirus):
+    _name = "Clam AntiVirus Scanner"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -30,8 +31,6 @@ class Clam(Antivirus):
     def __init__(self, *args, **kwargs):
         # class super class constructor
         super(Clam, self).__init__(*args, **kwargs)
-        # set default antivirus information
-        self._name = "Clam AntiVirus Scanner"
         # scan tool variables
         self._scan_args = (
             "--infected "    # only print infected files
