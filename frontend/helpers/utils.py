@@ -30,13 +30,13 @@ def validate_id(ext_id):
 def validate_sha256(sha256):
     """ check hashvalue format - should be a sha256 hexdigest"""
     if not re.match(r'^[0-9a-fA-F]{64}$', sha256):
-        raise ValueError("Malformed Sha256")
+        raise ValueError("Malformed sha256")
 
 
 def validate_sha1(sha1):
     """ check hashvalue format - should be a sha1 hexdigest"""
     if not re.match(r'^[0-9a-fA-F]{40}$', sha1):
-        raise ValueError("Malformed Sha1")
+        raise ValueError("Malformed sha1")
 
 
 def validate_md5(md5):
