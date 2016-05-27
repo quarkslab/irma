@@ -148,6 +148,7 @@ def register():
 @probe_app.task(acks_late=True)
 def probe_scan(frontend, scanid, filename):
     try:
+        tmpname = None
         # retrieve queue name and the associated plugin
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
@@ -156,16 +157,17 @@ def probe_scan(frontend, scanid, filename):
         os.close(fd)
         ftp_ctrl.download_file(frontend, scanid, filename, tmpname)
         results = probe.run(tmpname)
-        # Some AV always delete suspicious file
-        if os.path.exists(tmpname):
-            log.debug("scanid %s: filename %s probe %s removing tmp_name %s",
-                      scanid, filename, probe, tmpname)
-            os.remove(tmpname)
         handle_output_files(results, frontend, scanid)
         return to_unicode(results)
     except Exception as e:
         log.exception(e)
         raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
+    finally:
+        # Some AV always delete suspicious file
+        if tmpname is not None and os.path.exists(tmpname):
+            log.debug("scanid %s: filename %s probe %s removing tmp_name %s",
+                      scanid, filename, probe, tmpname)
+            os.remove(tmpname)
 
 ##############################################################################
 # command line launcher, only for debug purposes

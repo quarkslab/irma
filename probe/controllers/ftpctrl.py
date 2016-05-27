@@ -29,9 +29,9 @@ def download_file(frontend, path, srcname, dstname):
                  ftp_config.username,
                  ftp_config.password,
                  dst_user=frontend) as ftp:
-        ftp.download_file(path, srcname, dstname)
         log.debug("download %s/%s in %s frontend %s", path, srcname,
                   dstname, frontend)
+        ftp.download_file(path, srcname, dstname)
 
 
 def upload_files(frontend, path, srcname_list, scanid):
@@ -47,7 +47,7 @@ def upload_files(frontend, path, srcname_list, scanid):
             full_path = os.path.join(path, srcname)
             if os.path.isdir(full_path):
                 continue
-            hashname = ftp.upload_file(scanid, full_path)
             log.debug("upload %s in %s", full_path, scanid)
+            hashname = ftp.upload_file(scanid, full_path)
             uploaded_files[srcname] = hashname
     return uploaded_files
