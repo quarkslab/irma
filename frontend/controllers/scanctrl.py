@@ -78,9 +78,11 @@ def _new_fileweb(scan, filename, fileobj, session):
     return file_web
 
 
-def _add_empty_result(fw, probelist, scan, session):
+def _add_empty_result(fw, scan_request, scan, session):
     log.debug("fw: %s", fw.name)
     scan_known_results = _fetch_known_results(fw.file, scan, session)
+    probelist = scan_request.get_probelist(fw.file.sha256)
+    updated_probelist = []
     for probe_name in probelist:
         # Fetch the ref results for the file
         ref_results = filter(lambda x: x.name == probe_name,
@@ -119,9 +121,12 @@ def _add_empty_result(fw, probelist, scan, session):
                 None,
                 file_web=fw
             )
+            # A job scan should be sent
+            # let the probe in scan_request
+            updated_probelist.append(probe_name)
             session.add(probe_result)
             session.commit()
-    return
+    return updated_probelist
 
 
 def _fetch_known_results(file, scan, session):
@@ -137,10 +142,25 @@ def _fetch_known_results(file, scan, session):
 
 
 def _add_empty_results(fw_list, scan_request, scan, session):
-    log.debug("scanid : %s", scan.external_id)
+    log.debug("scanid : %s scan_request: %s", scan.external_id,
+              scan_request.to_dict())
+    new_scan_request = IrmaScanRequest()
     for fw in fw_list:
-        probelist = scan_request.get_probelist(fw.file.sha256)
-        _add_empty_result(fw, probelist, scan, session)
+        updated_probe_list = _add_empty_result(fw, scan_request, scan, session)
+        # Update scan_request according to results already known linked
+        # in _add_empty_result
+        if len(updated_probe_list) > 0:
+            filehash = fw.file.sha256
+            mimetype = scan_request.get_mimetype(filehash)
+            log.debug("Update scan_request for file %s"
+                      "previously asked %s now %s",
+                      filehash, scan_request.get_probelist(filehash),
+                      updated_probe_list)
+            new_scan_request.add_file(filehash,
+                                      updated_probe_list,
+                                      mimetype)
+    log.debug("new scan_request %s", new_scan_request.to_dict())
+    return new_scan_request
 
 
 def _create_scan_request(fw_list, probelist, mimetype_filtering):
@@ -215,7 +235,8 @@ def _resubmit_files(scan, parent_file, resubmit_fws, hash_uploaded, session):
         scan_request = _create_scan_request(fws_filtered,
                                             scan.get_probelist(),
                                             scan.mimetype_filtering)
-        _add_empty_results(fws_filtered, scan_request, scan, session)
+        scan_request = _add_empty_results(fws_filtered, scan_request,
+                                          scan, session)
         celery_brain.scan_launch(scan.external_id, scan_request.to_dict())
     return
 
@@ -364,7 +385,8 @@ def launch_asynchronous(scanid):
         scan_request = _create_scan_request(scan.files_web,
                                             scan.get_probelist(),
                                             scan.mimetype_filtering)
-        _add_empty_results(scan.files_web, scan_request, scan, session)
+        scan_request = _add_empty_results(scan.files_web, scan_request,
+                                          scan, session)
         # Nothing to do
         if scan_request.nb_files == 0:
             scan.set_status(IrmaScanStatus.finished)
