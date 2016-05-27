@@ -26,7 +26,7 @@
 - name: Copy previous Npm files
   shell: "cp -R {{frontend_install_dir}}/web/node_modules {{frontend_deployment_dir}}/web/node_modules"
   args:
-    remotes: "{{frontend_install_dir}}/web/node_modules"
+    removes: "{{frontend_install_dir}}/web/node_modules"
     creates: "{{frontend_deployment_dir}}/web/node_modules"
   # Errors when current does not exists (first deployment)
   ignore_errors: yes
@@ -41,7 +41,7 @@
 - name: Copy previous Bower files
   shell: "cp -R {{frontend_install_dir}}/web/app/components {{frontend_deployment_dir}}/web/app/components"
   args:
-    remotes: "{{frontend_install_dir}}/web/app/components"
+    removes: "{{frontend_install_dir}}/web/app/components"
     creates: "{{frontend_deployment_dir}}/web/app/components"
   # Errors when current does not exists (first deployment)
   ignore_errors: yes
@@ -62,7 +62,7 @@
     section: "{{ item.section }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"
-  with_items: frontend_deployment_configs
+  with_items: "{{ frontend_deployment_configs }}"
 
 - name: Generate documentation for frontend
   include: documentation.yml
@@ -80,7 +80,7 @@
     name: "{{ item.name }}"
     state: restarted
   sudo: yes
-  with_items: supervisor_programs_frontend
+  with_items: "{{ supervisor_programs_frontend }}"
 
 - name: Restart Init.d services
   service:

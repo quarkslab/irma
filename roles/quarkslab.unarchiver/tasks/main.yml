@@ -8,3 +8,10 @@
     - patool
     - pyunpack
 
+- name: Unarchiver | Install format handlers
+  apt: name={{ item }} state=present
+  with_items:
+    - unzip
+    - p7zip
+    - unrar-free
+    - unace

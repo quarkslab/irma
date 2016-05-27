@@ -116,7 +116,6 @@ Credits
 
 Some of roles from `Ansible Galaxy <https://galaxy.ansible.com/>`_ used here:
 
-- MongoDB role from `Stouts/Stouts.mongodb <https://github.com/Stouts/Stouts.mongodb>`_
 - NodeJS role from `JasonGiedymin/nodejs <https://github.com/AnsibleShipyard/ansible-nodejs>`_
 - Nginx role from `jdauphant/ansible-role-nginx <https://github.com/jdauphant/ansible-role-nginx>`_
 - OpenSSH role from `Ansibles/openssh <https://github.com/Ansibles/openssh>`_

@@ -113,13 +113,9 @@ nodejs_global_packages:
   - debug
 
 
-## MongoDB
-mongodb_package: "{{'mongodb' if default_use_debian_repo|default(False) else 'mongodb-org'}}"
-mongodb_conf_dbpath: /var/data/db
-
 ## PostgreSQL role
 # Basic settings
-postgresql_version: "9.3"
+postgresql_version: "9.4"
 postgresql_client_encoding: "UTF8"
 
 ## Databases informations
@@ -225,14 +221,21 @@ nginx_sites:
     #- location ~ /\.ht {
         #deny all;
       #}
-    #- location /_api {
+    #- location /api {
         #include uwsgi_params;
-        #rewrite ^/_api/(.+) /$1 break;
+        #rewrite ^/api/(.+) /$1 break;
         #uwsgi_pass 127.0.0.1:8081;
       #}
+    # - location /swagger {
+    #     alias {{ frontend_install_dir }}/swagger/ui;
+    #     index index.html;
+    #   }
     #- location / {
-        #alias {{ frontend_install_dir }}/web/dist/;
-        #index index.html;
+        # expires -1;
+        # add_header Pragma "no-cache";
+        # add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        # root {{ frontend_install_dir }}/web/dist;
+        # try_files $uri $uri/ /index.html =404;
       #}
     #- error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
     #- access_log {{ nginx_log_dir }}/{{ hostname }}.access.log

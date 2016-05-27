@@ -4,7 +4,7 @@
   locale_gen:
     name: "{{ item.value }}"
     state: present
-  with_dict: "ansible_env|default({})"
+  with_dict: "{{ ansible_env|default({}) }}"
   when: ansible_env and (item.key.find("LANG") != -1 or item.key.find("LC_") != -1) and item.value != "C"
 
 - name: Add a script to install automagically locales when missing

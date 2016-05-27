@@ -9,7 +9,7 @@
     - [ 'deb', 'deb-src' ]
     - [ 'http://security.debian.org/' ]
     - [ '{{ ansible_distribution_release }}/updates' ]
-    - apt_repositories_sources
+    - "{{ apt_repositories_sources }}"
 
 # configure mirrors with specified sources
 - name: deb for specified mirrors and specified sources
@@ -18,6 +18,6 @@
     state: present
   with_nested:
     - [ 'deb', 'deb-src' ]
-    - apt_repositories_mirrors
-    - apt_repositories_code_names
-    - apt_repositories_sources
+    - "{{ apt_repositories_mirrors }}"
+    - "{{ apt_repositories_code_names }}"
+    - "{{ apt_repositories_sources }}"

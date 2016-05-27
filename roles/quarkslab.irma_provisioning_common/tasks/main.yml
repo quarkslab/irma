@@ -1,5 +1,14 @@
 ---
 
+- name: Enable reboot on kernel panic on Linux hosts
+  sysctl:
+    name: "kernel.panic"
+    value: 5
+    sysctl_set: yes
+    state: present
+    reload: yes
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
 - include: debian_install_packages.yml
   when: ansible_distribution == 'Debian'
 

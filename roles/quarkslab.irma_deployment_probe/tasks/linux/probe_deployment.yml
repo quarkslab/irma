@@ -26,7 +26,7 @@
     section: "{{ item.section }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"
-  with_items: probe_deployment_configs
+  with_items: "{{ probe_deployment_configs }}"
 
 - name: Create symlink release -> current
   file:
@@ -40,4 +40,4 @@
     name: "{{ item.name }}"
     state: restarted
   sudo: yes
-  with_items: supervisor_programs_probe
+  with_items: "{{ supervisor_programs_probe }}"

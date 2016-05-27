@@ -6,7 +6,7 @@
     section={{ item.section }}
     option={{ item.option }}
     value={{ item.value }}
-  with_items: supervisor_extra_confs
+  with_items: "{{ supervisor_extra_confs }}"
   notify: Restart Supervisor
 
 # vim: sw=2
