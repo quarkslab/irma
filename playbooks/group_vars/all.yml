@@ -56,6 +56,8 @@ irma_configurations:
       username: irma
       password: irma
       db_name: irma-frontend
+  cron_frontend:
+    clean_db_file_max_age: 0
 
 
 # Deployment

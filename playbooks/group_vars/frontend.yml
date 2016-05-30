@@ -67,6 +67,9 @@ frontend_deployment_configs:
   - section: sqldb
     option: dbname
     value: "{{irma_configurations.postgresql.frontend.db_name}}"
+  - section: cron_frontend
+    option: clean_db_file_max_age
+    value: "{{irma_configurations.cron_frontend.clean_db_file_max_age}}"
 
 
 ## UFW Rules
