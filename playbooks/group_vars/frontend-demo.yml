@@ -10,6 +10,7 @@ frontend_project_dir: /opt/irma/irma-frontend
 frontend_install_dir: "{{ frontend_project_dir }}/current"
 frontend_releases_dir: "{{ frontend_project_dir }}/releases"
 frontend_venv_dir: "{{ frontend_install_dir }}/venv"
+frontend_beat_schedule: /var/irma/frontend_beat_schedule
 
 
 ## Deployment
@@ -74,7 +75,7 @@ frontend_ufw_additional_rules:
   - port: 80
     rule: allow
   - port: 443
-    rule: "{{ 'allow' if frontend_openssl|default(False) else 'deny' }}"
+    rule: "{{ 'allow' if frontend_openssl|default('False') else 'deny' }}"
 
 
 ## HTTPs
@@ -101,9 +102,6 @@ apt_repositories_code_names:
   - '{{ ansible_distribution_release }}-backports'
 
 
-## PIP extras args
-pip_extra_args: "--default-timeout 120"
-
 ## uWSGI role
 uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
 uwsgi_plugins:
@@ -116,10 +114,9 @@ nodejs_global_packages:
   - debug
 
 
-
 ## PostgreSQL role
 # Basic settings
-postgresql_version: "9.3"
+postgresql_version: "9.4"
 postgresql_client_encoding: "UTF8"
 
 ## Databases informations
@@ -140,7 +137,7 @@ postgresql_user_privileges:
 ## Supervisor role
 supervisor_programs_frontend:
   - name: frontend_app
-    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}}"
+    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}} --beat --schedule={{ frontend_beat_schedule }}"
     directory: "{{ frontend_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1
@@ -163,7 +160,6 @@ supervisor_programs_frontend:
     autostart: true
     stopwaitsecs: 600
     killasgroup: true
-
 
 
 ## Nginx role
@@ -189,9 +185,11 @@ nginx_configs:
 
 nginx_sites:
   default:
+    - listen 80
+  irma-frontend:
     - listen 80 default_server
     - listen [::]:80 default_server ipv6only=on
-    - server_name _
+    - server_name www.{{ hostname }}
     - client_max_body_size 100m
     - location ~ /\.ht {
         deny all;
@@ -227,27 +225,26 @@ nginx_sites:
   #irma-frontend-https:
     #- listen 443 default_server
     #- listen [::]:443 default_server ipv6only=on
-    #- server_name _
+    #- server_name www.{{ hostname }}
     #- client_max_body_size 100m
     #- location ~ /\.ht {
         #deny all;
       #}
-    #- location /api/v1 {
+    #- location /api {
         #include uwsgi_params;
-        #rewrite ^/api/v1/(.+) /$1 break;
+        #rewrite ^/api/(.+) /$1 break;
         #uwsgi_pass 127.0.0.1:8081;
       #}
-    #- location /swagger {
-        #alias {{ frontend_install_dir }}/swagger/ui;
-        #index index.html;
-      #}
-    #- location /docs {
-        #rewrite ^/docs/(.+) /$1 break;
-        #expires -1;
-        #add_header Pragma "no-cache";
-        #add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        #root {{ frontend_install_dir }}/docs/_build/html;
-        #try_files $uri $uri/ /index.html =404;
+    # - location /swagger {
+    #     alias {{ frontend_install_dir }}/swagger/ui;
+    #     index index.html;
+    #   }
+    #- location / {
+        # expires -1;
+        # add_header Pragma "no-cache";
+        # add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        # root {{ frontend_install_dir }}/web/dist;
+        # try_files $uri $uri/ /index.html =404;
       #}
     #- error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
     #- access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
@@ -265,11 +262,5 @@ nginx_sites:
     #- ssl_session_cache shared:SSL:50m
     ## HSTS record cache for 6 months
     #- add_header Strict-Transport-Security max-age=15768000
-
-
-## OpenSSH server config
-openssh_server_settings:
-  # enable password authentication
-  PasswordAuthentication: "yes"
 
 # vim: sw=2
