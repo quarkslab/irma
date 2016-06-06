@@ -91,6 +91,7 @@ Vagrant.configure("2") do |config|
           libvirt.memory =  server['memory'] || 1024
           libvirt.cpus =  server['cpus'] || 1
           libvirt.volume_cache = "none"
+          libvirt.autostart = true
 
           if server.has_key?('extra_storage')
             libvirt.storage :file, :size => server['extra_storage']
