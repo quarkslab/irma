@@ -33,10 +33,6 @@ from lib.irma.database.sqlobjects import SQLDatabaseObject
 from frontend.helpers.format import IrmaFormatter
 
 
-# As we used JSONB only PSQL is supported
-if config.get_sql_db_uri_params()[0] != 'postgresql':
-    raise IrmaDatabaseError("As Irma uses JSONB Only PostgreSQL is supported")
-
 Base = declarative_base()
 tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
 

@@ -20,71 +20,83 @@ class TestModuleBraintasks(TestCase):
         del self.m_brain_app
         del self.m_timeout
 
-    def test001_probe_list_raise_task(self):
+    @patch("frontend.controllers.braintasks.sync_call")
+    def test001_probe_list_raise_task(self, m_sync_call):
         expected = "test"
-        with patch("frontend.controllers.braintasks.sync_call") as mock:
-            mock.return_value = (IrmaReturnCode.error, expected)
-            with self.assertRaises(IrmaTaskError) as context:
-                module.probe_list()
+        m_sync_call.return_value = (IrmaReturnCode.error, expected)
+        with self.assertRaises(IrmaTaskError) as context:
+            module.probe_list()
         self.assertEqual(str(context.exception), expected)
+        m_sync_call.assert_called_once()
 
-    def test002_probe_list_raise_core(self):
+    @patch("frontend.controllers.braintasks.sync_call")
+    def test002_probe_list_raise_core(self, m_sync_call):
         expected = "no probe available"
-        with patch("frontend.controllers.braintasks.sync_call") as mock:
-            mock.return_value = (IrmaReturnCode.success, list())
-            with self.assertRaises(IrmaCoreError) as context:
-                module.probe_list()
+        m_sync_call.return_value = (IrmaReturnCode.success, list())
+        with self.assertRaises(IrmaCoreError) as context:
+            module.probe_list()
         self.assertEqual(str(context.exception), expected)
+        m_sync_call.assert_called_once()
 
-    def test003_probe_list_ok(self):
+    @patch("frontend.controllers.braintasks.sync_call")
+    def test003_probe_list_ok(self, m_sync_call):
         expected = ["test"]
-        with patch("frontend.controllers.braintasks.sync_call") as mock:
-            mock.return_value = (IrmaReturnCode.success, expected)
-            self.assertEqual(module.probe_list(), expected)
+        m_sync_call.return_value = (IrmaReturnCode.success, expected)
+        self.assertEqual(module.probe_list(), expected)
 
-    def test004_scan_progress(self):
+    @patch("frontend.controllers.braintasks.sync_call")
+    def test004_scan_progress(self, m_sync_call):
         arg = "test"
-        expected = ((self.m_brain_app, "brain.tasks", "scan_progress",
-                     self.m_timeout), {"args": [arg]})
-        with patch("frontend.controllers.braintasks.sync_call") as mock:
-            result = module.scan_progress(arg)
-        self.assertTrue(mock.called)
-        self.assertEqual(mock.call_args, expected)
-        self.assertEqual(result, mock())
+        result = module.scan_progress(arg)
+        m_sync_call.assert_called_once_with(self.m_brain_app,
+                                            "brain.tasks",
+                                            "scan_progress",
+                                            self.m_timeout,
+                                            args=[arg])
+        self.assertEqual(result, m_sync_call())
 
-    def test005_scan_cancel(self):
+    @patch("frontend.controllers.braintasks.sync_call")
+    def test005_scan_cancel(self, m_sync_call):
         arg = "test"
-        expected = ((self.m_brain_app, "brain.tasks", "scan_cancel",
-                     self.m_timeout), {"args": [arg]})
-        with patch("frontend.controllers.braintasks.sync_call") as mock:
-            result = module.scan_cancel(arg)
-        self.assertTrue(mock.called)
-        self.assertEqual(mock.call_args, expected)
-        self.assertEqual(result, mock())
+        result = module.scan_cancel(arg)
+        m_sync_call.assert_called_once_with(self.m_brain_app,
+                                            "brain.tasks",
+                                            "scan_cancel",
+                                            self.m_timeout,
+                                            args=[arg])
+        self.assertEqual(result, m_sync_call())
 
-    def test006_scan_launch(self):
+    @patch("frontend.controllers.braintasks.async_call")
+    def test006_scan_launch(self, m_async_call):
         args = ["test1", "test2"]
-        expected = ((self.m_brain_app, "brain.tasks", "scan"), {"args": args})
-        with patch("frontend.controllers.braintasks.async_call") as mock:
-            result = module.scan_launch(*args)
-        self.assertTrue(mock.called)
-        self.assertEqual(mock.call_args, expected)
-        self.assertEqual(result, mock())
+        result = module.scan_launch(*args)
+        m_async_call.assert_called_once_with(self.m_brain_app,
+                                             "brain.tasks",
+                                             "scan",
+                                             args=args)
+        self.assertEqual(result, m_async_call())
 
-    def test007_scan_flush(self):
+    @patch("frontend.controllers.braintasks.async_call")
+    def test007_scan_flush(self, m_async_call):
         arg = "test"
-        expected = ((self.m_brain_app, "brain.tasks", "scan_flush"),
-                    {"args": [arg]})
-        with patch("frontend.controllers.braintasks.async_call") as mock:
-            result = module.scan_flush(arg)
-        self.assertTrue(mock.called)
-        self.assertEqual(mock.call_args, expected)
-        self.assertEqual(result, mock())
+        result = module.scan_flush(arg)
+        m_async_call.assert_called_once_with(self.m_brain_app,
+                                             "brain.tasks",
+                                             "scan_flush",
+                                             args=[arg])
+        self.assertEqual(result, m_async_call())
 
-    def test008_mimetype_filter_raise_task(self):
+    @patch("frontend.controllers.braintasks.sync_call")
+    def test008_mimetype_filter_raise_task(self, m_sync_call):
         expected = "test"
-        with patch("frontend.controllers.braintasks.sync_call") as mock:
-            mock.return_value = (IrmaReturnCode.error, expected)
-            with self.assertRaises(IrmaTaskError) as context:
-                module.mimetype_filter_scan_request("whatever")
+        m_sync_call.return_value = (IrmaReturnCode.error, expected)
+        with self.assertRaises(IrmaTaskError) as context:
+            module.mimetype_filter_scan_request("whatever")
         self.assertEqual(str(context.exception), expected)
+
+    @patch("frontend.controllers.braintasks.sync_call")
+    def test009_mimetype_filter_ok(self, m_sync_call):
+        expected = "test"
+        m_sync_call.return_value = (IrmaReturnCode.success, expected)
+        res = module.mimetype_filter_scan_request("whatever")
+        self.assertEqual(res, expected)
