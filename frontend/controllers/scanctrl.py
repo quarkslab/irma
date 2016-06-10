@@ -78,10 +78,9 @@ def _new_fileweb(scan, filename, fileobj, session):
     return file_web
 
 
-def _add_empty_result(fw, scan_request, scan, session):
+def _add_empty_result(fw, probelist, scan, session):
     log.debug("fw: %s", fw.name)
     scan_known_results = _fetch_known_results(fw.file, scan, session)
-    probelist = scan_request.get_probelist(fw.file.sha256)
     updated_probelist = []
     for probe_name in probelist:
         # Fetch the ref results for the file
@@ -146,7 +145,8 @@ def _add_empty_results(fw_list, scan_request, scan, session):
               scan_request.to_dict())
     new_scan_request = IrmaScanRequest()
     for fw in fw_list:
-        updated_probe_list = _add_empty_result(fw, scan_request, scan, session)
+        probelist = scan_request.get_probelist(fw.file.sha256)
+        updated_probe_list = _add_empty_result(fw, probelist, scan, session)
         # Update scan_request according to results already known linked
         # in _add_empty_result
         if len(updated_probe_list) > 0:
