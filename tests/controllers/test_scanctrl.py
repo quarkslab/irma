@@ -5,7 +5,7 @@ import frontend.controllers.scanctrl as module
 from lib.irma.common.utils import IrmaScanStatus
 from tempfile import TemporaryFile
 from lib.irma.common.exceptions import IrmaValueError, IrmaTaskError, \
-    IrmaDatabaseResultNotFound
+    IrmaDatabaseResultNotFound, IrmaFtpError
 from lib.irma.common.utils import IrmaReturnCode
 
 
@@ -354,3 +354,265 @@ class TestModuleScanctrl(TestCase):
                     'else': "else"}
         res = module._sanitize_res(dic)
         self.assertItemsEqual(res.values(), expected.values())
+
+    def test027_add_empty_result_refresult(self):
+        fw, scan, session = MagicMock(), MagicMock(), MagicMock()
+        pr1, pr2 = MagicMock(), MagicMock()
+        probe1, probe2 = "Probe1", "Probe2"
+        probelist = [probe1, probe2]
+        pr1.name = probe1
+        pr2.name = probe2
+        scan.force = False
+        fw.file.ref_results = [pr1, pr2]
+        fw.probe_results = []
+        module._add_empty_result(fw, probelist, scan, session)
+        self.assertItemsEqual(fw.probe_results, [pr1, pr2])
+
+    @patch("frontend.controllers.scanctrl._fetch_known_results")
+    def test027_add_empty_result_knownresult(self, m_fetch_known_results):
+        fw, scan, session = MagicMock(), MagicMock(), MagicMock()
+        pr1, pr2 = MagicMock(), MagicMock()
+        probe1, probe2 = "Probe1", "Probe2"
+        probelist = [probe1, probe2]
+        pr1.name = probe1
+        pr2.name = probe2
+        scan.force = True
+        m_fetch_known_results.return_value = [pr1, pr2]
+        fw.probe_results = []
+        module._add_empty_result(fw, probelist, scan, session)
+        self.assertItemsEqual(fw.probe_results, [pr1, pr2])
+
+    @patch("frontend.controllers.scanctrl.ProbeResult")
+    def test028_add_empty_result_noresult(self, m_ProbeResult):
+        fw, scan, session = MagicMock(), MagicMock(), MagicMock()
+        probe1, probe2 = "Probe1", "Probe2"
+        probelist = [probe1, probe2]
+        scan.force = True
+        fw.probe_results = []
+        res = module._add_empty_result(fw, probelist, scan, session)
+        self.assertItemsEqual(res, probelist)
+
+    @patch("frontend.controllers.scanctrl.FileWeb")
+    def test029_fetch_known_results(self, m_FileWeb):
+        m_scan, m_file, m_session = MagicMock(), MagicMock(), MagicMock()
+        m_scan.id = "scanid"
+        m_file.id = "fileid"
+        fw1 = MagicMock()
+        m_FileWeb.load_by_scanid_fileid.return_value = [fw1, fw1]
+        res = module._fetch_known_results(m_file, m_scan, m_session)
+        self.assertItemsEqual(res, fw1.probe_results)
+
+    @patch("frontend.controllers.scanctrl.braintasks")
+    @patch("frontend.controllers.scanctrl._add_empty_result")
+    def test030_add_empty_results(self, m_add_empty_result, m_braintasks):
+        m_scan, m_session = MagicMock(), MagicMock()
+        fw1, fw2 = MagicMock(), MagicMock()
+        fw1.file.sha256 = "sha256file1"
+        fw1.file.mimetype = "mimetypefile1"
+        fw2.file.sha256 = "sha256file2"
+        fw2.file.mimetype = "mimetypefile2"
+        fw_list = [fw1, fw2]
+        probe1, probe2 = "Probe1", "Probe2"
+        probelist = [probe1, probe2]
+        m_add_empty_result.return_value = probelist
+        m_braintasks.mimetype_filter_scan_request = lambda x: x
+        scan_request = module._create_scan_request(fw_list, probelist, True)
+        res = module._add_empty_results(fw_list, scan_request,
+                                        m_scan, m_session)
+        self.assertItemsEqual(res.to_dict().values(),
+                              scan_request.to_dict().values())
+
+    @patch("frontend.controllers.scanctrl.log")
+    def test031_fetch_probe_results_error(self, m_log):
+        fw, pr = MagicMock(), MagicMock()
+        pr.name = "Probe1"
+        fw.probe_results = [pr, pr]
+        module._fetch_probe_result(fw, pr.name)
+        m_log.error.assert_called_once()
+
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test032_launch_asynchronous_nothing_to_do(self,
+                                                  m_session_transaction,
+                                                  m_Scan):
+        m_session, m_scan = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.status = IrmaScanStatus.ready
+        m_Scan.load_from_ext_id.return_value = m_scan
+        module.launch_asynchronous("whatever")
+        m_scan.set_status.assert_called_once_with(IrmaScanStatus.finished)
+
+    @patch("frontend.controllers.scanctrl._add_empty_result")
+    @patch("frontend.controllers.scanctrl.ftp_ctrl")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test033_launch_asynchronous(self,
+                                    m_session_transaction,
+                                    m_Scan,
+                                    m_ftp_ctrl,
+                                    m_add_empty_result):
+        m_scan, m_session = MagicMock(), MagicMock()
+        fw1, fw2 = MagicMock(), MagicMock()
+        file1, file2 = MagicMock(), MagicMock()
+        pathf1, pathf2 = 'path-file1', 'path-file2'
+        file1.path = pathf1
+        file2.path = pathf2
+        fw1.file.sha256 = "sha256file1"
+        fw1.file.mimetype = "mimetypefile1"
+        fw2.file.sha256 = "sha256file2"
+        fw2.file.mimetype = "mimetypefile2"
+        m_scan.files_web = [fw1, fw2]
+        m_scan.files = [file1, file2]
+        probe1, probe2 = "Probe1", "Probe2"
+        probelist = [probe1, probe2]
+        m_scan.get_probe_list.return_value = probelist
+        m_add_empty_result.return_value = probelist
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.status = IrmaScanStatus.ready
+        m_scan.mimetype_filtering = False
+        m_Scan.load_from_ext_id.return_value = m_scan
+        scanid = "scanid"
+        module.launch_asynchronous(scanid)
+        m_ftp_ctrl.upload_scan.assert_called_with(scanid, [pathf1, pathf2])
+        m_scan.set_status.assert_called_once_with(IrmaScanStatus.uploaded)
+
+    @patch("frontend.controllers.scanctrl._add_empty_result")
+    @patch("frontend.controllers.scanctrl.ftp_ctrl")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test034_launch_asynchronous_ftp_error(self,
+                                              m_session_transaction,
+                                              m_Scan,
+                                              m_ftp_ctrl,
+                                              m_add_empty_result):
+        m_scan, m_session = MagicMock(), MagicMock()
+        fw1, fw2 = MagicMock(), MagicMock()
+        file1, file2 = MagicMock(), MagicMock()
+        pathf1, pathf2 = 'path-file1', 'path-file2'
+        file1.path = pathf1
+        file2.path = pathf2
+        fw1.file.sha256 = "sha256file1"
+        fw1.file.mimetype = "mimetypefile1"
+        fw2.file.sha256 = "sha256file2"
+        fw2.file.mimetype = "mimetypefile2"
+        m_scan.files_web = [fw1, fw2]
+        m_scan.files = [file1, file2]
+        probe1, probe2 = "Probe1", "Probe2"
+        probelist = [probe1, probe2]
+        m_scan.get_probe_list.return_value = probelist
+        m_add_empty_result.return_value = probelist
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.status = IrmaScanStatus.ready
+        m_scan.mimetype_filtering = False
+        m_Scan.load_from_ext_id.return_value = m_scan
+        scanid = "scanid"
+        m_ftp_ctrl.upload_scan.side_effect = IrmaFtpError()
+        module.launch_asynchronous(scanid)
+        expected = IrmaScanStatus.error_ftp_upload
+        m_scan.set_status.assert_called_once_with(expected)
+
+    @patch("frontend.controllers.scanctrl.log")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test035_set_result_fw_not_found(self,
+                                        m_session_transaction,
+                                        m_Scan,
+                                        m_log):
+        m_scan, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.get_filewebs_by_sha256.return_value = []
+        m_Scan.load_from_ext_id.return_value = m_scan
+        module.set_result("scanid", "filehash", "probe", "result")
+        m_log.error.assert_called_once()
+
+    @patch("frontend.controllers.scanctrl._update_ref_results")
+    @patch("frontend.controllers.scanctrl._fetch_probe_result")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test036_set_result(self,
+                           m_session_transaction,
+                           m_Scan,
+                           m_fetch_pr,
+                           m_update_ref_res):
+        scanid = "scanid"
+        filehash = "filehash"
+        probe = "probe"
+        m_scan, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        fw1, pr1 = MagicMock(), MagicMock()
+        pr1.doc = "ProbeResult"
+        file1 = MagicMock()
+        fw1.file = file1
+        fw1.probe_results = [pr1]
+        m_scan.get_filewebs_by_sha256.return_value = [fw1]
+        m_Scan.load_from_ext_id.return_value = m_scan
+        result = {'status': 1, 'type': "something"}
+        m_fetch_pr.return_value = pr1
+        module.set_result(scanid, filehash, probe, result)
+        m_fetch_pr.assert_called_once_with(fw1, probe)
+        m_update_ref_res.assert_called_once_with(fw1, file1, pr1)
+        m_Scan.load_from_ext_id.assert_called_once_with(scanid,
+                                                        session=m_session)
+
+    @patch("frontend.controllers.scanctrl.File")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test037_handle_output_files_no_resubmit(self,
+                                                m_session_transaction,
+                                                m_Scan,
+                                                m_File):
+        m_scan, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.resubmit_files = True
+        m_Scan.load_from_ext_id.return_value = m_scan
+        result = {}
+        module.handle_output_files("scanid", "parent_file_hash",
+                                   "probe", result)
+        m_Scan.load_from_ext_id.assert_called_once_with("scanid",
+                                                        session=m_session)
+
+    @patch("frontend.controllers.scanctrl.File")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test038_handle_output_files_resubmit_False(self,
+                                                   m_session_transaction,
+                                                   m_Scan,
+                                                   m_File):
+        m_scan, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.resubmit_files = False
+        m_Scan.load_from_ext_id.return_value = m_scan
+        result = {'uploaded_files': []}
+        module.handle_output_files("scanid", "parent_file_hash",
+                                   "probe", result)
+        m_Scan.load_from_ext_id.assert_called_once_with("scanid",
+                                                        session=m_session)
+
+    @patch("frontend.controllers.scanctrl._append_new_files_to_scan")
+    @patch("frontend.controllers.scanctrl.File")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test039_handle_output_files_resubmit(self,
+                                             m_session_transaction,
+                                             m_Scan,
+                                             m_File,
+                                             m_append_new_files_to_scan):
+        m_scan, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.resubmit_files = True
+        m_Scan.load_from_ext_id.return_value = m_scan
+        uploaded_files = {}
+        result = {'uploaded_files': uploaded_files}
+        fw1 = MagicMock()
+        m_append_new_files_to_scan.return_value = [fw1]
+        m_parentfile = MagicMock()
+        m_parentfile.children = []
+        m_File.load_from_sha256.return_value = m_parentfile
+        module.handle_output_files("scanid", "parent_file_hash",
+                                   "probe", result)
+        m_Scan.load_from_ext_id.assert_called_once_with("scanid",
+                                                        session=m_session)
+        m_append_new_files_to_scan.assert_called_once_with(m_scan,
+                                                           uploaded_files,
+                                                           m_session)
+        self.assertItemsEqual(m_parentfile.children, [fw1])

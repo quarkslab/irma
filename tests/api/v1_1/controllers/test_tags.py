@@ -71,3 +71,10 @@ class TestApiTags(TestCase):
         m_Tag.query_find_all.return_value = [tag]
         api_tags.new(self.db)
         m_process_error.assert_called()
+
+    @patch("frontend.api.v1_1.controllers.tags.process_error")
+    @patch("frontend.api.v1_1.controllers.tags.Tag")
+    def test007_new_error_missing_text(self, m_Tag, m_process_error):
+        self.request.json = dict()
+        api_tags.new(self.db)
+        m_process_error.assert_called()

@@ -1,13 +1,11 @@
 from unittest import TestCase
 from tempfile import TemporaryFile
-from random import choice, randint
 from mock import MagicMock, patch
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from frontend.models.sqlobjects import File, ProbeResult, Scan, FileWeb
+from frontend.models.sqlobjects import File, Tag
 from lib.irma.database.sqlobjects import SQLDatabaseObject
-from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.common.exceptions import IrmaDatabaseError, IrmaCoreError
+from lib.irma.common.exceptions import IrmaDatabaseError, IrmaFileSystemError
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
 
 
@@ -127,171 +125,63 @@ class TestFile(TestCase):
         self.assertIs(type(res), list)
         self.assertEquals(res, [m_tag.to_json()])
 
-
-class TestProbeResult(TestCase):
-
-    def setUp(self):
-        self.type = "type"
-        self.name = "name"
-        self.doc = MagicMock()
-        self.status = 1
-        self.file_web = MagicMock()
-        self.proberesult = ProbeResult(self.type, self.name, self.doc,
-                                       self.status, self.file_web)
-
-    def tearDown(self):
-        del self.proberesult
-
-    @patch("frontend.models.sqlobjects.IrmaFormatter")
-    def test012_get_details_formatted(self, m_IrmaFormatter):
-        self.proberesult.get_details()
-        m_IrmaFormatter.format.assert_called_once()
-        self.assertEqual(m_IrmaFormatter.format.call_args[0][0],
-                         self.name)
-
-    @patch("frontend.models.sqlobjects.IrmaFormatter")
-    def test013_get_details_not_formatted(self, m_IrmaFormatter):
-        self.proberesult.get_details(formatted=False)
-        m_IrmaFormatter.format.assert_not_called
-
-
-class TestScan(TestCase):
-
-    def setUp(self):
-        self.date = "date"
-        self.ip = "ip"
-        self.scan = Scan(self.date, self.ip)
-
-    def tearDown(self):
-        del self.scan
-
-    def test014_scan_finished_not_uploaded(self):
-        status = choice([IrmaScanStatus.empty,
-                         IrmaScanStatus.ready])
-        self.scan.set_status(status)
-        self.assertFalse(self.scan.finished())
-
-    def test015_scan_finished_launched_not_finished(self):
-        a, b = MagicMock(), MagicMock()
-        a.doc = "something"
-        b.doc = None
-        fw = MagicMock()
-        fw.probe_results = [a, b]
-        self.scan.files_web = [fw]
-        self.scan.set_status(IrmaScanStatus.launched)
-        self.assertFalse(self.scan.finished())
-
-    def test016_scan_finished_launched_finished(self):
-        a, b = MagicMock(), MagicMock()
-        a.doc = "something"
-        b.doc = "anotherthing"
-        fw = MagicMock()
-        fw.probe_results = [a, b]
-        self.scan.files_web = [fw]
-        self.scan.set_status(IrmaScanStatus.launched)
-        self.assertTrue(self.scan.finished())
-
-    def test017_scan_finished_finished(self):
-        self.scan.set_status(IrmaScanStatus.launched)
-        res = self.scan.finished()
-        self.assertTrue(res)
-
-    def test018_scan_probes_total(self):
-        fw1, fw2 = MagicMock(), MagicMock()
-        pt1, pt2 = randint(0, 20), randint(0, 20)
-        fw1.probes_total = pt1
-        fw2.probes_total = pt2
-        self.scan.files_web = [fw1, fw2]
-        self.assertEquals(self.scan.probes_total, pt1 + pt2)
-
-    def test019_scan_probes_finished(self):
-        fw1, fw2 = MagicMock(), MagicMock()
-        pf1, pf2 = randint(0, 20), randint(0, 20)
-        fw1.probes_finished = pf1
-        fw2.probes_finished = pf2
-        self.scan.files_web = [fw1, fw2]
-        self.assertEquals(self.scan.probes_finished, pf1 + pf2)
-
-    def test020_scan_files(self):
-        fw = MagicMock()
-        self.scan.files_web = [fw]
-        self.assertEqual(self.scan.files, [fw.file])
-
-    def test021_scan_set_status(self):
-        with self.assertRaises(IrmaCoreError):
-            self.scan.set_status("whatever")
-
-    def test022_scan_get_fileweb_by_sha256(self):
-        fw = MagicMock()
-        sha256 = "whatever"
-        fw.file.sha256 = sha256
-        self.scan.files_web = [fw]
-        self.assertEqual(self.scan.get_filewebs_by_sha256(sha256), [fw])
-
-    def test023_scan_query_find_by_filesha256(self):
+    def test012_add_tag(self):
+        text = "whatever"
+        t = Tag(text=text)
         m_session = MagicMock()
-        sha256 = "whatever"
-        Scan.query_find_by_filesha256(sha256, m_session)
-        m_filter = m_session.query(Scan).join().join().filter
-        m_filter.is_called_once_with(File.sha256 == sha256)
+        m_session.query(Tag).filter().one.return_value = t
+        self.assertEqual(len(self.file.tags), 0)
+        self.file.add_tag("id", m_session)
+        self.assertEqual(len(self.file.tags), 1)
+        self.assertItemsEqual(self.file.tags, [t])
 
-
-class TestFileWeb(TestCase):
-
-    def test024_fileweb_load_from_ext_id(self):
+    def test013_add_tag_error(self):
+        text = "whatever"
+        t = Tag(text=text)
         m_session = MagicMock()
-        ext_id = "whatever"
-        FileWeb.load_from_ext_id(ext_id, m_session)
-        m_filter = m_session.query(FileWeb).filter
-        m_filter.is_called_once_with(FileWeb.external_id == ext_id)
-
-    def test025_fileweb_load_from_ext_id_raises(self):
-        m_session = MagicMock()
-        ext_id = "whatever"
-        m_session.query.side_effect = NoResultFound()
-        with self.assertRaises(IrmaDatabaseResultNotFound):
-            FileWeb.load_from_ext_id(ext_id, m_session)
-
-    def test026_fileweb_load_from_ext_id_raises(self):
-        m_session = MagicMock()
-        ext_id = "whatever"
-        m_session.query.side_effect = MultipleResultsFound()
+        m_session.query(Tag).filter().one.return_value = t
+        self.file.add_tag("id", m_session)
         with self.assertRaises(IrmaDatabaseError):
-            FileWeb.load_from_ext_id(ext_id, m_session)
+            self.file.add_tag("id", m_session)
+        self.assertItemsEqual(self.file.tags, [t])
 
-    def test027_fileweb_load_by_scanid(self):
+    def test014_remove_tag(self):
+        text = "whatever"
+        t = Tag(text=text)
         m_session = MagicMock()
-        scanid = "scanid"
-        fileid = "fileid"
-        FileWeb.load_by_scanid_fileid(scanid, fileid, m_session)
-        m_filter = m_session.query(FileWeb).filter
-        m_filter.is_called_once_with(FileWeb.id_scan == scanid,
-                                     FileWeb.id_file == fileid)
+        m_session.query(Tag).filter().one.return_value = t
+        self.assertEqual(len(self.file.tags), 0)
+        self.file.add_tag("id", m_session)
+        self.file.remove_tag("id", m_session)
+        self.assertEqual(len(self.file.tags), 0)
 
-    def test028_fileweb_load_by_scanid_raises(self):
+    def test015_remove_tag_error(self):
+        text = "whatever"
+        t = Tag(text=text)
         m_session = MagicMock()
-        m_session.query.side_effect = NoResultFound()
+        m_session.query(Tag).filter().one.return_value = t
         with self.assertRaises(IrmaDatabaseError):
-            FileWeb.load_by_scanid_fileid(None, None, m_session)
+            self.file.remove_tag("id", m_session)
+        self.assertEqual(len(self.file.tags), 0)
 
-    @patch("frontend.models.sqlobjects.File")
-    @patch("frontend.models.sqlobjects.Tag")
-    def test029_fileweb_find_by_name(self, m_Tag, m_File):
-        m_session = MagicMock()
-        name = "something"
-        tag = MagicMock()
-        tag.id = randint(0, 10)
-        tags = [tag.id]
-        FileWeb.query_find_by_name(name, tags, m_session)
-        m_Tag.find_by_id.assert_called_once_with(tag.id, m_session)
+    @patch("frontend.models.sqlobjects.os")
+    def test016_remove_file_from_fs_path_none(self, m_os):
+        self.file.path = None
+        self.file.remove_file_from_fs()
+        m_os.remove.assert_not_called()
 
-    @patch("frontend.models.sqlobjects.File")
-    @patch("frontend.models.sqlobjects.Tag")
-    def test029_fileweb_find_by_hash(self, m_Tag, m_File):
-        m_session = MagicMock()
-        hash_type, hash = "something", "anotherthing"
-        tag = MagicMock()
-        tag.id = randint(0, 10)
-        tags = [tag.id]
-        FileWeb.query_find_by_hash(hash_type, hash, tags, m_session)
-        m_Tag.find_by_id.assert_called_once_with(tag.id, m_session)
+    @patch("frontend.models.sqlobjects.os")
+    def test017_remove_file_from_fs(self, m_os):
+        path = "RandomPath"
+        self.file.path = path
+        self.file.remove_file_from_fs()
+        m_os.remove.assert_called_once_with(path)
+        self.assertIsNone(self.file.path)
+
+    @patch("frontend.models.sqlobjects.os")
+    def test018_remove_file_from_fs_error(self, m_os):
+        path = "RandomPath"
+        self.file.path = path
+        m_os.remove.side_effect = OSError
+        with self.assertRaises(IrmaFileSystemError):
+            self.file.remove_file_from_fs()
