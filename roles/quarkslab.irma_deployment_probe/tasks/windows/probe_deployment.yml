@@ -25,8 +25,7 @@
   failed_when: result.rc not in {{ item.rc | default([0]) }}
   with_items:
     - cmd: python -m virtualenv --system-site-packages "{{ probe_deployment_dir }}/venv"
-    - cmd: "{{ probe_deployment_dir }}/venv/Scripts/activate"
-    - cmd: python -m pip install -r "{{ probe_deployment_dir }}/requirements.txt"
+    - cmd: "{{ probe_deployment_dir }}/venv/Scripts/python.exe -m pip install -r {{ probe_deployment_dir }}/requirements.txt"
 
 - name: Configure config/probe.ini file
   win_ini_file:

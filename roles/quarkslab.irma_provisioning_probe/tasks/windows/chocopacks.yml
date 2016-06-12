@@ -4,6 +4,10 @@
     name: git
     version: 1.9.5.20150114
 
+- name: Installing Chocolatey Packages | vcpython27
+  win_chocolatey:
+    name: vcpython27
+
 - name: Installing Chocolatey Packages | python
   win_chocolatey:
     name: python

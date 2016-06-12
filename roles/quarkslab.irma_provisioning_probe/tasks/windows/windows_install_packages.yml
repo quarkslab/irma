@@ -1,11 +1,5 @@
 ---
 
-# NOTE: win_chocolatey script exists on ansible but has not been merged in a
-#       release yet. This is meant to be removed in the future or moved into a
-#       specific role.
-# NOTE: Let us note that win_chocolatey needs to increase powershell memory.
-#       This is the reason why we prefer using our own scripts
-- include: chocolatey.yml
 - include: chocopacks.yml
 
 # Installing pip packages
