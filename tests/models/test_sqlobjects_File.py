@@ -91,7 +91,7 @@ class TestFile(TestCase):
         session.query().filter().one().path = None
         File.sha256 = sha
         File.data = data
-        result = File.load_from_sha256(sha, session, data)
+        result = File.load_from_sha256(sha, session)
         self.assertTrue(session.query.called)
         self.assertEqual(session.query.call_args, ((File,),))
         self.assertTrue(session.query().filter.called)
@@ -185,3 +185,14 @@ class TestFile(TestCase):
         m_os.remove.side_effect = OSError
         with self.assertRaises(IrmaFileSystemError):
             self.file.remove_file_from_fs()
+
+    @patch("frontend.models.sqlobjects.os")
+    def test019_load_from_sha256_no_more_exists(self, m_os):
+        path = "RandomPath"
+        self.file.path = path
+        m_os.path.exists.return_value = False
+        m_session = MagicMock()
+        m_session.query().filter().one.return_value = self.file
+        ret_file = File.load_from_sha256("sha256", m_session)
+        self.assertEqual(ret_file, self.file)
+        self.assertIsNone(self.file.path)

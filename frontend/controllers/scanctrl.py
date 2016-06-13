@@ -44,7 +44,7 @@ def _new_file(fileobj, session):
     try:
         # The file exists
         log.debug("try opening file with sha256: %s", sha256)
-        file = File.load_from_sha256(sha256, session, fileobj)
+        file = File.load_from_sha256(sha256, session)
         if file.path is None:
             log.debug("file sample missing writing it")
             save_to_file(fileobj, path)
