@@ -113,3 +113,12 @@ class TestScan(TestCase):
         m_filter.side_effect = MultipleResultsFound()
         with self.assertRaises(IrmaDatabaseError):
             Scan.load_from_ext_id(external_id, m_session)
+
+    def test014_set_get_probelist(self):
+        probelist = ["probe1", "probe2"]
+        self.scan.set_probelist(probelist)
+        self.assertItemsEqual(self.scan.get_probelist(), probelist)
+
+    def test015_finished(self):
+        self.scan.set_status(IrmaScanStatus.finished)
+        self.assertTrue(self.scan.finished())
