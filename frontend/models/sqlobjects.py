@@ -33,10 +33,6 @@ from lib.irma.database.sqlobjects import SQLDatabaseObject
 from frontend.helpers.format import IrmaFormatter
 
 
-# As we used JSONB only PSQL is supported
-if config.get_sql_db_uri_params()[0] != 'postgresql':
-    raise IrmaDatabaseError("As Irma uses JSONB Only PostgreSQL is supported")
-
 Base = declarative_base()
 tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
 
@@ -206,12 +202,10 @@ class File(Base, SQLDatabaseObject):
         return dict((k, v) for (k, v) in self.to_dict().items() if k in keys)
 
     @classmethod
-    def load_from_sha256(cls, sha256, session, fileobj=None):
+    def load_from_sha256(cls, sha256, session):
         """Find the object in the database, update data if file was previously deleted
         :param sha256: the sha256 to look for
         :param session: the session to use
-        :param fileobj: Open file(-like) object (BytesIO buffer),
-            in case it was deleted (default is None)
         :rtype: cls
         :return: the object that corresponds to the sha256
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError,

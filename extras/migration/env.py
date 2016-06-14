@@ -16,7 +16,7 @@ fileConfig(config.config_file_name)
 import sys
 sys.path.append(".")
 
-from config.parser import get_sql_url
+from frontend.helpers.sql import url
 from frontend.models.sqlobjects import Base
 target_metadata = Base.metadata
 
@@ -39,7 +39,7 @@ def run_migrations_offline():
 
     """
     context.configure(
-        url=get_sql_url(),
+        url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         compare_type=True)
@@ -57,8 +57,7 @@ def run_migrations_online():
     """
     global URL
     conf = config.get_section(config.config_ini_section)
-    conf["sqlalchemy.url"] = get_sql_url()
-    print(conf)
+    conf["sqlalchemy.url"] = url
     connectable = engine_from_config(
         conf,
         prefix='sqlalchemy.',

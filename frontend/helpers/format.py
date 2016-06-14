@@ -23,13 +23,6 @@ log = logging.getLogger(__name__)
 
 class IrmaFormatter:
 
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if not isinstance(cls._instance, class_):
-            cls._instance = object.__new__(cls, *args, **kwargs)
-        return cls._instance
-
     def __init__(self):
         manager = PluginManager()
         manager.discover("frontend/helpers/formatters",

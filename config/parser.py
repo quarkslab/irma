@@ -40,15 +40,7 @@ template_frontend_config = {
         ('debug', TemplatedConfiguration.boolean, False),
         ('sql_debug', TemplatedConfiguration.boolean, False),
     ],
-    'mongodb': [
-        ('host', TemplatedConfiguration.string, None),
-        ('port', TemplatedConfiguration.integer, 27017),
-        ('dbname', TemplatedConfiguration.string, None),
-        ('collections_prefix', TemplatedConfiguration.string, None),
-    ],
     'sqldb': [
-        ('dbms', TemplatedConfiguration.string, None),
-        ('dialect', TemplatedConfiguration.string, None),
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
         ('host', TemplatedConfiguration.string, None),
@@ -95,6 +87,10 @@ template_frontend_config = {
         ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),
     ],
+    'interprocess_lock': [
+        ('path', TemplatedConfiguration.string,
+         "/var/run/lock/irma-frontend.lock"),
+        ],
     'ssl_config': [
         ('activate_ssl', TemplatedConfiguration.boolean, False),
         ('ca_certs', TemplatedConfiguration.string, None),
@@ -278,20 +274,14 @@ def setup_debug_logger(logger):
 #  Database helpers
 # ==================
 
-def get_db_uri():
-    host = frontend_config.mongodb.host
-    port = frontend_config.mongodb.port
-    return "mongodb://{host}:{port}/".format(host=host, port=port)
-
-
-def get_nosql_db_collections_prefix():
-    return frontend_config.mongodb.collections_prefix
+SQL_DBMS = "postgresql"
+SQL_DIALECT = "psycopg2"
 
 
 def get_sql_db_uri_params():
     return (
-        frontend_config.sqldb.dbms,
-        frontend_config.sqldb.dialect,
+        SQL_DBMS,
+        SQL_DIALECT,
         frontend_config.sqldb.username,
         frontend_config.sqldb.password,
         frontend_config.sqldb.host,
@@ -300,9 +290,7 @@ def get_sql_db_uri_params():
 
 
 def get_sql_url():
-    dbms = frontend_config.sqldb.dbms
-    if frontend_config.sqldb.dialect:
-        dbms = "{0}+{1}".format(dbms, frontend_config.sqldb.dialect)
+    dbms = "{0}+{1}".format(SQL_DBMS, SQL_DIALECT)
     host_and_id = ''
     if frontend_config.sqldb.host and frontend_config.sqldb.username:
         if frontend_config.sqldb.password:
@@ -336,3 +324,11 @@ def get_ftp_class():
         return IrmaSFTP
     elif protocol == "ftps":
         return IrmaFTPS
+
+
+# =====================
+#  Concurrency helpers
+# =====================
+
+def get_lock_path():
+    return frontend_config.interprocess_lock.path

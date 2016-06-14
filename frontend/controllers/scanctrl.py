@@ -29,8 +29,11 @@ import ntpath
 from lib.common.utils import save_to_file
 from lib.common.hash import sha256sum, sha1sum, md5sum
 from frontend.helpers.utils import build_sha256_path
+from fasteners import interprocess_locked
+from config.parser import get_lock_path
 
 log = logging.getLogger(__name__)
+interprocess_lock_path = get_lock_path()
 
 # ===================
 #  Internals helpers
@@ -44,7 +47,7 @@ def _new_file(fileobj, session):
     try:
         # The file exists
         log.debug("try opening file with sha256: %s", sha256)
-        file = File.load_from_sha256(sha256, session, fileobj)
+        file = File.load_from_sha256(sha256, session)
         if file.path is None:
             log.debug("file sample missing writing it")
             save_to_file(fileobj, path)
@@ -78,10 +81,9 @@ def _new_fileweb(scan, filename, fileobj, session):
     return file_web
 
 
-def _add_empty_result(fw, scan_request, scan, session):
+def _add_empty_result(fw, probelist, scan, session):
     log.debug("fw: %s", fw.name)
     scan_known_results = _fetch_known_results(fw.file, scan, session)
-    probelist = scan_request.get_probelist(fw.file.sha256)
     updated_probelist = []
     for probe_name in probelist:
         # Fetch the ref results for the file
@@ -146,7 +148,8 @@ def _add_empty_results(fw_list, scan_request, scan, session):
               scan_request.to_dict())
     new_scan_request = IrmaScanRequest()
     for fw in fw_list:
-        updated_probe_list = _add_empty_result(fw, scan_request, scan, session)
+        probelist = scan_request.get_probelist(fw.file.sha256)
+        updated_probe_list = _add_empty_result(fw, probelist, scan, session)
         # Update scan_request according to results already known linked
         # in _add_empty_result
         if len(updated_probe_list) > 0:
@@ -459,13 +462,21 @@ def set_result(scanid, file_hash, probe, result):
                     probedone.append(fw_pr.name)
             log.info("scanid: %s result from %s probedone %s",
                      scanid, probe, probedone)
+    is_finished(scanid)
 
+
+# insure there is only one call running at a time
+# among the different workers
+@interprocess_locked(interprocess_lock_path)
+def is_finished(scanid):
+    with session_transaction() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
         if scan.finished():
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
             # launch flush celery task on brain
-            log.debug("scanid: %s calling scan_flush", scanid)
-            celery_brain.scan_flush(scanid)
+            log.debug("scanid: %s calling scan_flush", scan.id)
+            celery_brain.scan_flush(scan.id)
 
 
 def handle_output_files(scanid, parent_file_hash, probe, result):

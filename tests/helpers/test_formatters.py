@@ -98,6 +98,3 @@ class TestModuleFormatters(TestCase):
         result = module.IrmaFormatter.format("test-name", self.result)
         for k in ['name', 'type', 'version', 'duration', 'error']:
             self.assertEqual(result[k], self.result[k])
-
-    def test005_virustotal_formatter(self):
-        pass

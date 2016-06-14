@@ -1,11 +1,10 @@
 from unittest import TestCase
-from mock import MagicMock, patch
+from mock import MagicMock
 
 from lib.common.utils import UUID
 import hashlib
 
 import frontend.helpers.utils as module
-from tempfile import TemporaryFile
 from lib.irma.common.exceptions import IrmaValueError, IrmaFileSystemError
 
 
