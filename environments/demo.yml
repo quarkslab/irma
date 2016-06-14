@@ -14,7 +14,7 @@ ansible_config:
   extra_vars:
     vagrant: true
     vagrant_share: false
-    irma_release: v1.5.0
+    irma_release: v1.5.1
     build_environment: demo
   groups:
     frontend-demo:
