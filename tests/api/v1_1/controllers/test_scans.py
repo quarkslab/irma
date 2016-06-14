@@ -84,6 +84,8 @@ class TestApiScans(TestCase):
     @patch("frontend.api.v1_1.controllers.scans.validate_id")
     def test007_get_ok(self, m_validate_id, m_scan_schema, m_Scan):
         db_mock = MagicMock()
+        m_scan = MagicMock()
+        m_Scan.load_from_ext_id.return_value = m_scan
         expected = m_scan_schema.dumps().data
         scanid = "whatever"
         result = api_scans.get(scanid, db_mock)

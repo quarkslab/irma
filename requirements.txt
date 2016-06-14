@@ -11,3 +11,4 @@ nose
 requests
 python-magic
 paramiko<2.0
+fasteners

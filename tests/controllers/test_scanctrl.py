@@ -551,8 +551,8 @@ class TestModuleScanctrl(TestCase):
         module.set_result(scanid, filehash, probe, result)
         m_fetch_pr.assert_called_once_with(fw1, probe)
         m_update_ref_res.assert_called_once_with(fw1, file1, pr1)
-        m_Scan.load_from_ext_id.assert_called_once_with(scanid,
-                                                        session=m_session)
+        m_Scan.load_from_ext_id.assert_called_with(scanid,
+                                                   session=m_session)
 
     @patch("frontend.controllers.scanctrl.File")
     @patch("frontend.controllers.scanctrl.Scan")

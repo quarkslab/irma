@@ -87,6 +87,10 @@ template_frontend_config = {
         ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),
     ],
+    'interprocess_lock': [
+        ('path', TemplatedConfiguration.string,
+         "/var/run/lock/irma-frontend.lock"),
+        ],
     'ssl_config': [
         ('activate_ssl', TemplatedConfiguration.boolean, False),
         ('ca_certs', TemplatedConfiguration.string, None),
@@ -320,3 +324,11 @@ def get_ftp_class():
         return IrmaSFTP
     elif protocol == "ftps":
         return IrmaFTPS
+
+
+# =====================
+#  Concurrency helpers
+# =====================
+
+def get_lock_path():
+    return frontend_config.interprocess_lock.path

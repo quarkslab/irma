@@ -29,8 +29,11 @@ import ntpath
 from lib.common.utils import save_to_file
 from lib.common.hash import sha256sum, sha1sum, md5sum
 from frontend.helpers.utils import build_sha256_path
+from fasteners import interprocess_locked
+from config.parser import get_lock_path
 
 log = logging.getLogger(__name__)
+interprocess_lock_path = get_lock_path()
 
 # ===================
 #  Internals helpers
@@ -459,13 +462,21 @@ def set_result(scanid, file_hash, probe, result):
                     probedone.append(fw_pr.name)
             log.info("scanid: %s result from %s probedone %s",
                      scanid, probe, probedone)
+    is_finished(scanid)
 
+
+# insure there is only one call running at a time
+# among the different workers
+@interprocess_locked(interprocess_lock_path)
+def is_finished(scanid):
+    with session_transaction() as session:
+        scan = Scan.load_from_ext_id(scanid, session=session)
         if scan.finished():
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
             # launch flush celery task on brain
-            log.debug("scanid: %s calling scan_flush", scanid)
-            celery_brain.scan_flush(scanid)
+            log.debug("scanid: %s calling scan_flush", scan.id)
+            celery_brain.scan_flush(scan.id)
 
 
 def handle_output_files(scanid, parent_file_hash, probe, result):
