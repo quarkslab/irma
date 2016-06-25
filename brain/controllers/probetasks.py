@@ -36,16 +36,16 @@ def job_launch(ftpuser, frontend_scanid, filename, probe, task_id):
               " task_id %s",
               frontend_scanid, ftpuser, filename, probe, task_id)
     hook_success = route(
-        results_app.signature("brain.tasks.job_success",
+        results_app.signature("brain.results_tasks.job_success",
                               [frontend_scanid, filename, probe]))
     hook_error = route(
-        results_app.signature("brain.tasks.job_error",
+        results_app.signature("brain.results_tasks.job_error",
                               [frontend_scanid, filename, probe]))
     task = async_call(probe_app,
                       "probe.tasks",
                       "probe_scan",
                       args=(ftpuser, frontend_scanid, filename),
-                      queue=probe,
+                      routing_key=probe,
                       link=hook_success,
                       link_error=hook_error,
                       task_id=task_id)
@@ -62,5 +62,5 @@ def get_info(queue_name):
     async_call(probe_app,
                "probe.tasks",
                "register",
-               queue=queue_name)
+               routing_key=queue_name)
     return

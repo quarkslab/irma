@@ -11,3 +11,6 @@ tests/results/
 
 # ssl certificate
 ssl/*.pem
+
+# IDE
+.idea
