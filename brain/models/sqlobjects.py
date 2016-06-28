@@ -22,6 +22,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from lib.common.utils import UUID
 from lib.irma.common.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 from lib.irma.common.utils import IrmaScanStatus
@@ -39,26 +40,6 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    # Auto-create directory for sqlite db
-    db_name = os.path.abspath(config.get_sql_db_uri_params()[5])
-    dirname = os.path.dirname(db_name)
-    if not os.path.exists(dirname):
-        print("SQL directory does not exist {0}"
-              "..creating".format(dirname))
-        os.makedirs(dirname)
-        os.chmod(dirname, 0777)
-    elif not (os.path.isdir(dirname)):
-        print("Error. SQL directory is a not a dir {0}"
-              "".format(dirname))
-        raise IrmaDatabaseError("Can not create Frontend database dir")
-
-    if not os.path.exists(db_name):
-        # touch like method to create a rw-rw-rw- file for db
-        open(db_name, 'a').close()
-        os.chmod(db_name, 0666)
-
-
-sql_db_connect()
 Base = declarative_base()
 tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
 
@@ -126,14 +107,6 @@ class Scan(Base, SQLDatabaseObject):
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
 
-    @property
-    def nb_jobs(self):
-        return len(self.jobs)
-
-    def get_pending_jobs_taskid(self):
-        pending_jobs_taskid = [job.task_id for job in self.jobs]
-        return pending_jobs_taskid
-
 
 class User(Base, SQLDatabaseObject):
     __tablename__ = '{0}user'.format(tables_prefix)
@@ -167,20 +140,15 @@ class User(Base, SQLDatabaseObject):
         nullable=False,
         name='ftpuser'
     )
-    quota = Column(
-        Integer,
-        name='quota'
-    )
     scans = relationship("Scan", backref="user")
 
-    def __init__(self, name, rmqvhost, ftpuser, quota):
+    def __init__(self, name, rmqvhost, ftpuser):
         self.name = name
         self.rmqvhost = rmqvhost
         self.ftpuser = ftpuser
-        self.quota = quota
 
     @staticmethod
-    def get_by_rmqvhost(rmqvhost, session):
+    def get_by_rmqvhost(session, rmqvhost=None):
         # FIXME: get rmq_vhost dynamically
         if rmqvhost is None:
             rmqvhost = config.brain_config['broker_frontend'].vhost
@@ -192,23 +160,6 @@ class User(Base, SQLDatabaseObject):
             raise IrmaDatabaseResultNotFound(e)
         except MultipleResultsFound as e:
             raise IrmaDatabaseError(e)
-
-    def remaining_quota(self, session):
-        if self.quota == 0:
-            # quota=0 means quota disabled
-            remaining = None
-        else:
-            # quota are per 24h
-            min_ts = timestamp() - 24 * 60 * 60
-            scan_list = session.query(Scan).filter(
-                Scan.user_id == self.id).filter(
-                Scan.timestamp >= min_ts).all()
-            consumed = 0
-            for scan in scan_list:
-                consumed += scan.nb_jobs
-            # Quota are set per 24 hours
-            remaining = self.quota - consumed
-        return remaining
 
 
 class Job(Base, SQLDatabaseObject):
@@ -227,10 +178,22 @@ class Job(Base, SQLDatabaseObject):
         index=True,
         nullable=False,
     )
+    filehash = Column(
+        String,
+        nullable=False,
+        name='filehash'
+    )
+    probename = Column(
+        String,
+        nullable=False,
+        name='probename'
+    )
 
-    def __init__(self, scanid, taskid):
+    def __init__(self, scanid, filehash, probename):
         self.scan_id = scanid
-        self.task_id = taskid
+        self.task_id = UUID.generate()
+        self.filehash = filehash
+        self.probename = probename
 
 
 class Probe(Base, SQLDatabaseObject):
@@ -296,6 +259,3 @@ class Probe(Base, SQLDatabaseObject):
     @classmethod
     def all(cls, session):
         return session.query(cls).all()
-
-
-Base.metadata.create_all(SQLDatabase.get_engine())
