@@ -57,8 +57,8 @@ supervisor_programs_probe:
     directory: "{{ probe_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1
-    stdout_logfile: /var/log/supervisor/probe.log
-    stderr_logfile: /var/log/supervisor/probe.log
+    stdout_logfile: /var/log/supervisor/probe_app.log
+    stderr_logfile: /var/log/supervisor/probe_app.log
     autostart: true
     stopwaitsecs: 600
     killasgroup: true
