@@ -154,7 +154,7 @@ brain_sftpd_virtual_writers:
 # supervisor_extra_confs:
 supervisor_programs_brain:
   - name: scan_app
-    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.tasks:scan_app --hostname=scan_app.%%h {{default_celery_options}} -Ofair"
+    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.scan_tasks --hostname=scan_app.%%h {{default_celery_options}} -Ofair"
     directory: "{{ brain_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1
@@ -164,7 +164,7 @@ supervisor_programs_brain:
     stopwaitsecs: 600
     killasgroup: true
   - name: result_app
-    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.tasks:results_app --hostname=result_app.%%h {{default_celery_options}}"
+    command: "{{ brain_venv_dir }}/bin/celery worker -A brain.results_tasks --hostname=result_app.%%h {{default_celery_options}}"
     directory: "{{ brain_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1
