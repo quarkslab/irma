@@ -471,12 +471,12 @@ def set_result(scanid, file_hash, probe, result):
 def is_finished(scanid):
     with session_transaction() as session:
         scan = Scan.load_from_ext_id(scanid, session=session)
-        if scan.finished():
+        if scan.finished() and scan.status != IrmaScanStatus.finished:
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
             # launch flush celery task on brain
-            log.debug("scanid: %s calling scan_flush", scan.id)
-            celery_brain.scan_flush(scan.id)
+            log.debug("scanid: %s calling scan_flush", scan.external_id)
+            celery_brain.scan_flush(scan.external_id)
 
 
 def handle_output_files(scanid, parent_file_hash, probe, result):
