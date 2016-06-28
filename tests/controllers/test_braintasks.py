@@ -2,6 +2,7 @@ from unittest import TestCase
 from mock import MagicMock, patch
 
 import frontend.controllers.braintasks as module
+from frontend.controllers.braintasks import BRAIN_SCAN_TASKS
 from lib.irma.common.utils import IrmaReturnCode
 from lib.irma.common.exceptions import IrmaCoreError, IrmaTaskError
 
@@ -49,7 +50,7 @@ class TestModuleBraintasks(TestCase):
         arg = "test"
         result = module.scan_progress(arg)
         m_sync_call.assert_called_once_with(self.m_brain_app,
-                                            "brain.tasks",
+                                            BRAIN_SCAN_TASKS,
                                             "scan_progress",
                                             self.m_timeout,
                                             args=[arg])
@@ -60,7 +61,7 @@ class TestModuleBraintasks(TestCase):
         arg = "test"
         result = module.scan_cancel(arg)
         m_sync_call.assert_called_once_with(self.m_brain_app,
-                                            "brain.tasks",
+                                            BRAIN_SCAN_TASKS,
                                             "scan_cancel",
                                             self.m_timeout,
                                             args=[arg])
@@ -71,7 +72,7 @@ class TestModuleBraintasks(TestCase):
         args = ["test1", "test2"]
         result = module.scan_launch(*args)
         m_async_call.assert_called_once_with(self.m_brain_app,
-                                             "brain.tasks",
+                                             BRAIN_SCAN_TASKS,
                                              "scan",
                                              args=args)
         self.assertEqual(result, m_async_call())
@@ -81,7 +82,7 @@ class TestModuleBraintasks(TestCase):
         arg = "test"
         result = module.scan_flush(arg)
         m_async_call.assert_called_once_with(self.m_brain_app,
-                                             "brain.tasks",
+                                             BRAIN_SCAN_TASKS,
                                              "scan_flush",
                                              args=[arg])
         self.assertEqual(result, m_async_call())

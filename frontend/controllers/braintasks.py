@@ -23,6 +23,8 @@ timeout = config.get_brain_celery_timeout()
 brain_app = celery.Celery('braintasks')
 config.conf_brain_celery(brain_app)
 
+BRAIN_SCAN_TASKS = "brain.scan_tasks"
+
 # ============
 #  Task calls
 # ============
@@ -31,7 +33,7 @@ config.conf_brain_celery(brain_app)
 def probe_list():
     """ send a task to the brain asking for active probe list """
     (retcode, res) = sync_call(brain_app,
-                               "brain.tasks",
+                               BRAIN_SCAN_TASKS,
                                "probe_list",
                                timeout)
     if retcode != IrmaReturnCode.success:
@@ -46,7 +48,7 @@ def mimetype_filter_scan_request(scan_request):
         on probe list
     """
     (retcode, res) = sync_call(brain_app,
-                               "brain.tasks",
+                               BRAIN_SCAN_TASKS,
                                "mimetype_filter_scan_request",
                                timeout,
                                args=[scan_request])
@@ -58,7 +60,7 @@ def mimetype_filter_scan_request(scan_request):
 def scan_progress(scanid):
     """ send a task to the brain asking for status of subtasks launched """
     return sync_call(brain_app,
-                     "brain.tasks",
+                     BRAIN_SCAN_TASKS,
                      "scan_progress",
                      timeout,
                      args=[scanid])
@@ -67,7 +69,7 @@ def scan_progress(scanid):
 def scan_cancel(scanid):
     """ send a task to the brain to cancel all remaining subtasks """
     return sync_call(brain_app,
-                     "brain.tasks",
+                     BRAIN_SCAN_TASKS,
                      "scan_cancel",
                      timeout,
                      args=[scanid])
@@ -76,7 +78,7 @@ def scan_cancel(scanid):
 def scan_launch(scanid, scan_request):
     """ send a task to the brain to start the scan """
     return async_call(brain_app,
-                      "brain.tasks",
+                      BRAIN_SCAN_TASKS,
                       "scan",
                       args=[scanid, scan_request])
 
@@ -84,6 +86,6 @@ def scan_launch(scanid, scan_request):
 def scan_flush(scanid):
     """ send a task to the brain to flush the scan files"""
     return async_call(brain_app,
-                      "brain.tasks",
+                      BRAIN_SCAN_TASKS,
                       "scan_flush",
                       args=[scanid])
