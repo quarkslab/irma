@@ -273,6 +273,26 @@ def get_sql_db_tables_prefix():
     return brain_config.sqldb.tables_prefix
 
 
+def get_sql_url():
+    dbms = brain_config.sqldb.dbms
+    if brain_config.sqldb.dialect:
+        dbms = "{0}+{1}".format(dbms, brain_config.sqldb.dialect)
+
+    host_and_id = ''
+    if brain_config.sqldb.host and brain_config.sqldb.username:
+        if brain_config.sqldb.password:
+            host_and_id = "{0}:{1}@{2}".format(brain_config.sqldb.username,
+                                               brain_config.sqldb.password,
+                                               brain_config.sqldb.host)
+        else:
+            host_and_id = "{0}@{1}".format(brain_config.sqldb.username,
+                                           brain_config.sqldb.host)
+    url = "{0}://{1}/{2}".format(dbms,
+                                 host_and_id,
+                                 brain_config.sqldb.dbname)
+    return url
+
+
 # ==================
 #  Database helpers
 # ==================
