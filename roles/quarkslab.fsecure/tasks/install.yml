@@ -10,9 +10,15 @@
   args:
     chdir: "{{ fsecure_temp_dir }}/"
 
-- name: F-Secure | Run installer
+- name: F-Secure | Run installer in trial mode
   shell: echo | sh "{{ fsecure_temp_dir }}/fsls-{{ fsecure_version }}/fsls-{{ fsecure_version }}" --auto standalone lang=en noremotewui nolocallogin
   sudo: true
+  when: fsecure_license_key is not defined
+
+- name: F-Secure | Run installer in licensed mode
+  shell: echo | sh "{{ fsecure_temp_dir }}/fsls-{{ fsecure_version }}/fsls-{{ fsecure_version }}" --auto standalone lang=en keycode={{ fsecure_license_key }} noremotewui nolocallogin
+  sudo: true
+  when: fsecure_license_key is defined
 
 - name: F-Secure | Disable Web Interface and Firewall with fschooser
   shell: printf "f\nw\n\n" | /opt/f-secure/fsav/sbin/fschooser

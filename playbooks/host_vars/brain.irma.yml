@@ -24,3 +24,6 @@
 
 # Avast! licence file - Put your licence file here
 # avast_license_file: files/license.avastlic
+
+# if you have a valid Fsecure licence put it here
+# fsecure_license_key: XXXX-XXXX-XXXX-XXXX-XXXX
