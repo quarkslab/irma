@@ -84,6 +84,7 @@ supervisor_programs_probe:
 #   - section: LinuxSpider
 #     option: Start
 #     value: No
+# drweb_license_file: files/drweb32.key
 
 # Avast! licence file - Put your licence file here
 # avast_license_file: files/license.avastlic

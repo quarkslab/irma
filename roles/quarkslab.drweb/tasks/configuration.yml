@@ -1,5 +1,21 @@
 ---
 
+- name: Dr Web | Checking licence file
+  fail:
+    msg: "Please ensure that 'drweb_license_file' is set in your host_vars or group_vars"
+  when: drweb_license_file is not defined
+
+- name: Dr Web | Installing license key
+  copy:
+    src: "{{ drweb_license_file }}"
+    dest: /etc/opt/drweb.com
+    owner: root
+    group: root
+    mode: 0644
+  sudo: yes
+  notify:
+    - Restart DrWeb Daemon
+
 - name: Configure DrWeb ini file
   ini_file:
     dest: /etc/opt/drweb.com/drweb.ini
