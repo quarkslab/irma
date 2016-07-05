@@ -27,3 +27,5 @@
 
 # if you have a valid Fsecure licence put it here
 # fsecure_license_key: XXXX-XXXX-XXXX-XXXX-XXXX
+# Check the psb server number on your license ([1-4])
+# fsecure_psb_server: http://psb1-bw.sp.f-secure.com/

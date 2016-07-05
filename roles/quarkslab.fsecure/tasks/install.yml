@@ -16,7 +16,7 @@
   when: fsecure_license_key is not defined
 
 - name: F-Secure | Run installer in licensed mode
-  shell: echo | sh "{{ fsecure_temp_dir }}/fsls-{{ fsecure_version }}/fsls-{{ fsecure_version }}" --auto standalone lang=en keycode={{ fsecure_license_key }} noremotewui nolocallogin
+  shell: echo | sh "{{ fsecure_temp_dir }}/fsls-{{ fsecure_version }}/fsls-{{ fsecure_version }}" --auto psb fspsbs={{ fsecure_psb_server }} lang=en keycode={{ fsecure_license_key }} noremotewui nolocallogin
   sudo: true
   when: fsecure_license_key is defined
 
