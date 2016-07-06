@@ -49,7 +49,7 @@ class GenericAVTest():
         if not self.ready:
             self.log.warning("{0} seems not to be available, "
                              "skipping all tests ..."
-                             "".format(self.antivirus.name))
+                             "".format(self.antivirus._name))
 
     def scan_and_check(self, filename, refresult):
         code = self.antivirus.scan(filename)
