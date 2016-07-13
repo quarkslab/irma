@@ -10,6 +10,12 @@ Requirements
 
 - `Ansible <https://github.com/ansible/ansible>`_ 1.8 or higher;
 
+
+.. warning::
+
+   The automated install is not working with latest version of ansible. Maximum tested version is 2.0.1.0
+
+
 Ansible scripts
 ---------------
 

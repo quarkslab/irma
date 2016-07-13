@@ -1,6 +1,11 @@
 Manual Installation
 ===================
 
+
+.. warning::
+
+   The manual install is deprecated and currently under rewrite. DO NOT USE IT.
+
 In some specific cases where automatic install is not possible, you should go
 with manual installation.
 
