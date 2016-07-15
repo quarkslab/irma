@@ -8,7 +8,7 @@ install or maintain different setups.
 Requirements
 ------------
 
-- `Ansible <https://github.com/ansible/ansible>`_ 1.8 or higher;
+- `Ansible <https://github.com/ansible/ansible>`_ 2.0 or higher;
 
 
 .. warning::
