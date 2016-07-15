@@ -16,5 +16,5 @@ Install it with the following dependencies:
     $ sudo apt-get install postgresql-9.4 python-psycopg2
     [...]
 
-You need to manually create the configured database, the tables are automatically
+You need to manually create the configured database and db user, the tables are automatically
 created on celery daemon / uwsgi startup.

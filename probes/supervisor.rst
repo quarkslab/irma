@@ -11,6 +11,9 @@ Installing Supervisor
 
 Install it with apt:
 
+
+.. code-block:: bash
+
     $ sudo apt-get install python-virtualenv python-dev
     $ sudo pip install supervisor
 
@@ -49,9 +52,15 @@ Ensure supervisor will read our files by checking ``/etc/supervisor/supervisord.
 
 Restart supervisor:
 
+
+.. code-block:: bash
+
     $ sudo service supervisor restart
 
 Restart applications if needed (should be done automatically):
+
+
+.. code-block:: bash
 
     $ sudo supervisorctl restart all
     probe_app: stopped
