@@ -12,6 +12,8 @@ On GNU/Linux:
 
 .. code-block:: bash
 
+    $ cd /opt/irma/irma-probe
+    $ ./venv/bin/celery worker --app=probe.tasks
     $ celery worker --app=probe.tasks:app --workdir=/opt/irma/irma-probe
     WARNING:root: *** [plugin] Plugin failed to load: Kaspersky miss dependencies: win32 (PlatformDependency).
     WARNING:root: *** [plugin] Plugin failed to load: Sophos miss dependencies: win32 (PlatformDependency).
@@ -52,6 +54,17 @@ are using. Let us note that the Celery worker gives us useful information on
 the analyzer that are enabled. As each analyzer connects to a dedicated queue,
 we can deduce, in this example, that the analyzers ``ClamAV``, ``ComodoCAVL``,
 ``EsetNod32``, ``FProt`` and ``McAfeeVSCL`` are enabled and ready to serve.
+
+
+SFTP accounts
+`````````````
+
+Defaut File Transport Protocol since v1.4.0 is now SFTP, you can check whether the configured account is valid.
+
+.. code-block:: bash
+
+    $ sftp <user>@<hostname of the brain>
+
 
 FTP-SSL accounts
 ````````````````

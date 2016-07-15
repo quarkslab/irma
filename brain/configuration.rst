@@ -12,8 +12,12 @@ directory. Update it with your specific info.
      |     Section    |      Key    |    Type    |  Default  | Description                                       |
      +================+=============+============+===========+===================================================+
      |                |   syslog    |``integer`` |     0     | enable rsyslog (experimental)                     |
-     |   log          +-------------+------------+-----------+---------------------------------------------------+
+     |                +-------------+------------+-----------+---------------------------------------------------+
      |                |   prefix    |``string``  |irma-brain:| prefix to append to rsyslog entries               |
+     |   log          +-------------+------------+-----------+---------------------------------------------------+
+     |                |    debug    | ``boolean``|   False   | enable Debug log                                  |
+     |                +-------------+------------+----------------+----------------------------------------------+
+     |                |  sql_debug  | ``boolean``|   False   | enable SQL debug log                              |
      +----------------+-------------+------------+-----------+---------------------------------------------------+
      |                |     host    | ``string`` |           | hostname for the RabbitMQ server                  |
      |                +-------------+------------+-----------+---------------------------------------------------+
@@ -66,6 +70,8 @@ directory. Update it with your specific info.
      |                +-------------+------------+-----------+---------------------------------------------------+
      |                |tables_prefix| ``string`` |           | database tables prefix                            |
      +----------------+-------------+------------+-----------+---------------------------------------------------+
+     |      ftp       |   protocol  | ``string`` |   "sftp"  | choose File Transfer Protocol ("sftp" or "ftps")  |
+     +----------------+-------------+------------+-----------+---------------------------------------------------+
      |                |     host    | ``string`` |           | hostname for the FTP server                       |
      |                +-------------+------------+-----------+---------------------------------------------------+
      |                |     port    |``integer`` |    21     | port for the FTP server                           |
@@ -73,6 +79,18 @@ directory. Update it with your specific info.
      |                |   username  | ``string`` |           | username used by probe on the FTP server          |
      |                +-------------+------------+-----------+---------------------------------------------------+
      |                |   password  | ``string`` |           | password used by the probe on the FTP server      |
+     +----------------+-------------+------------+-----------+---------------------------------------------------+
+     | interprocess_  |   path      | ``string`` |/var/run/  | Concurrency file lock                             |
+     | lock           |             |            |lock/irma- |                                                   |
+     |                |             |            |brain.lock |                                                   |
+     +----------------+-------------+------------+-----------+---------------------------------------------------+
+     |                |activate_ssl | ``boolean``|    False  | Enable RabbitMQ ssl                               |
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |ca_certs     | ``string`` |           | RabbitMQ SSL certs                                |
+     |  ssl_config    +-------------+------------+-----------+---------------------------------------------------+
+     |                |keyfile      | ``string`` |           | RabbitMQ SSL keyfile                              |
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |certfile     | ``string`` |           | RabbitMQ SSL certfile                             |
      +----------------+-------------+------------+-----------+---------------------------------------------------+
 
 
@@ -89,24 +107,22 @@ where the database is going to be stored must be created beforehand.
 
 .. code-block:: bash
 
-    $ python -m scripts.create_user
-    usage: create_user <username> <rmqvhost> <ftpuser> [quota]
+    $ cd /opt/irma/irma-brain/
+    $ ./venv/bin/python -m scripts.create_user
+    usage: create_user <username> <rmqvhost> <ftpuser>
           with <username> a string
                <rmqvhost> the rmqvhost used for the frontend
                <ftpuser> the ftpuser used by the frontend
-               [quota] the number of file scan quota 0 for disabled (default: 0)
     example: create_user test1 mqfrontend frontend
 
-To create an entry in the database for the frontend named ``frontend-irma`` and
-which uses the ``frontend-rmq`` virtual host on the RabbitMQ server, simply run
+To create an entry in the database for the frontend named ``frontend`` and
+which uses the ``mqfrontend`` virtual host on the RabbitMQ server, simply run
 the following commands:
 
 .. code-block:: bash
 
-    $ python -m scripts.create_user frontend-irma frontend-rmq frontend-irma 0
+    $ ./venv/bin/python -m scripts.create_user frontend mqfrontend frontend
 
-The quota sets to ``0`` simply disable the quota system and you will be able to
-launch as many analyzes as you want.
 
 .. note::
 
@@ -116,5 +132,5 @@ launch as many analyzes as you want.
 
     .. code-block:: bash
 
-        $ sudo chown irma:irma db/brain.db
+        $ sudo chown irma:irma /var/irma/db/brain.db
         $ sudo chmod a+w /opt/irma/irma-brain

@@ -1,23 +1,20 @@
 Installing SQL server
 ---------------------
 
-The Frontend relies on a SQL database to keep track of all scans info.
-On Debian, one can install a SQL server in few commands:
+.. note::
 
-in development environment, prefer sqlite server:
+	Since version 1.5.0, IRMA required a postgreSQL server as we are using JSONB column.
 
-.. code-block:: bash
 
-    $ sudo apt-get install sqlite3
-    [...]
+The Frontend relies on a PostgreSQL database to keep track of all scans info.
+On Debian, one can install a PostgreSQL server in few commands:
 
-in production environment, prefer postgres server:
+Install it with the following dependencies:
 
 .. code-block:: bash
 
-    $ sudo apt-get install postgresql
+    $ sudo apt-get install postgresql-9.4 python-psycopg2
     [...]
 
-For PostgreSQL, extra steps for configuring the database and a user is required.
-Then adapt the frontend configuration file to allow frontend to connect to the SQL
-database. The tables are automatically created on celery daemon / uwsgi startup.
+You need to manually create the configured database, the tables are automatically
+created on celery daemon / uwsgi startup.

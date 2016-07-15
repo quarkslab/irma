@@ -10,9 +10,8 @@ user interface or via the command line interface.
    overview.rst
    install.rst
    configuration.rst
-   daemon.rst
-   mongodb.rst
-   sql.rst
    uwsgi.rst
+   sql.rst
+   supervisor.rst
    nginx.rst
    checks.rst

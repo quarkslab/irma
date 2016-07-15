@@ -75,18 +75,24 @@ Installation on GNU/Linux
 On GNU/Linux system, we will assume that the code for the **Probe** will be
 installed in ``/opt/irma/irma-probe`` directory.
 
-.. code-block:: bash
-
-    $ pip install irma-probe-app-1.1.0.tar.gz --install-option="--install-base=/opt/irma/irma-probe"
-    [...]
-
-Since the way we packaged the python application does not so support
-automatic installation of dependencies, we need to install them manually:
 
 .. code-block:: bash
 
-    $ pip install -r /opt/irma/irma-probe/requirements.txt
+    $ git clone --recursive https://github.com/quarkslab/irma-probe /opt/irma/irma-probe
+
+We need few dependencies for future steps:
+
+    $ sudo apt-get install python-virtualenv python-dev
+
+
+then, we need to install python dependencies manually in a virtualenv :
+
+.. code-block:: bash
+
+    $ virtualenv --system-site-packages /opt/irma/irma-probe/venv
+    $ /opt/irma/irma-probe/venv/bin/pip install -r /opt/irma/irma-probe/requirements.txt
     [...]
+
 
 If everything has gone well, the python application is now installed
 on your system. The next step is to configure it for your platform and to

@@ -9,5 +9,5 @@ technologies with a specific purpose each:
 * a RabbitMQ server used by Celery as a backend and as a broker for task queues
   and job queues used to schedule tasks for
   **Probes** (for scan jobs) and the **Frontend** (for scan results).
-* a FTP server with TLS enabled where files to be scanned are uploaded by
+* an SFTP server where files to be scanned are uploaded by
   **Frontends** and downloaded by **Probes**,

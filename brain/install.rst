@@ -45,12 +45,19 @@ option:
 
     $ git clone --recursive https://github.com/quarkslab/irma-brain /opt/irma/irma-brain
 
-then, we need to install python dependencies manually:
+We need few dependencies for future steps:
+
+    $ sudo apt-get install python-virtualenv python-dev
+
+
+then, we need to install python dependencies manually in a virtualenv :
 
 .. code-block:: bash
 
-    $ pip install -r /opt/irma/irma-brain/requirements.txt
+    $ virtualenv --system-site-packages /opt/irma/irma-brain/venv
+    $ /opt/irma/irma-brain/venv/bin/pip install -r /opt/irma/irma-brain/requirements.txt
     [...]
+
 
 If everything has gone well, you should have installed the python application
 on your system. The next step is to install the other components it relies on

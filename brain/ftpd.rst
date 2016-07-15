@@ -1,6 +1,12 @@
 Installing and configuring Pure-ftpd
 ====================================
 
+.. warning::
+
+    Since IRMA v1.4.0, FTP through FTPS is deprecated (still supported but not recommanded), instead you
+    better move to SFTP
+
+
 A FTP server with TLS is used to transfer files
 **Frontends** and meant to be analyzed by **Probes**. We describe in the
 following how to set up pure-ftpd.
@@ -98,3 +104,57 @@ You may want to restart the service:
 .. code-block:: bash
 
     $ sudo invoke-rc.d pure-ftpd restart
+
+
+FTP-TLS accounts
+````````````````
+
+Additionally, if you have configured IRMA to use FTP-TLS, you can check
+whether the configured account is valid. On Debian, this can be done with the
+``ftp-ssl`` package:
+
+.. code-block:: bash
+
+    $ sudo apt-get install ftp-ssl
+    [...]
+    $ ftp-ssl localhost
+    Connected to localhost.
+    220---------- Welcome to Pure-FTPd [privsep] [TLS] ----------
+    220-You are user number 1 of 50 allowed.
+    220-Local time is now 18:55. Server port: 21.
+    220-This is a private system - No anonymous login
+    220-IPv6 connections are also welcome on this server.
+    220 You will be disconnected after 15 minutes of inactivity.
+    Name (brain:root): probe-ftp
+    500 This security scheme is not implemented
+    234 AUTH TLS OK.
+    [SSL Cipher DHE-RSA-AES256-GCM-SHA384]
+    200 PBSZ=0
+    200 Data protection level set to "private"
+    331 User probe OK. Password required
+    Password: probe-ftp-password
+    230 OK. Current directory is /
+    Remote system type is UNIX.
+    Using binary mode to transfer files.
+    ftp>
+
+    $ ftp-ssl localhost
+    Connected to localhost.
+    220---------- Welcome to Pure-FTPd [privsep] [TLS] ----------
+    220-You are user number 1 of 50 allowed.
+    220-Local time is now 18:55. Server port: 21.
+    220-This is a private system - No anonymous login
+    220-IPv6 connections are also welcome on this server.
+    220 You will be disconnected after 15 minutes of inactivity.
+    Name (brain:root): frontend-ftp
+    500 This security scheme is not implemented
+    234 AUTH TLS OK.
+    [SSL Cipher DHE-RSA-AES256-GCM-SHA384]
+    200 PBSZ=0
+    200 Data protection level set to "private"
+    331 User probe OK. Password required
+    Password: frontend-ftp-password
+    230 OK. Current directory is /
+    Remote system type is UNIX.
+    Using binary mode to transfer files.
+    ftp>

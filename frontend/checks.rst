@@ -12,9 +12,10 @@ On GNU/Linux:
 
 .. code-block:: bash
 
-    $ celery worker --app=frontend.tasks:frontend_app
+    $ cd /opt/irma/irma-frontend
+    $ ./venv/bin/celery worker --app=frontend.tasks:frontend_app
 
-     -------------- celery@frontend v3.1.13 (Cipater)
+     -------------- celery@frontend v3.1.23 (Cipater)
     ---- **** -----
     --- * ***  * -- Linux-3.2.0-4-amd64-x86_64-with-debian-7.6
     -- * - **** ---
@@ -22,10 +23,10 @@ On GNU/Linux:
     - ** ---------- .> app:         frontend.tasks:0x1e18750
     - ** ---------- .> transport:   amqp://probe:**@brain:5672/mqfrontend
     - ** ---------- .> results:     disabled
-    - *** --- * --- .> concurrency: 1 (prefork)
+    - *** --- * --- .> concurrency: 2 (prefork)
     -- ******* ----
     --- ***** ----- [queues]
-     -------------- .> brain            exchange=celery(direct) key=brain
+     -------------- .> frontend            exchange=celery(direct) key=frontend
 
     [2014-08-20 15:28:58,745: WARNING/MainProcess] celery@frontend ready.
 
@@ -33,6 +34,16 @@ If your Celery worker does not output something similar to the above output,
 you should check twice the parameters in the application configuration file you
 are using. Let us note that the Celery worker gives us useful information on
 the analyzer that are enabled.
+
+SFTP accounts
+`````````````
+
+Defaut File Transport Protocol since v1.4.0 is now SFTP, you can check whether the configured account is valid.
+
+.. code-block:: bash
+
+    $ sftp <user>@<hostname of the brain>
+
 
 FTP-TLS accounts
 ````````````````
@@ -66,6 +77,7 @@ whether the configured account is valid. On Debian, this can be done with the
     Using binary mode to transfer files.
     ftp>
 
+
 Restful API
 ```````````
 
@@ -74,29 +86,24 @@ route on the web server or by checking the system logs:
 
 .. code-block:: bash
 
-    $ curl http://localhost/api/v1/probes
+    $ curl http://localhost/api/v1.1/probes
     {"total": 9, "data": ["ClamAV", "ComodoCAVL", "EsetNod32", "FProt", "Kaspersky", "McAfeeVSCL", "NSRL", "StaticAnalyzer", "VirusTotal"]}
-    $ sudo cat /var/log/uwsgi/app/frontend-api.log
-    Wed Aug 20 17:51:33 2014 - *** Starting uWSGI 1.2.3-debian (64bit) on [Wed Aug 20 17:51:33 2014] ***
-    Wed Aug 20 17:51:33 2014 - compiled with version: 4.7.2 on 06 July 2013 12:20:09
-    Wed Aug 20 17:51:33 2014 - detected number of CPU cores: 4
-    Wed Aug 20 17:51:33 2014 - current working directory: /
-    Wed Aug 20 17:51:33 2014 - writing pidfile to /run/uwsgi/app/frontend-api/pid
-    Wed Aug 20 17:51:33 2014 - detected binary path: /usr/bin/uwsgi-core
-    Wed Aug 20 17:51:33 2014 - setgid() to 33
-    Wed Aug 20 17:51:33 2014 - setuid() to 33
-    Wed Aug 20 17:51:33 2014 - your memory page size is 4096 bytes
-    Wed Aug 20 17:51:33 2014 - detected max file descriptor number: 1024
-    Wed Aug 20 17:51:33 2014 - lock engine: pthread robust mutexes
-    Wed Aug 20 17:51:33 2014 - uwsgi socket 0 bound to UNIX address /run/uwsgi/app/frontend-api/socket fd 3
-    Wed Aug 20 17:51:33 2014 - Python version: 2.7.3 (default, Mar 13 2014, 11:26:58)  [GCC 4.7.2]
-    Wed Aug 20 17:51:33 2014 - *** Python threads support is disabled. You can enable it with --enable-threads ***
-    Wed Aug 20 17:51:33 2014 - Python main interpreter initialized at 0x264e120
-    Wed Aug 20 17:51:33 2014 - your server socket listen backlog is limited to 100 connections
-    Wed Aug 20 17:51:33 2014 - *** Operational MODE: preforking ***
-    Wed Aug 20 17:51:33 2014 - mounting frontend/api/base.py on /api/v1
-    Wed Aug 20 17:51:33 2014 - WSGI app 0 (mountpoint='/api/v1') ready in 0 seconds on interpreter 0x264e120 pid: 7860 (default app)
-    Wed Aug 20 17:51:33 2014 - *** uWSGI is running in multiple interpreter mode ***
-    Wed Aug 20 17:51:33 2014 - spawned uWSGI master process (pid: 7860)
-    Wed Aug 20 17:51:33 2014 - spawned uWSGI worker 1 (pid: 7892, cores: 1)
-    Wed Aug 20 17:51:33 2014 - spawned uWSGI worker 2 (pid: 7893, cores: 1)
+
+    $  sudo cat /var/log/supervisor/frontend_api.log
+    [...]
+    added /opt/irma/irma-frontend/venv/ to pythonpath.
+    *** uWSGI is running in multiple interpreter mode ***
+    spawned uWSGI master process (pid: 3943)
+    spawned uWSGI worker 1 (pid: 3944, cores: 1)
+    spawned uWSGI worker 2 (pid: 3945, cores: 1)
+    spawned uWSGI worker 3 (pid: 3946, cores: 1)
+    spawned uWSGI worker 4 (pid: 3947, cores: 1)
+    mounting frontend/api/base.py on /api
+    mounting frontend/api/base.py on /api
+    mounting frontend/api/base.py on /api
+    mounting frontend/api/base.py on /api
+    WSGI app 0 (mountpoint='/api') ready in 0 seconds on interpreter 0x99a3e0 pid: 3945 (default app)
+    WSGI app 0 (mountpoint='/api') ready in 0 seconds on interpreter 0x99a3e0 pid: 3946 (default app)
+    WSGI app 0 (mountpoint='/api') ready in 0 seconds on interpreter 0x99a3e0 pid: 3944 (default app)
+    WSGI app 0 (mountpoint='/api') ready in 0 seconds on interpreter 0x99a3e0 pid: 3947 (default app)
+

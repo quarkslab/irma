@@ -12,47 +12,49 @@ On GNU/Linux:
 
 .. code-block:: bash
 
-    $ celery worker --app=brain.tasks:scan_app --workdir=/opt/irma/irma-brain
+    $ cd /opt/irma/irma-brain
+    $ ./venv/bin/celery worker --app=brain.scan_tasks
 
 
-     -------------- celery@irma-brain v3.1.13 (Cipater)
+     -------------- celery@brain v3.1.23 (Cipater)
     ---- **** -----
-    --- * ***  * -- Linux-3.2.0-4-amd64-x86_64-with-debian-7.5
+    --- * ***  * -- Linux-3.16.0-4-amd64-x86_64-with-debian-8.2
     -- * - **** ---
     - ** ---------- [config]
-    - ** ---------- .> app:         scantasks:0x1f4c2d0
+    - ** ---------- .> app:         scantasks:0x7fbd7ee4c350
     - ** ---------- .> transport:   amqp://brain:**@127.0.0.1:5672/mqbrain
-    - ** ---------- .> results:     amqp://brain:brain@127.0.0.1:5672/mqbrain
-    - *** --- * --- .> concurrency: 4 (prefork)
+    - ** ---------- .> results:     amqp://
+    - *** --- * --- .> concurrency: 2 (prefork)
     -- ******* ----
     --- ***** ----- [queues]
      -------------- .> brain            exchange=celery(direct) key=brain
 
 
-    [2014-08-21 14:54:49,633: WARNING/MainProcess] celery@brain ready.
+    [2016-07-15 15:00:36,155: WARNING/MainProcess] celery@brain ready.
 
 This worker is responsible for splitting the whole scan job in multiples job
 per probe per file.
 
 .. code-block:: bash
 
-    $ celery worker --app=brain.tasks:results_app --workdir=/opt/irma/irma-brain
+    $ cd /opt/irma/irma-brain
+    $ ./venv/bin/celery worker --app=brain.results_tasks
 
-     -------------- celery@irma-brain v3.1.13 (Cipater)
+     -------------- celery@brain v3.1.23 (Cipater)
     ---- **** -----
-    --- * ***  * -- Linux-3.2.0-4-amd64-x86_64-with-debian-7.5
+    --- * ***  * -- Linux-3.16.0-4-amd64-x86_64-with-debian-8.2
     -- * - **** ---
     - ** ---------- [config]
-    - ** ---------- .> app:         restasks:0x19fe0d0
+    - ** ---------- .> app:         resultstasks:0x7fa68f9aa590
     - ** ---------- .> transport:   amqp://probe:**@127.0.0.1:5672/mqprobe
-    - ** ---------- .> results:     disabled
-    - *** --- * --- .> concurrency: 4 (prefork)
+    - ** ---------- .> results:     disabled://
+    - *** --- * --- .> concurrency: 2 (prefork)
     -- ******* ----
     --- ***** ----- [queues]
      -------------- .> results          exchange=celery(direct) key=results
 
+    [2016-07-15 14:59:01,799: WARNING/MainProcess] celery@brain ready.
 
-    [2014-08-21 14:55:59,079: WARNING/MainProcess] celery@irma-brain ready.
 
 And this worker is responsible for collecting and tracking results.
 
@@ -60,55 +62,26 @@ If your Celery worker does not output something similar to the above output,
 you should check twice the parameters in the application configuration file you
 are using.
 
-FTP-TLS accounts
-````````````````
 
-Additionally, if you have configured IRMA to use FTP-TLS, you can check
-whether the configured account is valid. On Debian, this can be done with the
-``ftp-ssl`` package:
+SFTP accounts
+`````````````
+
+Try to login as ``frontend`` and upload a sample file in home dir (should raise an error as
+it is non writeable) then in ``uploads`` dir.
 
 .. code-block:: bash
 
-    $ sudo apt-get install ftp-ssl
-    [...]
-    $ ftp-ssl localhost
+    $ sftp frontend@localhost
+    frontend@localhost's password:
     Connected to localhost.
-    220---------- Welcome to Pure-FTPd [privsep] [TLS] ----------
-    220-You are user number 1 of 50 allowed.
-    220-Local time is now 18:55. Server port: 21.
-    220-This is a private system - No anonymous login
-    220-IPv6 connections are also welcome on this server.
-    220 You will be disconnected after 15 minutes of inactivity.
-    Name (brain:root): probe-ftp
-    500 This security scheme is not implemented
-    234 AUTH TLS OK.
-    [SSL Cipher DHE-RSA-AES256-GCM-SHA384]
-    200 PBSZ=0
-    200 Data protection level set to "private"
-    331 User probe OK. Password required
-    Password: probe-ftp-password
-    230 OK. Current directory is /
-    Remote system type is UNIX.
-    Using binary mode to transfer files.
-    ftp>
+    sftp> put test
+    Uploading test to /test
+    remote open("/test"): Permission denied
+    sftp> ls
+    uploads
+    sftp> cd uploads/
+    sftp> put test
+    Uploading test to /uploads/test
+    test                                                                                  100%   10     0.0KB/s   00:00
 
-    $ ftp-ssl localhost
-    Connected to localhost.
-    220---------- Welcome to Pure-FTPd [privsep] [TLS] ----------
-    220-You are user number 1 of 50 allowed.
-    220-Local time is now 18:55. Server port: 21.
-    220-This is a private system - No anonymous login
-    220-IPv6 connections are also welcome on this server.
-    220 You will be disconnected after 15 minutes of inactivity.
-    Name (brain:root): frontend-ftp
-    500 This security scheme is not implemented
-    234 AUTH TLS OK.
-    [SSL Cipher DHE-RSA-AES256-GCM-SHA384]
-    200 PBSZ=0
-    200 Data protection level set to "private"
-    331 User probe OK. Password required
-    Password: frontend-ftp-password
-    230 OK. Current directory is /
-    Remote system type is UNIX.
-    Using binary mode to transfer files.
-    ftp>
+

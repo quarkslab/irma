@@ -10,11 +10,11 @@ task framework for Python.
 
    overview.rst
    rabbitmq.rst
-   ftpd.rst
+   sftp.rst
    install.rst
    configuration.rst
    checks.rst
-   daemon.rst
+   supervisor.rst
 
 .. rubric:: Footnotes
 

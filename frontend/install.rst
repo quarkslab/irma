@@ -45,11 +45,18 @@ option:
 
     $ git clone --recursive https://github.com/quarkslab/irma-frontend /opt/irma/irma-frontend
 
-then, we need to install python dependencies manually:
+
+We need few dependencies for future steps:
+
+    $ sudo apt-get install python-virtualenv python-dev
+
+
+then, we need to install python dependencies manually in a virtualenv :
 
 .. code-block:: bash
 
-    $ pip install -r /opt/irma/irma-frontend/requirements.txt
+    $ virtualenv --system-site-packages /opt/irma/irma-frontend/venv
+    $ /opt/irma/irma-frontend/venv/bin/pip install -r /opt/irma/irma-frontend/requirements.txt
     [...]
 
 Building the web client
@@ -80,7 +87,7 @@ directory:
     $ cd irma-frontend/web
     $ sudo npm install
     $ sudo node_modules/.bin/bower install --allow-root
-    $ node_modules/.bin/gulp dist
+    $ sudo node_modules/.bin/gulp dist
 
 A new directory or an updated directory ``web/dist`` should appear now with
 HTML and javascript files that have been minified and "obfuscated" by ``gulp``.

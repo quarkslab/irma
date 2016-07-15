@@ -11,74 +11,65 @@ directory.
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |     Section    |      Key    |    Type    |  Default       | Description                                             |
      +================+=============+============+================+=========================================================+
-     |                | syslog      | ``integer``| 0              | enable rsyslog (experimental)                           |
+     |                |    syslog   | ``integer``| 0              | enable rsyslog (experimental)                           |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |    prefix   | ``string`` | irma-frontend: | prefix to append to rsyslog entries                     |
      |  log           +-------------+------------+----------------+---------------------------------------------------------+
-     |                | prefix      | ``string`` | irma-frontend: | prefix to append to rsyslog entries                     |
+     |                |    debug    | ``boolean``|     False      | enable Debug log                                        |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |  sql_debug  | ``boolean``|     False      | enable SQL debug log                                    |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |     host    | ``string`` |                | hostname of the mongodb server                          |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     port    |``integer`` |    27017       | port on which the mongodb server listens                |
-     |  mongodb       +-------------+------------+----------------+---------------------------------------------------------+
-     |                |    dbname   | ``string`` |    irma        | name of the database for IRMA                           |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                | collections |            |                |                                                         |
-     |                |  _prefix    | ``string`` |    irma        | prefix for mongodb collections                          |
-     +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |    dbms     | ``string`` |    sqlite      | dbapi engine                                            |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |   dialect   | ``string`` |                | sqlalchemy dialect                                      |
-     |  sqldb         +-------------+------------+----------------+---------------------------------------------------------+
      |                |  username   | ``string`` |                | database username                                       |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |  password   | ``string`` |                | database password                                       |
-     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |    sqldb       +-------------+------------+----------------+---------------------------------------------------------+
      |                |    host     | ``string`` |                | database host                                           |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |   dbname    | ``string`` | /var/irma/db/  |                                                         |
-     |                |             |            | frontend.db    | database name                                           |
+     |                |   dbname    | ``string`` |                | database name                                           |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |tables_prefix| ``string`` |                | database tables prefix                                  |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     | samples_storage|     path    | ``string`` | /var/irma/     |                                                         |
-     |                |             |            | samples        | Samples storage path                                    |
+     | samples_storage|     path    | ``string`` |                | Samples storage path                                    |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |celery_brain    |    timeout  | ``integer``|  10 (sec)      | time before considering that the brain has timed-out    |
+     |celery_brain    |    timeout  | ``integer``|  60 (sec)      | time before considering that the brain has timed-out    |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |celery_frontend |    timeout  | ``integer``|  10 (sec)      | time before considering that the frontend has timed-out |
+     |celery_frontend |    timeout  | ``integer``|  30 (sec)      | time before considering that the frontend has timed-out |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |     host    | ``string`` |                |  hostname for the RabbitMQ server                       |
+     |                |     host    | ``string`` |                | hostname for the RabbitMQ server                        |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     port    |``integer`` |   5672         |  port for the RabbitMQ server                           |
+     |                |     port    |``integer`` |   5672         | port for the RabbitMQ server                            |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |broker_brain    |     vhost   | ``string`` |                |  virtual host configured for brain                      |
+     |broker_brain    |     vhost   | ``string`` |                | virtual host configured for brain                       |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |   username  | ``string`` |                |  username used for brain on the RabbitMQ server         |
+     |                |   username  | ``string`` |                | username used for brain on the RabbitMQ server          |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |   password  | ``string`` |                |  password used for brain on the RabbitMQ server         |
+     |                |   password  | ``string`` |                | password used for brain on the RabbitMQ server          |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     queue   | ``string`` |                |  queue to poll new tasks on the RabbitMQ server         |
+     |                |     queue   | ``string`` |                | queue to poll new tasks on the RabbitMQ server          |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |     host    | ``string`` |                |  hostname for the RabbitMQ server                       |
+     |                |     host    | ``string`` |                | hostname for the RabbitMQ server                        |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     port    |``integer`` |   5672         |  port for the RabbitMQ server                           |
+     |                |     port    |``integer`` |   5672         | port for the RabbitMQ server                            |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |broker_frontend |     vhost   | ``string`` |                |  virtual host configured for this frontend              |
+     |broker_frontend |     vhost   | ``string`` |                | virtual host configured for this frontend               |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |   username  | ``string`` |                |  username used for this frontend on the RabbitMQ server |
+     |                |   username  | ``string`` |                | username used for this frontend on the RabbitMQ server  |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |   password  | ``string`` |                |  password used for this frontend on the RabbitMQ server |
+     |                |   password  | ``string`` |                | password used for this frontend on the RabbitMQ server  |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     queue   | ``string`` |                |  queue to poll new tasks on the RabbitMQ server         |
+     |                |     queue   | ``string`` |                | queue to poll new tasks on the RabbitMQ server          |
+     +----------------+-------------+------------+----------------+---------------------------------------------------------+
+     |      ftp       |   protocol  | ``string`` |   "sftp"       | choose File Transfer Protocol ("sftp" or "ftps")        |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |     host    | ``string`` |                | hostname for the FTP server                             |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     port    |``integer`` |    21          | port for the FTP server                                 |
+     |                |     port    |``integer`` |    22          | port for the FTP server                                 |
      |  ftp_brain     +-------------+------------+----------------+---------------------------------------------------------+
      |                |   username  | ``string`` |                | username used by this frontend on the FTP server        |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   password  | ``string`` |                | password used by this frontend on the FTP server        |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_file| ``integer``|     2          | remove file after X days                                |
+     |                |clean_db_file| ``integer``|     0          | remove file after X days (0 means disabled)             |
      |                |_max_age     |            |                |                                                         |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |clean_db_cron| ``integer``|     0          | cron hour settings                                      |
@@ -90,7 +81,19 @@ directory.
      |                |clean_db_scan| ``integer``|     \*         | cron day of week settings                               |
      |                |_day_of_week |            |                |                                                         |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
+     | interprocess_  |   path      | ``string`` |/var/run/lock/ir| Concurrency file lock                                   |
+     | lock           |             |            |ma-frontend.lock|                                                         |
+     +----------------+-------------+------------+----------------+---------------------------------------------------------+
+     |                |activate_ssl | ``boolean``|    False       | Enable RabbitMQ ssl                                     |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |ca_certs     | ``string`` |                | RabbitMQ SSL certs                                      |
+     |  ssl_config    +-------------+------------+----------------+---------------------------------------------------------+
+     |                |keyfile      | ``string`` |                | RabbitMQ SSL keyfile                                    |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |certfile     | ``string`` |                | RabbitMQ SSL certfile                                   |
+     +----------------+-------------+------------+----------------+---------------------------------------------------------+
 
 .. note::
 
-    The default path for samples is /var/irma/samples/ make sure it exists before launching your first scan.
+    The default path for samples is /var/irma/samples/ make sure it exists with correct rights for irma user
+    before launching your first scan.
