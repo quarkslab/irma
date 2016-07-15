@@ -21,7 +21,14 @@ There are 3 different types of IRMA setup:
 Common requirements
 -------------------
 
-- `Ansible <http://www.ansible.com>`_ 1.8 or higher;
+
+- `Ansible <http://www.ansible.com>`_ 2.0 or higher
+
+.. code-block::
+
+    WARNING
+    Due to an ansible bug in latest version 2.1.0.0 we recommand using version 2.0.1.0
+
 
 Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ repository. Installation has been made easy using:
 
