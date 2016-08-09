@@ -15,7 +15,9 @@
     - libstdc++6
 
 - name: VBA32 | Check version
-  command: /opt/vba/vbacl --version
+  command: /opt/vba/vbacl/vbacl
+  args:
+    chdir: /opt/vba/vbacl
   ignore_errors: yes
   register: virusblokada_present
 
@@ -23,5 +25,7 @@
   when: virusblokada_present | failed
 
 - name: VBA32 | Update definition files
-  shell: vbacl --update
+  shell: /opt/vba/vbacl/vbaupdx "{{ virusblokada_update_url }}"
+  args:
+    chdir: /opt/vba/vbacl
   sudo: yes
