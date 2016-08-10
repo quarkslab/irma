@@ -1,10 +1,50 @@
+
+1.5.1 (released 07/06/2016)
+===========================
+
+    * [brain] code refactor: celery daemons splitted in two distinct files
+    * [brain]  more unittests
+    * [frontend] Fix: using cache results was not done in some cases
+
+1.5.0 (released 28/05/2016)
+===========================
+
+    * [frontend] Storing probe results in PostgreSQL instead of MongoDB.
+            This will break all upgrades attempts but will
+            make easier the process of having data stored outside of IRMA.
+    * [all] Probe now have a display name
+    * [all] bugfix job error handling and job cancel
+
+1.4.2 (released 23/05/2016)
+===========================
+
+    * [frontend] Fix: resubmition of previously deleted file.
+
+
+1.4.1 (released 12/05/2016)
+===========================
+
+    * [frontend] bugfix: Unarchiver file resubmition fixed
+
+
+1.4.0 (released 03/05/2016)
+===========================
+
+    * [all] Default transport mode switch from ftp/tls to sftp
+    * [all] Better handling of large files
+    * [all] Support Rabbimq SSL
+    * [frontend] File search now ordered by name
+    * [frontend] File search now returns the latest analysis
+
 1.3.2  (released 10/03/2016)
 ============================
+
     * [all] add a debug option for log
     * [brain] bugfix (probelist issue, sometimes returning an empty list)
 
 1.3.1 (released 01/03/2016)
 ===========================
+
     * [brain] bugfix (probe offline was not detected)
     * [frontend] bugfix (fast scan, in some cases, was running forever)
 
