@@ -3,7 +3,7 @@
 ===========================
 
     * [brain] code refactor: celery daemons splitted in two distinct files
-    * [brain]  more unittests
+    * [brain] more unittests
     * [frontend] Fix: using cache results was not done in some cases
 
 1.5.0 (released 28/05/2016)
@@ -32,7 +32,7 @@
 
     * [all] Default transport mode switch from ftp/tls to sftp
     * [all] Better handling of large files
-    * [all] Support Rabbimq SSL
+    * [all] Support Rabbitmq SSL
     * [frontend] File search now ordered by name
     * [frontend] File search now returns the latest analysis
 
