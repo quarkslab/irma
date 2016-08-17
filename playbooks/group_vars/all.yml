@@ -8,7 +8,7 @@ default_use_debian_repo: no # If yes, use only Debian official repo for provisio
 default_user: deploy
 default_group: deploy
 
-default_celery_options: "--loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=60 --time-limit=300"
+default_celery_options: "--loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=300 --time-limit=1500"
 
 users:
   - username: "{{ default_user }}"
