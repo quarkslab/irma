@@ -15,8 +15,8 @@
 
 import os
 
-from sqlalchemy import Table, Column, Integer, Numeric, Boolean, ForeignKey, \
-    String, UniqueConstraint, and_
+from sqlalchemy import Table, Column, BigInteger, Integer, Numeric, Boolean, \
+    ForeignKey, String, UniqueConstraint, and_
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
@@ -157,7 +157,7 @@ class File(Base, SQLDatabaseObject):
         name='timestamp_last_scan'
     )
     size = Column(
-        Integer,
+        BigInteger,
         name='size'
     )
     mimetype = Column(
