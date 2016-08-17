@@ -27,7 +27,7 @@ Common requirements
 .. code-block::
 
     WARNING
-    Due to an ansible bug in latest version 2.1.0.0 we recommand using version 2.0.1.0
+    Due to an ansible bug in latest version 2.1.0.0 we recommand using version 2.0.1.0 or 2.1.1.0
 
 
 Dependencies are available via `Ansible Galaxy <https://galaxy.ansible.com/>`_ repository. Installation has been made easy using:
