@@ -105,9 +105,9 @@ def mimetype_filter_scan_request(scan_request_dict):
                         log.error(msg)
                         return IrmaTaskReturn.error(msg)
                     if probe in mimetype_probelist:
-                        # probe is asked but not supported by mimetype
-                        log.debug("filehash %s probe %s asked but" +
-                                  " not supported for %s",
+                        # probe is asked and supported by mimetype
+                        log.debug("filehash %s probe %s asked" +
+                                  " and supported for %s append to request",
                                   filehash, probe, mimetype)
                         filtered_probelist.append(probe)
                 # update probe list in scan request
