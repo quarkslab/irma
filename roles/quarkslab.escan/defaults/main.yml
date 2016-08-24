@@ -1,6 +1,6 @@
 ---
 
-escan_version: "7.0-18"
+escan_version: "7.0-20"
 escan_download_url: "http://www.microworldsystems.com/download/linux/soho/deb"
 escan_deb_amd64_url: "{{ escan_download_url}}/escan-antivirus-wks-{{ escan_version }}.amd64.deb"
 escan_deb_i386_url: "{{ escan_download_url}}/escan-antivirus-wks-{{ escan_version }}.i386.deb"
