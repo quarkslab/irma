@@ -150,6 +150,8 @@
         if(data.status === 1020){
           this.status = constants.scanStatusCodes.ERROR;
           alerts.add({standard: 'ftpError'});
+        } else if (data.status === 110) {
+          this.status = constants.scanStatusCodes.STOPPED;
         } else if (data.status !== 50) {
           this.status = constants.scanStatusCodes.RUNNING;
           this.task = $timeout(this.updateScan.bind(this), constants.refresh);
