@@ -46,6 +46,8 @@ class FTPSTestCase(unittest.TestCase):
     # Test config
     test_ftp_host = "irma.test"
     test_ftp_port = 21
+    test_ftp_auth = "password"
+    test_ftp_key = None
     test_ftp_user = "testuser"
     test_ftp_passwd = "testpwd"
     test_ftp_vuser = None
@@ -71,13 +73,19 @@ class FTPSTestCase(unittest.TestCase):
             print "Testftp Error: {0}".format(e)
             self.skipTest(FTPSTestCase)
 
-    def ftp_connect(self, host=None, port=None, user=None,
-                    passwd=None, vuser=None, upload_path=None):
+    def ftp_connect(self, host=None, port=None,
+                    auth=None, key=None,
+                    user=None, passwd=None,
+                    vuser=None, upload_path=None):
         kwargs = {}
         if host is None:
             host = self.test_ftp_host
         if port is None:
             port = self.test_ftp_port
+        if auth is None:
+            auth = self.test_ftp_auth
+        if key is None:
+            key = self.test_ftp_key
         if user is None:
             user = self.test_ftp_user
         if passwd is None:
@@ -90,6 +98,8 @@ class FTPSTestCase(unittest.TestCase):
         try:
             return self.ftp(host,
                             port,
+                            auth,
+                            key,
                             user,
                             passwd,
                             **kwargs)
@@ -191,6 +201,8 @@ class FTPSTestCase(unittest.TestCase):
     def test_ftp_already_connected(self):
         ftp = self.ftp(self.test_ftp_host,
                        self.test_ftp_port,
+                       self.test_ftp_auth,
+                       self.test_ftp_key,
                        self.test_ftp_user,
                        self.test_ftp_passwd)
         old_conn = ftp._conn
@@ -202,10 +214,14 @@ class FTPSTestCase(unittest.TestCase):
     def test_ftp_double_connect(self):
         self.ftp(self.test_ftp_host,
                  self.test_ftp_port,
+                 self.test_ftp_auth,
+                 self.test_ftp_key,
                  self.test_ftp_user,
                  self.test_ftp_passwd)
         self.ftp(self.test_ftp_host,
                  self.test_ftp_port,
+                 self.test_ftp_auth,
+                 self.test_ftp_key,
                  self.test_ftp_user,
                  self.test_ftp_passwd)
         # TODO when singleton will be done
@@ -215,6 +231,8 @@ class FTPSTestCase(unittest.TestCase):
         with self.assertRaises(IrmaFtpError):
             self.ftp(self.test_ftp_host,
                      45000,
+                     self.test_ftp_auth,
+                     self.test_ftp_key,
                      self.test_ftp_user,
                      self.test_ftp_passwd)
 
@@ -222,6 +240,8 @@ class FTPSTestCase(unittest.TestCase):
         with self.assertRaises(IrmaFtpError):
             self.ftp(self.test_ftp_host,
                      self.test_ftp_port,
+                     self.test_ftp_auth,
+                     self.test_ftp_key,
                      "random_foo",
                      self.test_ftp_passwd)
 
@@ -229,6 +249,8 @@ class FTPSTestCase(unittest.TestCase):
         with self.assertRaises(IrmaFtpError):
             self.ftp(self.test_ftp_host,
                      self.test_ftp_port,
+                     self.test_ftp_auth,
+                     self.test_ftp_key,
                      self.test_ftp_user,
                      "random_bar")
 
