@@ -26,6 +26,8 @@ def download_file(frontend, path, srcname, dstname):
     ftp_config = config.probe_config['ftp_brain']
     with IrmaFTP(ftp_config.host,
                  ftp_config.port,
+                 ftp_config.auth,
+                 ftp_config.key_path,
                  ftp_config.username,
                  ftp_config.password,
                  dst_user=frontend) as ftp:
@@ -40,6 +42,8 @@ def upload_files(frontend, path, srcname_list, scanid):
     ftp_config = config.probe_config['ftp_brain']
     with IrmaFTP(ftp_config.host,
                  ftp_config.port,
+                 ftp_config.auth,
+                 ftp_config.key_path,
                  ftp_config.username,
                  ftp_config.password,
                  dst_user=frontend) as ftp:
