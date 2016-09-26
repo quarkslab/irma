@@ -14,7 +14,7 @@
 # terms contained in the LICENSE file.
 
 import logging
-from irma.common.exceptions import IrmaFTPSError
+from irma.common.exceptions import IrmaFTPSError, IrmaConfigurationError
 from irma.ftp.ftp import IrmaFTP
 from ftplib import FTP_TLS
 import ssl
@@ -62,9 +62,12 @@ class IrmaFTPS(IrmaFTP):
     # ==================================
     #  Constructor and Destructor stuff
     # ==================================
-    def __init__(self, host, port, user, passwd,
+    def __init__(self, host, port, auth, key_path, user, passwd,
                  dst_user=None, upload_path=None):
-        super(IrmaFTPS, self).__init__(host, port, user,
+        if auth != "password":
+            raise IrmaConfigurationError("key authentication not supported for"
+                                         " FTPS")
+        super(IrmaFTPS, self).__init__(host, port, auth, key_path, user,
                                        passwd, dst_user, upload_path)
         # TODO support connection on non standard port
         if self._port != FTP_TLS.port:
