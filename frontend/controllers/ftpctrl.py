@@ -30,9 +30,11 @@ def upload_scan(scanid, file_path_list):
         ftp_config = config.frontend_config['ftp_brain']
         host = ftp_config.host
         port = ftp_config.port
+        auth = ftp_config.auth
+        key_path = ftp_config.key_path
         user = ftp_config.username
         pwd = ftp_config.password
-        with IrmaFTP(host, port, user, pwd) as ftp:
+        with IrmaFTP(host, port, auth, key_path, user, pwd) as ftp:
             ftp.mkdir(scanid)
             for file_path in file_path_list:
                 log.debug("scanid: %s uploading file %s", scanid, file_path)
@@ -62,11 +64,13 @@ def download_file_data(scanid, file_sha256):
         ftp_config = config.frontend_config['ftp_brain']
         host = ftp_config.host
         port = ftp_config.port
+        auth = ftp_config.auth
+        key_path = ftp_config.key_path
         user = ftp_config.username
         pwd = ftp_config.password
 
         fobj = TemporaryFile()
-        with IrmaFTP(host, port, user, pwd) as ftp:
+        with IrmaFTP(host, port, auth, key_path, user, pwd) as ftp:
             log.debug("scanid: %s downloading file %s", scanid, file_sha256)
             ftp.download_fobj(scanid, file_sha256, fobj)
         return fobj
