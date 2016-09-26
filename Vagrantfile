@@ -103,6 +103,8 @@ Vagrant.configure("2") do |config|
 
   if ansible_config
     config.vm.provision :ansible do |ansible|
+      ansible.galaxy_role_file = 'ansible-requirements.yml'
+      ansible.galaxy_roles_path = './roles'
       ansible.playbook = 'playbooks/playbook.yml'
       ansible.extra_vars = ansible_config['extra_vars']
       ansible.groups = ansible_config['groups']
