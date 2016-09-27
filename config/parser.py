@@ -315,8 +315,9 @@ def get_ftp_class():
         key_path = brain_config.ftp_brain.key_path
         auth = brain_config.ftp_brain.auth
         if auth == "key" and not os.path.isfile(key_path):
-            raise IrmaConfigurationError("You are using SFTP authentication by key but the path of the private key "
-                                         "does not exist:['" + key_path + "']")
+            msg = "You are using SFTP authentication by key but the path of " \
+                  "the private key does not exist:['" + key_path + "']"
+            raise IrmaConfigurationError(msg)
         return IrmaSFTP
     elif protocol == "ftps":
         return IrmaFTPS
