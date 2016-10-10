@@ -22,6 +22,8 @@ from logging import BASIC_FORMAT, Formatter
 from logging.handlers import SysLogHandler
 from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
+
+from lib.irma.common.exceptions import IrmaConfigurationError
 from lib.irma.configuration.ini import TemplatedConfiguration
 from lib.irma.ftp.sftp import IrmaSFTP
 from lib.irma.ftp.ftps import IrmaFTPS
@@ -76,6 +78,8 @@ template_brain_config = {
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 22),
+        ('auth', TemplatedConfiguration.string, "password"),
+        ('key_path', TemplatedConfiguration.string, ""),
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
         ],
@@ -308,6 +312,12 @@ def get_lock_path():
 def get_ftp_class():
     protocol = brain_config.ftp.protocol
     if protocol == "sftp":
+        key_path = brain_config.ftp_brain.key_path
+        auth = brain_config.ftp_brain.auth
+        if auth == "key" and not os.path.isfile(key_path):
+            msg = "You are using SFTP authentication by key but the path of " \
+                  "the private key does not exist:['" + key_path + "']"
+            raise IrmaConfigurationError(msg)
         return IrmaSFTP
     elif protocol == "ftps":
         return IrmaFTPS

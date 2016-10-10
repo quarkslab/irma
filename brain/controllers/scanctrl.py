@@ -44,21 +44,6 @@ def set_status(scan, status, session):
     session.commit()
 
 
-def check_probelist(scan, probelist, available_probelist, session):
-    if probelist is None:
-        set_status(scan, IrmaScanStatus.error_probe_missing, session)
-        msg = "empty probe list"
-        log.error("scanid %s: %s", scan.scan_id, msg)
-        raise ValueError(msg)
-    for probe in probelist:
-        # check if probe exists
-        if probe not in available_probelist:
-            set_status(scan, IrmaScanStatus.error_probe_missing, session)
-            msg = "unknown probe {0}".format(probe)
-            log.error("scanid %s: %s", scan.scan_id, msg)
-            raise ValueError(msg)
-
-
 def flush(scan, session):
     if scan.status == IrmaScanStatus.flushed:
         log.info("scan_id %s: already flushed", scan.scan_id)

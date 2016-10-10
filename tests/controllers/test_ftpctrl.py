@@ -31,6 +31,8 @@ class TestFtpCtrl(TestCase):
         conf_ftp = config.brain_config['ftp_brain']
         m_IrmaSFTP.assert_any_call(conf_ftp.host,
                                    conf_ftp.port,
+                                   conf_ftp.auth,
+                                   conf_ftp.key_path,
                                    conf_ftp.username,
                                    conf_ftp.password,
                                    dst_user=ftpuser)
