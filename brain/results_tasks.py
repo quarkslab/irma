@@ -18,7 +18,7 @@ import config.parser as config
 import celery
 import logging
 from celery.utils.log import get_task_logger
-from brain.models.sqlobjects import Probe
+import brain.controllers.probectrl as probe_ctrl
 import brain.controllers.frontendtasks as celery_frontend
 from brain.helpers.sql import session_query
 
@@ -63,15 +63,10 @@ def job_error(parent_taskid, frontend_scan_id, filename, probename):
         log.info("scanid %s: filename:%s probe %s",
                  frontend_scan_id, filename, probename)
         with session_query() as session:
-            probe = Probe.get_by_name(probename, session)
-            result = {}
-            result['status'] = -1
-            result['name'] = probe.display_name
-            result['type'] = probe.category
-            result['error'] = "job error"
-            result['duration'] = None
+            result = probe_ctrl.create_error_results(probename, "job error",
+                                                     session)
             celery_frontend.scan_result(frontend_scan_id, filename,
-                                        probe, result)
+                                        probename, result)
     except Exception as e:
         log.exception(e)
         raise job_error.retry(countdown=5, max_retries=3, exc=e)

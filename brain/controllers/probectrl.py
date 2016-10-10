@@ -23,7 +23,9 @@ from celery import Celery
 from fasteners import interprocess_locked
 from brain.models.sqlobjects import Probe
 import brain.controllers.probetasks as celery_probe
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+    IrmaDatabaseError
+from lib.plugin_result import PluginResult
 
 log = logging.getLogger(__name__)
 
@@ -145,3 +147,15 @@ def get_list(session):
     probes_list = [p.name for p in probes if p.online]
     log.info("probe list %s", "-".join(probes_list))
     return probes_list
+
+
+def create_error_results(probename, error, session):
+    try:
+        probe = Probe.get_by_name(probename, session)
+        display_name = probe.display_name
+        category = probe.category
+    except IrmaDatabaseError:
+        display_name = probename
+        category = "unknown"
+    result = PluginResult(name=display_name, type=category, error=error)
+    return result

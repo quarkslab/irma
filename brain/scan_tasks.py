@@ -101,9 +101,7 @@ def mimetype_filter_scan_request(scan_request_dict):
                 for probe in probe_list:
                     # check if probe exists
                     if probe not in available_probelist:
-                        msg = "Unknown probe {0}".format(probe)
-                        log.error(msg)
-                        return IrmaTaskReturn.error(msg)
+                        log.warning("probe %s not available", probe)
                     if probe in mimetype_probelist:
                         # probe is asked and supported by mimetype
                         log.debug("filehash %s probe %s asked" +
@@ -115,7 +113,7 @@ def mimetype_filter_scan_request(scan_request_dict):
             return IrmaTaskReturn.success(scan_request.to_dict())
     except Exception as e:
         log.exception(e)
-        raise
+        return IrmaTaskReturn.error("Brain error")
 
 
 @scan_app.task(ignore_result=False, acks_late=True)
@@ -134,12 +132,21 @@ def scan(frontend_scanid, scan_request_dict):
             new_jobs = []
             for filehash in scan_request.filehashes():
                 probelist = scan_request.get_probelist(filehash)
-                scan_ctrl.check_probelist(scan, probelist,
-                                          available_probelist, session)
                 for probe in probelist:
-                    j = Job(scan.id, filehash, probe)
-                    session.add(j)
-                    new_jobs.append(j)
+                    if probe in available_probelist:
+                        j = Job(scan.id, filehash, probe)
+                        session.add(j)
+                        new_jobs.append(j)
+                    else:
+                        # send an error message to not stuck the scan
+                        # One probe asked is no more present
+                        res = probe_ctrl.create_error_results(probe,
+                                                              "missing probe",
+                                                              session)
+                        celery_frontend.scan_result(frontend_scanid,
+                                                    filehash,
+                                                    probe,
+                                                    res)
             session.commit()
             scan_ctrl.launch(scan, new_jobs, session)
             celery_frontend.scan_launched(scan.scan_id,

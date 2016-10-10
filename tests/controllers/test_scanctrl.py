@@ -88,36 +88,6 @@ class TestScanctrl(TestCase):
         self.assertEqual(self.scan.status, IrmaScanStatus.empty)
         self.session.commit.assert_not_called()
 
-    def test005_check_probelist(self):
-        available_probelist = range(10)
-        shuffle(available_probelist)
-        probelist = available_probelist[:5]
-        old_status = self.scan.status
-        module.check_probelist(self.scan, probelist, available_probelist,
-                               self.session)
-        self.assertEqual(self.scan.status, old_status)
-
-    def test006_check_probelist_None(self):
-        available_probelist = range(10)
-        probelist = None
-        old_status = self.scan.status
-        with self.assertRaises(ValueError):
-            module.check_probelist(self.scan, probelist,
-                                   available_probelist,
-                                   self.session)
-        self.assertEqual(self.scan.status, IrmaScanStatus.error_probe_missing)
-
-    def test007_check_probelist_unknown_probe(self):
-        available_probelist = range(10)
-        shuffle(available_probelist)
-        probelist = "11"
-        old_status = self.scan.status
-        with self.assertRaises(ValueError):
-            module.check_probelist(self.scan, probelist,
-                                   available_probelist,
-                                   self.session)
-        self.assertEqual(self.scan.status, IrmaScanStatus.error_probe_missing)
-
     def test008_flush_already_flushed(self):
         self.scan.status = IrmaScanStatus.flushed
         module.flush(self.scan, self.session)
