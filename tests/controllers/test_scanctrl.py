@@ -288,6 +288,14 @@ class TestModuleScanctrl(TestCase):
         res = module._fetch_probe_result(m_fw, probename)
         self.assertEqual(res, m_pr)
 
+    def test021b_fetch_probe_results_none(self):
+        m_fw, m_pr = MagicMock(), MagicMock()
+        probename = "probe1"
+        m_pr.name = probename
+        m_fw.probe_results = []
+        res = module._fetch_probe_result(m_fw, probename)
+        self.assertIsNone(res)
+
     @patch("frontend.controllers.scanctrl.log")
     def test022_resubmit_new_files_error(self, m_log):
         m_scan, m_parent_file = MagicMock(), MagicMock()
@@ -588,6 +596,7 @@ class TestModuleScanctrl(TestCase):
         m_Scan.load_from_ext_id.assert_called_once_with("scanid",
                                                         session=m_session)
 
+    @patch("frontend.controllers.scanctrl._filter_children")
     @patch("frontend.controllers.scanctrl._append_new_files_to_scan")
     @patch("frontend.controllers.scanctrl.File")
     @patch("frontend.controllers.scanctrl.Scan")
@@ -596,7 +605,40 @@ class TestModuleScanctrl(TestCase):
                                              m_session_transaction,
                                              m_Scan,
                                              m_File,
-                                             m_append_new_files_to_scan):
+                                             m_append_new_files_to_scan,
+                                             m_filter_children):
+        m_scan, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_scan.resubmit_files = True
+        m_Scan.load_from_ext_id.return_value = m_scan
+        uploaded_files = {'filename': 'filehash'}
+        result = {'uploaded_files': uploaded_files}
+        fw1 = MagicMock()
+        m_append_new_files_to_scan.return_value = [fw1]
+        m_parentfile = MagicMock()
+        m_parentfile.children = []
+        m_filter_children.return_value = uploaded_files
+        m_File.load_from_sha256.return_value = m_parentfile
+        module.handle_output_files("scanid", "parent_file_hash",
+                                   "probe", result)
+        m_Scan.load_from_ext_id.assert_called_once_with("scanid",
+                                                        session=m_session)
+        m_append_new_files_to_scan.assert_called_once_with(m_scan,
+                                                           uploaded_files,
+                                                           m_session)
+        self.assertItemsEqual(m_parentfile.children, [fw1])
+
+    @patch("frontend.controllers.scanctrl._filter_children")
+    @patch("frontend.controllers.scanctrl._append_new_files_to_scan")
+    @patch("frontend.controllers.scanctrl.File")
+    @patch("frontend.controllers.scanctrl.Scan")
+    @patch("frontend.controllers.scanctrl.session_transaction")
+    def test040_handle_output_files_resubmit_none(self,
+                                                  m_session_transaction,
+                                                  m_Scan,
+                                                  m_File,
+                                                  m_append_new_files_to_scan,
+                                                  m_filter_children):
         m_scan, m_session = MagicMock(), MagicMock()
         m_session_transaction().__enter__.return_value = m_session
         m_scan.resubmit_files = True
@@ -607,12 +649,11 @@ class TestModuleScanctrl(TestCase):
         m_append_new_files_to_scan.return_value = [fw1]
         m_parentfile = MagicMock()
         m_parentfile.children = []
+        m_filter_children.return_value = {}
         m_File.load_from_sha256.return_value = m_parentfile
         module.handle_output_files("scanid", "parent_file_hash",
                                    "probe", result)
         m_Scan.load_from_ext_id.assert_called_once_with("scanid",
                                                         session=m_session)
-        m_append_new_files_to_scan.assert_called_once_with(m_scan,
-                                                           uploaded_files,
-                                                           m_session)
-        self.assertItemsEqual(m_parentfile.children, [fw1])
+        m_append_new_files_to_scan.assert_not_called()
+        self.assertItemsEqual(m_parentfile.children, [])

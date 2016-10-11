@@ -134,7 +134,7 @@ def _add_empty_result(fw, probelist, scan, session):
 def _fetch_known_results(file, scan, session):
     scan_known_result = []
     known_fw_list = FileWeb.load_by_scanid_fileid(scan.id, file.id, session)
-    if len(known_fw_list) > 1:
+    if known_fw_list is not None and len(known_fw_list) > 1:
         log.debug("found %d file in current scan",
                   len(known_fw_list))
         scan_known_result = known_fw_list[0].probe_results
@@ -249,6 +249,10 @@ def _fetch_probe_result(fw, probe):
     if len(pr_list) > 1:
         log.error("Integrity error: multiple results for "
                   "file {0} probe {1}".format(fw.name, probe))
+    elif len(pr_list) == 0:
+        log.warning("No result created for "
+                    "file {0} probe {1}".format(fw.name, probe))
+        return None
     return pr_list[0]
 
 
@@ -267,6 +271,24 @@ def _update_ref_results(fw, file, pr):
         log.error("Integrity error: multiple refresults for "
                   "file {0} probe {1}".format(file.sha256, pr.name))
     return
+
+
+def _filter_children(scan, parent_file, uploaded_files):
+    # filter FileWeb already linked to this parent in the current scan
+    children_fw = [fw for fw in parent_file.children
+                   if fw in scan.files_web]
+    log.debug("for parent %s current children in scan: %s",
+              parent_file.sha256,
+              " - ".join([c.name for c in children_fw]))
+    uploaded_files_filtered = dict()
+    for (file_name, file_sha256) in uploaded_files.items():
+        fw = filter(lambda x: x.name == file_name and
+                    x.file.sha256 == file_sha256,
+                    children_fw)
+        if len(fw) == 0:
+            uploaded_files_filtered.update({file_name: file_sha256})
+    return uploaded_files_filtered
+
 
 # ================
 #  Public methods
@@ -448,6 +470,8 @@ def set_result(scanid, file_hash, probe, result):
         for fw in fws:
             # Update main reference results with fresh results
             pr = _fetch_probe_result(fw, probe)
+            if pr is None:
+                continue
             _update_ref_results(fw, fw.file, pr)
             fw.file.update(session=session)
             # fill ProbeResult with probe raw results
@@ -487,10 +511,17 @@ def handle_output_files(scanid, parent_file_hash, probe, result):
             log.debug("scanid: %s Nothing to resubmit or resubmit disabled",
                       scanid)
             return
+        # check whether the results was already received or not
+        log.debug("scanid: %s checking if results already received",
+                  scanid)
+        parent_file = File.load_from_sha256(parent_file_hash, session)
+        uploaded_files = _filter_children(scan, parent_file, uploaded_files)
+        if len(uploaded_files) == 0:
+            log.info("scanid: %s no new uploaded files continue", scanid)
+            return
+        # filter already present file in current scan
         log.info("scanid: %s appending new uploaded files %s",
                  scanid, uploaded_files.keys())
-        parent_file = File.load_from_sha256(parent_file_hash, session)
-        # filter already present file in current scan
         hash_uploaded = [f.sha256 for f in scan.files]
         new_fws = _append_new_files_to_scan(scan, uploaded_files, session)
         for fw in new_fws:
