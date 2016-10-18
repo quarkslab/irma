@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class McAfeeVSCL(Antivirus):
-    _name = "McAfee VirusScan Command Line scanner"
+    _name = "McAfee VirusScan Command Line scanner (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,30 +33,18 @@ class McAfeeVSCL(Antivirus):
         # class super class constructor
         super(McAfeeVSCL, self).__init__(*args, **kwargs)
         # scan tool variables
-        if self._is_windows:
-            self._scan_args = (
-                "/ANALYZE "    # turn on heuristic analysis
-                               # for program and macro
-                "/MANALYZE "   # turn on macro heuristics
-                "/RECURSIVE "  # examine any subdirectories in
-                               # addition to the specified target directory.
-                "/UNZIP "      # scan inside archives
-                "/NOMEM "      # do not scan memory for viruses
-            )
-        else:
-            self._scan_retcodes[self.ScanResult.INFECTED] = \
-                lambda x: x not in [0]
-            self._scan_args = (
-                "--ASCII "             # display filenames as ASCII text
-                "--ANALYZE "           # turn on heuristic analysis for
-                                       # programs and macros
-                "--MANALYZE "          # turn on macro heuristics
-                "--MACRO-HEURISTICS "  # turn on macro heuristics
-                "--RECURSIVE "         # examine any subdirectories
-                                       # to the specified target directory.
-                "--UNZIP "             # scan inside archive files
-            )
-        # TODO: check for retcodes in WINDOWS
+        self._scan_retcodes[self.ScanResult.INFECTED] = \
+            lambda x: x not in [0]
+        self._scan_args = (
+            "--ASCII "             # display filenames as ASCII text
+            "--ANALYZE "           # turn on heuristic analysis for
+                                   # programs and macros
+            "--MANALYZE "          # turn on macro heuristics
+            "--MACRO-HEURISTICS "  # turn on macro heuristics
+            "--RECURSIVE "         # examine any subdirectories
+                                   # to the specified target directory.
+            "--UNZIP "             # scan inside archive files
+        )
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x not in [0]
         self._scan_patterns = [
             re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
@@ -94,16 +82,10 @@ class McAfeeVSCL(Antivirus):
 
     def get_database(self):
         """return list of files in the database"""
-        if self._is_windows:
-            search_paths = [
-                # default install path in windows probes in irma
-                os.path.normpath('C:\VSCL')
-            ]
-        else:
-            search_paths = [
-                # default location in debian
-                '/usr/local/uvscan',
-            ]
+        search_paths = [
+            # default location in debian
+            '/usr/local/uvscan',
+        ]
         database_patterns = [
             'avvscan.dat',   # data file for virus scanning
             'avvnames.dat',  # data file for virus names
@@ -117,11 +99,7 @@ class McAfeeVSCL(Antivirus):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        if self._is_windows:
-            scan_bin = "scan.exe"
-            scan_paths = os.path.normpath("C:\VSCL")
-        else:
-            scan_bin = "uvscan"
-            scan_paths = os.path.normpath("/usr/local/uvscan/")
+        scan_bin = "uvscan"
+        scan_paths = os.path.normpath("/usr/local/uvscan/")
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None

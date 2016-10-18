@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class ComodoCAVL(Antivirus):
-    _name = "Comodo Antivirus for Linux"
+    _name = "Comodo Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class VirusBlokAda(Antivirus):
-    _name = "VirusBlokAda (Console Scanner)"
+    _name = "VirusBlokAda Console Scanner (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

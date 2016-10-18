@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class Zoner(Antivirus):
-    _name = "Zoner Antivirus for Linux Desktop"
+    _name = "Zoner Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

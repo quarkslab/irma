@@ -2,14 +2,14 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.symantec.symantec import Symantec
+from modules.antivirus.symantec_win.symantec_win import SymantecWin
 
 
 # ============
 #  Test Cases
 # ============
 
-class SymantecEicar(GenericEicar, unittest.TestCase):
+class SymantecWinEicar(GenericEicar, unittest.TestCase):
 
     expected_results = {
         'eicar-passwd.zip': None,
@@ -55,7 +55,7 @@ class SymantecEicar(GenericEicar, unittest.TestCase):
         'eicarhqx_binhex.bin': 'EICAR Test String',
     }
 
-    antivirus_class = Symantec
+    antivirus_class = SymantecWin
 
 
 if __name__ == '__main__':

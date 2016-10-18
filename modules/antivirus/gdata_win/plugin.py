@@ -15,40 +15,40 @@
 
 import os
 
-from .vscl import McAfeeVSCL
+from .gdata_win import GDataWin
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError, PlatformDependency
+from lib.plugins import PluginBase, PluginLoadError
+from lib.plugins import PlatformDependency
 from lib.irma.common.utils import IrmaProbeType
 
 
-class McAfeeVSCLPlugin(PluginBase, McAfeeVSCL, AntivirusPluginInterface):
+class GDataPlugin(PluginBase, GDataWin, AntivirusPluginInterface):
 
     # =================
     #  plugin metadata
     # =================
 
-    _plugin_name_ = "McAfeeVSCL"
-    _plugin_display_name_ = McAfeeVSCL._name
-    _plugin_author_ = "IRMA (c) Quarkslab"
-    _plugin_version_ = "1.0.0"
+    _plugin_name_ = "GDataWin"
+    _plugin_display_name_ = GDataWin._name
+    _plugin_author_ = "y0ug"
+    _plugin_version_ = "0.0.1"
     _plugin_category_ = IrmaProbeType.antivirus
-    _plugin_description_ = "Plugin for McAfee VirusScan Command Line " \
-                           "(VSCL) scanner on Linux"
+    _plugin_description_ = "Plugin for GData on Windows"
     _plugin_dependencies_ = [
-        PlatformDependency('linux')
+        PlatformDependency('win32')
     ]
 
     @classmethod
     def verify(cls):
         # create an instance
-        module = McAfeeVSCL()
+        module = GDataWin()
         path = module.scan_path
         del module
         # perform checks
         if not path or not os.path.exists(path):
             raise PluginLoadError("{0}: verify() failed because "
-                                  "McAfeeVSCL executable was not found."
+                                  "GData executable was not found."
                                   "".format(cls.__name__))
 
     # =============
@@ -57,4 +57,4 @@ class McAfeeVSCLPlugin(PluginBase, McAfeeVSCL, AntivirusPluginInterface):
 
     def __init__(self):
         # load default configuration file
-        self.module = McAfeeVSCL()
+        self.module = GDataWin()

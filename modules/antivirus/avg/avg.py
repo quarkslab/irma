@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 class AVGAntiVirusFree(Antivirus):
-    _name = "AVG AntiVirus Free"
+    _name = "AVG AntiVirus Free (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

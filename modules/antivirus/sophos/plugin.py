@@ -18,7 +18,7 @@ import os
 from .sophos import Sophos
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError
+from lib.plugins import PluginBase, PluginLoadError, PlatformDependency
 from lib.irma.common.utils import IrmaProbeType
 
 
@@ -34,6 +34,9 @@ class SophosPlugin(PluginBase, Sophos, AntivirusPluginInterface):
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
     _plugin_description_ = "Plugin for Sophos on GNU/Linux and Windows"
+    _plugin_dependencies_ = [
+        PlatformDependency('linux')
+    ]
 
     @classmethod
     def verify(cls):

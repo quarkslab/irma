@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class FSecure(Antivirus):
-    _name = "FSecure Antivirus for Linux Desktop"
+    _name = "FSecure Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

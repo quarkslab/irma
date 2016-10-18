@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class DrWeb(Antivirus):
-    _name = "DrWeb Antivirus for Linux Desktop"
+    _name = "DrWeb Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

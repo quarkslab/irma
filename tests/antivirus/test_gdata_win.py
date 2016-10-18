@@ -2,14 +2,14 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.gdata.gdata import GData
+from modules.antivirus.gdata_win.gdata_win import GDataWin
 
 
 # ============
 #  Test Cases
 # ============
 
-class GDataEicar(GenericEicar, unittest.TestCase):
+class GDataWinEicar(GenericEicar, unittest.TestCase):
 
     expected_results = {
         'eicar.cab': 'Virus: EICAR-Test-File (not a virus)',
@@ -55,7 +55,7 @@ class GDataEicar(GenericEicar, unittest.TestCase):
         'eicar_msc.bin': 'Virus: EICAR-Test-File (not a virus)',
     }
 
-    antivirus_class = GData
+    antivirus_class = GDataWin
 
 
 if __name__ == '__main__':
