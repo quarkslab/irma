@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class Sophos(Antivirus):
-    _name = "Sophos Anti-Virus"
+    _name = "Sophos Anti-Virus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -78,17 +78,9 @@ class Sophos(Antivirus):
         # NOTE: we can use clamconf to get database location, but it is not
         # always installed by default. Instead, hardcode some common paths and
         # locate files using predefined patterns
-        if self._is_windows:
-            path = 'Sophos/Sophos Anti-Virus'
-            search_paths = map(lambda x:
-                               "{program_files}/{path}/*"
-                               "".format(program_files=x, path=path),
-                               [os.environ.get('PROGRAMFILES', ''),
-                                os.environ.get('PROGRAMFILES(X86)', '')])
-        else:
-            search_paths = [
-                '/opt/sophos-av/lib/sav',  # default location in debian
-            ]
+        search_paths = [
+            '/opt/sophos-av/lib/sav',  # default location in debian
+        ]
         database_patterns = [
             '*.dat',
             'vdl??.vdb',
@@ -103,22 +95,12 @@ class Sophos(Antivirus):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        if self._is_windows:
-            path = 'Sophos/Sophos Anti-Virus'
-            scan_bin = "sav32cli.exe"
-            scan_paths = map(lambda x:
-                             "{program_files}/{path}"
-                             "".format(program_files=x, path=path),
-                             [os.environ.get('PROGRAMFILES', ''),
-                              os.environ.get('PROGRAMFILES(X86)', '')])
-        else:
-            scan_bin = "savscan"
-            scan_paths = "/opt/sophos-av"
+        scan_bin = "savscan"
+        scan_paths = "/opt/sophos-av"
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None
 
     def scan(self, paths):
         # quirk to force lang in linux
-        if not self._is_windows:
-            os.environ['LANG'] = "C"
+        os.environ['LANG'] = "C"
         return super(Sophos, self).scan(paths)

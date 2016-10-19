@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class Escan(Antivirus):
-    _name = "eScan Antivirus for Linux Desktop"
+    _name = "eScan Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

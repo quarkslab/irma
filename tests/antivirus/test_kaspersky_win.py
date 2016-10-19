@@ -2,14 +2,14 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.kaspersky.kaspersky import Kaspersky
+from modules.antivirus.kaspersky_win.kaspersky_win import KasperskyWin
 
 
 # ============
 #  Test Cases
 # ============
 
-class KasperskyEicar(GenericEicar, unittest.TestCase):
+class KasperskyWinEicar(GenericEicar, unittest.TestCase):
 
     expected_results = {
         'eicar-passwd.zip': None,
@@ -55,7 +55,7 @@ class KasperskyEicar(GenericEicar, unittest.TestCase):
         'eicarhqx_binhex.bin': 'EICAR-Test-File',
     }
 
-    antivirus_class = Kaspersky
+    antivirus_class = KasperskyWin
 
 
 if __name__ == '__main__':

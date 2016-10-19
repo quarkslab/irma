@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 class AvastCoreSecurity(Antivirus):
-    _name = "Avast Core Security"
+    _name = "Avast Core Security (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

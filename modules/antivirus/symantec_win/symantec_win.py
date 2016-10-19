@@ -25,8 +25,8 @@ from modules.antivirus.base import Antivirus
 log = logging.getLogger(__name__)
 
 
-class Symantec(Antivirus):
-    _name = "Symantec Anti-Virus"
+class SymantecWin(Antivirus):
+    _name = "Symantec Anti-Virus (Windows)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -34,7 +34,7 @@ class Symantec(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(Symantec, self).__init__(*args, **kwargs)
+        super(SymantecWin, self).__init__(*args, **kwargs)
         # scan tool variables
         self._scan_args = (
             "/ScanFile "  # scan command
@@ -92,7 +92,7 @@ class Symantec(Antivirus):
         self._last_log_time = time.time()
         if self._log_path:
             self._last_log_time = os.path.getmtime(self._log_path)
-        return super(Symantec, self).scan(paths)
+        return super(SymantecWin, self).scan(paths)
 
     def check_scan_results(self, paths, results):
         retcode, stdout, stderr = results[0], None, results[2]
@@ -115,4 +115,4 @@ class Symantec(Antivirus):
             # force scan_result to consider it infected
             retcode = 1 if stdout else 0
             results = (retcode, stdout, stderr)
-        return super(Symantec, self).check_scan_results(paths, results)
+        return super(SymantecWin, self).check_scan_results(paths, results)

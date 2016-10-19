@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 
 class McAfeeDaemon(McAfeeVSCL):
     _daemon_config = '/etc/mcafee-daemon/server.ini'
-    _name = "McAfee VirusScan Daemon"
+    _name = "McAfee VirusScan Daemon (Linux)"
     # ==================================
     #  Constructor and destructor stuff
     # ==================================
