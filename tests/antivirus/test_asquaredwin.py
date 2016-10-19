@@ -2,14 +2,14 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.emsisoft.asquared import ASquaredCmd
+from modules.antivirus.emsisoft_win.asquared_win import ASquaredCmdWin
 
 
 # ============
 #  Test Cases
 # ============
 
-class ASquaredCmdEicar(GenericEicar, unittest.TestCase):
+class ASquaredCmdWinEicar(GenericEicar, unittest.TestCase):
 
     expected_results = {
         'eicar.cab': 'EICAR-Test-File (not a virus) (B)',
@@ -55,7 +55,7 @@ class ASquaredCmdEicar(GenericEicar, unittest.TestCase):
         'eicar_msc.bin': 'EICAR-Test-File (not a virus) (B)',
     }
 
-    antivirus_class = ASquaredCmd
+    antivirus_class = ASquaredCmdWin
 
 
 if __name__ == '__main__':

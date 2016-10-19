@@ -15,39 +15,39 @@
 
 import os
 
-from .gdata import GData
+from .sophos_win import SophosWin
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError
-from lib.plugins import PlatformDependency
+from lib.plugins import PluginBase, PluginLoadError, PlatformDependency
+from lib.irma.common.utils import IrmaProbeType
 
 
-class GDataPlugin(PluginBase, GData, AntivirusPluginInterface):
+class SophosWinPlugin(PluginBase, SophosWin, AntivirusPluginInterface):
 
     # =================
     #  plugin metadata
     # =================
 
-    _plugin_name_ = "GData"
-    _plugin_display_name_ = GData._name
-    _plugin_author_ = "y0ug"
-    _plugin_version_ = "0.0.1"
-    _plugin_category_ = "antivirus"
-    _plugin_description_ = "Plugin for GData on Windows"
+    _plugin_name_ = "SophosWin"
+    _plugin_display_name_ = SophosWin._name
+    _plugin_author_ = "IRMA (c) Quarkslab"
+    _plugin_version_ = "1.0.0"
+    _plugin_category_ = IrmaProbeType.antivirus
+    _plugin_description_ = "Plugin for Sophos on Windows"
     _plugin_dependencies_ = [
         PlatformDependency('win32')
     ]
 
     @classmethod
     def verify(cls):
-        # create an instance
-        module = GData()
+        # check if sophos is available
+        module = SophosWin()
         path = module.scan_path
         del module
         # perform checks
         if not path or not os.path.exists(path):
             raise PluginLoadError("{0}: verify() failed because "
-                                  "GData executable was not found."
+                                  "Sophos executable was not found."
                                   "".format(cls.__name__))
 
     # =============
@@ -56,4 +56,4 @@ class GDataPlugin(PluginBase, GData, AntivirusPluginInterface):
 
     def __init__(self):
         # load default configuration file
-        self.module = GData()
+        self.module = SophosWin()

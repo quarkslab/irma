@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 
 
 class BitdefenderForUnices(Antivirus):
-    _name = "Bitdefender Antivirus Scanner for Unices"
+    _name = "Bitdefender Antivirus Scanner (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff

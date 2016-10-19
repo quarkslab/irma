@@ -2,14 +2,14 @@ import logging
 import unittest
 
 from tests.antivirus.common import GenericEicar
-from modules.antivirus.avira.avira import Avira
+from modules.antivirus.avira_win.avira_win import AviraWin
 
 
 # ============
 #  Test Cases
 # ============
 
-class AviraEicar(GenericEicar, unittest.TestCase):
+class AviraWinEicar(GenericEicar, unittest.TestCase):
 
     expected_results = {
         'eicar.cab': 'Eicar-Test-Signature',
@@ -55,7 +55,7 @@ class AviraEicar(GenericEicar, unittest.TestCase):
         'eicar_msc.bin': 'Eicar-Test-Signature',
     }
 
-    antivirus_class = Avira
+    antivirus_class = AviraWin
 
 
 if __name__ == '__main__':

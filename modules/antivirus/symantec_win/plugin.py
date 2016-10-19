@@ -15,40 +15,37 @@
 
 import os
 
-from .avira import Avira
+from .symantec_win import SymantecWin
 from ..interface import AntivirusPluginInterface
 
 from lib.plugins import PluginBase, PluginLoadError
 from lib.plugins import PlatformDependency
+from lib.irma.common.utils import IrmaProbeType
 
 
-class AviraPlugin(PluginBase, Avira, AntivirusPluginInterface):
+class SymantecWinPlugin(PluginBase, SymantecWin, AntivirusPluginInterface):
 
     # =================
     #  plugin metadata
     # =================
 
-    _plugin_name_ = "Avira"
-    _plugin_display_name_ = Avira._name
-    _plugin_author_ = "y0ug"
-    _plugin_version_ = "0.0.1"
-    _plugin_category_ = "antivirus"
-    _plugin_description_ = "Plugin for Avira on Windows"
+    _plugin_name_ = "SymantecWin"
+    _plugin_display_name_ = SymantecWin._name
+    _plugin_author_ = "IRMA (c) Quarkslab"
+    _plugin_version_ = "1.0.0"
+    _plugin_category_ = IrmaProbeType.antivirus
+    _plugin_description_ = "Plugin for Symantec Antivirus on Windows"
     _plugin_dependencies_ = [
         PlatformDependency('win32')
     ]
 
     @classmethod
     def verify(cls):
-        # create an instance
-        module = Avira()
-        path = module.scan_path
+        module = SymantecWin()
+        if not module.scan_path or not os.path.exists(module.scan_path):
+            del module
+            raise PluginLoadError("Unable to find Symantec executable")
         del module
-        # perform checks
-        if not path or not os.path.exists(path):
-            raise PluginLoadError("{0}: verify() failed because "
-                                  "Avira executable was not found."
-                                  "".format(cls.__name__))
 
     # =============
     #  constructor
@@ -56,4 +53,4 @@ class AviraPlugin(PluginBase, Avira, AntivirusPluginInterface):
 
     def __init__(self):
         # load default configuration file
-        self.module = Avira()
+        self.module = SymantecWin()

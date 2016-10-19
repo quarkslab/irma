@@ -22,8 +22,8 @@ from modules.antivirus.base import Antivirus
 log = logging.getLogger(__name__)
 
 
-class Kaspersky(Antivirus):
-    _name = "Kaspersky Anti-Virus"
+class SophosWin(Antivirus):
+    _name = "Sophos Endpoint Protection (Windows)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,17 +31,26 @@ class Kaspersky(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(Kaspersky, self).__init__(*args, **kwargs)
+        super(SophosWin, self).__init__(*args, **kwargs)
         # scan tool variables
         self._scan_args = (
-            "scan "  # scan command
-            "/i0 "   # report only
+            "-archive "   # scan inside archives
+            "-cab "       # scan microsoft cab file
+            "-loopback "  # scan loopback-type file
+            "-tnef "      # scan tnet file
+            "-mime "      # scan file encoded with mime format
+            "-oe "        # scan microsoft outlook
+            "-pua "       # scan file encoded with mime format
+            "-ss "        # only print errors or found viruses
+            "-nc "        # do not ask remove confirmation when infected
+            "-nb "        # no bell sound
         )
-        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [2, 3]
+        code_infected = self.ScanResult.INFECTED
+        # NOTE: on windows, 0 can be returned even if the file is infected
+        self._scan_retcodes[code_infected] = lambda x: x in [0, 1, 2, 3]
         self._scan_patterns = [
-            re.compile(r"^[^\s]+\s+[^\s]+" +
-                       r"(?P<file>.+)\s+(detected|suspicion)+" +
-                       r"\s(?P<name>[^\r]*)")
+            re.compile(r">>> Virus '(?P<name>.+)' found in file (?P<file>.+)",
+                       re.IGNORECASE)
         ]
 
     # ==========================================
@@ -52,7 +61,7 @@ class Kaspersky(Antivirus):
         """return the version of the antivirus"""
         result = None
         if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, 'help')
+            cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
                 matches = re.search(r'(?P<version>\d+(\.\d+)+)',
@@ -64,22 +73,20 @@ class Kaspersky(Antivirus):
 
     def get_database(self):
         """return list of files in the database"""
-        # TODO: We list all files in Bases/*, heuristic to lookup database
-        # must be improved
+        # NOTE: we can use clamconf to get database location, but it is not
+        # always installed by default. Instead, hardcode some common paths and
+        # locate files using predefined patterns
+        path = 'Sophos/Sophos Anti-Virus'
         search_paths = map(lambda x:
-                           "{path}/Kaspersky Lab/*/Bases".format(path=x),
-                           [os.environ.get('PROGRAMDATA', '')])
+                           "{program_files}/{path}/*"
+                           "".format(program_files=x, path=path),
+                           [os.environ.get('PROGRAMFILES', ''),
+                            os.environ.get('PROGRAMFILES(X86)', '')])
         database_patterns = [
-            '*.avz',
             '*.dat',
-            '*.dll',
-            '*.esm',
-            '*.kdc',
-            '*.keb',
-            '*.mft',
-            '*.xms',
-            '*.xml',
-            '*.ini',
+            'vdl??.vdb',
+            'sus??.vdb',
+            '*.ide',
         ]
         results = []
         for pattern in database_patterns:
@@ -89,8 +96,11 @@ class Kaspersky(Antivirus):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        scan_bin = "avp.com"
-        scan_paths = map(lambda x: "{path}/Kaspersky Lab/*".format(path=x),
+        path = 'Sophos/Sophos Anti-Virus'
+        scan_bin = "sav32cli.exe"
+        scan_paths = map(lambda x:
+                         "{program_files}/{path}"
+                         "".format(program_files=x, path=path),
                          [os.environ.get('PROGRAMFILES', ''),
                           os.environ.get('PROGRAMFILES(X86)', '')])
         paths = self.locate(scan_bin, scan_paths)

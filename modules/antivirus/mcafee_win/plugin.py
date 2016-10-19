@@ -15,37 +15,41 @@
 
 import os
 
-from .symantec import Symantec
+from .vscl import McAfeeVSCLWin
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError
-from lib.plugins import PlatformDependency
+from lib.plugins import PluginBase, PluginLoadError, PlatformDependency
 from lib.irma.common.utils import IrmaProbeType
 
 
-class SymantecPlugin(PluginBase, Symantec, AntivirusPluginInterface):
+class McAfeeVSCLWinPlugin(PluginBase, McAfeeVSCLWin, AntivirusPluginInterface):
 
     # =================
     #  plugin metadata
     # =================
 
-    _plugin_name_ = "Symantec"
-    _plugin_display_name_ = Symantec._name
+    _plugin_name_ = "McAfeeVSCLWin"
+    _plugin_display_name_ = McAfeeVSCLWin._name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
-    _plugin_description_ = "Plugin for Symantec Antivirus on Windows"
+    _plugin_description_ = "Plugin for McAfee VirusScan Command Line " \
+                           "(VSCL) scanner on Windows"
     _plugin_dependencies_ = [
         PlatformDependency('win32')
     ]
 
     @classmethod
     def verify(cls):
-        module = Symantec()
-        if not module.scan_path or not os.path.exists(module.scan_path):
-            del module
-            raise PluginLoadError("Unable to find Symantec executable")
+        # create an instance
+        module = McAfeeVSCLWin()
+        path = module.scan_path
         del module
+        # perform checks
+        if not path or not os.path.exists(path):
+            raise PluginLoadError("{0}: verify() failed because "
+                                  "McAfeeVSCL executable was not found."
+                                  "".format(cls.__name__))
 
     # =============
     #  constructor
@@ -53,4 +57,4 @@ class SymantecPlugin(PluginBase, Symantec, AntivirusPluginInterface):
 
     def __init__(self):
         # load default configuration file
-        self.module = Symantec()
+        self.module = McAfeeVSCLWin()

@@ -15,14 +15,15 @@
 
 import logging
 import re
+import os
 
-from ..base import Antivirus
+from modules.antivirus.base import Antivirus
 
 log = logging.getLogger(__name__)
 
 
-class Clam(Antivirus):
-    _name = "Clam AntiVirus Scanner (Linux)"
+class McAfeeVSCLWin(Antivirus):
+    _name = "McAfee VirusScan Command Line scanner (Windows)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -30,17 +31,33 @@ class Clam(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(Clam, self).__init__(*args, **kwargs)
+        super(McAfeeVSCLWin, self).__init__(*args, **kwargs)
         # scan tool variables
         self._scan_args = (
-            "--infected "    # only print infected files
-            "--fdpass "      # avoid file access problem as clamdameon
-                             # is runned by clamav user
-            "--no-summary "  # disable summary at the end of scanning
-            "--stdout "      # do not write to stderr
+            "/ANALYZE "    # turn on heuristic analysis
+                           # for program and macro
+            "/MANALYZE "   # turn on macro heuristics
+            "/RECURSIVE "  # examine any subdirectories in
+                           # addition to the specified target directory.
+            "/UNZIP "      # scan inside archives
+            "/NOMEM "      # do not scan memory for viruses
         )
+        # TODO: check for retcodes in WINDOWS
+        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x not in [0]
         self._scan_patterns = [
-            re.compile(r'(?P<file>.*): (?P<name>[^\s]+) FOUND', re.IGNORECASE)
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found the (?P<name>[^!]+)!(.+)\!{1,3}$',
+                       re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found the (?P<name>[^!]+) [a-z]+ \!{1,3}$',
+                       re.IGNORECASE),
+            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
+                       r'Found [a-z]+ or variant (?P<name>[^!]+) \!{1,3}$',
+                       re.IGNORECASE),
+            re.compile(r'(?P<file>.*(?=\s+\.\.\.\s+Found:\s+))'
+                       r'\s+\.\.\.\s+Found:\s+'
+                       r'(?P<name>.*(?=\s+NOT\s+a\s+virus\.))',
+                       re.IGNORECASE),
         ]
 
     # ==========================================
@@ -63,24 +80,14 @@ class Clam(Antivirus):
 
     def get_database(self):
         """return list of files in the database"""
-        # NOTE: we can use clamconf to get database location, but it is not
-        # always installed by default. Instead, hardcode some common paths and
-        # locate files using predefined patterns
         search_paths = [
-            '/var/lib/clamav',      # default location in debian
+            # default install path in windows probes in irma
+            os.path.normpath('C:\VSCL')
         ]
         database_patterns = [
-            'main.cvd',
-            'daily.c[lv]d',         # *.cld on debian and on
-                                    # *.cvd on clamav website
-            'bytecode.c[lv]d',      # *.cld on debian and on
-                                    # *.cvd on clamav website
-            'safebrowsing.c[lv]d',  # *.cld on debian and on
-                                    # *.cvd on clamav website
-            '*.hdb',                # clamav hash database
-            '*.mdb',                # clamav MD5, PE-section based
-            '*.ndb',                # clamav extended signature format
-            '*.ldb',                # clamav logical signatures
+            'avvscan.dat',   # data file for virus scanning
+            'avvnames.dat',  # data file for virus names
+            'avvclean.dat',  # data file for virus cleaning
         ]
         results = []
         for pattern in database_patterns:
@@ -90,5 +97,7 @@ class Clam(Antivirus):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("clamdscan")
+        scan_bin = "scan.exe"
+        scan_paths = os.path.normpath("C:\VSCL")
+        paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None

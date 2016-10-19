@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class FProt(Antivirus):
-    _name = "F-PROT Antivirus"
+    _name = "F-PROT Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
