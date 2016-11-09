@@ -1,0 +1,60 @@
+# for python
+*.pyc
+
+# for web
+web/node_modules
+web/app/components
+web/dist
+web/.sass-cache/
+web/.tmp/
+web/app/bower_components/
+
+# other
+.idea/*
+*~
+venv/
+
+# for tests
+frontend/tests/results/
+brain/tests/results/
+probe/tests/results/
+.coverage
+
+# configuration
+frontend/config/*.ini
+brain/config/*.ini
+probe/config/*.ini
+
+#ssl certificate
+frontend/ssl/*.pem
+brain/ssl/*.pem
+probe/ssl/*.pem
+
+# ansible 
+ansible/.vagrant/
+ansible/hosts/*
+ansible/vagrant_ansible_inventory_default
+ansible/roles/franklinkim.sudo/
+ansible/roles/franklinkim.ufw/
+ansible/roles/JasonGiedymin.nodejs/
+ansible/roles/jdauphant.nginx/
+ansible/roles/Mayeu.RabbitMQ/
+ansible/roles/mivok0.users/
+ansible/roles/Stouts.mongodb/
+ansible/roles/ANXS.postgresql/
+ansible/roles/gdamjan.uwsgi/
+ansible/roles/willshersystems.sshd
+
+ansible/files/*
+!files/.gitkeep
+
+# Ignore AV licence file
+ansible/playbooks/files/license.avastlic
+ansible/roles/quarkslab.avast/files/license.avastlic
+
+# Ignore only stable group_vars
+ansible/group_vars/all
+ansible/group_vars/brain
+ansible/group_vars/frontend
+ansible/group_vars/probe
+
