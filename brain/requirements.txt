@@ -1,0 +1,8 @@
+celery<3.2
+sqlalchemy
+nose
+coverage
+pylint
+mock
+fasteners
+paramiko<2.0

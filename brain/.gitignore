@@ -1,0 +1,16 @@
+# for python
+*.pyc
+venv/
+
+# for dev configuration files
+config/brain.ini
+
+# for tests
+tests/results/
+.coverage
+
+# ssl certificate
+ssl/*.pem
+
+# IDE
+.idea
