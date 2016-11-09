@@ -6,7 +6,14 @@
 .git*       text export-ignore
 
 # Ensure that these binarys are, well, binary
+*.uue       binary
+*.bin       binary
 *.bz2       binary
 *.tgz       binary
 *.tar.gz    binary
 *.zip       binary
+*.jpg       binary
+*.otf       binary
+*.ttf       binary
+*.png       binary
+*.gif       binary
