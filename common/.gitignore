@@ -1,0 +1,8 @@
+# python
+*.pyc
+
+# PyCharm
+.idea/*
+
+# Coverage
+.coverage
