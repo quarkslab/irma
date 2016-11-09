@@ -1,0 +1,128 @@
+---
+# Variables used by Vagrantfile are defined here
+
+servers:
+  - name: frontend.irma
+    box: quarkslab/debian-8.2.0-amd64
+    ip: 172.16.1.30
+    hostname: frontend.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+    shares:
+      - share_from: ../irma-frontend
+        share_to: /opt/irma/irma-frontend/current
+        share_exclude:
+          - .git/
+          - venv/
+          - web/dist
+          - web/node_modules
+          - app/components
+  - name: brain.irma
+    box: quarkslab/debian-8.2.0-amd64
+    ip: 172.16.1.31
+    hostname: brain.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+    shares:
+      - share_from: ../irma-brain
+        share_to: /opt/irma/irma-brain/current
+        share_exclude:
+          - .git/
+          - venv/
+          - db/
+  - name: avs-linux.irma
+    box: quarkslab/debian-8.2.0-amd64
+    ip: 172.16.1.32
+    hostname: avs-linux.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+    shares:
+      - share_from: ../irma-probe
+        share_to: /opt/irma/irma-probe/current
+        share_exclude:
+          - .git/
+          - venv/
+## NOTE: The following adds a windows VM to IRMA. This is not enabled by
+## default in allinone_dev because of known limitations due to shared folders.
+## Please have a look at the documentation if ## you want to enable this in an dev
+## environment.
+## NOTE: hostname cannot be more that 15 characters
+##   - name: probe-win.irma
+##     box: eval-win8x64-enterprise
+##     ip: 172.16.1.33
+##     hostname: probe-win.irma
+##     cpus: 2
+##     cpuexecutioncap: 100
+##     memory: 2048
+##     windows: true
+##     shares:
+##       - share_from: ../irma-probe
+##         share_to: C:/IRMA/irma-probe/current
+##         share_exclude:
+##           - .git/
+##           - venv/
+
+ansible_config:
+  extra_vars:
+    vagrant: true
+    vagrant_share: true
+    irma_environment: development
+  groups:
+    frontend:
+      - frontend.irma
+    brain:
+      - brain.irma
+    clamav:
+      - avs-linux.irma
+    comodo:
+      - avs-linux.irma
+    mcafee:
+      - avs-linux.irma
+    static-analyzer:
+      - avs-linux.irma
+    virustotal:
+      - avs-linux.irma
+    avg:
+      - avs-linux.irma
+    bitdefender:
+      - avs-linux.irma
+    escan:
+      - avs-linux.irma
+    virusblokada:
+      - avs-linux.irma
+    zoner:
+      - avs-linux.irma
+    drweb:
+      - avs-linux.irma
+    avast:
+      - avs-linux.irma
+    fsecure:
+      - avs-linux.irma
+    trid:
+      - avs-linux.irma
+    sophos:
+      - avs-linux.irma
+    windows-probe:
+      - probe-win.irma
+    "probe:children":
+      - clamav
+      - comodo
+      - mcafee
+      - static-analyzer
+      - virustotal
+      - avg
+      - bitdefender
+      - escan
+      - virusblokada
+      - zoner
+      - drweb
+      - avast
+      - fsecure
+      - trid
+      - sophos
+      - windows-probe
+    "windows:children":
+      - windows-probe

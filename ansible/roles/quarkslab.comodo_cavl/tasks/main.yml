@@ -1,0 +1,43 @@
+---
+
+- name: ComodoCAVL | Install dependencies
+  apt: pkg={{ item }} state=present
+  with_items:
+    - binutils
+    - libqt4-sql
+    - libqt4-network
+    - libqtgui4
+
+- name: ComodoCAVL | Create temporary work dir
+  file:
+    path: "{{ comodo_cavl_temp_dir }}/"
+    state: directory
+
+- name: ComodoCAVL | Download Package
+  get_url:
+    url: "{{ comodo_cavl_deb_url }}"
+    dest: "{{ comodo_cavl_temp_dir }}/comodo.deb"
+  when: ansible_os_family == "Debian"
+
+- name: ComodoCAVL | Extract files
+  shell: ar x "{{ comodo_cavl_temp_dir }}/comodo.deb"
+  args:
+    chdir: "{{ comodo_cavl_temp_dir }}/"
+    creates: "{{ comodo_cavl_temp_dir }}/data.tar.gz"
+
+- name: ComodoCAVL | Install files
+  shell: tar xzf "{{ comodo_cavl_temp_dir }}/data.tar.gz" -C /
+
+- name: ComodoCAVL | Download Update
+  command: wget -Nc -r -nd -l1 {{ comodo_cavl_update_url }}
+  args:
+    chdir: "{{ comodo_cavl_temp_dir }}/"
+    creates: "{{ comodo_cavl_temp_dir }}/bases.cav"
+
+- name: ComodoCAVL | Install Update
+  shell: mv "{{ comodo_cavl_temp_dir }}/bases.cav" /opt/COMODO/scanners
+
+- name: ComodoCAVL | Remove temporary work dir
+  file:
+    path: "{{ comodo_cavl_temp_dir }}/"
+    state: absent

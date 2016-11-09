@@ -1,0 +1,158 @@
+---
+
+- name: Common tasks to execute on all Linux servers
+  hosts: all:!windows
+  sudo: yes
+  roles:
+    - { role: quarkslab.apt, tags: 'apt' }
+    - { role: franklinkim.ufw, tags: 'ufw' }
+    - { role: quarkslab.irma_provisioning_common, tags: 'common' }
+    - { role: mivok0.users, tags: 'users' }
+    - { role: franklinkim.sudo, tags: 'sudo' }
+    - { role: willshersystems.sshd, tags: 'openssh' }
+
+
+- name: Frontend provisioning
+  hosts: ["frontend", "frontend-demo"]
+  sudo: yes
+  roles:
+    - { role: quarkslab.nodejs, tags: 'nodejs' }
+    - { role: gdamjan.uwsgi, tags: 'uwsgi' }
+    - { role: ANXS.postgresql, tags: 'postgresql' }
+    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_frontend }}" }
+    - { role: quarkslab.irma_provisioning_frontend, tags: 'frontend' }
+    - { role: jdauphant.nginx, tags: 'nginx' }
+    - { role: quarkslab.ufw_additional, tags: 'ufw', ufw_additional_rules: "{{ frontend_ufw_additional_rules }}" }
+
+
+- name: Brain provisioning
+  hosts: brain
+  sudo: yes
+  roles:
+    - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_brain }}" }
+    - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
+   # - { role: quarkslab.pureftpd, tags: 'pureftpd' }
+    - { role: quarkslab.irma_provisioning_brain, tags: 'brain' }
+    - { role: quarkslab.ufw_additional, tags: 'ufw', ufw_additional_rules: "{{ brain_ufw_additional_rules }}" }
+
+
+# NOTE: moved down sudo attributes as windows does not support sudo.
+- name: Probe provisioning
+  hosts: probe
+  roles:
+    - { role: quarkslab.irma_provisioning_probe, tags: 'probe' }
+    - { role: quarkslab.supervisor, sudo: yes, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}", when: "ansible_distribution in ['Debian', 'Ubuntu']"}
+
+# Antivirus section
+- name: ClamAV provisioning
+  hosts: clamav
+  sudo: yes
+  roles:
+    - { role: quarkslab.clamav, tags: 'clamav' }
+
+- name: ComodoCAVL provisioning
+  hosts: comodo
+  sudo: yes
+  roles:
+    - { role: quarkslab.comodo_cavl, tags: 'comodo' }
+
+
+- name: Sophos provisioning
+  hosts: sophos
+  sudo: yes
+  roles:
+    - { role: quarkslab.sophos, tags: 'sophos' }
+
+- name: EsetNod32 provisioning
+  hosts: eset-nod32
+  sudo: yes
+  roles:
+    - { role: quarkslab.eset_nod32, tags: 'eset_nod32' }
+
+- name: McAfee VSCL provisioning
+  hosts: mcafee
+  sudo: yes
+  roles:
+    - { role: quarkslab.mcafee_vscl, tags: 'mcafee_vscl' }
+
+- name: McAfee VSCL provisioning (Windows)
+  hosts: mcafee-win
+  sudo: no
+  roles:
+    - { role: quarkslab.mcafee_vscl_windows, tags: 'mcafee_vscl_windows' }
+
+- name: StaticAnalyzer provisioning
+  hosts: static-analyzer
+  sudo: yes
+  roles:
+    - { role: quarkslab.static_analyzer, tags: 'static-analyzer' }
+
+- name: VirusTotal provisioning
+  hosts: virustotal
+  sudo: yes
+  roles:
+    - { role: quarkslab.virustotal, tags: 'virustotal' }
+
+- name: AVG provisioning
+  hosts: avg
+  roles:
+    - { role: quarkslab.avg, tags: 'avg' }
+
+- name: AVG provisioning
+  hosts: bitdefender
+  roles:
+    - { role: quarkslab.bitdefender, tags: 'bitdefender' }
+
+- name: EScan provisioning
+  hosts: escan
+  roles:
+    - { role: quarkslab.escan, tags: 'escan' }
+
+- name: VirusBlokAda
+  hosts: virusblokada
+  roles:
+    - { role: quarkslab.virusblokada , tags: 'virusblokada' }
+
+- name: Zoner provisioning
+  hosts: zoner
+  roles:
+    - { role: quarkslab.zoner, tags: 'zoner' }
+
+- name: DrWeb provisioning
+  hosts: drweb
+  roles:
+    - { role: quarkslab.drweb, tags: 'drweb' }
+
+- name: Avast provisioning
+  hosts: avast
+  roles:
+    - { role: quarkslab.avast, tags: 'avast' }
+
+- name: FSecure provisioning
+  hosts: fsecure
+  roles:
+    - { role: quarkslab.fsecure, tags: 'fsecure' }
+
+- name: TrID provisioning
+  hosts: trid
+  roles:
+    - { role: quarkslab.trid, tags: 'trid' }
+
+- name: PEiD provisioning
+  hosts: peid
+  sudo: yes
+  roles:
+    - { role: quarkslab.peid, tags: 'peid' }
+
+- name: Emsisoft a2cmd provisioning
+  hosts: emsisoft-win
+  roles:
+    - { role: quarkslab.emsisoft_a2cmd_windows, tags: 'emsisoft' }
+
+- name: Unarchiver provisioning
+  hosts: unarchiver
+  sudo: yes
+  roles:
+    - { role: quarkslab.unarchiver, tags: 'unarchiver' }
+
+# vim: sw=2

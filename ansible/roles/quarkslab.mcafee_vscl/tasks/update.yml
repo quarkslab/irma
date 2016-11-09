@@ -1,0 +1,18 @@
+---
+
+- name: McAfee VSCL | Download Update
+  command: wget -Nc -r -nd -l1 -A "avvepo????dat.zip" http://download.nai.com/products/DatFiles/4.x/nai/
+  args:
+    chdir: "{{ mcafee_temp_dir }}/"
+
+- shell: "ls {{ mcafee_temp_dir }}/avvepo*"
+  register: update_pkg
+
+- shell: "unzip -o {{ item }} -d {{ mcafee_temp_dir }} && rm -r {{ item }}"
+  with_items: update_pkg.stdout_lines
+
+- shell: "ls {{ mcafee_temp_dir }}/avvdat-*"
+  register: update
+
+- shell: "unzip -o {{ item }} -d /usr/local/uvscan/ && rm {{ item }}"
+  with_items: update.stdout_lines

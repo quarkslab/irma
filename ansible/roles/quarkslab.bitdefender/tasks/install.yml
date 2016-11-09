@@ -1,0 +1,35 @@
+---
+
+- name: BitDefender | Download Package
+  get_url:
+    url: "{{ bitdefender_url }}"
+    dest: /tmp/BitDefender-Antivirus-Scanner-linux.run
+
+# NOTE: We patch the installed to have an ansible friendly installer
+- name: BitDefender | Patching Installer CRC
+  replace:
+    dest: /tmp/BitDefender-Antivirus-Scanner-linux.run
+    regexp: '^CRCsum=(.*)$'
+    replace: 'CRCsum="0000000000"'
+
+- name: BitDefender | Patching Installer MD5
+  replace:
+    dest: /tmp/BitDefender-Antivirus-Scanner-linux.run
+    regexp: '^MD5=(.*)$'
+    replace: 'MD5="00000000000000000000000000000000"'
+    backup: yes
+
+- name: BitDefender | Replace more by cat for 'more LICENSE'
+  replace:
+    dest: /tmp/BitDefender-Antivirus-Scanner-linux.run
+    regexp: '^more LICENSE$'
+    replace: 'cat  LICENSE'
+    backup: yes
+
+- name: BitDefender | Run installer, do not install GUI
+  shell: (echo 'accept'; echo 'n') | sh /tmp/BitDefender-Antivirus-Scanner-linux.run
+  sudo: yes
+
+- name: BitDefender | Update file definitions
+  shell: echo "accept" | bdscan --update
+  sudo: yes

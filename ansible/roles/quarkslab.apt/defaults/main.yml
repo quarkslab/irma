@@ -1,0 +1,5 @@
+---
+
+apt_repositories_mirrors: [ 'http://ftp.debian.org/debian/' ]
+apt_repositories_code_names: [ '{{ ansible_distribution_release }}', '{{ ansible_distribution_release }}-updates' ]
+apt_repositories_sources: [ 'main' ]

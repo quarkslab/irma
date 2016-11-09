@@ -1,0 +1,9 @@
+---
+
+pureftpd_install_method: "package"
+pureftpd_options: []
+
+pureftpd_target_version: "1.0.36"
+pureftpd_tag_name: "pure-ftpd-{{ pureftpd_target_version }}"
+pureftpd_tarball_name: "{{ pureftpd_tag_name }}.tar.bz2"
+pureftpd_tarball_url: "http://download.pureftpd.org/pub/pure-ftpd/releases/{{ pureftpd_tarball_name }}"

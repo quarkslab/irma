@@ -1,0 +1,9 @@
+---
+
+bitdefender_version: "7.7-1"
+bitdefender_download_url: "http://download.bitdefender.com/SMB/Workstation_Security_and_Management/BitDefender_Antivirus_Scanner_for_Unices/Unix/Current/EN_FR_BR_RO/Linux/"
+bitdefender_deb_amd64_url: "{{ bitdefender_download_url}}/BitDefender-Antivirus-Scanner-{{ bitdefender_version }}-linux-amd64.deb.run"
+bitdefender_deb_i586_url: "{{ bitdefender_download_url}}/BitDefender-Antivirus-Scanner-{{ bitdefender_version }}-linux-i586.deb.run"
+
+# TODO: automatically guess whether the target is amd64 or i586
+bitdefender_url: "{{ bitdefender_deb_amd64_url }}"

@@ -1,0 +1,6 @@
+---
+
+- name: Reload UFW
+  ufw:
+    state: reloaded
+  sudo: yes

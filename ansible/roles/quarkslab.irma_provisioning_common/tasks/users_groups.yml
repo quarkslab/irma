@@ -1,0 +1,18 @@
+---
+
+- name: Add IRMA Groups
+  group:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ irma_server_group }}"
+    - "{{ irma_cert_group }}"
+    - "{{ irma_group }}"
+
+- name: Add IRMA user
+  user:
+    name: "{{ irma_user }}"
+    group: "{{ irma_group }}"
+    groups: "{{ irma_server_group }}"
+    createhome: "{{ 'yes' if 'escan' in group_names else 'no' }}"
+    state: present

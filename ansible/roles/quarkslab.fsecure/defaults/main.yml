@@ -1,0 +1,6 @@
+---
+
+fsecure_version: "11.00.79-rtm"
+fsecure_download_url: "https://download.f-secure.com/corpro/ls/trial/fsls-{{ fsecure_version }}.tar.gz"
+fsecure_url: "{{ fsecure_download_url }}"
+fsecure_temp_dir: "/tmp/fsecure"

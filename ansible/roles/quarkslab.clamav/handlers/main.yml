@@ -1,0 +1,4 @@
+---
+
+- name: ClamAV | restart daemon
+  action: service name=clamav-daemon state=restarted

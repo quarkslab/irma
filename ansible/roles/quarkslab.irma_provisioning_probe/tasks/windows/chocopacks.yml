@@ -1,0 +1,55 @@
+---
+- name: Installing Chocolatey Packages | git
+  win_chocolatey:
+    name: git
+    version: 1.9.5.20150114
+
+- name: Installing Chocolatey Packages | vcpython27
+  win_chocolatey:
+    name: vcpython27
+
+- name: Installing Chocolatey Packages | python
+  win_chocolatey:
+    name: python
+    version: 2.7.6
+
+- name: Installing Chocolatey Packages | pywin32
+  win_chocolatey:
+    name: "{{ item }}"
+  with_items:
+    - 7zip.install
+    - pywin32
+
+## Install
+- name: Determine remote_tmp variable
+  raw: CMD /C echo '%TEMP%'
+  register: echo_temp
+
+- set_fact:
+    remote_tmp: '{{ echo_temp.stdout_lines[0] | regex_replace("\\\\", "/") }}'
+
+- name: Download get-pip.py for pip
+  win_get_url:
+    url: "https://bootstrap.pypa.io/get-pip.py"
+    dest: "{{ remote_tmp }}/get-pip.py"
+
+- name: Run get-pip.py for pip
+  raw: python "{{ remote_tmp }}/get-pip.py"
+
+## On win81, chocolatey does not set correctly the path
+- name: Determine ProgramFiles(x86)
+  raw: CMD /C echo '%PROGRAMFILES(x86)%'
+  register: echo_programfiles
+
+- set_fact:
+    remote_programfiles: '{{ echo_programfiles.stdout_lines[0] | regex_replace("\\\\", "/") }}'
+
+- name: Fix Missing Paths
+  raw: >
+    powershell -command "$scope = '{{ item.scope }}';
+                         $pathToInstall = '{{ item.path }}';
+                         $envPath = [Environment]::GetEnvironmentVariable('Path', $scope) + ';' + $pathToInstall + ';';
+                         [System.Environment]::SetEnvironmentVariable('Path', ($envPath -split ';' | where {$_ -and (Test-Path $_  )}| select-object -unique) -join ';', $scope);"
+  with_items:
+    - path: "{{ remote_program_files }}/Git/cmd/"
+      scope: 'User'

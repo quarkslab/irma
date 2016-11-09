@@ -1,0 +1,260 @@
+---
+
+## Global variables
+hostname: frontend.irma
+
+frontend_user: "{{ default_user }}"
+frontend_group: "{{ default_group }}"
+frontend_project_dir: /opt/irma/irma-frontend
+
+frontend_install_dir: "{{ frontend_project_dir }}/current"
+frontend_releases_dir: "{{ frontend_project_dir }}/releases"
+frontend_venv_dir: "{{ frontend_install_dir }}/venv"
+frontend_beat_schedule: /var/irma/frontend_beat_schedule
+
+
+## Deployment
+frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
+frontend_deployment_configs:
+  - section: broker_brain
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_brain
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.brain.vhost}}"
+  - section: broker_brain
+    option: username
+    value: "{{irma_configurations.rabbitmq.brain.user}}"
+  - section: broker_brain
+    option: password
+    value: "{{irma_configurations.rabbitmq.brain.password}}"
+  - section: broker_frontend
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: broker_frontend
+    option: vhost
+    value: "{{irma_configurations.rabbitmq.frontend.vhost}}"
+  - section: broker_frontend
+    option: username
+    value: "{{irma_configurations.rabbitmq.frontend.user}}"
+  - section: broker_frontend
+    option: password
+    value: "{{irma_configurations.rabbitmq.frontend.password}}"
+  - section: backend_brain
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: ftp_brain
+    option: host
+    value: "{{irma_configurations.brain_addr}}"
+  - section: ftp_brain
+    option: username
+    value: "{{irma_configurations.ftpd.frontend.username}}"
+  - section: ftp_brain
+    option: password
+    value: "{{irma_configurations.ftpd.frontend.password}}"
+  - section: sqldb
+    option: dbms
+    value: postgresql
+  - section: sqldb
+    option: dialect
+    value: psycopg2
+  - section: sqldb
+    option: username
+    value: "{{irma_configurations.postgresql.frontend.username}}"
+  - section: sqldb
+    option: password
+    value: "{{irma_configurations.postgresql.frontend.password}}"
+  - section: sqldb
+    option: dbname
+    value: "{{irma_configurations.postgresql.frontend.db_name}}"
+  - section: cron_frontend
+    option: clean_db_file_max_age
+    value: "{{irma_configurations.cron_frontend.clean_db_file_max_age}}"
+
+
+## UFW Rules
+frontend_ufw_additional_rules:
+  - port: 80
+    rule: allow
+  - port: 443
+    rule: "{{ 'allow' if frontend_openssl|default('False') else 'deny' }}"
+
+
+## HTTPs
+frontend_openssl: False # Default value is False. For HTTPs using OpenSSL,
+                        # change it to True
+frontend_openssl_dh_param: /etc/nginx/certs/{{ hostname }}_dhparam.pem
+
+frontend_openssl_certificates:
+  cert:
+    src: files/{{ hostname }}/hostname.crt
+    dst: /etc/nginx/certs/{{ hostname }}.crt
+  key:
+    src: files/{{ hostname }}/hostname.key
+    dst: /etc/nginx/certs/{{ hostname }}.key
+  ca:
+    src: files/{{ hostname }}/ca.crt
+    dst: /etc/nginx/certs/ca.crt
+
+
+## Apt role
+apt_repositories_code_names:
+  - '{{ ansible_distribution_release }}'
+  - '{{ ansible_distribution_release }}-updates'
+  - '{{ ansible_distribution_release }}-backports'
+
+
+## uWSGI role
+uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
+uwsgi_plugins:
+  - python
+
+
+## NodeJS role
+nodejs_version: "0.10.30"
+nodejs_global_packages:
+  - debug
+
+
+## PostgreSQL role
+# Basic settings
+postgresql_version: "9.4"
+postgresql_client_encoding: "UTF8"
+
+## Databases informations
+postgresql_databases:
+  - name: irma-frontend
+
+postgresql_users:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    pass: "{{irma_configurations.postgresql.frontend.password}}"
+    encrypted: no
+
+postgresql_user_privileges:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    db: "{{irma_configurations.postgresql.frontend.db_name}}"
+    priv: "ALL"
+
+
+## Supervisor role
+supervisor_programs_frontend:
+  - name: frontend_app
+    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}} --beat --schedule={{ frontend_beat_schedule }}"
+    directory: "{{ frontend_install_dir }}"
+    user: "{{ irma_user }}"
+    numprocs: 1
+    stdout_logfile: /var/log/supervisor/frontend_app.log
+    stderr_logfile: /var/log/supervisor/frontend_app.log
+    autostart: true
+    stopwaitsecs: 600
+    killasgroup: true
+  - name: frontend_api
+    command: >
+      uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+      --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
+      --python-path {{ frontend_install_dir }}/venv --mount /api=frontend/api/base.py --lazy
+    user: "{{ irma_user }}"
+    numprocs: 1
+    stdout_logfile: /var/log/supervisor/frontend_api.log
+    stderr_logfile: /var/log/supervisor/frontend_api.log
+    redirect_stderr: true
+    stopsignal: INT
+    autostart: true
+    stopwaitsecs: 600
+    killasgroup: true
+
+
+## Nginx role
+nginx_configs:
+  proxy:
+    - proxy_set_header X-Real-IP $remote_addr
+    - proxy_set_header Host $http_host
+    - proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for
+    - proxy_set_header X-NginX-Proxy true
+    - proxy_redirect off
+    - proxy_http_version 1.1
+    - proxy_set_header Upgrade $http_upgrade
+    - proxy_set_header Connection "upgrade"
+  gzip:
+    - gzip on
+    - gzip_disable "msie6"
+    - gzip_comp_level 6
+    - gzip_buffers 16 8k
+    - gzip_http_version 1.1
+    - gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript
+  http:
+    - server_names_hash_bucket_size 64
+
+nginx_sites:
+  default:
+    - listen 80
+  irma-frontend:
+    - listen 80 default_server
+    - listen [::]:80 default_server ipv6only=on
+    - server_name www.{{ hostname }}
+    - client_max_body_size 100m
+    - location ~ /\.ht {
+        deny all;
+      }
+    - location /api {
+        include uwsgi_params;
+        rewrite ^/api/(.+) /$1 break;
+        uwsgi_pass 127.0.0.1:8081;
+      }
+    - location /swagger {
+        alias {{ frontend_install_dir }}/swagger/ui;
+        index index.html;
+      }
+    - location / {
+        expires -1;
+        add_header Pragma "no-cache";
+        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        root {{ frontend_install_dir }}/web/dist;
+        try_files $uri $uri/ /index.html =404;
+      }
+    - error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
+    - access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
+  # Uncomment the following for HTTPs using OpenSSL support
+  # It can be customize for your needs (add the swagger API, …)
+  #irma-frontend-https:
+    #- listen 443 default_server
+    #- listen [::]:443 default_server ipv6only=on
+    #- server_name www.{{ hostname }}
+    #- client_max_body_size 100m
+    #- location ~ /\.ht {
+        #deny all;
+      #}
+    #- location /api {
+        #include uwsgi_params;
+        #rewrite ^/api/(.+) /$1 break;
+        #uwsgi_pass 127.0.0.1:8081;
+      #}
+    # - location /swagger {
+    #     alias {{ frontend_install_dir }}/swagger/ui;
+    #     index index.html;
+    #   }
+    #- location / {
+        # expires -1;
+        # add_header Pragma "no-cache";
+        # add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        # root {{ frontend_install_dir }}/web/dist;
+        # try_files $uri $uri/ /index.html =404;
+      #}
+    #- error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
+    #- access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
+    ## TLS configuration
+    #- ssl on
+    #- ssl_certificate {{ frontend_openssl_certificates.cert.dst }}
+    #- ssl_certificate_key {{ frontend_openssl_certificates.key.dst }}
+    ## dhparam of 2048 bit or greater (1024 if java6 required)
+    #- ssl_dhparam {{ frontend_openssl_dh_param }}
+    #- ssl_session_timeout 5m
+    #- ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2
+    #- ssl_ciphers 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4'
+    #- ssl_prefer_server_ciphers on
+    ## TLS session cache
+    #- ssl_session_cache shared:SSL:50m
+    ## HSTS record cache for 6 months
+    #- add_header Strict-Transport-Security max-age=15768000
+
+# vim: sw=2

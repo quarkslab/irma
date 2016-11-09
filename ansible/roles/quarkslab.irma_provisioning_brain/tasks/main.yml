@@ -1,0 +1,16 @@
+---
+
+- include: sftpd.yml
+
+#- include: pureftpd.yml
+
+- name: Ensure good rights on IRMA-Brain install directory
+  file:
+    path: "{{ brain_project_dir }}"
+    state: directory
+    owner: "{{ brain_user }}"
+    group: "{{ irma_server_group }}"
+    mode: 02750
+    recurse: "{{ vagrant_share|default(false) }}"
+
+# vim: sw=2

@@ -1,0 +1,46 @@
+
+- name: TrID | Adding i386 repositories
+  shell: dpkg --add-architecture i386
+  sudo: yes
+
+- name: TrID | Install dependencies
+  apt: name="{{ item }}" state="latest" update_cache="yes"
+  with_items:
+    - libc6-i386
+    - libstdc++6
+    - libncurses5:i386
+    - unzip
+  sudo: yes
+
+- name: TrID | Creating temp directory
+  file: path="{{ trid_temp_dir }}" state="directory"
+
+- name: TrID | Download Packages
+  get_url: url="{{ item.url }}" dest="{{ item.dest }}"
+  with_items:
+    - url: "{{ trid_zip_url }}"
+      dest: "{{ trid_temp_dir }}/trid_linux.zip"
+    - url: "{{ tridupdate_zip_url }}"
+      dest: "{{ trid_temp_dir }}/tridupdate.zip"
+
+- name: TrID | Creating Install Directory
+  file: path="{{ trid_install_dir }}" state="directory"
+  sudo: yes
+
+- name: TrID | Extracting packages
+  unarchive: src="{{ item.src }}" dest="{{ item.dest }}" copy=no
+  with_items:
+    - src: "{{ trid_temp_dir }}/trid_linux.zip"
+      dest: "{{ trid_install_dir}}"
+    - src: "{{ trid_temp_dir }}/tridupdate.zip"
+      dest: "{{ trid_install_dir }}"
+  sudo: yes
+
+- name: TrID | Ensure binary is executable
+  file: path="{{ trid_install_dir }}/trid" mode=0755
+  sudo: yes
+
+- name: TrID | Removing temp directory
+  file:
+    path: "{{ trid_temp_dir }}"
+    state: absent

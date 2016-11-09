@@ -1,0 +1,52 @@
+---
+
+- set_fact:
+    brain_deployment_dir: "{{ brain_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
+
+- name: Ensure that releases directory has been created
+  file:
+    path: "{{ brain_project_dir }}/releases"
+    state: directory
+
+- name: Clone irma-brain repository
+  git:
+    repo: "{{ brain_deployment_repository }}"
+    dest: "{{ brain_deployment_dir }}"
+    version: "{{ irma_deployment_code_version }}"
+    accept_hostkey: yes
+  when: irma_deployment_code_version != 'local'
+
+- name: Install requirements in a virtualenv
+  pip:
+    requirements: "{{ brain_deployment_dir }}/requirements.txt"
+    virtualenv: "{{ brain_deployment_dir }}/venv"
+    extra_args: "{{ pip_extra_args | default('') }}"
+
+- name: Generate database
+  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.ftpd.frontend.username }}"
+  args:
+    chdir: "{{ brain_deployment_dir }}"
+  sudo_user: "{{ irma_user }}"
+  sudo: yes
+
+- name: Configure config/brain.ini file
+  ini_file:
+    dest: "{{ brain_deployment_dir }}/config/brain.ini"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items: "{{ brain_deployment_configs }}"
+
+- name: Create symlink release -> current
+  file:
+    src: "{{ brain_deployment_dir }}"
+    dest: "{{ brain_install_dir }}"
+    state: link
+  when: irma_deployment_code_version != 'local'
+
+- name: Restart Supervisor services
+  supervisorctl:
+    name: "{{ item.name }}"
+    state: restarted
+  sudo: yes
+  with_items: "{{ supervisor_programs_brain }}"

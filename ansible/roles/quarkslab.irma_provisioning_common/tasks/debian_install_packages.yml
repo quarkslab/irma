@@ -1,0 +1,11 @@
+---
+
+- name: Install common needed packages for IRMA
+  apt: name={{ item }} state=present
+  with_items:
+    - vim
+    - aria2
+    - git
+    - python-pip
+    - python-virtualenv
+    - python-dev

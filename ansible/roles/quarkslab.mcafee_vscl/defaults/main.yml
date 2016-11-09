@@ -1,0 +1,5 @@
+---
+
+mcafee_vscl_tgz_url: http://b2b-download.mcafee.com/products/evaluation/vcl/l64/vscl-l64-604-e.tar.gz
+mcafee_vscl_update_url: http://download.nai.com/products/DatFiles/4.x/nai/avvepo????dat.zip
+mcafee_temp_dir: /tmp/mcafee

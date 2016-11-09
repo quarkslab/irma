@@ -1,0 +1,93 @@
+---
+# Variables used by Vagrantfile are defined here
+
+servers:
+  - name: frontend.irma
+    box: quarkslab/debian-8.2.0-amd64
+    ip: 172.16.1.30
+    hostname: frontend.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+  - name: brain.irma
+    box: quarkslab/debian-8.2.0-amd64
+    ip: 172.16.1.31
+    hostname: brain.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+  - name: avs-linux.irma
+    box: quarkslab/debian-8.2.0-amd64
+    ip: 172.16.1.32
+    hostname: avs-linux.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+  - name: mcafee-win.irma
+    box: eval-win8x64-enterprise
+    ip: 172.16.1.33
+    hostname: mcafee-win.irma
+    cpus: 2
+    cpuexecutioncap: 100
+    memory: 2048
+    windows: true
+
+ansible_config:
+  extra_vars:
+    vagrant: true
+  groups:
+    frontend:
+      - frontend.irma
+    brain:
+      - brain.irma
+    clamav:
+      - avs-linux.irma
+    comodo:
+      - avs-linux.irma
+    mcafee:
+      - avs-linux.irma
+    static-analyzer:
+      - avs-linux.irma
+    virustotal:
+      - avs-linux.irma
+    avg:
+      - avs-linux.irma
+    bitdefender:
+      - avs-linux.irma
+    escan:
+      - avs-linux.irma
+    virusblokada:
+      - avs-linux.irma
+    zoner:
+      - avs-linux.irma
+    drweb:
+      - avs-linux.irma
+    avast:
+      - avs-linux.irma
+    fsecure:
+      - avs-linux.irma
+    trid:
+      - avs-linux.irma
+    sophos:
+      - avs-linux.irma
+    mcafee-win:
+      - mcafee-win.irma
+    "probe:children":
+      - clamav
+      - comodo
+      - mcafee
+      - virustotal
+      - static-analyzer
+      - avg
+      - bitdefender
+      - escan
+      - virusblokada
+      - zoner
+      - drweb
+      - avast
+      - fsecure
+      - trid
+      - sophos
+      - mcafee-win
+    "windows:children":
+      - mcafee-win

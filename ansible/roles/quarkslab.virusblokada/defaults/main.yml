@@ -1,0 +1,5 @@
+---
+
+virusblokada_tgz_url: "http://anti-virus.by/pub/vbacl-linux-3.12.26.4.tar.gz"
+virusblokada_update_url: "http://anti-virus.by/update"
+virusblokada_temp_dir: "/tmp/vba32"

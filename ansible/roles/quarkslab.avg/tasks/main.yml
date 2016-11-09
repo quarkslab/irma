@@ -1,0 +1,36 @@
+---
+
+- name: AVG | Adding i386 repositories
+  shell: dpkg --add-architecture i386
+  sudo: yes
+
+- name: AVG | Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  sudo: yes
+  with_items:
+    - libc6-i386
+    - libstdc++6
+
+# Link from http://free.avg.com/fr-fr/download-free-all-product
+- name: AVG | Download Installer
+  get_url:
+    url: http://download.avgfree.com/filedir/inst/avg2013flx-r3118-a6926.i386.deb
+    dest: /tmp/avg2013flx-r3118-a6926.i386.deb
+
+- name: AVG | Install deb
+  apt:
+    deb: /tmp/avg2013flx-r3118-a6926.i386.deb
+  sudo: yes
+
+- name: AVG | Update database
+  shell: avgupdate
+  register: avgupdate_results
+  until: avgupdate_results.rc == 0 or avgupdate_results.rc == 2
+  retries: 5
+  failed_when: avgupdate_results.rc != 0 and avgupdate_results.rc != 2
+  sudo: yes
+  notify:
+    - AVG | Restart agvd service

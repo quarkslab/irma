@@ -1,0 +1,29 @@
+---
+
+# For now, AV is install in Immutability mode
+
+- name: Install dependencies for McAfee installation
+  apt: pkg={{ item }} state=present
+  with_items:
+    - unzip
+    - curl
+
+- name: McAfee VSCL | Check version
+  command: /usr/local/uvscan/uvscan --version
+  ignore_errors: yes
+  register: mcafee
+
+- name: McAfee VSCL | Create temporary work dir
+  file:
+    path: "{{ mcafee_temp_dir }}/"
+    state: directory
+
+- include: install.yml
+  when: mcafee | failed
+
+- include: update.yml
+
+- name: McAfee VSCL | Remove temporary work dir
+  file:
+    path: "{{ mcafee_temp_dir}}/"
+    state: absent

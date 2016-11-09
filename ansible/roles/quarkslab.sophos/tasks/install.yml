@@ -1,0 +1,39 @@
+---
+
+- name: Sophos | Installation will proceed
+  debug:
+    msg: "Sophos is going to be installed."
+
+- name: Sophos | Create temporary work dir
+  file:
+    path: "{{ sophos_temp_dir }}/"
+    state: directory
+
+- name: Sophos | Download installation archive
+  get_url:
+    url: "{{ sophos_archive_url }}"
+    dest: "{{ sophos_temp_dir }}/{{ sophos_archive_name }}"
+
+- name: Sophos | Dezip archive
+  unarchive:
+    src: "{{ sophos_temp_dir }}/{{ sophos_archive_name }}"
+    dest: "{{ sophos_temp_dir }}"
+    copy: no
+
+- name: Sophos | Launch install script (Free mode)
+  command: "{{ sophos_temp_dir }}/sophos-av/install.sh {{ sophos_install_dir }} --update-free --acceptlicence --autostart=False --enableOnBoot=False --automatic --ignore-existing-installation --update-source-type=s"
+  when: not (sophos_update_username and sophos_update_password)
+
+- name: Sophos | Launch install script (Supported mode)
+  command: "{{ sophos_temp_dir }}/sophos-av/install.sh {{ sophos_install_dir }} --acceptlicence --autostart=False --enableOnBoot=False --automatic --ignore-existing-installation --update-source-type=s --update-source-username={{ sophos_update_username }} --update-source-password={{ sophos_update_password }}"
+  when: sophos_update_username and sophos_update_password
+
+- name: Sophos | Set parameters
+  command: "{{ sophos_install_dir }}/bin/savconfig set {{ item.key }} {{ item.value }}"
+  with_items:
+    - { key: 'EnableOnStart', value: 'false' }
+
+- name: Sophos | Remove temporary work dir
+  file:
+    path: "{{ sophos_temp_dir }}/"
+    state: absent

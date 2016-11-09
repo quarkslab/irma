@@ -1,0 +1,11 @@
+---
+
+# perform an apt-get cache if one day old
+# From https://coderwall.com/p/0xtstw
+- name: Check Apt last update
+  stat: path=/var/cache/apt
+  register: apt_cache_stat
+
+- name: Update Apt if needed
+  apt: update_cache=yes
+  when: ansible_date_time.epoch|float - apt_cache_stat.stat.mtime > 60*60*24 and ansible_os_family == "Debian"

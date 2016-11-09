@@ -1,0 +1,7 @@
+---
+
+- name: Installing pip packages
+  raw: python -m easy_install {{ item }}
+  with_items:
+    - virtualenv
+    - http://www.voidspace.org.uk/python/pycrypto-2.6.1/pycrypto-2.6.1.win-amd64-py2.7.exe

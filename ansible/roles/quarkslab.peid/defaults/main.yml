@@ -1,0 +1,4 @@
+---
+
+peid_sig_url: https://raw.githubusercontent.com/viper-framework/viper/master/data/peid/UserDB.TXT
+sig_dir: /opt/irma/peid_sig

@@ -1,0 +1,31 @@
+---
+
+# VirusTotal module configuration
+# Uncomment this to set an apikey to a specific hostname
+# virustotal_configs:
+#   - section: VirusTotal
+#     option: private
+#     value: False
+#   - section: VirusTotal
+#     option: apikey
+#     value: 88eb8e2f869e98ea9b0367cb47c143cb438a5e8d8dfd3b6e3fb6c898374b8fb6
+
+# Bit Defender Scanner key - Put your licence key here
+# bitdefender_scanner_key:
+
+# Zoner Antivirus - put you licence key here
+# zoner_license_key: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+
+# DrWeb Antivirus - put your configurations there
+# drweb_configs:
+#   - section: LinuxSpider
+#     option: Start
+#     value: No
+
+# Avast! licence file - Put your licence file here
+# avast_license_file: files/license.avastlic
+
+# if you have a valid Fsecure licence put it here
+# fsecure_license_key: XXXX-XXXX-XXXX-XXXX-XXXX
+# Check the psb server number on your license ([1-4])
+# fsecure_psb_server: http://psb1-bw.sp.f-secure.com/

@@ -1,0 +1,81 @@
+---
+
+default_ssh_keys:
+  - "{{ lookup('file', 'files/ssh_keys/vagrant.pub') }}"   # Vagrant
+
+default_use_debian_repo: no # If yes, use only Debian official repo for provisioning tasks
+
+default_user: deploy
+default_group: deploy
+
+default_celery_options: "--loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=300 --time-limit=1500"
+
+users:
+  - username: "{{ default_user }}"
+    name: "{{ default_user }}"
+    groups: ["{{ irma_server_group }}", 'sudo']
+    uid: 1010
+    ssh_key: "{{ default_ssh_keys }}"
+
+sudo_users:
+  - { name: "{{ default_user }}", nopasswd: yes }
+
+
+## IRMA specific infrastructure
+irma_environment: production # Can be (development, test)
+
+irma_user: irma
+irma_group: irma
+irma_server_group: irma-server
+irma_cert_group: irma-cert
+
+irma_configurations:
+  brain_addr: brain.irma
+  rabbitmq:
+    brain:
+      vhost: mqbrain
+      user: brain
+      password: brain
+    frontend:
+      vhost: mqfrontend
+      user: frontend
+      password: frontend
+    probe:
+      vhost: mqprobe
+      user: probe
+      password: probe
+  ftpd:
+    frontend:
+      username: frontend
+      password: frontend
+    probe:
+      username: probe
+      password: probe
+  postgresql:
+    frontend:
+      username: irma
+      password: irma
+      db_name: irma-frontend
+  cron_frontend:
+    clean_db_file_max_age: 0
+
+
+# Deployment
+irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else irma_release|default('HEAD') }}"
+irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+
+
+## UFW
+ufw_login: on
+ufw_applications:
+  - { name: "OpenSSH" }
+
+## OpenSSH server config
+sshd:
+  AcceptEnv: LANG
+  IgnoreRhost: yes
+  LogLevel: INFO
+  PermitEmptyPasswords: no
+  PermitRootLogin: no
+  Protocol: 2
+  X11Forwarding: no

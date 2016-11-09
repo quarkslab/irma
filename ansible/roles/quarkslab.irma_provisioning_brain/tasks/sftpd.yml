@@ -1,0 +1,43 @@
+---
+
+- name: SFTPD | Create group sftpusers
+  group:
+    name: "{{ brain_sftpd_groupname }}"
+    state: present
+
+- name: SFTPD | Ensure virtual users exists
+  user:
+    name: "{{ item.username }}"
+    group: "{{ brain_sftpd_groupname }}"
+    shell: /sbin/nologin
+    state: present
+  with_items: "{{ brain_sftpd_virtual_users }}"
+
+- name: "SFTPD | Set sftp users password"
+  shell: echo "{{ item.username }}":"{{ item.password }}" | chpasswd
+  with_items: "{{ brain_sftpd_virtual_users }}"
+
+- name: SFTPD | Ensure virtual user chroot dir exists
+  file:
+    path: "{{ brain_sftpd_rootdir }}/{{ item.user }}"
+    state: directory
+    owner: root
+    group: root
+    recurse: true
+    mode: 0755
+  with_items: "{{ brain_sftpd_virtual_writers }}"
+
+
+- name: SFTPD | Ensure virtual user upload dir exists
+  file:
+    path: "{{ brain_sftpd_rootdir }}/{{ item.user }}/{{ brain_sftpd_default_upload_dir }}"
+    state: directory
+    owner: "{{ item.user }}"
+    group: "{{ brain_sftpd_groupname }}"
+    mode: 0775
+  with_items: "{{ brain_sftpd_virtual_writers }}"
+
+- name: SFTPD | Restart sshd
+  service:
+    name: sshd
+    state: restarted

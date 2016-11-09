@@ -1,0 +1,12 @@
+---
+
+language: python
+python: "2.7"
+before_install:
+    - sudo apt-get update -qq
+install:
+    - pip install ansible
+    - ansible-galaxy install -r ansible-requirements.yml -p roles/
+    - printf 'travis-standalone ansible_ssh_host=localhost' > inventory
+script:
+    - ansible-playbook -i inventory playbooks/playbook.yml --syntax-check

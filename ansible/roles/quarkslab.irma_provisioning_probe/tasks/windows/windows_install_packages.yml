@@ -1,0 +1,6 @@
+---
+
+- include: chocopacks.yml
+
+# Installing pip packages
+- include: pip.yml

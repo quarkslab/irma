@@ -1,0 +1,36 @@
+---
+
+# TODO: Check Pure-FTPD version and to compare to the requested version.
+
+- include: install.yml
+  when: pureftpd_install_method == "source"
+
+- include: package.yml
+  when: pureftpd_install_method == "package"
+
+- name: Configuration | Check for --tlsciphersuite option
+  shell: "pure-ftpd -h"
+  register: pureftpd_switches
+
+# On Debian 7, the wrapper has to be modified to include this option
+- name: Configuration | Eventually, patch the wrapper
+  lineinfile:
+    dest: "/usr/sbin/pure-ftpd-wrapper"
+    line: "\t\t\t'TLSCipherSuite' => ['-J %s', \\&parse_string],"
+    insertafter: "'TLS' =>"
+    regexp: "'TLSCipherSuite' =>"
+    state: present
+  when: pureftpd_switches.stdout.find('tlsciphersuite') != -1
+
+- name: Configuration | Add file with content in /etc/pure-ftpd/conf/ directory
+  template:
+    src=pureftpd_conf.j2
+    dest=/etc/pure-ftpd/conf/{{ item.key }}
+    owner=root
+    group=root
+    mode=0644
+  with_dict: pureftpd_options
+  when: item.key != 'TLSCipherSuite' or pureftpd_switches.stdout.find('tlsciphersuite') != -1
+
+- name: Daemon | Ensure Pure-FTPD is started
+  service: name=pure-ftpd state=started
