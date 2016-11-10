@@ -36,11 +36,9 @@ ansible/hosts/*
 ansible/vagrant_ansible_inventory_default
 ansible/roles/franklinkim.sudo/
 ansible/roles/franklinkim.ufw/
-ansible/roles/JasonGiedymin.nodejs/
 ansible/roles/jdauphant.nginx/
 ansible/roles/Mayeu.RabbitMQ/
 ansible/roles/mivok0.users/
-ansible/roles/Stouts.mongodb/
 ansible/roles/ANXS.postgresql/
 ansible/roles/gdamjan.uwsgi/
 ansible/roles/willshersystems.sshd
