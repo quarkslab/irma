@@ -15,6 +15,13 @@ Documentation
 The documentation is now available `on Read The Docs Website`_.
 
 
+Installation
+````````````
+
+IRMA is meant to be run on multiple virtual machines. To help you setting up an
+environment, have a look at the ansible sub directory, beginning with the README file.
+
+
 Getting help
 ````````````
 
