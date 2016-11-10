@@ -9,6 +9,7 @@ Requirements
 ````````````
 
 - `Vagrant <http://www.vagrantup.com/>`_ 1.8 or higher has to be installed
+- `Vagrant Hostmanager Plugin <https://github.com/devopsgroup-io/vagrant-hostmanager>`_
 - As the installation work only for `Virtualbox <https://www.virtualbox.org/>`_,
   you will need to install it
 - `Rsync <https://rsync.samba.org/>`_ to synchronize directories from host to VMs
@@ -45,6 +46,26 @@ the following directory layout:
 
 Run Vagrant and create your VMs
 ```````````````````````````````
+
+For environments `allinone_dev` and `dev`, we recommand you to install
+the Vagrant Hostmanager Plugin:
+.. code-block:: bash
+
+    vagrant plugin install vagrant-hostmanager
+
+It's used to modify `/etc/hosts` of your host, but also of all VMs.
+
+
+As it use sudoer's rights, you may don't want to install it.
+Then, please add to your `/etc/hosts` file and all of your VM:
+
+for allinone_dev environment:
+.. code-block:: bash
+
+    172.16.1.30 brain.irma
+    172.16.1.30 www.irma.local
+    172.16.1.30 api.irma.local
+
 
 To initialize and provision the Virtualbox VM, run ``vagrant up
 --no-provision`` from the ``irma-ansible`` directory. The template will be
