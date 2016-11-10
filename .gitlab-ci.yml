@@ -1,0 +1,32 @@
+stages:
+  - tests
+
+before_script:
+  - cd $CI_PROJECT_DIR/$DIR
+  - virtualenv --system-site-packages venv
+  - venv/bin/pip install --quiet pep8 nosexcover pylint
+  - venv/bin/pip install -r requirements.txt
+
+frontend:
+  stage: tests
+  variables:
+    DIR: frontend
+  script:
+    - venv/bin/pep8 config extras frontend tests --exclude=tests/old,extras/migration
+    - venv/bin/nosetests --with-coverage --cover-xml --cover-package=frontend --with-xunit --cover-erase tests/
+
+brain:
+  stage: tests
+  variables:
+    DIR: brain
+  script:
+    - venv/bin/pep8 config extras brain tests --exclude=tests/old,extras/migration
+    - venv/bin/nosetests --with-coverage --cover-xml --cover-package=brain --with-xunit --cover-erase tests/
+
+probe:
+  stage: tests
+  variables:
+    DIR: probe
+  script:
+    - venv/bin/pep8 config probe tests --exclude=tests/old
+    - venv/bin/nosetests --with-coverage --cover-xml --cover-package=probe --with-xunit --cover-erase tests/
