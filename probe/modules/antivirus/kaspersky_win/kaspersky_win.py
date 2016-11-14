@@ -52,14 +52,14 @@ class KasperskyWin(Antivirus):
         """return the version of the antivirus"""
         result = None
         if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, 'help')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
+            # Latest version do not output
+            # version so extract it from path
+            matches = re.search(r'Kaspersky Lab\\[^\\]+ '
+                                r'(?P<version>\d+(\.\d+)+)\\',
+                                self.scan_path,
+                                re.IGNORECASE)
+            if matches:
+                result = matches.group('version').strip()
         return result
 
     def get_database(self):
