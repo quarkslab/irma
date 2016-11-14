@@ -5,15 +5,40 @@
 
 - name: Ensure that releases directory has been created
   file:
-    path: "{{ brain_project_dir }}/releases"
+    path: "{{ brain_deployment_dir }}"
     state: directory
+  when: irma_deployment_code_version != 'local'
 
-- name: Clone irma-brain repository
-  git:
-    repo: "{{ brain_deployment_repository }}"
+- name: Gather brain src from current directory
+  local_action: shell cd ../brain && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/brain.zip "{{ irma_deployment_code_version }}"
+  when: irma_deployment_code_version != 'local'
+
+- name: Upload brain src archive
+  unarchive:
+    src: "{{ irma_deployment_src }}/brain.zip"
     dest: "{{ brain_deployment_dir }}"
-    version: "{{ irma_deployment_code_version }}"
-    accept_hostkey: yes
+  when: irma_deployment_code_version != 'local'
+
+- name: Gather common src from current directory
+  local_action: shell cd ../common && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/common.zip "{{ irma_deployment_code_version }}"
+  when: irma_deployment_code_version != 'local'
+
+- name: Remove common symlink
+  file:
+    path: "{{ brain_deployment_dir }}/lib"
+    state: absent
+  when: irma_deployment_code_version != 'local'
+
+- name: Create lib directory
+  file:
+    path: "{{ brain_deployment_dir }}/lib"
+    state: directory
+  when: irma_deployment_code_version != 'local'
+
+- name: Deploy frontend-common src archive
+  unarchive:
+    src: "{{ irma_deployment_src }}/common.zip"
+    dest: "{{ brain_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 
 - name: Install requirements in a virtualenv
@@ -23,7 +48,7 @@
     extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Generate database
-  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user pepito {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.ftpd.frontend.username }}"
+  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user user {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.ftpd.frontend.username }}"
   args:
     chdir: "{{ brain_deployment_dir }}"
   sudo_user: "{{ irma_user }}"
