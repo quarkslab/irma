@@ -10,17 +10,17 @@
   when: irma_deployment_code_version != 'local'
 
 - name: Gather frontend src from current directory
-  local_action: shell cd ../frontend && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/frontend.zip "{{ irma_deployment_code_version }}"
+  local_action: shell cd ../frontend && git archive -o ../ansible/playbooks/files/frontend.zip "{{ irma_deployment_code_version }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Deploy frontend src archive
   unarchive:
-    src: "{{ irma_deployment_src }}/frontend.zip"
+    src: frontend.zip
     dest: "{{ frontend_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Gather common src from current directory
-  local_action: shell cd ../common && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/common.zip "{{ irma_deployment_code_version }}"
+  local_action: shell cd ../common && git archive -o ../ansible/playbooks/files/common.zip "{{ irma_deployment_code_version }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Remove common symlink
@@ -37,7 +37,7 @@
 
 - name: Deploy frontend-common src archive
   unarchive:
-    src: "{{ irma_deployment_src }}/common.zip"
+    src: common.zip
     dest: "{{ frontend_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 

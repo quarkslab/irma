@@ -7,17 +7,17 @@
   when: irma_deployment_code_version != 'local'
 
 - name: Gather probe src from current directory
-  local_action: shell cd ../probe && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/probe.zip "{{ irma_deployment_code_version }}"
+  local_action: shell cd ../probe && git archive -o ../ansible/playbooks/files/probe.zip "{{ irma_deployment_code_version }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Upload probe src archive
   unarchive:
-    src: "{{ irma_deployment_src }}/probe.zip"
+    src: probe.zip
     dest: "{{ probe_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Gather common src from current directory
-  local_action: shell cd ../common && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/common.zip "{{ irma_deployment_code_version }}"
+  local_action: shell cd ../common && git archive -o ../ansible/playbooks/files/common.zip "{{ irma_deployment_code_version }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Remove common symlink
@@ -34,7 +34,7 @@
 
 - name: Deploy frontend-common src archive
   unarchive:
-    src: "{{ irma_deployment_src }}/common.zip"
+    src: common.zip
     dest: "{{ probe_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 

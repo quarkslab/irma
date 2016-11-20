@@ -10,17 +10,17 @@
   when: irma_deployment_code_version != 'local'
 
 - name: Gather brain src from current directory
-  local_action: shell cd ../brain && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/brain.zip "{{ irma_deployment_code_version }}"
+  local_action: shell cd ../brain && git archive -o ../ansible/playbooks/files/brain.zip "{{ irma_deployment_code_version }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Upload brain src archive
   unarchive:
-    src: "{{ irma_deployment_src }}/brain.zip"
+    src: brain.zip
     dest: "{{ brain_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Gather common src from current directory
-  local_action: shell cd ../common && git archive -o ../ansible/playbooks/"{{ irma_deployment_src }}"/common.zip "{{ irma_deployment_code_version }}"
+  local_action: shell cd ../common && git archive -o ../ansible/playbooks/files/common.zip "{{ irma_deployment_code_version }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Remove common symlink
@@ -37,7 +37,7 @@
 
 - name: Deploy frontend-common src archive
   unarchive:
-    src: "{{ irma_deployment_src }}/common.zip"
+    src: common.zip
     dest: "{{ brain_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 
