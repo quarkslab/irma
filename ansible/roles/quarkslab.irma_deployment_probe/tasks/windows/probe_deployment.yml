@@ -7,12 +7,18 @@
   when: irma_deployment_code_version != 'local'
 
 - name: Gather probe src from current directory
-  local_action: shell cd ../probe && git archive -o ansible/playbooks/files/probe.zip "{{ irma_deployment_code_version }}"
+  local_action: shell cd ../probe && git archive -o ../ansible/playbooks/files/probe.zip "{{ irma_deployment_code_version }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Upload probe src archive
+  win_copy:
+    src: files/probe.zip
+    dest: "{{ probe_deployment_dir }}"
+  when: irma_deployment_code_version != 'local'
+
+- name: Unzip probe src archive
   win_unzip:
-    src: probe.zip
+    src: "{{ probe_deployment_dir }}/probe.zip"
     dest: "{{ probe_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
@@ -32,9 +38,15 @@
     state: directory
   when: irma_deployment_code_version != 'local'
 
-- name: Deploy frontend-common src archive
-  unarchive:
-    src: common.zip
+- name: Upload common src archive
+  win_copy:
+    src: files/common.zip
+    dest: "{{ probe_deployment_dir }}"
+  when: irma_deployment_code_version != 'local'
+
+- name: Unzip common src archive
+  win_unzip:
+    src: "{{ probe_deployment_dir }}/common.zip"
     dest: "{{ probe_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 

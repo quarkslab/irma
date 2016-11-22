@@ -15,7 +15,7 @@
 
 - name: Deploy frontend src archive
   unarchive:
-    src: frontend.zip
+    src: files/frontend.zip
     dest: "{{ frontend_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
@@ -37,7 +37,7 @@
 
 - name: Deploy frontend-common src archive
   unarchive:
-    src: common.zip
+    src: files/common.zip
     dest: "{{ frontend_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 

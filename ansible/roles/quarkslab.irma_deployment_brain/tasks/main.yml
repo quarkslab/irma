@@ -15,7 +15,7 @@
 
 - name: Upload brain src archive
   unarchive:
-    src: brain.zip
+    src: files/brain.zip
     dest: "{{ brain_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
@@ -35,9 +35,9 @@
     state: directory
   when: irma_deployment_code_version != 'local'
 
-- name: Deploy frontend-common src archive
+- name: Deploy brain-common src archive
   unarchive:
-    src: common.zip
+    src: files/common.zip
     dest: "{{ brain_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 

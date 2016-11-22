@@ -12,7 +12,7 @@
 
 - name: Upload probe src archive
   unarchive:
-    src: probe.zip
+    src: files/probe.zip
     dest: "{{ probe_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
@@ -32,9 +32,9 @@
     state: directory
   when: irma_deployment_code_version != 'local'
 
-- name: Deploy frontend-common src archive
+- name: Deploy probe-common src archive
   unarchive:
-    src: common.zip
+    src: files/common.zip
     dest: "{{ probe_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 
