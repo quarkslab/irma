@@ -90,8 +90,8 @@ Vagrant.configure("2") do |config|
           libvirt.machine_arch = server['machine_arch'] || "x86_64"
           libvirt.memory =  server['memory'] || 1024
           libvirt.cpus =  server['cpus'] || 1
-          libvirt.cpu_mode = 'host-passthrough'
-          libvirt.volume_cache = "none"
+          libvirt.cpu_mode = "host-passthrough"
+          libvirt.volume_cache = "writeback"
           libvirt.autostart = true
           libvirt.keymap = "fr"
 
