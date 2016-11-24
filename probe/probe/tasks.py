@@ -177,6 +177,7 @@ if __name__ == '__main__':
     probe_app.worker_main([
         '--app=probe.tasks:probe_app',  # app instance to use
         '-l', 'info',             # logging level
+        '-P', 'threads',          # use threadpool
         '--without-gossip',       # do not subscribe to other workers events.
         '--without-mingle',       # do not synchronize with
                                   # other workers at startup
