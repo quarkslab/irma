@@ -10,7 +10,7 @@ servers:
     cpuexecutioncap: 100
     memory: 2048
     shares:
-      - share_from: ../irma-frontend
+      - share_from: ../frontend
         share_to: /opt/irma/irma-frontend/current
         share_exclude:
           - .git/
@@ -18,13 +18,13 @@ servers:
           - web/dist
           - web/node_modules
           - app/components
-      - share_from: ../irma-brain
+      - share_from: ../brain
         share_to: /opt/irma/irma-brain/current
         share_exclude:
           - .git/
           - venv/
           - db/
-      - share_from: ../irma-probe
+      - share_from: ../probe
         share_to: /opt/irma/irma-probe/current
         share_exclude:
           - .git/
