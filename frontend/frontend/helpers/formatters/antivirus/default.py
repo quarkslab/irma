@@ -24,6 +24,7 @@ class AntivirusFormatterPlugin(PluginBase):
     # =================
 
     _plugin_name_ = "AntivirusDefault"
+    _plugin_display_name_ = _plugin_name_
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
