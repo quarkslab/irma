@@ -3,7 +3,7 @@ Development environment
 
 This environment has been designed to help you to modify IRMA's components and
 redeploy and test them. In this setup, everything is installed in a single
-virtual machine with sources rsync-ed between the host and the guest. 
+virtual machine with sources rsync-ed between the host and the guest.
 
 Requirements
 ````````````
@@ -14,45 +14,18 @@ Requirements
 - `Rsync <https://rsync.samba.org/>`_ to synchronize directories from host to VMs
 - Read the `Ansible introduction <http://docs.ansible.com/intro.html>`_
 
-Create the right environment
-````````````````````````````
-
-Clone IRMA repositories:
-
-.. code-block:: bash
-
-	$ git clone --recursive https://github.com/quarkslab/irma-frontend
-	$ git clone --recursive https://github.com/quarkslab/irma-brain
-	$ git clone --recursive https://github.com/quarkslab/irma-probe
-
-If you are interested in using `Vagrant <http://vagrantup.com>`_, be sure to have
-the following directory layout:
-
-.. code-block:: bash
-
-	# all in the same directory
- 	|
- 	+--- irma-frontend
- 	+--- irma-probe
- 	+--- irma-brain
- 	[...]
- 	+--- irma-ansible
-
-.. NOTE::
-
-    This directory layout can be modified, see ``share_*`` variables from
-    ``environments/dev.yml`` and ``environments/allinone_dev.yml`` files.
 
 Run Vagrant and create your VMs
 ```````````````````````````````
 
-To initialize and provision the Virtualbox VM, run ``vagrant up
---no-provision`` from the ``irma-ansible`` directory. The template will be
-downloaded automatically and configured using ``environments/dev.yml`` file.
+To initialize and provision the Virtualbox VM.
 
 .. code-block:: bash
 
-    $ VM_ENV=your_environment_name vagrant up --no-provision
+    $ cd <IRMA_SRC_DIR>/ansible
+    $ VM_ENV=your_environment_name vagrant up
+
+The template will be downloaded automatically and configured using ``environments/dev.yml`` file.
 
 
 .. NOTE::
@@ -62,7 +35,7 @@ downloaded automatically and configured using ``environments/dev.yml`` file.
 
     .. code-block:: bash
 
-        $ VM_ENV=your_environment_name vagrant up --no-provision
+        $ VM_ENV=your_environment_name vagrant up
 
 Configure your .ini files
 `````````````````````````
@@ -73,21 +46,9 @@ Configure your .ini files
     and password used in (frontend|brain|probe) config files.
 
 As your ``config/*.ini`` file are transferred from host to VMs, you will need
-to modify them individually in the ``irma-frontend``, ``irma-probe`` and
-``irma-brain`` repositories to match the user and password defined in
+to modify them individually in the ``frontend``, ``probe`` and
+``brain`` directories to match the user and password defined in
 ``playbooks/group_vars/*``.
-
-Provision your VMs
-``````````````````
-
-Due to Ansible limitations using parallel execution, you’ll need to launch the
-provision Vagrant command only for one VM:
-
-.. code-block:: bash
-
-	$ vagrant provision frontend.irma
-
-The provisioning and deployment will apply to all of your VMs.
 
 
 Modify your host and open IRMA frontend

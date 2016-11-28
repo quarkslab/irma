@@ -13,7 +13,7 @@ Requirements
 
 .. warning::
 
-   The automated install is not working with latest version of ansible. Maximum tested version is 2.0.1.0
+   Some version of Ansible breaks IRMA install. Current tested version: 2.1.1.0
 
 
 Ansible scripts
@@ -23,22 +23,14 @@ Get IRMA ansible scripts on github:
 
 .. code-block:: bash
 
-	$ git clone https://github.com/quarkslab/irma-ansible
-
-Install the dependencies via `Ansible Galaxy <https://galaxy.ansible.com/>`_
-repository:
-
-.. code-block:: bash
-
-	$ ansible-galaxy install -r ansible-requirements.yml # eventually, add '--force' to overwrite installed roles
+    $ git clone https://github.com/quarkslab/irma
 
 Predefined Environments
 -----------------------
 
-There are 3 different IRMA setups available:
+There are 2 different IRMA setups available:
 
 .. toctree::
-    testing-env.rst
     development-env.rst
     production-env.rst
 

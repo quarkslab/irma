@@ -19,15 +19,15 @@ you can:
 
 .. code-block:: bash
 
-	# On your local machine
-	$ ssh-copy-id user@hostname # -i if you want to select your identity file
+    # On your local machine
+    $ ssh-copy-id user@hostname # -i if you want to select your identity file
 
 - If you do not want to have to type your password for ``sudo`` command,
   consider adding your user to sudoers, using ``visudo`` command (optional):
 
 .. code-block:: bash
 
-	  user ALL=(ALL) NOPASSWD: ALL
+      user ALL=(ALL) NOPASSWD: ALL
 
 Configure for your installation
 ```````````````````````````````
@@ -58,7 +58,8 @@ the following command. Ansible will ask you the sudo password (``-K`` option).
 
 .. code-block:: bash
 
-	$ ansible-playbook -i ./hosts/example playbooks/playbook.yml -u <your_sudo_username> -K
+    $ cd <IRMA_SRC_DIR>/ansible
+    $ ansible-playbook -i ./hosts/example playbooks/playbook.yml -u <your_sudo_username> -K
 
 To run one or more specific actions and avoid running all the playbook, you can
 use tags. For example, if you want to re-provision Nginx, run the same command,
@@ -73,7 +74,7 @@ which you want to upgrade, you will need to run the deployment script:
 
 .. code-block:: bash
 
-	$ ansible-playbook -i ./hosts/example ./playbooks/deployment.yml -u irma
+    $ ansible-playbook -i ./hosts/example ./playbooks/deployment.yml -u irma
 
 Make sure to replace ``irma`` with the default user if you have changed it in the
 ``group_vars/all`` file.

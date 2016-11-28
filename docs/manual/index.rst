@@ -1,6 +1,10 @@
 Manual Installation
 ===================
 
+.. warning:: Manual installation needs an update since 1.5.3
+as all repositories layout have changed. Try Automated install or ask for
+help on IRC.
+
 
 In some specific cases where automatic install is not possible, you should go
 with manual installation.

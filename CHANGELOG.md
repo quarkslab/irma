@@ -1,4 +1,17 @@
 
+1.5.3 (released 28/11/2016)
+===========================
+
+    * [all] New organization for repositories (all repos are merged in one irma repo now)
+    * [frontend] scan load optimization
+
+1.5.2 (released 14/10/2016)
+===========================
+
+    * [all] Allow sftp authentication by key
+    * [frontend] SQL allow file over 2 GB
+    * [all] bugfix for job cancelling
+
 1.5.1 (released 07/06/2016)
 ===========================
 

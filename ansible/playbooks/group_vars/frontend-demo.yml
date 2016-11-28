@@ -14,8 +14,6 @@ frontend_beat_schedule: /var/irma/frontend_beat_schedule
 
 
 ## Deployment
-frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
-frontend_documentation_deployment_repository: "https://github.com/quarkslab/irma.git"
 frontend_deployment_configs:
   - section: broker_brain
     option: host
@@ -202,14 +200,6 @@ nginx_sites:
     - location /swagger {
         alias {{ frontend_install_dir }}/swagger/ui;
         index index.html;
-      }
-    - location /docs {
-        rewrite ^/docs/(.+) /$1 break;
-        expires -1;
-        add_header Pragma "no-cache";
-        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        root {{ frontend_install_dir }}/docs/_build/html;
-        try_files $uri $uri/ /index.html =404;
       }
     - location / {
         expires -1;
