@@ -1,4 +1,18 @@
 ---
+
+- name: Check if chocolatey is present
+  raw: CMD /C choco.exe version
+  ignore_errors: yes
+  failed_when: chocolatey_present.rc != 0
+  register: chocolatey_present
+
+- name: Installing Chocolatey
+  raw: CMD /C powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+  when: chocolatey_present.failed
+
+- name: Chocolatey Temporary fix | Enable AllowEmptyChecksums
+  raw: CMD /C choco.exe feature enable -n=AllowEmptyChecksums
+
 - name: Installing Chocolatey Packages | git
   win_chocolatey:
     name: git
@@ -7,6 +21,7 @@
 - name: Installing Chocolatey Packages | vcpython27
   win_chocolatey:
     name: vcpython27
+  ignore_errors: yes
 
 - name: Installing Chocolatey Packages | python
   win_chocolatey:
@@ -35,21 +50,3 @@
 
 - name: Run get-pip.py for pip
   raw: python "{{ remote_tmp }}/get-pip.py"
-
-## On win81, chocolatey does not set correctly the path
-- name: Determine ProgramFiles(x86)
-  raw: CMD /C echo '%PROGRAMFILES(x86)%'
-  register: echo_programfiles
-
-- set_fact:
-    remote_programfiles: '{{ echo_programfiles.stdout_lines[0] | regex_replace("\\\\", "/") }}'
-
-- name: Fix Missing Paths
-  raw: >
-    powershell -command "$scope = '{{ item.scope }}';
-                         $pathToInstall = '{{ item.path }}';
-                         $envPath = [Environment]::GetEnvironmentVariable('Path', $scope) + ';' + $pathToInstall + ';';
-                         [System.Environment]::SetEnvironmentVariable('Path', ($envPath -split ';' | where {$_ -and (Test-Path $_  )}| select-object -unique) -join ';', $scope);"
-  with_items:
-    - path: "{{ remote_program_files }}/Git/cmd/"
-      scope: 'User'
