@@ -1,0 +1,8 @@
+# Sphinx
+_build/*
+
+# vim
+*.swp
+
+# JetBrains
+.idea
