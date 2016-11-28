@@ -38,15 +38,16 @@ class TestApiScans(TestCase):
         self.assertEqual(api_scans.response.content_type,
                          "application/json; charset=UTF-8")
         db_mock.query.assert_called_with(Scan)
-        db_mock.query().limit.assert_called_with(default_limit)
-        db_mock.query().limit().offset.assert_called_with(default_offset)
-        db_mock.query().count.assert_not_called()
+        db_mock.query().options().limit.assert_called_with(default_limit)
+        m_offset = db_mock.query().options().limit().offset
+        m_offset.assert_called_with(default_offset)
+        db_mock.query().options().count.assert_not_called()
 
     @patch("frontend.api.v1.controllers.scans.scan_schema")
     def test004_list_custom_request(self, m_scan_schema):
         db_mock = MagicMock()
         offset, limit = randint(1, 100), randint(1, 100)
-        expected = {"total": db_mock.query().count(),
+        expected = {"total": db_mock.query().options().count(),
                     "offset": offset,
                     "limit": limit,
                     "data": m_scan_schema.dump().data}
@@ -54,7 +55,7 @@ class TestApiScans(TestCase):
         api_scans.request.query.limit = limit
         result = api_scans.list(db_mock)
         self.assertEqual(result, expected)
-        db_mock.query().count.assert_called()
+        db_mock.query().options().count.assert_called()
 
     @patch("frontend.api.v1.controllers.scans.Scan")
     @patch("frontend.api.v1.controllers.scans.scan_schema")

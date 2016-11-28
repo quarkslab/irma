@@ -95,13 +95,13 @@ class TestScan(TestCase):
         m_session.query.return_value = m_query
         external_id = "whatever"
         Scan.load_from_ext_id(external_id, m_session)
-        m_filter = m_query.filter
+        m_filter = m_query.options().filter
         m_filter.assert_called_once()
 
     def test012_load_from_ext_id_none(self):
         m_session = MagicMock()
         external_id = "whatever"
-        m_filter = m_session.query().filter
+        m_filter = m_session.query().options().filter
         m_filter.side_effect = NoResultFound()
         with self.assertRaises(IrmaDatabaseResultNotFound):
             Scan.load_from_ext_id(external_id, m_session)
@@ -109,7 +109,7 @@ class TestScan(TestCase):
     def test013_load_from_ext_id_multiple(self):
         m_session = MagicMock()
         external_id = "whatever"
-        m_filter = m_session.query().filter
+        m_filter = m_session.query().options().filter
         m_filter.side_effect = MultipleResultsFound()
         with self.assertRaises(IrmaDatabaseError):
             Scan.load_from_ext_id(external_id, m_session)

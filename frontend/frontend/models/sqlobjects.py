@@ -19,7 +19,7 @@ from sqlalchemy import Table, Column, BigInteger, Integer, Numeric, Boolean, \
     ForeignKey, String, UniqueConstraint, and_
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, subqueryload
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.sql import func
 
@@ -398,6 +398,19 @@ class Scan(Base, SQLDatabaseObject):
         self.resubmit_files = False
 
     @classmethod
+    def query_joined(cls, session):
+        """Returns a query with sub-objects loaded
+        by default and not on access.
+        SQL Relations:
+        Scan 1 - N FileWeb N - N ProbeResult
+        :param session: SQL session
+        :return: session query for Scan
+        """
+        return session.query(cls).options(
+                    subqueryload("files_web").
+                    subqueryload("probe_results"))
+
+    @classmethod
     def load_from_ext_id(cls, external_id, session):
         """Find the object in the database
         :param external_id: the id to look for
@@ -407,7 +420,8 @@ class Scan(Base, SQLDatabaseObject):
         :raise: IrmaDatabaseResultNotFound, IrmaDatabaseError
         """
         try:
-            return session.query(cls).filter(
+            query = cls.query_joined(session)
+            return query.filter(
                 cls.external_id == external_id
             ).one()
         except NoResultFound as e:

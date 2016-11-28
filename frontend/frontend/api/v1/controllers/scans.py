@@ -38,7 +38,7 @@ def list(db):
         offset = int(request.query.offset) if request.query.offset else 0
         limit = int(request.query.limit) if request.query.limit else 5
         log.debug("offset %d limit %d", offset, limit)
-        base_query = db.query(Scan)
+        base_query = Scan.query_joined(db)
 
         items = base_query.limit(limit).offset(offset).all()
 
