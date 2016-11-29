@@ -49,7 +49,7 @@ directory.
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |     host    | ``string`` |                | hostname for the RabbitMQ server                        |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     port    |``integer`` |   5672         | port for the RabbitMQ server                            |
+     |                |     port    |``integer`` |      5672      | port for the RabbitMQ server                            |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |broker_frontend |     vhost   | ``string`` |                | virtual host configured for this frontend               |
      |                +-------------+------------+----------------+---------------------------------------------------------+
@@ -59,26 +59,30 @@ directory.
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |     queue   | ``string`` |                | queue to poll new tasks on the RabbitMQ server          |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |      ftp       |   protocol  | ``string`` |   "sftp"       | choose File Transfer Protocol ("sftp" or "ftps")        |
+     |      ftp       |   protocol  | ``string`` |     "sftp"     | choose File Transfer Protocol ("sftp" or "ftps")        |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      |                |     host    | ``string`` |                | hostname for the FTP server                             |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |     port    |``integer`` |    22          | port for the FTP server                                 |
-     |  ftp_brain     +-------------+------------+----------------+---------------------------------------------------------+
+     |                |     port    |``integer`` |       22       | port for the FTP server                                 |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
+     |                |     auth    | ``string`` |   "password"   | SFTP authentication method ("password" or "key")        |
+     |   ftp_brain    +-------------+------------+----------------+---------------------------------------------------------+
+     |                |   key_path  | ``string`` |                | sftp private key absolute path                          |
+     |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   username  | ``string`` |                | username used by this frontend on the FTP server        |
      |                +-------------+------------+----------------+---------------------------------------------------------+
      |                |   password  | ``string`` |                | password used by this frontend on the FTP server        |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_file| ``integer``|     0          | remove file after X days (0 means disabled)             |
+     |                |clean_db_file| ``integer``|        0       | remove file after X days (0 means disabled)             |
      |                |_max_age     |            |                |                                                         |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_cron| ``integer``|     0          | cron hour settings                                      |
+     |                |clean_db_cron| ``integer``|        0       | cron hour settings                                      |
      |                |_hour        |            |                |                                                         |
      |  cron_frontend +-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_cron| ``integer``|     0          | cron minute settings                                    |
+     |                |clean_db_cron| ``integer``|        0       | cron minute settings                                    |
      |                |_minute      |            |                |                                                         |
      |                +-------------+------------+----------------+---------------------------------------------------------+
-     |                |clean_db_scan| ``integer``|     \*         | cron day of week settings                               |
+     |                |clean_db_scan| ``integer``|        \*      | cron day of week settings                               |
      |                |_day_of_week |            |                |                                                         |
      +----------------+-------------+------------+----------------+---------------------------------------------------------+
      | interprocess_  |   path      | ``string`` |/var/run/lock/ir| Concurrency file lock                                   |

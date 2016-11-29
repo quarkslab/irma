@@ -12,7 +12,7 @@ On GNU/Linux:
 
 .. code-block:: bash
 
-    $ cd /opt/irma/irma-frontend
+    $ cd /opt/irma/irma-frontend/current
     $ ./venv/bin/celery worker --app=frontend.tasks:frontend_app
 
      -------------- celery@frontend v3.1.23 (Cipater)
@@ -91,7 +91,7 @@ route on the web server or by checking the system logs:
 
     $  sudo cat /var/log/supervisor/frontend_api.log
     [...]
-    added /opt/irma/irma-frontend/venv/ to pythonpath.
+    added /opt/irma/irma-frontend/current/venv/ to pythonpath.
     *** uWSGI is running in multiple interpreter mode ***
     spawned uWSGI master process (pid: 3943)
     spawned uWSGI worker 1 (pid: 3944, cores: 1)

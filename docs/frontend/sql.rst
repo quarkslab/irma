@@ -17,4 +17,4 @@ Install it with the following dependencies:
     [...]
 
 You need to manually create the configured database and db user, the tables are automatically
-created on celery daemon / uwsgi startup.
+created on uwsgi startup.

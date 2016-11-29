@@ -24,11 +24,14 @@ Get IRMA ansible scripts on github:
 .. code-block:: bash
 
     $ git clone https://github.com/quarkslab/irma
+    $ cd irma/ansible
 
 Predefined Environments
 -----------------------
 
-There are 2 different IRMA setups available:
+There are 2 different IRMA setups available. Dev/Testing will be installed in one or
+multiple virtual machines while production could be used to install IRMA on physical machines
+or virtual machines already setup:
 
 .. toctree::
     development-env.rst

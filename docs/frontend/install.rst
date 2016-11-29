@@ -33,18 +33,18 @@ Installation on GNU/Linux
 +++++++++++++++++++++++++
 
 On GNU/Linux system, we will assume that the code for the **Frontend** will be
-installed in ``/opt/irma/irma-frontend`` directory, which is the configured default
+installed in ``/opt/irma/irma-frontend/current`` directory, which is the configured default
 installation directory.
 
 The source code is hosted on github.com. One can fetch an up-to-date version
 with the following commands. Let us note that there is a common submodule named
-``irma-common`` that could be fetched automatically with the ``--recursive``
-option:
+``common`` that is a soft-link (``lib``), do not forget the ``dereference``
+option of ``cp`` (``-L``):
 
 .. code-block:: bash
 
-    $ git clone --recursive https://github.com/quarkslab/irma-frontend /opt/irma/irma-frontend
-
+    $ git clone https://github.com/quarkslab/irma /opt/irma/src
+    $ cp -rL /opt/irma/src/frontend /opt/irma/irma-frontend/current
 
 We need few dependencies for future steps:
 
@@ -55,8 +55,8 @@ then, we need to install python dependencies manually in a virtualenv :
 
 .. code-block:: bash
 
-    $ virtualenv --system-site-packages /opt/irma/irma-frontend/venv
-    $ /opt/irma/irma-frontend/venv/bin/pip install -r /opt/irma/irma-frontend/requirements.txt
+    $ virtualenv --system-site-packages /opt/irma/irma-frontend/current/venv
+    $ /opt/irma/irma-frontend/current/venv/bin/pip install -r /opt/irma/irma-frontend/current/requirements.txt
     [...]
 
 Building the web client
@@ -84,7 +84,7 @@ directory:
 
 .. code-block:: bash
 
-    $ cd irma-frontend/web
+    $ cd irma-frontend/current/web
     $ sudo npm install
     $ sudo node_modules/.bin/bower install --allow-root
     $ sudo node_modules/.bin/gulp dist

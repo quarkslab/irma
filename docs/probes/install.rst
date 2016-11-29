@@ -6,23 +6,22 @@ systems. The installation procedure may differs between the two systems.
 
 .. _probe-install-source:
 
-Downloading the source code from `github.com <https://github.com/quarkslab/irma-probe>`_
-****************************************************************************************
+Downloading the source code from `github.com <https://github.com/quarkslab/irma>`_
+**********************************************************************************
 
 The source code is hosted on github.com. One can fetch an up-to-date version
 with the following commands. Let us note that there is a common submodule named
-``irma-common`` that could be fetched automatically with the ``--recursive``
-option:
+``common`` that is a soft-link (``lib``), do not forget the ``dereference``
+option of ``cp`` [#]_ (``-L``):
+
 
 .. code-block:: bash
 
-    $ git clone --recursive https://github.com/quarkslab/irma-probe
+    # If src repository not already cloned
+    $ git clone https://github.com/quarkslab/irma /opt/irma/src
+    $ cp -rL /opt/irma/src/probe /opt/irma/irma-probe/current
 
-
-Prerequisites
-+++++++++++++
-
-We assume that you have a command line interface on your system [#]_ with
+We assume that you have a command line interface on your system with
 the following tools installed:
 
 * python 2.7.x (see `Python for Windows <https://www.python.org/downloads/windows/>`_
@@ -44,28 +43,19 @@ Installation on Microsoft Windows
 +++++++++++++++++++++++++++++++++
 
 On windows system, we will assume that the code for the **Probe** will be
-installed at the root of the ``C:\`` drive, namely in ``C:\irma\irma-probe``.
+installed at the root of the ``C:\`` drive, namely in ``C:\irma\irma-probe\current``.
 
-Due to differences between Python for Windows and Python for Linux, the
-installation with pip can only be done with the following command:
 
 .. code-block:: none
 
-    $ C:\Python27\Scripts\pip.exe install irma-probe-app-1.1.0.tar.gz --root="C:\irma\irma-probe"
+    $ C:\Python27\Scripts\pip.exe install virtualenv
+    $ C:\Python27\Scripts\virtualenv C:\irma\irma-probe\current\venv
 
-However, this command puts the code source in ``C:\irma\irma-probe\Python27``
-instead of ``C:\irma\irma-probe``. To fix this, either install
-``irma-probe-app`` with ``pip`` and move the content of
-``C:\irma\irma-probe\Python27`` to ``C:\irma\irma-probe\`` or simply copy the
-code source you have just checked out from github.com in
-``C:\irma\irma-probe``. Both methods should work.
-
-Since the way we packaged the python application does not support
-automatic installation of dependencies, we need to install them manually:
 
 .. code-block:: none
 
-    $ C:\Python27\Scripts\pip.exe install -r C:\irma\irma-probe\requirements.txt
+    $ cd C:\irma\irma-probe\current\
+    $ .\venv\Scripts\pip.exe install -r requirements.txt
     [...]
 
 
@@ -73,12 +63,19 @@ Installation on GNU/Linux
 +++++++++++++++++++++++++
 
 On GNU/Linux system, we will assume that the code for the **Probe** will be
-installed in ``/opt/irma/irma-probe`` directory.
+installed in ``/opt/irma/irma-probe/current`` directory.
+
+The source code is hosted on github.com. One can fetch an up-to-date version
+with the following commands. Let us note that there is a common submodule named
+``common`` that is a soft-link (``lib``), do not forget the ``dereference``
+option of ``cp`` (``-L``):
 
 
 .. code-block:: bash
 
-    $ git clone --recursive https://github.com/quarkslab/irma-probe /opt/irma/irma-probe
+    # If src repository not already cloned
+    $ git clone https://github.com/quarkslab/irma /opt/irma/src
+    $ cp -rL /opt/irma/src/probe /opt/irma/irma-probe/current
 
 We need few dependencies for future steps:
 
@@ -89,8 +86,8 @@ then, we need to install python dependencies manually in a virtualenv :
 
 .. code-block:: bash
 
-    $ virtualenv --system-site-packages /opt/irma/irma-probe/venv
-    $ /opt/irma/irma-probe/venv/bin/pip install -r /opt/irma/irma-probe/requirements.txt
+    $ virtualenv --system-site-packages /opt/irma/irma-probe/current/venv
+    $ /opt/irma/irma-probe/current/venv/bin/pip install -r /opt/irma/irma-probe/current/requirements.txt
     [...]
 
 
@@ -102,4 +99,4 @@ enable the analyzers you need.
 
 .. [#] On Microsoft Windows, a Linux-like lightweight command line
        interface can be installed by installing
-       `MSYS <http://www.mingw.org/wiki/MSYS>`_.
+       `MSYS <http://www.mingw.org/wiki/MSYS>`_ or Git for windows.

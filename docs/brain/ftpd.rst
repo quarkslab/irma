@@ -7,7 +7,7 @@ Installing and configuring Pure-ftpd
     better move to SFTP
 
 
-A FTP server with TLS is used to transfer files
+A FTP server with TLS could be used to transfer files
 **Frontends** and meant to be analyzed by **Probes**. We describe in the
 following how to set up pure-ftpd.
 

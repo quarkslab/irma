@@ -37,7 +37,7 @@ Create a file called ``frontend_api`` located at ``/etc/supervisor/conf.d`` with
     killasgroup = True
     stderr_logfile = /var/log/supervisor/frontend_api.log
     stopsignal = INT
-    command = uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app --plugins python --chdir /opt/irma/irma-frontend --home /opt/irma/irma-frontend/venv --python-path /opt/irma/irma-frontend/venv --mount /api=frontend/api/base.py --lazy
+    command = uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app --plugins python --chdir /opt/irma/irma-frontend/current --home /opt/irma/irma-frontend/current/venv --python-path /opt/irma/irma-frontend/current/venv --mount /api=frontend/api/base.py --lazy
 
     user = irma
     autostart = True
@@ -57,10 +57,10 @@ Create a file called ``frontend_app`` located at ``/etc/supervisor/conf.d`` with
     stopwaitsecs = 600
     killasgroup = True
     stderr_logfile = /var/log/supervisor/frontend_app.log
-    command = /opt/irma/irma-frontend/venv/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h --loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=60 --time-limit=300 --beat --schedule=/var/irma/frontend_beat_schedule
+    command = /opt/irma/irma-frontend/current/venv/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h --loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=60 --time-limit=300 --beat --schedule=/var/irma/frontend_beat_schedule
     user = irma
     autostart = True
-    directory = /opt/irma/irma-frontend
+    directory = /opt/irma/irma-frontend/current
     stdout_logfile = /var/log/supervisor/frontend_app.log
 
 Ensure supervisor will read our files by checking ``/etc/supervisor/supervisord.conf``  last lines should be:

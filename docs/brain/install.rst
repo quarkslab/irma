@@ -33,17 +33,20 @@ Installation on GNU/Linux
 +++++++++++++++++++++++++
 
 On GNU/Linux system, we will assume that the code for the **Brain** will be
-installed in ``/opt/irma/irma-brain`` directory, which is the configured default
-installation directory.
+installed in ``/opt/irma/irma-brain/current`` directory, which is the configured
+default installation directory.
 
 The source code is hosted on github.com. One can fetch an up-to-date version
 with the following commands. Let us note that there is a common submodule named
-``irma-common`` that could be fetched automatically with the ``--recursive``
-option:
+``common`` that is a soft-link (``lib``), do not forget the ``dereference``
+option of ``cp`` (``-L``):
+
 
 .. code-block:: bash
 
-    $ git clone --recursive https://github.com/quarkslab/irma-brain /opt/irma/irma-brain
+    # If src repository not already cloned
+    $ git clone https://github.com/quarkslab/irma /opt/irma/src
+    $ cp -rL /opt/irma/src/brain /opt/irma/irma-brain/current
 
 We need few dependencies for future steps:
 
@@ -54,8 +57,8 @@ then, we need to install python dependencies manually in a virtualenv :
 
 .. code-block:: bash
 
-    $ virtualenv --system-site-packages /opt/irma/irma-brain/venv
-    $ /opt/irma/irma-brain/venv/bin/pip install -r /opt/irma/irma-brain/requirements.txt
+    $ virtualenv --system-site-packages /opt/irma/irma-brain/current/venv
+    $ /opt/irma/irma-brain/current/venv/bin/pip install -r /opt/irma/irma-brain/current/requirements.txt
     [...]
 
 

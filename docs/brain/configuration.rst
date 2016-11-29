@@ -75,7 +75,11 @@ directory. Update it with your specific info.
      |                |     host    | ``string`` |           | hostname for the FTP server                       |
      |                +-------------+------------+-----------+---------------------------------------------------+
      |                |     port    |``integer`` |    21     | port for the FTP server                           |
-     |  ftp_brain     +-------------+------------+-----------+---------------------------------------------------+
+     |                +-------------+------------+-----------+---------------------------------------------------+
+     |                |     auth    | ``string`` | "password"| SFTP authentication method ("password" or "key")  |
+     |   ftp_brain    +-------------+------------+----------------+----------------------------------------------+
+     |                |   key_path  | ``string`` |           | sftp private key absolute path                    |
+     |                +-------------+------------+----------------+----------------------------------------------+
      |                |   username  | ``string`` |           | username used by probe on the FTP server          |
      |                +-------------+------------+-----------+---------------------------------------------------+
      |                |   password  | ``string`` |           | password used by the probe on the FTP server      |
@@ -107,7 +111,7 @@ where the database is going to be stored must be created beforehand.
 
 .. code-block:: bash
 
-    $ cd /opt/irma/irma-brain/
+    $ cd /opt/irma/irma-brain/current/
     $ ./venv/bin/python -m scripts.create_user
     usage: create_user <username> <rmqvhost> <ftpuser>
           with <username> a string

@@ -33,7 +33,7 @@ server {
 
     }
     location /swagger {
-        alias /opt/irma/irma-frontend/swagger/ui;
+        alias /opt/irma/irma-frontend/current/swagger/ui;
         index index.html;
 
     }
@@ -41,7 +41,7 @@ server {
         expires -1;
         add_header Pragma "no-cache";
         add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        root /opt/irma/irma-frontend/web/dist;
+        root /opt/irma/irma-frontend/current/web/dist;
         try_files $uri $uri/ /index.html =404;
 
     }

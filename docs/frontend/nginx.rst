@@ -31,7 +31,7 @@ root of the installation directory. Templates for nginx are located in
 
 
 The template is configured for a default installation of the frontend in
-``/opt/irma/irma-frontend/``. You may need to edit it for you setup. In
+``/opt/irma/irma-frontend/current``. You may need to edit it for you setup. In
 particular, please ensure that the ``root`` directive points to the folder
 ``web/dist`` (for a production ready version of the web site) or ``web/app``
 (for a development version of the web site) in your installation directory.
