@@ -35,6 +35,9 @@
 - name: Install McAfee signatures
   raw: "python.exe {{ remote_install_script }} -v update -u {{ mcafee_win_url_signatures }} -p {{ mcafee_win_install_path }}"
 
+- name: Decompress McAfee signatures
+  raw: '{{ mcafee_win_install_path }}/scan.exe /DECOMPRESS'
+
 ## Clean
 - name: Delete script
   win_file:
