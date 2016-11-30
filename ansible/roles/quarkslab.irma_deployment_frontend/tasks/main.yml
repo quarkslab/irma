@@ -9,9 +9,14 @@
     state: directory
   when: irma_deployment_code_version != 'local'
 
+- name: Check if frontend src archive is already present
+  local_action: stat path="{{ playbook_dir }}/files/frontend.zip"
+  register: frontend_src_archive
+  ignore_errors: True
+
 - name: Gather frontend src from current directory
-  local_action: shell cd ../frontend && git archive -o ../ansible/playbooks/files/frontend.zip "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local'
+  local_action: shell cd "{{ playbook_dir }}/../../frontend" && git archive -o "{{ playbook_dir }}/files/frontend.zip" "{{ irma_deployment_code_version }}"
+  when: irma_deployment_code_version != 'local' and not frontend_src_archive.stat.exists
 
 - name: Deploy frontend src archive
   unarchive:
@@ -19,9 +24,14 @@
     dest: "{{ frontend_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
+- name: Check if common src archive is already present
+  local_action: stat path="{{ playbook_dir }}/files/common.zip"
+  register: common_src_archive
+  ignore_errors: True
+
 - name: Gather common src from current directory
-  local_action: shell cd ../common && git archive -o ../ansible/playbooks/files/common.zip "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local'
+  local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/common.zip" "{{ irma_deployment_code_version }}"
+  when: irma_deployment_code_version != 'local' and not common_src_archive.stat.exists
 
 - name: Remove common symlink
   file:

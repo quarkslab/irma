@@ -6,9 +6,14 @@
     state: directory
   when: irma_deployment_code_version != 'local'
 
+- name: Check if probe src archive is already present
+  local_action: stat path="{{ playbook_dir }}/files/probe.zip"
+  register: probe_src_archive
+  ignore_errors: True
+
 - name: Gather probe src from current directory
-  local_action: shell cd ../probe && git archive -o ../ansible/playbooks/files/probe.zip "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local'
+  local_action: shell cd "{{ playbook_dir }}/../../probe" && git archive -o "{{ playbook_dir }}/files/probe.zip" "{{ irma_deployment_code_version }}"
+  when: irma_deployment_code_version != 'local' and not probe_src_archive.stat.exists
 
 - name: Upload probe src archive
   win_copy:
@@ -21,16 +26,20 @@
     probe_dest_dir: '{{ probe_deployment_dir | regex_replace("/", "\\") }}'
   when: irma_deployment_code_version != 'local'
 
-
 - name: Unzip probe src archive
   win_unzip:
     src: "{{ probe_dest_dir }}\\probe.zip"
     dest: "{{ probe_dest_dir }}"
   when: irma_deployment_code_version != 'local'
 
+- name: Check if common src archive is already present
+  local_action: stat path="{{ playbook_dir }}/files/common.zip"
+  register: common_src_archive
+  ignore_errors: True
+
 - name: Gather common src from current directory
-  local_action: shell cd ../common && git archive -o ../ansible/playbooks/files/common.zip "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local'
+  local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/common.zip" "{{ irma_deployment_code_version }}"
+  when: irma_deployment_code_version != 'local' and not common_src_archive.stat.exists
 
 - name: Remove common symlink
   win_file:
