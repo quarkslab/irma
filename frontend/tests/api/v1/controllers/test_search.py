@@ -28,7 +28,7 @@ class TestApiSearch(TestCase):
     @patch("frontend.api.v1.controllers.search.process_error")
     def test001_files_raise_none_None(self, m_process_error):
         self.request.query['name'] = "whatever"
-        self.request.query.hash = "something"
+        self.request.query['hash'] = "something"
         api_search.files(self.db)
         self.assertTrue(m_process_error.called)
         self.assertIsInstance(m_process_error.call_args[0][0], ValueError)

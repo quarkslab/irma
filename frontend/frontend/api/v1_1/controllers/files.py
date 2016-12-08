@@ -45,9 +45,9 @@ def list(db):
         if 'name' in request.query:
             name = decode_utf8(request.query['name'])
 
-        h_value = request.query.hash or None
+        h_value = request.query.get('hash')
 
-        search_tags = request.query.tags or None
+        search_tags = request.query.get('tags')
         if search_tags is not None:
             search_tags = search_tags.split(',')
 
@@ -56,9 +56,11 @@ def list(db):
         if name is not None and h_value is not None:
             raise ValueError("Can't find using both name and hash")
 
-        # Options query
-        offset = int(request.query.offset) if request.query.offset else 0
-        limit = int(request.query.limit) if request.query.limit else 25
+        # Get values from query or default
+        offset = request.query.get("offset", default=0)
+        offset = int(offset)
+        limit = request.query.get("limit", default=25)
+        limit = int(limit)
 
         if name is not None:
             base_query = FileWeb.query_find_by_name(name, search_tags, db)
@@ -115,9 +117,12 @@ def get(sha256, db):
         # Check wether its a download attempt or not
         if request.query.alt == "media":
             return _download(sha256, db)
-        # Options query
-        offset = int(request.query.offset) if request.query.offset else 0
-        limit = int(request.query.limit) if request.query.limit else 25
+
+        # Get values from query or default
+        offset = request.query.get("offset", default=0)
+        offset = int(offset)
+        limit = request.query.get("limit", default=25)
+        limit = int(limit)
 
         file = File.load_from_sha256(sha256, db)
         # query all known results not only those with different names

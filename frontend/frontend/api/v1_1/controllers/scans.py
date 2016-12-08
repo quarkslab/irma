@@ -34,8 +34,11 @@ def list(db):
     """ Get a list of all scans which have been launched.
     """
     try:
-        offset = int(request.query.offset) if request.query.offset else 0
-        limit = int(request.query.limit) if request.query.limit else 5
+        # Get values from query or set to default
+        offset = request.query.get("offset", default=0)
+        offset = int(offset)
+        limit = request.query.get("limit", default=5)
+        limit = int(limit)
         log.debug("offset %s limit %s", offset, limit)
         base_query = Scan.query_joined(db)
 

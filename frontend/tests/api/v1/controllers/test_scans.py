@@ -7,9 +7,20 @@ import frontend.api.v1.controllers.scans as api_scans
 from frontend.models.sqlobjects import Scan, FileWeb
 from frontend.api.v1.schemas import ScanSchema_v1
 from lib.irma.common.utils import IrmaScanStatus
+from bottle import FormsDict
 
 
 class TestApiScans(TestCase):
+
+    def setUp(self):
+        self.old_request = api_scans.request
+        self.request = MagicMock()
+        self.request.query = FormsDict()
+        api_scans.request = self.request
+
+    def tearDown(self):
+        api_scans.request = self.old_request
+        del self.request
 
     def test001_initiation(self):
         self.assertIsInstance(api_scans.scan_schema, ScanSchema_v1)
@@ -31,8 +42,6 @@ class TestApiScans(TestCase):
                     "offset": default_offset,
                     "limit": default_limit,
                     "data": m_scan_schema.dump().data}
-        api_scans.request.query.offset = None
-        api_scans.request.query.limit = None
         result = api_scans.list(db_mock)
         self.assertEqual(result, expected)
         self.assertEqual(api_scans.response.content_type,
@@ -51,8 +60,8 @@ class TestApiScans(TestCase):
                     "offset": offset,
                     "limit": limit,
                     "data": m_scan_schema.dump().data}
-        api_scans.request.query.offset = offset
-        api_scans.request.query.limit = limit
+        self.request.query['offset'] = offset
+        self.request.query['limit'] = limit
         result = api_scans.list(db_mock)
         self.assertEqual(result, expected)
         db_mock.query().options().count.assert_called()

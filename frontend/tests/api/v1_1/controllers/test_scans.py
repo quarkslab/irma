@@ -31,8 +31,6 @@ class TestApiScans(TestCase):
                     "offset": default_offset,
                     "limit": default_limit,
                     "data": m_scan_schema.dump().data}
-        api_scans.request.query.offset = None
-        api_scans.request.query.limit = None
         result = api_scans.list(db_mock)
         self.assertEqual(result, expected)
         self.assertEqual(api_scans.response.content_type,
@@ -51,8 +49,8 @@ class TestApiScans(TestCase):
                     "offset": offset,
                     "limit": limit,
                     "data": m_scan_schema.dump().data}
-        api_scans.request.query.offset = offset
-        api_scans.request.query.limit = limit
+        api_scans.request.query['offset'] = offset
+        api_scans.request.query['limit'] = limit
         result = api_scans.list(db_mock)
         self.assertEqual(result, expected)
         db_mock.query().options().count.assert_called()

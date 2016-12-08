@@ -42,15 +42,17 @@ def files(db):
         if 'name' in request.query:
             name = decode_utf8(request.query['name'])
 
-        h_value = request.query.hash or None
+        h_value = request.query.get('hash')
 
         log.debug("name %s h_value %s", name, h_value)
         if name is not None and h_value is not None:
             raise ValueError("Can't find using both name and hash")
 
-        # Options query
-        offset = int(request.query.offset) if request.query.offset else 0
-        limit = int(request.query.limit) if request.query.limit else 25
+        # Get values from Query or Default
+        offset = request.query.get("offset", default=0)
+        offset = int(offset)
+        limit = request.query.get("limit", default=25)
+        limit = int(limit)
 
         if name is not None:
             base_query = FileWeb.query_find_by_name(name, None, db)
