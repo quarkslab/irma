@@ -9,3 +9,4 @@
     - python-pip
     - python-virtualenv
     - python-dev
+    - unzip
