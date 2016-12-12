@@ -24,5 +24,5 @@ log = logging.getLogger(__name__)
 def remove_files(max_age_sec):
     with session_transaction() as session:
         nb_deleted = File.remove_old_files(max_age_sec, session)
-        log.debug("Max_age_sec: %s Nb_deleted: %s", max_age_sec)
+        log.debug("Max_age_sec: %s Nb_deleted: %s", max_age_sec, nb_deleted)
         return nb_deleted

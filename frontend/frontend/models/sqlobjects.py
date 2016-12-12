@@ -254,7 +254,7 @@ class File(Base, SQLDatabaseObject):
         fl = session.query(cls).filter(
             cls.timestamp_last_scan < compat.timestamp() - max_age
         ).filter(
-            cls.path is not None
+            cls.path.isnot(None)
         ).all()
         for f in fl:
             f.remove_file_from_fs()
