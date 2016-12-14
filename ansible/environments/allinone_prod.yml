@@ -3,7 +3,7 @@
 
 servers:
   - name: brain.irma
-    box: quarkslab/debian-8.2.0-amd64
+    box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.30
     hostname: brain.irma
     cpus: 2
@@ -11,13 +11,21 @@ servers:
     memory: 2048
     share_code: false
 ##   - name: probe-win.irma
-##     box: eval-win8x64-enterprise
+##     box: eval-win10-enterprise
 ##     ip: 172.16.1.31
 ##     hostname: probe-win.irma
 ##     cpus: 2
 ##     cpuexecutioncap: 100
 ##     memory: 2048
 ##     windows: true
+
+libvirt_config:
+  driver: kvm
+  # connect_via_ssh: true
+  # host:
+  # username:
+  # storage_pool_name:
+  # id_ssh_key_file:
 
 ansible_config:
   extra_vars:
