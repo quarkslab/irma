@@ -6,7 +6,24 @@
     - vim
     - aria2
     - git
-    - python-pip
-    - python-virtualenv
     - python-dev
     - unzip
+    - make
+
+# Install python-pip (cause the debian version is only 1.1)
+- name: Downloading script get-pip.py
+  get_url:
+    url: 'https://bootstrap.pypa.io/get-pip.py'
+    dest: '/tmp'
+
+- name: Installing pip
+  command: python get-pip.py
+  args:
+   chdir: '/tmp'
+
+
+# Install virtualenv
+- name: Install virtualenv with pip
+  pip: name={{ item }} state=present
+  with_items:
+    - virtualenv
