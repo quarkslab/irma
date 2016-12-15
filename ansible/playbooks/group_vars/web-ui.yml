@@ -1,0 +1,116 @@
+---
+
+##
+web_ui_user: "{{default_user}}"
+web_ui_group: "{{default_group}}"
+web_ui_project_dir: "/opt/irma/irma-web-ui"
+
+web_ui_install_dir: "{{web_ui_project_dir}}/current"
+web_ui_releases_dir: "{{web_ui_project_dir}}/releases"
+web_ui_api_url: "api/v1.1"
+
+
+## Deployment
+web_ui_deployment_repository: "https://github.com/quarkslab/irma-web-ui.git"
+
+
+## UFW Rules
+web_ui_ufw_additional_rules:
+  - port: 80
+    rule: allow
+  - port: 443
+    rule: "{{'allow' if web_ui_openssl|default('False') else 'deny'}}"
+
+
+## HTTPs
+web_ui_openssl: False # Default value is False. For HTTPs using OpenSSL,
+                        # change it to True
+web_ui_openssl_dh_param: /etc/nginx/certs/{{web_ui_hostname}}_dhparam.pem
+
+web_ui_openssl_certificates:
+  cert:
+    src: files/{{web_ui_hostname}}/hostname.crt
+    dst: /etc/nginx/certs/{{web_ui_hostname}}.crt
+  key:
+    src: files/{{web_ui_hostname}}/hostname.key
+    dst: /etc/nginx/certs/{{web_ui_hostname}}.key
+  ca:
+    src: files/{{web_ui_hostname}}/ca.crt
+    dst: /etc/nginx/certs/ca.crt
+
+
+## Apt role
+apt_repositories_code_names:
+  - '{{ansible_distribution_release}}'
+  - '{{ansible_distribution_release}}-updates'
+  - '{{ansible_distribution_release}}-backports'
+
+
+## NodeJS role
+nodejs_version: "0.10.30"
+nodejs_global_packages:
+  - debug
+
+
+nginx_configs:
+  gzip:
+    - gzip on
+    - gzip_disable "msie6"
+    - gzip_comp_level 6
+    - gzip_buffers 16 8k
+    - gzip_http_version 1.1
+    - gzip_types text/plain text/css application/json application/x-javascript text/javascript application/javascript
+  http:
+    - server_names_hash_bucket_size 64
+
+nginx_remove_sites: ["default"]
+
+nginx_sites:
+  irma-web-ui:
+    - listen 80
+    - listen [::]:80 ipv6only=on
+    - server_name {{hostname}} www.{{hostname}}
+    - client_max_body_size 100m
+    - location ~ /\.ht {
+        deny all;
+      }
+    - location / {
+        expires -1;
+        add_header Pragma "no-cache";
+        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        root {{web_ui_install_dir}}/dist;
+        try_files $uri $uri/ /index.html =404;
+      }
+    - error_log {{nginx_log_dir}}/{{hostname}}.error.log
+    - access_log {{nginx_log_dir}}/{{hostname}}.access.log
+  #irma-web-ui:
+    #- listen 80
+    #- listen [::]:80 ipv6only=on
+    #- server_name {{hostname}} www.{{hostname}}
+    #- client_max_body_size 100m
+    #- location ~ /\.ht {
+        #deny all;
+      #}
+    #- location / {
+        #expires -1;
+        #add_header Pragma "no-cache";
+        #add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        #root {{web_ui_install_dir}}/dist;
+        #try_files $uri $uri/ /index.html =404;
+      #}
+    #- error_log {{nginx_log_dir}}/{{hostname}}.error.log
+    #- access_log {{nginx_log_dir}}/{{hostname}}.access.log
+    ## TLS configuration
+    #- ssl on
+    #- ssl_certificate {{ frontend_openssl_certificates.cert.dst }}
+    #- ssl_certificate_key {{ frontend_openssl_certificates.key.dst }}
+    ## dhparam of 2048 bit or greater (1024 if java6 required)
+    #- ssl_dhparam {{ frontend_openssl_dh_param }}
+    #- ssl_session_timeout 5m
+    #- ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2
+    #- ssl_ciphers 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4'
+    #- ssl_prefer_server_ciphers on
+    ## TLS session cache
+    #- ssl_session_cache shared:SSL:50m
+    ## HSTS record cache for 6 months
+    #- add_header Strict-Transport-Security max-age=15768000

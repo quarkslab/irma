@@ -27,6 +27,13 @@ Vagrant.configure("2") do |config|
     config.cache.enable :apt
   end
 
+  if Vagrant.has_plugin?("vagrant-hostmanager")
+    config.hostmanager.enabled = true
+    config.hostmanager.manage_host = true
+    config.hostmanager.ignore_private_ip = false
+    config.hostmanager.include_offline = true
+  end
+
   # Disable VBGuest installation in demo env, as it's VirtualBox specific and
   # the demo env is used to generate cross hypervisor VMDK files.
   if Vagrant.has_plugin?("vagrant-vbguest")
@@ -41,13 +48,20 @@ Vagrant.configure("2") do |config|
       machine.vm.hostname = server['hostname'] || nil
       machine.vm.box = server['box']
       machine.vm.box_version = server['box_version'] || ">= 0"
-      machine.vm.synced_folder '.', '/vagrant', disabled: true
 
+      # Network configuration
       if server['ip']
         print server['ip'], "\n"
         machine.vm.network "private_network", ip: server['ip']
       end
 
+      if Vagrant.has_plugin?("vagrant-hostmanager")
+        machine.hostmanager.aliases = server['aliases'] || []
+      end
+
+
+      # Shared folders
+      machine.vm.synced_folder '.', '/vagrant', disabled: true
       if server.has_key?('shares')
         server['shares'].each do |share|
           if server['windows'] || false

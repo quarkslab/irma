@@ -1,5 +1,7 @@
 ---
 
+hostname: "your-global-hostname.tld"
+
 default_ssh_keys:
   - "{{ lookup('file', 'files/ssh_keys/vagrant.pub') }}"   # Vagrant
 

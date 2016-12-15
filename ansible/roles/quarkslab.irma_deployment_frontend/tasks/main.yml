@@ -58,39 +58,6 @@
     virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }}"
 
-- name: Copy previous Npm files
-  shell: "cp -R {{frontend_install_dir}}/web/node_modules {{frontend_deployment_dir}}/frontend/web/node_modules"
-  args:
-    removes: "{{frontend_install_dir}}/web/node_modules"
-    creates: "{{frontend_deployment_dir}}/web/node_modules"
-  # Errors when current does not exists (first deployment)
-  ignore_errors: yes
-
-- name: Install NPM dependencies
-  npm:
-    path: "{{ frontend_deployment_dir }}/web"
-    production: "{{ irma_environment == 'production' }}"
-    ignore_scripts: yes
-    state: latest
-
-- name: Copy previous Bower files
-  shell: "cp -R {{frontend_install_dir}}/web/app/components {{frontend_deployment_dir}}/web/app/components"
-  args:
-    removes: "{{frontend_install_dir}}/web/app/components"
-    creates: "{{frontend_deployment_dir}}/web/app/components"
-  # Errors when current does not exists (first deployment)
-  ignore_errors: yes
-
-- name: Install Bower dependencies
-  command: node_modules/.bin/bower install --config.interactive=false
-  args:
-    chdir: "{{ frontend_deployment_dir }}/web"
-
-- name: Generate Web Frontend
-  command: node_modules/.bin/gulp dist
-  args:
-    chdir: "{{ frontend_deployment_dir }}/web"
-
 - name: Configure config/frontend.ini file
   ini_file:
     dest: "{{ frontend_deployment_dir }}/config/frontend.ini"

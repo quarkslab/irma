@@ -1,0 +1,63 @@
+---
+
+- set_fact:
+    web_ui_deployment_dir: "{{web_ui_project_dir}}/{{'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name}}"
+
+- name: Ensure that releases directory has been created
+  file:
+    path: "{{web_ui_project_dir}}/releases"
+    state: directory
+
+- name: Clone repository
+  git:
+    repo: "{{web_ui_deployment_repository}}"
+    dest: "{{web_ui_deployment_dir}}"
+    version: "{{irma_deployment_code_version}}"
+    accept_hostkey: yes
+  when: irma_deployment_code_version != 'local'
+
+- name: Copy previous Npm files
+  shell: "cp -R {{web_ui_install_dir}}/node_modules {{web_ui_deployment_dir}}/node_modules"
+  args:
+    removes: "{{web_ui_install_dir}}/node_modules"
+    creates: "{{web_ui_deployment_dir}}/node_modules"
+  # Errors when current does not exists (first deployment)
+  ignore_errors: yes
+
+- name: Install NPM dependencies
+  npm:
+    path: "{{web_ui_deployment_dir}}"
+    production: "{{irma_environment == 'production'}}"
+    ignore_scripts: yes
+    state: latest
+
+- name: Copy previous Bower files
+  shell: "cp -R {{web_ui_install_dir}}/app/components {{web_ui_deployment_dir}}/app/components"
+  args:
+    removes: "{{web_ui_install_dir}}/app/components"
+    creates: "{{web_ui_deployment_dir}}/app/components"
+  # Errors when current does not exists (first deployment)
+  ignore_errors: yes
+
+- name: Install Bower dependencies
+  command: node_modules/.bin/bower install --config.interactive=false
+  args:
+    chdir: "{{web_ui_deployment_dir}}"
+
+- name: Configure Web UI Base Api URL
+  replace:
+    dest: "{{web_ui_deployment_dir}}/app/scripts/irma.js"
+    regexp: "baseApi: '.+'"
+    replace: "baseApi: '{{web_ui_api_url}}'"
+
+- name: Generate Web web_ui
+  command: node_modules/.bin/gulp dist
+  args:
+    chdir: "{{web_ui_deployment_dir}}"
+
+- name: Create symlink release -> current
+  file:
+    src: "{{web_ui_deployment_dir}}"
+    dest: "{{web_ui_install_dir}}"
+    state: link
+  when: irma_deployment_code_version != 'local'

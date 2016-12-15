@@ -2,35 +2,37 @@
 # Variables used by Vagrantfile are defined here
 
 servers:
-  - name: frontend.irma
+  - name: frontend
     box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.30
-    hostname: frontend.irma
+    hostname: irma-frontend.local
+    aliases:
+      - api.irma-frontend.local
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
-  - name: brain.irma
+  - name: brain
     box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.31
     hostname: brain.irma
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
-  - name: avs-linux.irma
+  - name: avs-linux
     box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.32
     hostname: avs-linux.irma
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
-  - name: mcafee-win.irma
-    box: eval-win8x64-enterprise
-    ip: 172.16.1.33
-    hostname: mcafee-win.irma
-    cpus: 2
-    cpuexecutioncap: 100
-    memory: 2048
-    windows: true
+  # - name: mcafee-win
+  #   box: eval-win10-enterprise
+  #   ip: 172.16.1.33
+  #   hostname: mcafee-win.irma
+  #   cpus: 2
+  #   cpuexecutioncap: 100
+  #   memory: 2048
+  #   windows: true
 
 libvirt_config:
   driver: kvm
@@ -44,42 +46,44 @@ ansible_config:
   extra_vars:
     vagrant: true
   groups:
+    web-ui:
+      - frontend
     frontend:
-      - frontend.irma
+      - frontend
     brain:
-      - brain.irma
+      - brain
     clamav:
-      - avs-linux.irma
+      - avs-linux
     comodo:
-      - avs-linux.irma
+      - avs-linux
     mcafee:
-      - avs-linux.irma
+      - avs-linux
     static-analyzer:
-      - avs-linux.irma
+      - avs-linux
     virustotal:
-      - avs-linux.irma
+      - avs-linux
     avg:
-      - avs-linux.irma
+      - avs-linux
     bitdefender:
-      - avs-linux.irma
+      - avs-linux
     escan:
-      - avs-linux.irma
+      - avs-linux
     virusblokada:
-      - avs-linux.irma
+      - avs-linux
     zoner:
-      - avs-linux.irma
+      - avs-linux
     drweb:
-      - avs-linux.irma
+      - avs-linux
     avast:
-      - avs-linux.irma
+      - avs-linux
     fsecure:
-      - avs-linux.irma
+      - avs-linux
     trid:
-      - avs-linux.irma
+      - avs-linux
     sophos:
-      - avs-linux.irma
+      - avs-linux
     mcafee-win:
-      - mcafee-win.irma
+      - mcafee-win
     "probe:children":
       - clamav
       - comodo
