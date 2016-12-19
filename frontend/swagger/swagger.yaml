@@ -444,6 +444,59 @@ paths:
          description: OK
          schema:
           $ref: '#/definitions/Tag'
+  '/stats':
+    get:
+      summary: Get antivirus statistics
+      description: |
+        Get antivirus statistics on submitted files.
+      tags:
+        - Stats
+      parameters:
+        - name: hash
+          in: query
+          description: 'Hash value (can be md5, sha1 or sha256)'
+          type: string
+        - name: name
+          in: query
+          description: Filename or regexp
+          type: string
+        - name: tag
+          in: query
+          description: list of existing tags id comma separated
+          type: string
+        - name: offset
+          in: query
+          description: Offset the list of returned objects. Default is zero.
+          type: integer
+          format: int64
+        - name: limit
+          in: query
+          description: A limit on the number of objects to be returned.
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              total:
+                type: integer
+                format: int64
+              offset:
+                type: integer
+                format: int64
+              limit:
+                type: integer
+                format: int64
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/AvStats'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 
 definitions:
   Scan:
@@ -597,6 +650,22 @@ definitions:
         format: double
       text:
         type: string
+
+  AvStats:
+    type: object
+    properties:
+      name:
+        type: string
+      version:
+        type: string
+      infected:
+        type: integer
+      clean:
+        type: integer
+      errors:
+        type: integer
+      total:
+        type: integer
 
   Error:
     type: object
