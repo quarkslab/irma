@@ -184,6 +184,35 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
+  '/scans/{scanId}/files_ext':
+    post:
+      summary: Create a file upload with existing files
+      description: |
+        Add already submitted files to a specific scan.
+      tags:
+        - Scans
+      parameters:
+        - name: scanId
+          in: path
+          type: string
+          description: ID of the scan
+          required: true
+        - name: files
+          in: body
+          type: array
+          description: Files to add to the scan
+          schema:
+            $ref: '#/definitions/ScanFiles'
+          required: true
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/Scan'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
   '/scans/{scanId}/results':
     get:
       summary: List all results from a scan
@@ -588,6 +617,12 @@ definitions:
       resubmit_files:
         type: boolean
         default: True
+
+  ScanFiles:
+    type: object
+    properties:
+      sha256:
+        type: string
 
   Tag:
     type: object
