@@ -320,6 +320,53 @@ def add_files(scan, files, session):
     session.commit()
 
 
+
+def add_files_ext(scan, files, session):
+    """ add already submitted file(s) to the specified scan
+
+    :param scanid: id returned by scan_new
+    :param files: list of {sha256}
+    :rtype: int
+    :return: int - total number of files for the scan
+    :raise: IrmaDataBaseError, IrmaValueError
+    """
+    log.debug("scanid: %s", scan.external_id)
+    IrmaScanStatus.filter_status(scan.status,
+                                 IrmaScanStatus.empty,
+                                 IrmaScanStatus.ready)
+    if scan.status == IrmaScanStatus.empty:
+        # on first file added update status to 'ready'
+        scan.set_status(IrmaScanStatus.ready)
+
+
+    for f in files:
+
+        sha256 = f['sha256']
+        file = File.load_from_sha256(sha256, session)
+
+        if file is not None:
+
+            # Get the first file name in the list of names.
+            filename = file.get_file_names()[0]
+            log.debug("filename: %s", filename)
+
+            # Using ntpath.split as it handles
+            # windows path and Linux path
+            (path, name) = ntpath.split(filename)
+            log.debug("path: %s", path)
+            log.debug("name: %s", name)
+
+            file_web = FileWeb(file, name, path, scan)
+            session.add(file_web)
+            session.commit()
+        else:
+            log.error("file with hash [%s] not found in db", sha256)
+
+
+    session.commit()
+
+
+
 # launch operation is divided in two parts
 # one is synchronous, the other called by
 # a celery task is asynchronous (Ftp transfer)

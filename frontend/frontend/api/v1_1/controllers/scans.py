@@ -189,6 +189,31 @@ def add_files(scanid, db):
         process_error(e)
 
 
+def add_files_ext(scanid, db):
+    """ Attach existing files to a scan.
+        The request should be performed using a POST request method.
+    """
+    try:
+        log.debug("scanid %s", scanid)
+        validate_id(scanid)
+        scan = Scan.load_from_ext_id(scanid, db)
+
+        # Get scan parameters (array of files description)
+        if request.json is not None:
+            files_array = request.json
+        else:
+            raise ValueError("No files to attach")
+
+        # Add files to a scan
+        scan_ctrl.add_files_ext(scan, files_array, db)
+
+        response.content_type = "application/json; charset=UTF-8"
+        return scan_schema.dumps(scan).data
+    except Exception as e:
+        log.exception(e)
+        process_error(e)
+
+
 def get_results(scanid, db):
     """ Retrieve results for a scan. Results are the same as in the get()
         method, i.e. a summary for each scanned files.
