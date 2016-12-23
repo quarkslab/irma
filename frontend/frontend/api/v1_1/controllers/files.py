@@ -98,17 +98,10 @@ def list(db):
             file_web_schema_dl = FileWebSchema_v1_1(exclude=('probe_results','file_infos'))
             infos = file_web_schema_dl.dump(items, many=True).data
 
-            sha256_list = []
-
-            for i, val in enumerate(items):
-                fhash = val.file.sha256
-                sha256_list.append(fhash)
-
+            sha256_list = [item.file.sha256 for item in items]
             # download zip archive containing files
-            if sha256_list is not None:
+            if sha256_list:
                 return _download_zip(sha256_list, db, infos)
-
-
 
         response.content_type = "application/json; charset=UTF-8"
         return {
@@ -120,7 +113,6 @@ def list(db):
     except Exception as e:
         log.exception(e)
         process_error(e)
-
 
 
 def get(sha256, db):
