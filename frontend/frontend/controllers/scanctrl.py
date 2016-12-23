@@ -31,6 +31,7 @@ from lib.common.hash import sha256sum, sha1sum, md5sum
 from frontend.helpers.utils import build_sha256_path
 from fasteners import interprocess_locked
 from config.parser import get_lock_path
+from sqlalchemy.orm.exc import NoResultFound
 
 log = logging.getLogger(__name__)
 interprocess_lock_path = get_lock_path()
@@ -39,43 +40,27 @@ interprocess_lock_path = get_lock_path()
 #  Internals helpers
 # ===================
 
-
-def get_tagid(session, text):
-    tag_list = Tag.query_find_all(session)
-    
-    for tag in tag_list:
-        if tag.text == text:
-            log.debug("get_tagid :: tag [%s] found with id %d", text, id)
-            return tag.id
-
-    log.debug("get_tagid :: tag [%s] not found!", text)
-    return 0
-
 def set_probe_tag(file_hash, tag_name, result):
 
     # If the probe is an antivirus and the result value is "1" (infected)
     if result['type'] == 'antivirus' and result['status'] == 1 :
-
         with session_transaction() as session:
-            available_tags = Tag.query_find_all(session)
-            if tag_name in [t.text for t in available_tags]:
-                log.debug("set_probe_tag :: tag [%s] already exists", tag_name)
-            else:
-                # create tag for the probe.
-                log.debug("set_probe_tag :: adding tag [%s] to database", tag_name)
+            try:
+                # Retrieve the Tag from database
+                tag = session.query(Tag).filter(Tag.text == tag_name).one()
+            except NoResultFound as e:
+                # If not found then create the tag
+                log.debug("Adding tag [%s] to database", tag_name)
                 tag = Tag(tag_name)
                 session.add(tag)
                 session.commit()
-
-            # add tag to file.
-            log.debug("set_probe_tag :: tagging file [%s] with tag [%s]",file_hash, tag_name)
+            except:
+                raise ValueError("Unexpected error")
+            # Add tag to file.
+            log.debug("Tagging file [%s] with tag [%s]",file_hash, tag_name)
             file = File.load_from_sha256(file_hash, session)
-
-            tag_id = get_tagid(session, tag_name)
-            if tag_id != 0 :
-                file.add_tag(tag_id,session)
-                session.commit()
-
+            file.add_tag(tag.id,session)
+            session.commit()
     return 0
 
 def _new_file(fileobj, session):
