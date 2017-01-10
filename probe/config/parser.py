@@ -71,6 +71,10 @@ template_probe_config = {
         ('keyfile', TemplatedConfiguration.string, None),
         ('certfile', TemplatedConfiguration.string, None),
     ],
+    'probe_list': [
+        ('disabled_list', TemplatedConfiguration.string, None),
+        ('enabled_list', TemplatedConfiguration.string, None),
+    ],
 }
 
 cwd = os.path.abspath(os.path.dirname(__file__))
@@ -216,3 +220,20 @@ def get_ftp_class():
         return IrmaSFTP
     elif protocol == "ftps":
         return IrmaFTPS
+
+
+# =========================
+#  disabled/enabled helpers
+# =========================
+
+def get_disabled_list():
+    return probe_config.probe_list.disabled_list
+
+
+def get_enabled_list():
+    return probe_config.probe_list.enabled_list
+
+
+def check_error_list():
+    return (probe_config.probe_list.disabled_list and
+            probe_config.probe_list.enabled_list)
