@@ -1,7 +1,7 @@
 ---
 
 servers:
-  - name: brain.irma
+  - name: demo
     box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.30
     hostname: brain.irma
@@ -17,16 +17,18 @@ ansible_config:
     irma_release: v1.5.3
     build_environment: demo
   groups:
-    frontend-demo:
-      - brain.irma
+    web-ui:
+      - demo
+    frontend:
+      - demo
     brain:
-      - brain.irma
+      - demo
     clamav:
-      - brain.irma
+      - demo
     unarchiver:
-      - brain.irma
+      - demo
     static-analyzer:
-      - brain.irma
+      - demo
     "probe:children":
       - clamav
       - static-analyzer

@@ -1,0 +1,16 @@
+---
+
+- name: Ensure that Project directory is present
+  file:
+    path: "{{web_ui_project_dir}}"
+    state: directory
+    owner: "{{web_ui_user}}"
+    group: "{{irma_server_group}}"
+    mode: 02750
+    recurse: "{{vagrant_share|default(false)}}"
+
+- name: Ensure that www-data can access files and certificates
+  user:
+    name: www-data
+    groups: "{{irma_server_group}},{{irma_cert_group}}"
+    append: yes

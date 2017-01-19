@@ -2,23 +2,29 @@
 # Variables used by Vagrantfile are defined here
 
 servers:
-  - name: frontend.irma
+  - name: frontend
     box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.30
-    hostname: frontend.irma
+    hostname: irma-frontend.local
+    aliases:
+      - api.irma-frontend.local
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
     shares:
+      - share_from: ../web-ui
+        share_to: /opt/irma/irma-web-ui/current
+        share_exclude:
+          - .git/
+          - dist
+          - node_modules
+          - components
       - share_from: ../frontend
         share_to: /opt/irma/irma-frontend/current
         share_exclude:
           - .git/
           - venv/
-          - web/dist
-          - web/node_modules
-          - app/components
-  - name: brain.irma
+  - name: brain
     box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.31
     hostname: brain.irma
@@ -32,7 +38,7 @@ servers:
           - .git/
           - venv/
           - db/
-  - name: avs-linux.irma
+  - name: avs-linux
     box: quarkslab/debian-8.6.0-amd64
     ip: 172.16.1.32
     hostname: avs-linux.irma
@@ -50,7 +56,7 @@ servers:
 ## Please have a look at the documentation if ## you want to enable this in an dev
 ## environment.
 ## NOTE: hostname cannot be more that 15 characters
-##   - name: probe-win.irma
+##   - name: probe-win
 ##     box: eval-win8x64-enterprise
 ##     ip: 172.16.1.33
 ##     hostname: probe-win.irma
@@ -79,42 +85,44 @@ ansible_config:
     vagrant_share: true
     irma_environment: development
   groups:
+    web-ui:
+      - frontend
     frontend:
-      - frontend.irma
+      - frontend
     brain:
-      - brain.irma
+      - brain
     clamav:
-      - avs-linux.irma
+      - avs-linux
     comodo:
-      - avs-linux.irma
+      - avs-linux
     mcafee:
-      - avs-linux.irma
+      - avs-linux
     static-analyzer:
-      - avs-linux.irma
+      - avs-linux
     virustotal:
-      - avs-linux.irma
+      - avs-linux
     avg:
-      - avs-linux.irma
+      - avs-linux
     bitdefender:
-      - avs-linux.irma
+      - avs-linux
     escan:
-      - avs-linux.irma
+      - avs-linux
     virusblokada:
-      - avs-linux.irma
+      - avs-linux
     zoner:
-      - avs-linux.irma
+      - avs-linux
     drweb:
-      - avs-linux.irma
+      - avs-linux
     avast:
-      - avs-linux.irma
+      - avs-linux
     fsecure:
-      - avs-linux.irma
+      - avs-linux
     trid:
-      - avs-linux.irma
+      - avs-linux
     sophos:
-      - avs-linux.irma
+      - avs-linux
     windows-probe:
-      - probe-win.irma
+      - probe-win
     "probe:children":
       - clamav
       - comodo

@@ -1,8 +1,6 @@
 ---
 
 ## Global variables
-hostname: frontend.irma
-
 frontend_user: "{{ default_user }}"
 frontend_group: "{{ default_group }}"
 frontend_project_dir: /opt/irma/irma-frontend
@@ -110,12 +108,6 @@ uwsgi_plugins:
   - python
 
 
-## NodeJS role
-nodejs_version: "0.10.30"
-nodejs_global_packages:
-  - debug
-
-
 ## PostgreSQL role
 # Basic settings
 postgresql_version: "9.4"
@@ -185,63 +177,75 @@ nginx_configs:
   http:
     - server_names_hash_bucket_size 64
 
+nginx_remove_sites: ["default"]
+
 nginx_sites:
-  default:
-    - listen 80
-  irma-frontend:
+  irma-api:
     - listen 80 default_server
     - listen [::]:80 default_server ipv6only=on
-    - server_name www.{{ hostname }}
+    - server_name api.{{ hostname }}
     - client_max_body_size 100m
     - location ~ /\.ht {
         deny all;
       }
-    - location /api {
+    - location / {
+        if ($request_method = 'OPTIONS') {
+           add_header 'Access-Control-Allow-Origin' '*';
+           add_header 'Access-Control-Allow-Credentials' 'true';
+           add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+           add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With';
+           add_header 'Access-Control-Max-Age' 1728000;
+           add_header 'Content-Type' 'text/plain charset=UTF-8';
+           add_header 'Content-Length' 0;
+           return 204;
+        }
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+        add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With';
         include uwsgi_params;
-        rewrite ^/api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
     - location /swagger {
         alias {{ frontend_install_dir }}/swagger/ui;
         index index.html;
       }
-    - location / {
-        expires -1;
-        add_header Pragma "no-cache";
-        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        root {{ frontend_install_dir }}/web/dist;
-        try_files $uri $uri/ /index.html =404;
-      }
-    - error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
-    - access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
+    - error_log {{ nginx_log_dir }}/api.{{ hostname }}.error.log
+    - access_log {{ nginx_log_dir }}/api.{{ hostname }}.access.log
   # Uncomment the following for HTTPs using OpenSSL support
   # It can be customize for your needs (add the swagger API, …)
   #irma-frontend-https:
     #- listen 443 default_server
     #- listen [::]:443 default_server ipv6only=on
-    #- server_name www.{{ hostname }}
+    #- server_name api.{{ hostname }}
     #- client_max_body_size 100m
     #- location ~ /\.ht {
         #deny all;
       #}
-    #- location /api {
+    #- location / {
+        #if ($request_method = 'OPTIONS') {
+           #add_header 'Access-Control-Allow-Origin' '*';
+           #add_header 'Access-Control-Allow-Credentials' 'true';
+           #add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+           #add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With';
+           #add_header 'Access-Control-Max-Age' 1728000;
+           #add_header 'Content-Type' 'text/plain charset=UTF-8';
+           #add_header 'Content-Length' 0;
+           #return 204;
+        #}
+        #add_header 'Access-Control-Allow-Origin' '*';
+        #add_header 'Access-Control-Allow-Credentials' 'true';
+        #add_header 'Access-Control-Allow-Methods' 'GET, POST, PUT, DELETE, OPTIONS';
+        #add_header 'Access-Control-Allow-Headers' 'Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Requested-With';
         #include uwsgi_params;
-        #rewrite ^/api/(.+) /$1 break;
         #uwsgi_pass 127.0.0.1:8081;
       #}
     # - location /swagger {
     #     alias {{ frontend_install_dir }}/swagger/ui;
     #     index index.html;
     #   }
-    #- location / {
-        # expires -1;
-        # add_header Pragma "no-cache";
-        # add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        # root {{ frontend_install_dir }}/web/dist;
-        # try_files $uri $uri/ /index.html =404;
-      #}
-    #- error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
-    #- access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
+    #- error_log {{ nginx_log_dir }}/api.{{ hostname }}.error.log
+    #- access_log {{ nginx_log_dir }}/api.{{ hostname }}.access.log
     ## TLS configuration
     #- ssl on
     #- ssl_certificate {{ frontend_openssl_certificates.cert.dst }}
