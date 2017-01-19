@@ -36,7 +36,6 @@ class VirusBlokAda(Antivirus):
         super(VirusBlokAda, self).__init__(*args, **kwargs)
         # scan tool variables
         self._scan_args = (
-            "-M=3 "   # action to take for an infected file
             "-AF+ "   # all files
             "-PM+ "   # thorough scanning mode
             "-RW+ "   # detect Spyware, Adware, Riskware
