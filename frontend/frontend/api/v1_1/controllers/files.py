@@ -28,7 +28,8 @@ file_web_schema = FileWebSchema_v1_1()
 scan_schema = ScanSchema_v1_1()
 file_web_schema.context = {'formatted': True}
 log = logging.getLogger(__name__)
-
+file_web_schema_lite = FileWebSchema_v1_1(exclude=['probe_results'])
+file_web_schema_lite.context = {'formatted': True}
 
 def list(db):
     """ Search a file using query filters (tags + hash or name). Support
@@ -94,7 +95,7 @@ def list(db):
             'total': total,
             'offset': offset,
             'limit': limit,
-            'items': file_web_schema.dump(items, many=True).data,
+            'items': file_web_schema_lite.dump(items, many=True).data,
         }
     except Exception as e:
         log.exception(e)
