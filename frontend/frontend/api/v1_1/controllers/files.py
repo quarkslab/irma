@@ -31,6 +31,7 @@ log = logging.getLogger(__name__)
 file_web_schema_lite = FileWebSchema_v1_1(exclude=['probe_results'])
 file_web_schema_lite.context = {'formatted': True}
 
+
 def list(db):
     """ Search a file using query filters (tags + hash or name). Support
         pagination.
