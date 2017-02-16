@@ -1,5 +1,8 @@
 ---
 
+# Update requirements.txt when changing Ansible required version
+required_ansible_version: 2.2.1.0
+
 default_ssh_keys:
   - "{{ lookup('file', 'files/ssh_keys/vagrant.pub') }}"   # Vagrant
 
