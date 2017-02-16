@@ -10,7 +10,7 @@ web/.tmp/
 web/app/bower_components/
 
 # other
-.idea/*
+.idea/
 *~
 venv/
 

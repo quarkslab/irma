@@ -59,7 +59,7 @@ servers:
 ##     memory: 2048
 ##     windows: true
 ##     shares:
-##       - share_from: ../irma-probe
+##       - share_from: ../probe
 ##         share_to: C:/IRMA/irma-probe/current
 ##         share_exclude:
 ##           - .git/
