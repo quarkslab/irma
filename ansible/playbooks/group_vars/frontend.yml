@@ -14,7 +14,6 @@ frontend_beat_schedule: /var/irma/frontend_beat_schedule
 
 
 ## Deployment
-frontend_deployment_repository: "https://github.com/quarkslab/irma-frontend.git"
 frontend_deployment_configs:
   - section: broker_brain
     option: host

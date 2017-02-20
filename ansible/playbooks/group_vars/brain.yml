@@ -10,7 +10,6 @@ brain_group: "{{ default_group }}"
 
 
 ## Deployment
-brain_deployment_repository: "https://github.com/quarkslab/irma-brain.git"
 brain_deployment_configs:
   - section: broker_brain
     option: host

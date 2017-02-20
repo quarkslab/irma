@@ -34,7 +34,7 @@
 #       username: irma
 #       password: #Generate a new password here#
 #       db_name: irma-frontend
-# irma_deployment_code_version: "testing"
+# irma_deployment_code_version: "master"
 
 
 ########################

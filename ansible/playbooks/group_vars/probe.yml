@@ -14,7 +14,6 @@ probe_venv_dir: "{{ probe_install_dir }}/venv"
 
 
 ## Deployment
-probe_deployment_repository: "https://github.com/quarkslab/irma-probe.git"
 probe_deployment_configs:
   - section: broker_probe
     option: host
