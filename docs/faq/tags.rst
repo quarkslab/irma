@@ -12,7 +12,7 @@ You could create tags by using the `command line tools <https://github.com/quark
 
 .. code-block:: python
 
-	>>> from irma.helpers import *
+	>>> from irmacl.helpers import *
 	>>> tag_list()
 	[]
 
@@ -50,7 +50,7 @@ It is also possible to add a tag through command line tools:
 
 .. code-block:: python
 
-	>>> from irma.helpers import *
+	>>> from irmacl.helpers import *
 	>>> file_tag_add?
 	Signature: file_tag_add(sha256, tagid, verbose=False)
 	Docstring:
@@ -81,6 +81,6 @@ or by command line:
 
 .. code-block:: python
 
-	>>> from irma.helpers import *
+	>>> from irmacl.helpers import *
 	>>> file_search(tags=[1])
 	(1, [<irma.apiclient.IrmaResults at 0x7f079ca23890>])
