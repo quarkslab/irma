@@ -63,9 +63,6 @@
     src: "{{frontend_install_dir}}/web/node_modules"
     dest: "{{frontend_deployment_dir}}/frontend/web/node_modules"
     remote_src: yes
-  args:
-    removes: "{{frontend_install_dir}}/web/node_modules"
-    creates: "{{frontend_deployment_dir}}/web/node_modules"
   # Errors when current does not exists (first deployment)
   ignore_errors: yes
 
@@ -80,9 +77,7 @@
   copy:
     src: "{{frontend_install_dir}}/web/app/components"
     dest: "{{frontend_deployment_dir}}/web/app/components"
-  args:
-    removes: "{{frontend_install_dir}}/web/app/components"
-    creates: "{{frontend_deployment_dir}}/web/app/components"
+    remote_src: yes
   # Errors when current does not exists (first deployment)
   ignore_errors: yes
 

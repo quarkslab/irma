@@ -37,6 +37,7 @@
     dest: /etc/avast/license.avastlic
     owner: avast
     group: avast
+    remote_src: yes
   become: yes
   notify:
     - Restart Avast daemon

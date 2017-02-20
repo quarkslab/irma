@@ -39,9 +39,10 @@
     backup: yes
 
 - name: ComodoCAVL | Install Update
-  file:
+  copy:
     src: "{{ comodo_cavl_temp_dir }}/bases.cav"
     dest: "/opt/COMODO/scanners"
+    remote_src: yes
 
 - name: ComodoCAVL | Remove temporary work dir
   file:
