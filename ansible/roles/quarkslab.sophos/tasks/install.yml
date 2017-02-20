@@ -13,6 +13,7 @@
   get_url:
     url: "{{ sophos_archive_url }}"
     dest: "{{ sophos_temp_dir }}/{{ sophos_archive_name }}"
+  environment: proxy_env
 
 - name: Sophos | Dezip archive
   unarchive:

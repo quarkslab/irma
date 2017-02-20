@@ -9,6 +9,7 @@
   get_url:
     url: "{{ virusblokada_tgz_url }}"
     dest: "{{ virusblokada_temp_dir }}/vbacl-linux.tar.gz"
+  environment: proxy_env
 
 - name: VBA32 | Extract Installer
   unarchive:

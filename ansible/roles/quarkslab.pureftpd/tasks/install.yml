@@ -4,6 +4,7 @@
   get_url:
     url: "{{ pureftpd_tarball_url }}"
     dest: "/tmp/{{ pureftpd_tarball_name }}"
+  environment: proxy_env
 
 - name: Install | Unpack PureFTPD
   unarchive:

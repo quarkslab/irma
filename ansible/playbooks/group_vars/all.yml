@@ -81,3 +81,11 @@ sshd:
   PermitRootLogin: no
   Protocol: 2
   X11Forwarding: no
+
+# Http proxy settings
+
+#proxy_env:
+#  http_proxy: <proxy_addr>
+#  https_proxy: <proxy_addr>
+
+#pip_extra_args: "--proxy=<proxy_addr>"

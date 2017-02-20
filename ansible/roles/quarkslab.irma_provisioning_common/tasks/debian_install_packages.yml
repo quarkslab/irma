@@ -15,6 +15,7 @@
   get_url:
     url: 'https://bootstrap.pypa.io/get-pip.py'
     dest: '/tmp'
+  environment: proxy_env
 
 - name: Installing pip
   command: python get-pip.py
@@ -24,6 +25,6 @@
 
 # Install virtualenv
 - name: Install virtualenv with pip
-  pip: name={{ item }} state=present
+  pip: name={{ item }} state=present  extra_args="{{ pip_extra_args | default('') }}"
   with_items:
     - virtualenv

@@ -28,6 +28,7 @@
       dest: "{{ trid_temp_dir }}/trid_linux.zip"
     - url: "{{ tridupdate_zip_url }}"
       dest: "{{ trid_temp_dir }}/tridupdate.zip"
+  environment: proxy_env
 
 - name: TrID | Creating Install Directory
   file: path="{{ trid_install_dir }}" state="directory"

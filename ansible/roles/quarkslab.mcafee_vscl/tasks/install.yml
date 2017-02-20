@@ -5,6 +5,7 @@
     url: "{{ mcafee_vscl_tgz_url }}"
     dest: "{{ mcafee_temp_dir }}/vscl.tar.gz"
     validate_certs: yes
+  environment: proxy_env
 
 - file: path=/usr/local/uvscan state=directory
 

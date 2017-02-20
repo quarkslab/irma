@@ -9,6 +9,7 @@
   get_url:
     url: "{{ zoner_url }}"
     dest: "{{ zoner_temp_dir }}/zav.deb"
+  environment: proxy_env
 
 - name: Zoner | Run installer
   apt:

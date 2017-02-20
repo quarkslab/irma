@@ -4,6 +4,7 @@
   get_url:
     url: "{{ fsecure_url }}"
     dest: "{{ fsecure_temp_dir }}/fsls.tar.gz"
+  environment: proxy_env
 
 - name: F-Secure | Extract installer
   unarchive:

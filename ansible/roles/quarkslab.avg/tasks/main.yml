@@ -20,6 +20,7 @@
   get_url:
     url: http://download.avgfree.com/filedir/inst/avg2013flx-r3118-a6926.i386.deb
     dest: /tmp/avg2013flx-r3118-a6926.i386.deb
+  environment: proxy_env
 
 - name: AVG | Install deb
   apt:

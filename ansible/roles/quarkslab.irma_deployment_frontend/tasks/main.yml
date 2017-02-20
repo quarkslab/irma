@@ -75,6 +75,7 @@
     production: "{{ irma_environment == 'production' }}"
     ignore_scripts: yes
     state: latest
+  environment: proxy_env
 
 - name: Copy previous Bower files
   copy:
@@ -90,6 +91,7 @@
   command: node_modules/.bin/bower install --config.interactive=false
   args:
     chdir: "{{ frontend_deployment_dir }}/web"
+  environment: proxy_env
 
 - name: Generate Web Frontend
   command: node_modules/.bin/gulp dist

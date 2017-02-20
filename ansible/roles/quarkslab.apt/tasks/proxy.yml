@@ -1,0 +1,7 @@
+- name: Set Apt Proxy
+  template:
+     src=apt.conf.j2
+     dest=/etc/apt/apt.conf
+     owner=root
+     group=root
+     mode=0660

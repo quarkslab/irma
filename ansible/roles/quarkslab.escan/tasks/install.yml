@@ -9,6 +9,7 @@
   get_url:
     url: "{{ escan_url }}"
     dest: "{{ escan_temp_dir }}/escan-antivirus.deb"
+  environment: proxy_env
 
 - name: eScan | Run installer
   apt:

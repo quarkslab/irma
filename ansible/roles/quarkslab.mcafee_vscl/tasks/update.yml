@@ -2,6 +2,7 @@
 
 - name: McAfee VSCL | Download Update
   command: wget -Nc -r -nd -l1 -A "avvepo????dat.zip" http://download.nai.com/products/DatFiles/4.x/nai/
+  environment: proxy_env
   args:
     chdir: "{{ mcafee_temp_dir }}"
     warn: no # don't warn us about get_url

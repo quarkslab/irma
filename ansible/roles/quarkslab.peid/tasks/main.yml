@@ -15,4 +15,5 @@
   get_url:
     url: "{{ peid_sig_url }}"
     dest: "{{ sig_dir}}"
+  environment: proxy_env
 

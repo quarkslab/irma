@@ -18,6 +18,7 @@
   get_url:
     url: "{{ eset_nod32_script_url }}"
     dest: "{{ eset_nod32_temp_dir }}/esetnod32.linux"
+  environment: proxy_env
   when: ansible_os_family == "Debian"
 
 - name: EsetNod32 | Set permissions

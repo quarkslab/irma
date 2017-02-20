@@ -4,6 +4,7 @@
   get_url:
     url: "{{ bitdefender_url }}"
     dest: /tmp/BitDefender-Antivirus-Scanner-linux.run
+  environment: proxy_env
 
 # NOTE: We patch the installed to have an ansible friendly installer
 - name: BitDefender | Patching Installer CRC
