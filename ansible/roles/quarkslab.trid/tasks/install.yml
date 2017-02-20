@@ -1,16 +1,22 @@
 
+# We still need this as the apt module doesn't react to the 'dpkg_options:
+# "--add-architecture i386'
 - name: TrID | Adding i386 repositories
-  shell: dpkg --add-architecture i386
-  sudo: yes
+  command: dpkg --add-architecture i386
+  become: yes
 
 - name: TrID | Install dependencies
-  apt: name="{{ item }}" state="latest" update_cache="yes"
+  apt:
+    name: "{{ item }}"
+    state: "latest"
+    update_cache: yes
+    cache_valid_time: 0         # force refresh for i386 arch
   with_items:
     - libc6-i386
     - libstdc++6
     - libncurses5:i386
     - unzip
-  sudo: yes
+  become: yes
 
 - name: TrID | Creating temp directory
   file: path="{{ trid_temp_dir }}" state="directory"
@@ -25,7 +31,7 @@
 
 - name: TrID | Creating Install Directory
   file: path="{{ trid_install_dir }}" state="directory"
-  sudo: yes
+  become: yes
 
 - name: TrID | Extracting packages
   unarchive: src="{{ item.src }}" dest="{{ item.dest }}" copy=no
@@ -34,11 +40,11 @@
       dest: "{{ trid_install_dir}}"
     - src: "{{ trid_temp_dir }}/tridupdate.zip"
       dest: "{{ trid_install_dir }}"
-  sudo: yes
+  become: yes
 
 - name: TrID | Ensure binary is executable
   file: path="{{ trid_install_dir }}/trid" mode=0755
-  sudo: yes
+  become: yes
 
 - name: TrID | Removing temp directory
   file:

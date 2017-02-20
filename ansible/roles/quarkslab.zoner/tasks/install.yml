@@ -13,7 +13,7 @@
 - name: Zoner | Run installer
   apt:
     deb: "{{ zoner_temp_dir }}/zav.deb"
-  sudo: yes
+  become: yes
 
 - name: Zoner | Remove temporary work dir
   file:

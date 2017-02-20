@@ -10,4 +10,4 @@
 
 - name: eScan | Download latest definition files
   command: escan -xs --update
-  sudo: yes
+  become: yes

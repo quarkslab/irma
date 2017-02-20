@@ -26,16 +26,22 @@
     creates: "{{ comodo_cavl_temp_dir }}/data.tar.gz"
 
 - name: ComodoCAVL | Install files
-  shell: tar xzf "{{ comodo_cavl_temp_dir }}/data.tar.gz" -C /
+  unarchive:
+    src: "{{ comodo_cavl_temp_dir }}/data.tar.gz"
+    dest: "/"
+    remote_src: yes
 
 - name: ComodoCAVL | Download Update
-  command: wget -Nc -r -nd -l1 {{ comodo_cavl_update_url }}
-  args:
-    chdir: "{{ comodo_cavl_temp_dir }}/"
-    creates: "{{ comodo_cavl_temp_dir }}/bases.cav"
+  get_url:
+    url: "{{ comodo_cavl_update_url }}"
+    dest: "{{ comodo_cavl_temp_dir }}"
+    validate_certs: yes
+    backup: yes
 
 - name: ComodoCAVL | Install Update
-  shell: mv "{{ comodo_cavl_temp_dir }}/bases.cav" /opt/COMODO/scanners
+  file:
+    src: "{{ comodo_cavl_temp_dir }}/bases.cav"
+    dest: "/opt/COMODO/scanners"
 
 - name: ComodoCAVL | Remove temporary work dir
   file:

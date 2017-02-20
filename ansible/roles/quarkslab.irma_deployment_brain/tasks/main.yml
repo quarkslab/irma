@@ -61,8 +61,8 @@
   command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user user {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.ftpd.frontend.username }}"
   args:
     chdir: "{{ brain_deployment_dir }}"
-  sudo_user: "{{ irma_user }}"
-  sudo: yes
+  become_user: "{{ irma_user }}"
+  become: yes
 
 - name: Configure config/brain.ini file
   ini_file:
@@ -83,5 +83,5 @@
   supervisorctl:
     name: "{{ item.name }}"
     state: restarted
-  sudo: yes
+  become: yes
   with_items: "{{ supervisor_programs_brain }}"

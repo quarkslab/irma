@@ -8,5 +8,5 @@
     to_ip: "{{ item.to_ip if item.to_ip is defined else 'any' }}"
     from_ip: "{{ item.from_ip if item.from_ip is defined else 'any' }}"
   with_items: "{{ ufw_additional_rules }}"
-  sudo: yes
+  become: yes
   notify: Reload UFW

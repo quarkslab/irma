@@ -13,7 +13,7 @@
 - name: eScan | Run installer
   apt:
     deb: "{{ escan_temp_dir }}/escan-antivirus.deb"
-  sudo: yes
+  become: yes
 
 - name: eScan | Remove temporary work dir
   file:

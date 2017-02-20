@@ -4,13 +4,13 @@
   apt_key:
     url: http://files.avast.com/files/resellers/linux/avast.gpg
     state: present
-  sudo: yes
+  become: yes
 
 - name: Avast | Adding Repository
   apt_repository:
     repo: deb http://deb.avast.com/lin/repo debian release
     state: present
-  sudo: yes
+  become: yes
 
 - name: Avast | Checking licence file
   fail:
@@ -22,14 +22,14 @@
     name: avast
     update_cache: yes
     state: present
-  sudo: yes
+  become: yes
 
 - name: Avast | Adding avast user to nogroup
   user:
     name: avast
     groups: "{{ irma_user }}"
     append: yes
-  sudo: yes
+  become: yes
 
 - name: Avast | Installing license key
   copy:
@@ -37,7 +37,7 @@
     dest: /etc/avast/license.avastlic
     owner: avast
     group: avast
-  sudo: yes
+  become: yes
   notify:
     - Restart Avast daemon
 
@@ -46,12 +46,12 @@
     dest: /var/lib/avast/Setup/avast.setup
     regexp: '^DOWNLOAD=(.*)$'
     replace: 'DOWNLOAD="curl -L -s -f"'
-  sudo: yes
+  become: yes
   notify:
     - Restart Avast daemon
 
 - name: Avast | Update file definitions
   shell: /var/lib/avast/Setup/avast.vpsupdate
-  sudo: yes
+  become: yes
   notify:
     - Restart Avast daemon

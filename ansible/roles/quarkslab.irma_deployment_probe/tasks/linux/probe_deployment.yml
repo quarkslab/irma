@@ -74,5 +74,5 @@
   supervisorctl:
     name: "{{ item.name }}"
     state: restarted
-  sudo: yes
+  become: yes
   with_items: "{{ supervisor_programs_probe }}"

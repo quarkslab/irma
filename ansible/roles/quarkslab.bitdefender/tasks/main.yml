@@ -14,7 +14,7 @@
     regexp: '^Key =(.*)$'
     replace: 'Key = {{ bitdefender_scanner_key }}'
   when: bitdefender_scanner_key is defined
-  sudo: yes
+  become: yes
 
 - name: BitDefender | Download latest definition files
   command: echo "accept" | bdscan --update

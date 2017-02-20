@@ -37,9 +37,10 @@
   when: ansible_os_family == "Debian"
 
 - name: Ensure Supervisor is running and start at boot
-  service:
+  systemd:
     name: supervisord
     state: started
+    daemon_reload: yes
     enabled: yes
 
 # vim: sw=2

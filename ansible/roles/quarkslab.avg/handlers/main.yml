@@ -4,4 +4,4 @@
   service:
     name: avgd
     state: restarted
-  sudo: yes
+  become: yes

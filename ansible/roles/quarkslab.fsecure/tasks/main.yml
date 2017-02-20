@@ -4,7 +4,7 @@
   apt:
     name: "{{ item }}"
     state: latest
-  sudo: yes
+  become: yes
   with_items:
     - lib32stdc++6
     - rpm
@@ -31,4 +31,4 @@
   shell: /usr/bin/dbupdate
   register: command_result
   failed_when: "'Something updated' not in command_result.stdout and 'No updates' not in command_result.stdout"
-  sudo: yes
+  become: yes

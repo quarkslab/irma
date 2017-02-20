@@ -25,7 +25,7 @@
     group: "{{ irma_group }}"
     mode: 0755
     state: directory
-  sudo: yes
+  become: yes
   with_items:
     - /var/log/irma
     - /var/irma
@@ -37,7 +37,7 @@
     group: "{{ irma_server_group }}"
     mode: 0750
     state: directory
-  sudo: yes
+  become: yes
   with_items:
     - /opt/irma
 
@@ -51,7 +51,7 @@
     - pip
     # to solve the following issue: https://github.com/Supervisor/meld3/issues/23
     - setuptools
-  sudo: yes
+  become: yes
   when: build_environment|default("default") == "demo"
 
 - name: add a fancy message to the box
@@ -65,5 +65,5 @@
 
 - name: check if virtualbox vbguest are installed
   shell: "find /opt/VBoxGuestAdditions-* -name uninstall.sh | sh"
-  sudo: yes
+  become: yes
   when: build_environment|default("default") == "demo"

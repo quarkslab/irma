@@ -2,9 +2,9 @@
 
 - name: Restart Pure-FTPD daemon
   service: name=pure-ftpd state=restarted
-  sudo: yes
+  become: yes
 
 - name: Reload UFW
   ufw:
     state: reloaded
-  sudo: yes
+  become: yes

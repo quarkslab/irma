@@ -13,4 +13,4 @@
   command: python tridupdate.py
   args:
     chdir: "{{ trid_install_dir }}"
-  sudo: yes
+  become: yes

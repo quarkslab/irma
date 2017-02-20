@@ -12,7 +12,7 @@
     owner: root
     group: root
     mode: 0644
-  sudo: yes
+  become: yes
   notify:
     - Restart DrWeb Daemon
 
@@ -25,6 +25,6 @@
     owner: root
     group: root
     mode: 0755
-  sudo: yes
+  become: yes
   notify: Restart DrWeb Daemon
   with_items: drweb_configs

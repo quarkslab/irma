@@ -3,7 +3,7 @@
 
 - name: Common tasks to execute on all Linux servers
   hosts: all:!windows
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.apt, tags: 'apt' }
     - { role: franklinkim.ufw, tags: 'ufw' }
@@ -15,7 +15,7 @@
 
 - name: Frontend provisioning
   hosts: ["frontend", "frontend-demo"]
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.nodejs, tags: 'nodejs' }
     - { role: gdamjan.uwsgi, tags: 'uwsgi' }
@@ -28,7 +28,7 @@
 
 - name: Brain provisioning
   hosts: brain
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.supervisor, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_brain }}" }
     - { role: Mayeu.RabbitMQ, tags: 'rabbitmq' }
@@ -42,55 +42,55 @@
   hosts: probe
   roles:
     - { role: quarkslab.irma_provisioning_probe, tags: 'probe' }
-    - { role: quarkslab.supervisor, sudo: yes, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}", when: "ansible_distribution in ['Debian', 'Ubuntu']"}
+    - { role: quarkslab.supervisor, become: yes, tags: 'supervisor', supervisor_programs: "{{ supervisor_programs_probe }}", when: "ansible_distribution in ['Debian', 'Ubuntu']"}
 
 # Antivirus section
 - name: ClamAV provisioning
   hosts: clamav
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.clamav, tags: 'clamav' }
 
 - name: ComodoCAVL provisioning
   hosts: comodo
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.comodo_cavl, tags: 'comodo' }
 
 
 - name: Sophos provisioning
   hosts: sophos
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.sophos, tags: 'sophos' }
 
 - name: EsetNod32 provisioning
   hosts: eset-nod32
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.eset_nod32, tags: 'eset_nod32' }
 
 - name: McAfee VSCL provisioning
   hosts: mcafee
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.mcafee_vscl, tags: 'mcafee_vscl' }
 
 - name: McAfee VSCL provisioning (Windows)
   hosts: mcafee-win
-  sudo: no
+  become: no
   roles:
     - { role: quarkslab.mcafee_vscl_windows, tags: 'mcafee_vscl_windows' }
 
 - name: StaticAnalyzer provisioning
   hosts: static-analyzer
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.static_analyzer, tags: 'static-analyzer' }
 
 - name: VirusTotal provisioning
   hosts: virustotal
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.virustotal, tags: 'virustotal' }
 
@@ -141,7 +141,7 @@
 
 - name: PEiD provisioning
   hosts: peid
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.peid, tags: 'peid' }
 
@@ -152,7 +152,7 @@
 
 - name: Unarchiver provisioning
   hosts: unarchiver
-  sudo: yes
+  become: yes
   roles:
     - { role: quarkslab.unarchiver, tags: 'unarchiver' }
 

@@ -22,7 +22,7 @@
 
 - name: Enable postgreSQL at boot
   service: name=postgresql enabled=yes
-  sudo: yes
+  become: yes
 
 - pip:
     name: psycopg2

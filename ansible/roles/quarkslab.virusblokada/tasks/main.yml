@@ -1,7 +1,7 @@
 ---
 
 - name: VBA32 | Adding i386 repositories
-  shell: dpkg --add-architecture i386
+  command: dpkg --add-architecture i386
   sudo: yes
 
 - name: VBA32 | Install dependencies
@@ -9,7 +9,8 @@
     name: "{{ item }}"
     state: present
     update_cache: yes
-  sudo: yes
+    cache_valid_time: 0         # force refresh for i386 arch
+  become: yes
   with_items:
     - libc6-i386
     - libstdc++6
@@ -28,4 +29,4 @@
   shell: /opt/vba/vbacl/vbaupdx "{{ virusblokada_update_url }}"
   args:
     chdir: /opt/vba/vbacl
-  sudo: yes
+  become: yes

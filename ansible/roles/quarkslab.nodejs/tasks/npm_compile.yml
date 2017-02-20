@@ -8,6 +8,6 @@
 
 - name: Install NPM
   shell: ./configure && make && make install
-  sudo: yes
+  become: yes
   args:
     chdir: /tmp/package

@@ -9,19 +9,19 @@
   apt_key:
     url: http://repo.drweb.com/drweb/drweb.key
     state: present
-  sudo: yes
+  become: yes
 
 - name: Dr Web | Adding Repository
   apt_repository:
     repo: deb http://repo.drweb.com/drweb/debian 10.0.0 non-free
     state: present
-  sudo: yes
+  become: yes
 
 - name: Dr Web | Installing from repository
   apt:
     name: drweb-workstations
     update_cache: yes
-  sudo: yes
+  become: yes
 
 - name: Dr Web | Remove Temporary work dir
   file:

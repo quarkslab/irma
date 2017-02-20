@@ -58,8 +58,11 @@
     virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }}"
 
-- name: Copy previous Npm files
-  shell: "cp -R {{frontend_install_dir}}/web/node_modules {{frontend_deployment_dir}}/frontend/web/node_modules"
+- name: Copy previous NPM files
+  copy:
+    src: "{{frontend_install_dir}}/web/node_modules"
+    dest: "{{frontend_deployment_dir}}/frontend/web/node_modules"
+    remote_src: yes
   args:
     removes: "{{frontend_install_dir}}/web/node_modules"
     creates: "{{frontend_deployment_dir}}/web/node_modules"
@@ -74,7 +77,9 @@
     state: latest
 
 - name: Copy previous Bower files
-  shell: "cp -R {{frontend_install_dir}}/web/app/components {{frontend_deployment_dir}}/web/app/components"
+  copy:
+    src: "{{frontend_install_dir}}/web/app/components"
+    dest: "{{frontend_deployment_dir}}/web/app/components"
   args:
     removes: "{{frontend_install_dir}}/web/app/components"
     creates: "{{frontend_deployment_dir}}/web/app/components"
@@ -110,13 +115,13 @@
   supervisorctl:
     name: "{{ item.name }}"
     state: restarted
-  sudo: yes
+  become: yes
   with_items: "{{ supervisor_programs_frontend }}"
 
 - name: Restart Init.d services
   service:
     name: "{{ item }}"
     state: restarted
-  sudo: yes
+  become: yes
   with_items:
     - nginx

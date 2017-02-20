@@ -4,4 +4,4 @@
   apt:
     name: nodejs-legacy
     state: present
-  sudo: yes
+  become: yes

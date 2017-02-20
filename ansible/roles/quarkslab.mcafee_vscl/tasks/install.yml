@@ -4,10 +4,14 @@
   get_url:
     url: "{{ mcafee_vscl_tgz_url }}"
     dest: "{{ mcafee_temp_dir }}/vscl.tar.gz"
+    validate_certs: yes
 
 - file: path=/usr/local/uvscan state=directory
 
 - name: McAfee VSCL | Extract files
-  shell: tar xzf "{{ mcafee_temp_dir }}/vscl.tar.gz" -C /usr/local/uvscan
+  unarchive:
+    src: "{{ mcafee_temp_dir }}/vscl.tar.gz"
+    dest: /usr/local/uvscan
+    remote_src: yes
 
 - file: path=/usr/local/uvscan/uvscan mode="655"

@@ -28,8 +28,8 @@
 
 - name: BitDefender | Run installer, do not install GUI
   shell: (echo 'accept'; echo 'n') | sh /tmp/BitDefender-Antivirus-Scanner-linux.run
-  sudo: yes
+  become: yes
 
 - name: BitDefender | Update file definitions
   shell: echo "accept" | bdscan --update
-  sudo: yes
+  become: yes
