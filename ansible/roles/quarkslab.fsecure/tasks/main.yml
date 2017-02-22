@@ -28,7 +28,9 @@
     state: absent
 
 - name: F-Secure | Download latest definition files
-  shell: /usr/bin/dbupdate
+  command: /usr/bin/dbupdate
   register: command_result
-  failed_when: "'Something updated' not in command_result.stdout and 'No updates' not in command_result.stdout"
+  # https://help.f-secure.com/product.html?business/igk/5.30/en/topic_9058AA384A0E45A192CEBD211B763FA6-5.30-en
+  # rc = 0 means no update rc = 2 means updated
+  failed_when: "{{ command_result.rc  }} == 1"
   become: yes
