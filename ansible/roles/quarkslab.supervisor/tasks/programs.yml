@@ -3,7 +3,7 @@
 - name: Install programs managed by Supervisor
   template:
     src: program.j2
-    dest: /etc/supervisor/conf.d/{{ item.name }}
+    dest: "/etc/supervisor/conf.d/{{ item.name }}"
     owner: root
     group: root
     mode: 0755

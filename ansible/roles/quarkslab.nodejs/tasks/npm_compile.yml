@@ -1,9 +1,9 @@
 ---
 
-# NPM is extract to a package directory
+# NPM is extracted to a package directory
 - name: Copy and untar npm
   unarchive:
-    src: npm/{{ nodejs_npm_filename }}
+    src: "npm/{{ nodejs_npm_filename }}"
     dest: /tmp
 
 - name: Install NPM

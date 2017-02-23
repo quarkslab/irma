@@ -8,11 +8,11 @@
 
 - name: Ensure that Supervisor directories are created
   file:
-    path={{ item }}
-    state=directory
-    owner=root
-    group=root
-    mode=0755
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
   with_items:
     - /etc/supervisor
     - /etc/supervisor/conf.d
@@ -20,19 +20,19 @@
 
 - name: Copy default configuration file
   copy:
-    src=supervisord.conf
-    dest=/etc/supervisord.conf
-    force=no # no don't destroy the file if exist
-             # even if content is different
+    src: supervisord.conf
+    dest: /etc/supervisord.conf
+    force: no # no don't destroy the file if exist
+              # even if content is different
   notify: Restart Supervisor
 
 - name: Generate init script (Debian)
   copy:
-    src=supervisord-init.d
-    dest=/etc/init.d/supervisord
-    owner=root
-    group=root
-    mode=0755
+    src: supervisord-init.d
+    dest: /etc/init.d/supervisord
+    owner: root
+    group: root
+    mode: 0755
   # TODO: Replace init.d var
   when: ansible_os_family == "Debian"
 
@@ -40,7 +40,7 @@
   systemd:
     name: supervisord
     state: started
-    daemon_reload: yes
     enabled: yes
+    daemon_reload: yes
 
 # vim: sw=2

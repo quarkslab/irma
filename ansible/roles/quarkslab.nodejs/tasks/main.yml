@@ -4,10 +4,9 @@
   when: ansible_distribution == 'Debian'
 
 - name: Checking installed version of npm
-  shell: /usr/bin/test "$(npm -v 2> /dev/null)" = {{ nodejs_npm_version }}
+  shell: "/usr/bin/test $(npm -v 2> /dev/null) = {{ nodejs_npm_version }}"
   register: npm_wanted_version_installed
-  ignore_errors: True
-  changed_when: "npm_wanted_version_installed.rc == 1"
+  ignore_errors: yes
 
 - include: npm_compile.yml
-  when: npm_wanted_version_installed.rc == 1
+  when: "{{npm_wanted_version_installed.rc}} != 0"

@@ -2,12 +2,12 @@
 
 - name: TrID | Check if present
   command: "{{ trid_install_dir }}/trid -?"
-  ignore_errors: yes
-  failed_when: trid_present.rc != 1
+  failed_when: "{{trid_present.rc}} != 1" # rc when printing --help
   register: trid_present
+  ignore_errors: yes
 
 - include: install.yml
-  when: trid_present.failed
+  when: "{{trid_present.failed}}"
 
 - name: TrID | Update
   command: python tridupdate.py

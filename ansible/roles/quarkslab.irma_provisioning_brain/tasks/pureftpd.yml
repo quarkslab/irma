@@ -55,11 +55,11 @@
     group=root
     mode=0600
   when: item.rc != 0
-  with_items: pure_ftpd_users_status.results
+  with_items: "{{ pure_ftpd_users_status.results }}"
   register: pure_ftpd_users
 
 - shell: pure-pw useradd {{ item.username }} -u {{ item.virtual_user }} -d {{ item.virtual_home }} -m < /tmp/{{ item.username }}.pwd
-  with_items: brain_pureftpd_virtual_users
+  with_items: "{{ brain_pureftpd_virtual_users }}"
   when: pure_ftpd_users | changed
 
 - name: Pure-FTPD | Update user database

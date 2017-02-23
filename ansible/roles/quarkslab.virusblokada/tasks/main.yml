@@ -2,7 +2,7 @@
 
 - name: VBA32 | Adding i386 repositories
   command: dpkg --add-architecture i386
-  sudo: yes
+  become: yes
 
 - name: VBA32 | Install dependencies
   apt:
@@ -26,7 +26,7 @@
   when: virusblokada_present | failed
 
 - name: VBA32 | Update definition files
-  shell: /opt/vba/vbacl/vbaupdx "{{ virusblokada_update_url }}"
+  shell: "/opt/vba/vbacl/vbaupdx {{ virusblokada_update_url }}"
   args:
     chdir: /opt/vba/vbacl
   become: yes

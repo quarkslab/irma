@@ -1,7 +1,7 @@
 ---
 
 - name: ComodoCAVL | Install dependencies
-  apt: pkg={{ item }} state=present
+  apt: pkg="{{ item }}" state=present
   with_items:
     - binutils
     - libqt4-sql
@@ -10,7 +10,7 @@
 
 - name: ComodoCAVL | Create temporary work dir
   file:
-    path: "{{ comodo_cavl_temp_dir }}/"
+    path: "{{ comodo_cavl_temp_dir }}"
     state: directory
 
 - name: ComodoCAVL | Download Package
@@ -22,7 +22,7 @@
 - name: ComodoCAVL | Extract files
   shell: ar x "{{ comodo_cavl_temp_dir }}/comodo.deb"
   args:
-    chdir: "{{ comodo_cavl_temp_dir }}/"
+    chdir: "{{ comodo_cavl_temp_dir }}"
     creates: "{{ comodo_cavl_temp_dir }}/data.tar.gz"
 
 - name: ComodoCAVL | Install files
@@ -46,5 +46,5 @@
 
 - name: ComodoCAVL | Remove temporary work dir
   file:
-    path: "{{ comodo_cavl_temp_dir }}/"
+    path: "{{ comodo_cavl_temp_dir }}"
     state: absent

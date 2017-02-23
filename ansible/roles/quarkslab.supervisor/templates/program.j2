@@ -2,6 +2,6 @@
 
 [program:{{ item.name }}]
 
-{% for k, v in item.iteritems() if k != 'name' %}
+{% for k, v in item.items() if k != 'name' %}
 {{ k }} = {{ v }}
 {% endfor %}

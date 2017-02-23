@@ -2,7 +2,7 @@
 
 - name: AVG | Adding i386 repositories
   command: dpkg --add-architecture i386
-  sudo: yes
+  become: yes
 
 - name: AVG | Install dependencies
   apt:

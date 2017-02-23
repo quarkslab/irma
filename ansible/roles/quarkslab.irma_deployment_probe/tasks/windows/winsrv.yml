@@ -6,7 +6,7 @@
     section: "{{ item.section }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"
-  with_items: irma_winsrv_configuration
+  with_items: "{{ irma_winsrv_configuration }}"
   notify:
     - Removing the service
     - Installing the service

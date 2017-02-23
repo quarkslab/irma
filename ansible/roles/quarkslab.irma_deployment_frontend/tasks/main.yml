@@ -58,13 +58,19 @@
     virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }}"
 
+- name: Check if NPM files exists
+  stat:
+    path: "{{frontend_install_dir}}/web/node_modules"
+  register: npm_dir_stat
+
 - name: Copy previous NPM files
-  copy:
-    src: "{{frontend_install_dir}}/web/node_modules"
-    dest: "{{frontend_deployment_dir}}/frontend/web/node_modules"
-    remote_src: yes
-  # Errors when current does not exists (first deployment)
-  ignore_errors: yes
+  # Ansible issue: «Currently remote_src does not support recursive copying.»
+  # copy:
+  #   src: "{{frontend_install_dir}}/web/node_modules"
+  #   dest: "{{frontend_deployment_dir}}/frontend/web/node_modules"
+  #   remote_src: yes
+  shell: "cp -rf {{frontend_install_dir}}/web/node_modules {{frontend_deployment_dir}}/frontend/web"
+  when: "{{ npm_dir_stat.stat.exists and irma_deployment_code_version != 'local'}}"
 
 - name: Install NPM dependencies
   npm:
@@ -73,13 +79,19 @@
     ignore_scripts: yes
     state: latest
 
+- name: Check if Bower files exists
+  stat:
+    path: "{{frontend_install_dir}}/web/app/components"
+  register: bower_dir_stat
+
 - name: Copy previous Bower files
-  copy:
-    src: "{{frontend_install_dir}}/web/app/components"
-    dest: "{{frontend_deployment_dir}}/web/app/components"
-    remote_src: yes
-  # Errors when current does not exists (first deployment)
-  ignore_errors: yes
+  # Ansible issue: «Currently remote_src does not support recursive copying.»
+  # copy:
+  #   src: "{{frontend_install_dir}}/web/app/components"
+  #   dest: "{{frontend_deployment_dir}}/web/app/components"
+  #   remote_src: yes
+  shell: "cp -rf {{frontend_install_dir}}/web/app/components {{frontend_deployment_dir}}/web/app"
+  when: "{{ bower_dir_stat.stat.exists and irma_deployment_code_version != 'local'}}"
 
 - name: Install Bower dependencies
   command: node_modules/.bin/bower install --config.interactive=false
@@ -104,7 +116,7 @@
     src: "{{ frontend_deployment_dir }}"
     dest: "{{ frontend_install_dir }}"
     state: link
-  when: irma_deployment_code_version != 'local'
+  when: "{{ irma_deployment_code_version != 'local'}}"
 
 - name: Restart Supervisor services
   supervisorctl:

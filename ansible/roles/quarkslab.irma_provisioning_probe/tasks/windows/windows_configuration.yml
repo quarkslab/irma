@@ -18,4 +18,4 @@
 - name: Configure HOSTS file
   raw: powershell -command "ac -Encoding UTF8 $env:SYSTEMROOT/system32/drivers/etc/hosts '{{ hostvars[item].ansible_eth1.ipv4.address }} {{ item }}'"
   when: hostvars[item].ansible_eth1.ipv4.address is defined
-  with_items: groups['all']
+  with_items: "{{ groups['all'] }}"

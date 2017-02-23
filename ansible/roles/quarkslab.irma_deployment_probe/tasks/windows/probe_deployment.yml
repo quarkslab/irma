@@ -73,7 +73,7 @@
     section: "{{ item.section }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"
-  with_items: probe_deployment_configs
+  with_items: "{{ probe_deployment_configs }}"
 
 - name: Create symlink release -> current
   raw: cmd /C '"{{ item.cmd }}"'

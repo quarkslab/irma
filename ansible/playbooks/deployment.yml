@@ -2,21 +2,21 @@
 - include: check.yml
 
 - name: Frontend deployment
-  hosts: [ "frontend", "frontend-demo"]
+  hosts: [ frontend, frontend-demo]
   remote_user: "{{ frontend_user }}"
   roles:
-    - { role: quarkslab.irma_deployment_frontend, tags: 'deployment_frontend' }
+    - { role: quarkslab.irma_deployment_frontend, tags: deployment_frontend }
 
 - name: Brain deployment
   hosts: brain
   remote_user: "{{ brain_user }}"
   roles:
-    - { role: quarkslab.irma_deployment_brain, tags: 'deployment_brain' }
+    - { role: quarkslab.irma_deployment_brain, tags: deployment_brain }
 
 - name: Probe deployment
   hosts: probe
   remote_user: "{{ probe_user }}"
   roles:
-    - { role: quarkslab.irma_deployment_probe, tags: 'deployment_probe' }
+    - { role: quarkslab.irma_deployment_probe, tags: deployment_probe }
 
 # vim: sw=2
