@@ -37,12 +37,10 @@
   shell: "{{ eset_nod32_temp_dir }}/install.sh"
 
 - name: EsetNod32 | Stop Eset daemon and disable it
-  shell: /etc/init.d/esets stop
-
-- name: EsetNod32 | Disable it
-  file:
-    path: /etc/init.d/esets
-    state: absent
+  service:
+    name: esets
+    state: stopped
+    enabled: no
 
 - name: EsetNod32 | Remove temporary work dir
   file:
