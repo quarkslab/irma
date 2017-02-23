@@ -1,6 +1,7 @@
 ---
-- name : "Check ansible version"
+- name : "Local check"
   hosts: all
   tasks:
-    - local_action: assert that="{{ ansible_version.full == required_ansible_version }}" msg="Your Ansible version must be '{{ required_ansible_version }}' and not '{{ ansible_version.full }}'. Please see README.rst."
+    - name: "Check ansible version"
+      local_action: assert that="{{ ansible_version.full == required_ansible_version }}" msg="Your Ansible version must be '{{ required_ansible_version }}' and not '{{ ansible_version.full }}'. Please see README.rst."
       run_once: true
