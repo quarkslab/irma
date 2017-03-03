@@ -28,12 +28,11 @@
     name: python
     version: 2.7.6
 
-- name: Installing Chocolatey Packages | pywin32
+- name: Installing Chocolatey Packages | 7Zip
   win_chocolatey:
     name: "{{ item }}"
   with_items:
     - 7zip.install
-    - pywin32
 
 ## Install
 - name: Determine remote_tmp variable
