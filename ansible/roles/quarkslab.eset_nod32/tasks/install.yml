@@ -37,8 +37,9 @@
   shell: "{{ eset_nod32_temp_dir }}/install.sh"
 
 - name: EsetNod32 | Stop Eset daemon and disable it
-  service:
+  systemd:
     name: esets
+    daemon_reload: yes
     state: stopped
     enabled: no
 
