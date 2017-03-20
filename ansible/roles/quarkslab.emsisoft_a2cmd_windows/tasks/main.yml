@@ -17,11 +17,13 @@
 ## Install
 - name: Checking if install path exists
   win_stat:
-    path: '{{ remote_programfile }}/{{ emsisoft_win_install_path }}/'
+    path: '{{ remote_programfile }}/{{ emsisoft_win_install_path }}'
   register: emsisoft_win_path_exists
 
 - name: Create install path
-  raw: "powershell -command \"md -Force '{{ remote_programfile }}/{{ emsisoft_win_install_path }}';\""
+  win_file:
+    path: "{{ remote_programfile }}/{{ emsisoft_win_install_path }}"
+    state: directory
   when: not emsisoft_win_path_exists.stat.exists
 
 - name: Checking if already installed
@@ -30,15 +32,17 @@
   register: emsisoft_win_installed
 
 - name: Download installation archive
-  raw: "powershell -command \"(new-object net.webclient).DownloadFile('{{ emsisoft_win_url }}', '{{ remote_tmp }}/a2cmd.zip');\""
+  win_get_url:
+    url: "{{ emsisoft_win_url }}"
+    dest: "{{ remote_tmp }}/a2cmd.exe"
   when: not emsisoft_win_installed.stat.exists
 
-- name: Extract Emsisoft a2cmd
-  raw: "powershell -command \"Add-Type -assembly 'system.io.compression.filesystem'; [io.compression.zipfile]::ExtractToDirectory('{{ remote_tmp }}/a2cmd.zip', '{{ remote_programfile }}/{{ emsisoft_win_install_path }}/')\""
+- name: Uncompress Emsisoft archive
+  win_command: "{{ remote_tmp }}/a2cmd.exe -s2 -d."
+  args:
+    chdir: "{{ remote_programfile }}/{{ emsisoft_win_install_path }}"
   when: not emsisoft_win_installed.stat.exists
 
 ## Update
 - name: Install a2cmd signatures
-  raw: >
-    powershell -command "cd '{{ remote_programfile }}/{{ emsisoft_win_install_path }}';"
-                        "cmd /c a2cmd.exe /u;"
+  win_command: "\"{{ remote_programfile }}/{{ emsisoft_win_install_path }}/a2cmd.exe\" /u"

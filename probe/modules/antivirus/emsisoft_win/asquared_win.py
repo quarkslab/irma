@@ -39,6 +39,7 @@ class ASquaredCmdWin(Antivirus):
             "/a "
             "/n "
             "/f "
+            "/s "
         )
         # scan tool variables
         self._scan_patterns = [
@@ -53,7 +54,7 @@ class ASquaredCmdWin(Antivirus):
         """return the version of the antivirus"""
         result = None
         if self.scan_path:
-            cmd = self.build_cmd(self.scan_path)
+            cmd = self.scan_cmd(self.scan_path)
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
                 matches = re.search(r'(?P<version>\d+(\.\d+)+)',
