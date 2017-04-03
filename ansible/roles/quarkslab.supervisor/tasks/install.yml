@@ -43,4 +43,7 @@
     enabled: yes
     daemon_reload: yes
 
+# https://github.com/ansible/ansible-modules-core/issues/3764
+- name: Temporary workaround to enable supervisord at boot
+  command: systemctl enable supervisord.service
 # vim: sw=2
