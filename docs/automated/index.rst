@@ -8,12 +8,8 @@ install or maintain different setups.
 Requirements
 ------------
 
-- `Ansible <https://github.com/ansible/ansible>`_ 2.0 or higher;
+- `Ansible <https://github.com/ansible/ansible>`_ 2.2.1.0;
 
-
-.. warning::
-
-   Some version of Ansible breaks IRMA install. Current tested version: 2.1.1.0
 
 
 Ansible scripts
