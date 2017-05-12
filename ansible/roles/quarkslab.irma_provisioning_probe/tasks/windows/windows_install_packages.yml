@@ -1,6 +1,55 @@
 ---
 
-- include: chocopacks.yml
+## Define temporary location
+- name: Determine remote_tmp variable
+  raw: CMD /C echo '%TEMP%'
+  register: echo_temp
+
+- set_fact:
+    remote_tmp: '{{ echo_temp.stdout_lines[0] }}'
+
+## Fetch and install packages installer
+- name: Download Windows packages
+  win_get_url:
+    url: "{{ item.url }}"
+    dest: "{{ remote_tmp }}/{{ item.name }}"
+  with_items: "{{ win_packages }}"
+
+- name: Install Windows exe packages
+  win_command: "{{remote_tmp}}\\{{ item.name }} {{ item.install_args}}"
+  with_items: "{{ win_packages }}"
+  when: item.type == 'exe'
+
+- name: Install Windows msi packages
+  win_command: "msiexec /i {{remote_tmp}}\\{{ item.name }} {{ item.install_args}}"
+  with_items: "{{ win_packages }}"
+  when: item.type == 'msi'
+
+## cleanup installer
+- name: Remove installer
+  win_file:
+    path: "{{ remote_tmp }}/{{ item.name }}"
+    state: absent
+  with_items: "{{ win_packages }}"
+
+# Update PATH
+
+- name: Get actual PATH
+  raw: $ENV:PATH
+  register: path_out
+
+- name: Add Python27 to PATH
+  raw: SETX /M PATH "$ENV:PATH;C:\Python27;C:\Python27\Scripts"
+  when: path_out.stdout.find('Python27') == -1
 
 # Installing pip packages
+
+- name: Download get-pip.py for pip
+  win_get_url:
+    url: "https://bootstrap.pypa.io/get-pip.py"
+    dest: "{{ remote_tmp }}/get-pip.py"
+
+- name: Run get-pip.py for pip
+  raw: python "{{ remote_tmp }}/get-pip.py"
+
 - include: pip.yml

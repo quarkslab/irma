@@ -22,16 +22,6 @@
     dest: "C:/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup/irma.bat"
 
 - name: Restart machine (needed to launch IRMA)
-  raw: shutdown /r /t 0 /f /d p:4:1 /c "Restarting for IRMA"
-  async: 0
-  poll: 0
-  ignore_errors: true
-
-- name: Waiting for guest to come back
-  local_action:
-    module: wait_for
-      host="{{ ansible_ssh_host | default(inventory_hostname) }}"
-      port={{ ansible_ssh_port | default(5985) }}
-      state=started
-      delay=30
-      timeout=120
+  win_reboot:
+    shutdown_timeout_sec: 300
+    reboot_timeout_sec: 900

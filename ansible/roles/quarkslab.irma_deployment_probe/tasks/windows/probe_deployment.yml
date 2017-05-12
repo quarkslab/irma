@@ -86,8 +86,4 @@
       rc: [0, 2]
   when: irma_deployment_code_version != 'local'
 
-- include: winsrv.yml
-  when: "{{ irma_winsrv | default(false) }} == true"
-
 - include: startup.yml
-  when: "{{ irma_winsrv | default(false) }} == false"
