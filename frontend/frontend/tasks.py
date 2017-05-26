@@ -75,6 +75,7 @@ def scan_result(scanid, file_hash, probe, result):
                   scanid, file_hash, probe)
         scan_ctrl.handle_output_files(scanid, file_hash, probe, result)
         scan_ctrl.set_result(scanid, file_hash, probe, result)
+        scan_ctrl.set_probe_tag(file_hash, probe, result)
     except IrmaDatabaseError as e:
         log.exception(e)
         raise scan_result.retry(countdown=2, max_retries=3, exc=e)

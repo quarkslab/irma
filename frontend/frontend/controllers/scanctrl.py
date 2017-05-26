@@ -21,7 +21,7 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
 import frontend.controllers.braintasks as celery_brain
 import frontend.controllers.ftpctrl as ftp_ctrl
 from frontend.helpers.sessions import session_transaction
-from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
+from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult, Tag
 from lib.common.mimetypes import Magic
 from lib.irma.common.utils import IrmaScanRequest
 from frontend.controllers import braintasks
@@ -39,6 +39,48 @@ interprocess_lock_path = get_lock_path()
 #  Internals helpers
 # ===================
 
+
+def get_tagid(session, text):
+    tag_list = Tag.query_find_all(session)
+    
+    for tag in tag_list:
+        if tag.text == text:
+            log.debug("get_tagid :: tag [%s] found with id %d", text, id)
+            return tag.id
+
+    log.debug("get_tagid :: tag [%s] not found!", text)
+    return 0
+
+
+
+def set_probe_tag(file_hash, probe, result):
+
+
+    # If the probe is an antivirus and the result value is "1" (infected)
+    if result['type'] == 'antivirus' and result['status'] == 1 :
+
+        with session_transaction() as session:
+            available_tags = Tag.query_find_all(session)
+            if probe in [t.text for t in available_tags]:
+                log.debug("set_probe_tag :: tag [%s] already exists", probe)
+            else:
+                # create tag for the probe.
+                log.debug("set_probe_tag :: adding tag [%s] to database", probe)
+                tag = Tag(probe)
+                session.add(tag)
+                session.commit()
+
+            # add tag to file.
+            log.debug("set_probe_tag :: tagging file [%s] with tag [%s]",file_hash, probe)
+            file = File.load_from_sha256(file_hash, session)
+
+            tag_id = get_tagid(session, probe)
+            if tag_id != 0 :
+                file.add_tag(tag_id,session)
+                session.commit()
+
+
+    return 0
 
 def _new_file(fileobj, session):
     sha256 = sha256sum(fileobj)
