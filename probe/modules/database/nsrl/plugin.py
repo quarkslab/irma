@@ -41,7 +41,7 @@ class NSRLPlugin(PluginBase):
     # =================
 
     _plugin_name_ = "NSRL"
-    _plugin_display_name = "National Software Reference Library"
+    _plugin_display_name_ = "National Software Reference Library"
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.database
@@ -116,13 +116,14 @@ class NSRLPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        results = PluginResult(name=type(self).display_name,
-                               type=type(self).plugin_category,
+        results = PluginResult(name=type(self)._plugin_display_name_,
+                               type=type(self)._plugin_category_,
                                version=None)
         try:
             # lookup the specified sha1
             started = timestamp(datetime.utcnow())
-            response = self.module.lookup_by_sha1(sha1sum(paths).upper())
+            with open(paths,"r") as fileobj:
+                response = self.module.lookup_by_sha1(sha1sum(fileobj))
             stopped = timestamp(datetime.utcnow())
             results.duration = stopped - started
             # check for errors
