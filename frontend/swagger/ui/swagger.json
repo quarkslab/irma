@@ -460,6 +460,12 @@
                         "description": "A limit on the number of objects to be returned.",
                         "type": "integer",
                         "format": "int64"
+                    },
+                    {
+                        "name": "alt",
+                        "in": "query",
+                        "description": "When value is \"media\" response will be a zip archive containing all files matching the research.",
+                        "type": "string"
                     }
                 ],
                 "responses": {

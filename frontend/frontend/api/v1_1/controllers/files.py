@@ -13,6 +13,9 @@
 # terms contained in the LICENSE file.
 
 import logging
+import zipfile
+import StringIO
+import datetime
 from bottle import response, request
 
 from frontend.api.v1_1.errors import process_error
@@ -91,6 +94,17 @@ def list(db):
             total = base_query.count()
 
         log.debug("Found %s results", total)
+
+        # media download
+        if request.query.alt == "media":
+            file_web_schema_dl = FileWebSchema_v1_1(exclude=('probe_results','file_infos'))
+            infos = file_web_schema_dl.dump(items, many=True).data
+
+            sha256_list = [item.file.sha256 for item in items]
+            # download zip archive containing files
+            if sha256_list:
+                return _download_zip(sha256_list, db, infos)
+
         response.content_type = "application/json; charset=UTF-8"
         return {
             'total': total,
@@ -202,3 +216,45 @@ def _download(sha256, db):
     response.headers["Content-Type"] = ctype
     response.headers["Content-Disposition"] = cdisposition
     return open(fobj.path).read()
+
+
+def _download_zip(hash_list, db, infos):
+
+    s = StringIO.StringIO()
+
+    # Create zip archive
+    zf = zipfile.ZipFile(s,'w')
+
+    for i, val in enumerate(hash_list):
+
+        # Retrieve a file based on sha256
+        fobj = File.load_from_sha256(val, db)
+        if fobj.path is None:
+            raise IrmaDatabaseResultNotFound("downloading a removed file")
+
+        zf.write(fobj.path, fobj.sha256)
+
+
+    for val in infos:
+
+        # Timestamp to readable date
+        scan_date = str(datetime.datetime.fromtimestamp(val['scan_date']))
+        val['scan_date']=scan_date
+
+        content = str(val)
+        name = val['file_sha256']+".info"
+
+        # Write file info in zip archive
+        zf.writestr(name, content)
+
+
+    ts = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    archive_name= "irma-" + ts + ".zip"
+    ctype = 'application/zip'
+    cdisposition = "attachment; filename={}".format(archive_name)
+    response.headers["Content-Type"] = ctype
+    response.headers["Content-Disposition"] = cdisposition
+
+    zf.close()
+
+    return s.getvalue()
