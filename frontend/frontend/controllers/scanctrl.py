@@ -21,7 +21,7 @@ from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
 import frontend.controllers.braintasks as celery_brain
 import frontend.controllers.ftpctrl as ftp_ctrl
 from frontend.helpers.sessions import session_transaction
-from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult
+from frontend.models.sqlobjects import Scan, File, FileWeb, ProbeResult, Tag
 from lib.common.mimetypes import Magic
 from lib.irma.common.utils import IrmaScanRequest
 from frontend.controllers import braintasks
@@ -31,6 +31,7 @@ from lib.common.hash import sha256sum, sha1sum, md5sum
 from frontend.helpers.utils import build_sha256_path
 from fasteners import interprocess_locked
 from config.parser import get_lock_path
+from sqlalchemy.orm.exc import NoResultFound
 
 log = logging.getLogger(__name__)
 interprocess_lock_path = get_lock_path()
@@ -39,6 +40,28 @@ interprocess_lock_path = get_lock_path()
 #  Internals helpers
 # ===================
 
+def set_probe_tag(file_hash, tag_name, result):
+
+    # If the probe is an antivirus and the result value is "1" (infected)
+    if result['type'] == 'antivirus' and result['status'] == 1 :
+        with session_transaction() as session:
+            try:
+                # Retrieve the Tag from database
+                tag = session.query(Tag).filter(Tag.text == tag_name).one()
+            except NoResultFound as e:
+                # If not found then create the tag
+                log.debug("Adding tag [%s] to database", tag_name)
+                tag = Tag(tag_name)
+                session.add(tag)
+                session.commit()
+            except:
+                raise ValueError("Unexpected error")
+            # Add tag to file.
+            log.debug("Tagging file [%s] with tag [%s]",file_hash, tag_name)
+            file = File.load_from_sha256(file_hash, session)
+            file.add_tag(tag.id,session)
+            session.commit()
+    return 0
 
 def _new_file(fileobj, session):
     sha256 = sha256sum(fileobj)
