@@ -13,7 +13,7 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from frontend.api.v1_1.controllers import probes, files, scans, results, tags
+from frontend.api.v1_1.controllers import probes, files, scans, results, tags, stats
 
 
 """ Define all routes for the API
@@ -56,3 +56,7 @@ def define_routes(application):
                       callback=files.add_tag)
     application.route("/files/<sha256>/tags/<tagid>/remove",
                       callback=files.remove_tag)
+
+    # Statistics routes
+    application.route("/stats",
+                      callback=stats.get_stats)
