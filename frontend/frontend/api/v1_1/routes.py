@@ -33,6 +33,8 @@ def define_routes(application):
                       callback=scans.get)
     application.route("/scans/<scanid>/files", method="POST",
                       callback=scans.add_files)
+    application.route("/scans/<scanid>/files_ext", method="POST",
+                      callback=scans.add_files_ext)
     application.route("/scans/<scanid>/launch", method="POST",
                       callback=scans.launch)
     application.route("/scans/<scanid>/cancel", method="POST",
