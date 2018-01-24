@@ -3,7 +3,7 @@
 
 servers:
   - name: brain.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
     hostname: brain.irma
     cpus: 2
@@ -11,7 +11,7 @@ servers:
     memory: 2048
     shares:
       - share_from: ../frontend
-        share_to: /opt/irma/irma-frontend/current
+        share_to: /opt/irma/irma-frontend/releases/sync
         share_exclude:
           - .git/
           - venv/
@@ -19,31 +19,35 @@ servers:
           - web/node_modules
           - app/components
       - share_from: ../brain
-        share_to: /opt/irma/irma-brain/current
+        share_to: /opt/irma/irma-brain/releases/sync
         share_exclude:
           - .git/
           - venv/
           - db/
       - share_from: ../probe
-        share_to: /opt/irma/irma-probe/current
+        share_to: /opt/irma/irma-probe/releases/sync
         share_exclude:
           - .git/
           - venv/
 
+libvirt_config:
+  driver: kvm
+  # connect_via_ssh: true
+  # host:
+  # username:
+  # storage_pool_name:
+  # id_ssh_key_file:
+
 ansible_config:
   extra_vars:
     vagrant: true
-    vagrant_share: true
     irma_environment: development
   groups:
-    frontend:
-      - brain.irma
-    brain:
-      - brain.irma
-    comodo:
-      - brain.irma
-    trid:
-      - brain.irma
+    frontend: brain.irma
+    sql-server: brain.irma
+    brain: brain.irma
+    comodo: brain.irma
+    trid: brain.irma
     "probe:children":
       - comodo
       - trid

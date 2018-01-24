@@ -3,7 +3,7 @@
 
 servers:
   - name: brain.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
     hostname: brain.irma
     cpus: 2
@@ -30,23 +30,17 @@ libvirt_config:
 ansible_config:
   extra_vars:
     vagrant: true
+    irma_environment: production
   groups:
-    frontend:
-      - brain.irma
-    brain:
-      - brain.irma
-    clamav:
-      - brain.irma
-    comodo:
-      - brain.irma
-    mcafee:
-      - brain.irma
-    trid:
-      - brain.irma
-    static-analyzer:
-      - brain.irma
-    virustotal:
-      - brain.irma
+    frontend: brain.irma
+    sql-server: brain.irma
+    brain: brain.irma
+    clamav: brain.irma
+    comodo: brain.irma
+    mcafee: brain.irma
+    trid: brain.irma
+    static-analyzer: brain.irma
+    virustotal: brain.irma
 ##    windows-probe:
 ##      - probe-win.irma
     "probe:children":

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,8 @@
 
 import os
 import sys
-import re
 
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 from datetime import datetime
 
 from lib.common.utils import timestamp
@@ -63,7 +62,7 @@ class PEiDPlugin(PluginBase):
     @classmethod
     def verify(cls):
         # load default configuration file
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
         sign_path = config.get('PEiD', 'sign_path')
 
@@ -77,11 +76,12 @@ class PEiDPlugin(PluginBase):
     # =============
 
     def __init__(self):
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
         sign_path = config.get('PEiD', 'sign_path')
         peutils = sys.modules['peutils']
-        self.signatures = peutils.SignatureDatabase(sign_path)
+        data = open(sign_path, "r", encoding="utf8", errors="ignore").read()
+        self.signatures = peutils.SignatureDatabase(data=data)
 
     def analyze(self, filename):
         pefile = sys.modules['pefile']
@@ -89,11 +89,11 @@ class PEiDPlugin(PluginBase):
             pe = pefile.PE(filename)
             results = self.signatures.match(pe)
             if results is None:
-                return (self.PEiDResult.NOT_FOUND, "No match found")
+                return self.PEiDResult.NOT_FOUND, "No match found"
             else:
-                return (self.PEiDResult.FOUND, results[0])
+                return self.PEiDResult.FOUND, results[0]
         except pefile.PEFormatError:
-            return (self.PEiDResult.NOT_FOUND, "Not a PE")
+            return self.PEiDResult.NOT_FOUND, "Not a PE"
 
     # ==================
     #  probe interfaces

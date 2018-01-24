@@ -14,8 +14,8 @@ Install it with apt:
 
 .. code-block:: bash
 
-    $ sudo apt-get install python-virtualenv python-dev
-    $ sudo pip install supervisor
+    $ sudo apt-get install python3-virtualenv python3-dev
+    $ sudo pip install supervisor (python2 only)
 
 We will create two new applications called frontend_api and frontend_app.
 Frontend_api is the python uwsgi server and frontend_app the frontend celery daemon.
@@ -37,8 +37,7 @@ Create a file called ``frontend_api`` located at ``/etc/supervisor/conf.d`` with
     killasgroup = True
     stderr_logfile = /var/log/supervisor/frontend_api.log
     stopsignal = INT
-    command = uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app --plugins python --chdir /opt/irma/irma-frontend/current --home /opt/irma/irma-frontend/current/venv --python-path /opt/irma/irma-frontend/current/venv --mount /api=frontend/api/base.py --lazy
-
+    command = /opt/irma/irma-frontend/current/venv/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app --chdir /opt/irma/irma-frontend/current --home /opt/irma/irma-frontend/current/venv  --python-path /opt/irma/irma-frontend/current/venv --wsgi-file api/base.py --callable __hug_wsgi__ --lazy --offload-threads 4
     user = irma
     autostart = True
     stdout_logfile = /var/log/supervisor/frontend_api.log
@@ -57,7 +56,7 @@ Create a file called ``frontend_app`` located at ``/etc/supervisor/conf.d`` with
     stopwaitsecs = 600
     killasgroup = True
     stderr_logfile = /var/log/supervisor/frontend_app.log
-    command = /opt/irma/irma-frontend/current/venv/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h --loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=60 --time-limit=300 --beat --schedule=/var/irma/frontend_beat_schedule
+    command = /opt/irma/irma-frontend/current/venv/bin/python -m api.tasks.frontend_app
     user = irma
     autostart = True
     directory = /opt/irma/irma-frontend/current

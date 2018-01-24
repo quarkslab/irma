@@ -1,0 +1,16 @@
+---
+- name: PEiD | Installing dependencies with pip
+  pip:
+    name: "{{ item }}"
+    state: "latest"
+    executable: pip3
+  with_items:
+    - https://github.com/erocarrera/pefile/releases/download/v2017.5.26/pefile-2017.5.26.zip
+
+- name: PEiD | Ensure that signatures directory has been created
+  file:
+    path: "{{ sig_dir }}"
+    state: directory
+
+# Update must be done as without signatures PEiD is not working
+

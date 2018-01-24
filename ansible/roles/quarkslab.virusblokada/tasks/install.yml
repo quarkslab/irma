@@ -1,5 +1,20 @@
 ---
 
+- name: VBA32 | Adding i386 repositories
+  command: dpkg --add-architecture i386
+  become: yes
+
+- name: VBA32 | Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 0         # force refresh for i386 arch
+  become: yes
+  with_items:
+    - libc6:i386
+    - libstdc++6
+
 - name: VBA32 | Create temporary work dir
   file:
     path: "{{ virusblokada_temp_dir }}/"

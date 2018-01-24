@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,12 +63,13 @@ class IrmaFTPS(IrmaFTP):
     #  Constructor and Destructor stuff
     # ==================================
     def __init__(self, host, port, auth, key_path, user, passwd,
-                 dst_user=None, upload_path=None):
+                 dst_user=None, upload_path=None, hash_check=False):
         if auth != "password":
             raise IrmaConfigurationError("key authentication not supported for"
                                          " FTPS")
         super(IrmaFTPS, self).__init__(host, port, auth, key_path, user,
-                                       passwd, dst_user, upload_path)
+                                       passwd, dst_user, upload_path,
+                                       hash_check)
         # TODO support connection on non standard port
         if self._port != FTP_TLS.port:
             reason = ("connection supported " +
@@ -114,12 +115,14 @@ class IrmaFTPS(IrmaFTP):
     def upload_fobj(self, path, fobj):
         """ Upload <data> to remote directory <path>"""
         try:
-            dstname = self._hash(fobj)
-            path = os.path.join(path, dstname)
+            if self.hash_check:
+                dstname = self._hash(fobj)
+                path = os.path.join(path, dstname)
             dstpath = self._get_realpath(path)
             self._conn.storbinarydata("STOR {0}".format(dstpath),
                                       fobj)
-            return dstname
+            if self.hash_check:
+                return dstname
         except Exception as e:
             raise IrmaFTPSError("{0}".format(e))
 
@@ -127,10 +130,11 @@ class IrmaFTPS(IrmaFTP):
         """ returns <remotename> found in <path>"""
         try:
             dstpath = self._get_realpath(path)
-            dstpath = self._tweaked_join(path, remotename)
+            dstpath = self._tweaked_join(dstpath, remotename)
             self._conn.retrbinary("RETR {0}".format(dstpath),
                                   lambda x: fobj.write(x))
-            self._check_hash(remotename, fobj)
+            if self.hash_check:
+                self._check_hash(remotename, fobj)
         except Exception as e:
             raise IrmaFTPSError("{0}".format(e))
 

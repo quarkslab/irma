@@ -19,6 +19,9 @@ frontend/tests/results/
 brain/tests/results/
 probe/tests/results/
 .coverage
+*/cover
+*/coverage.xml
+*/nosetests.xml
 
 # configuration
 frontend/config/*.ini
@@ -48,6 +51,7 @@ ansible/files/*
 
 # Ignore AV licence file
 ansible/playbooks/files/license.avastlic
+ansible/playbooks/files/*.zip
 ansible/roles/quarkslab.avast/files/license.avastlic
 
 # Ignore only stable group_vars

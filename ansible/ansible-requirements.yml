@@ -1,7 +1,7 @@
 ---
 
-- src: https://github.com/ANXS/postgresql.git
-  version: v1.7.1
+- src: https://github.com/quarkslab/postgresql.git
+  version: a45227559e9c7c1b1e952b53855ec1d631daaad2
   name: ANXS.postgresql
 
 - src: https://github.com/weareinteractive/ansible-sudo.git
@@ -12,20 +12,16 @@
   version: 1.6.0
   name: franklinkim.ufw
 
-- src: https://github.com/quarkslab/ansible-uwsgi.git
-  version: 81aa309b091b92a6ad62eea4496e1736dfec2447
-  name: gdamjan.uwsgi
-
 - src: https://github.com/jdauphant/ansible-role-nginx.git
   version: v2.7.4
   name: jdauphant.nginx
 
 - src: https://github.com/quarkslab/ansible-playbook-rabbitmq.git
-  version: b2e8311c9bab67d0f3aad4aecf4664b97265d4ee
+  version: 7684af260c06beb010958c9b6ae802690ab26f61
   name: Mayeu.RabbitMQ
 
 - src: https://github.com/mivok/ansible-users.git
-  version: v1.2.0
+  version: v1.2.4
   name: mivok0.users
 
 - src: https://github.com/willshersystems/ansible-sshd.git

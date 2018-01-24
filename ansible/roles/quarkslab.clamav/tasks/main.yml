@@ -16,9 +16,3 @@
     - clamav-daemon
     - clamav-unofficial-sigs
   register: clamav_install
-
-- name: ClamAV | Update virus definition
-  shell: freshclam --quiet
-  failed_when: "clamav_update.rc != 0 and '/var/log/clamav/freshclam.log is locked by another process' not in clamav_update.stdout"
-  register: clamav_update
-  notify: ClamAV | restart daemon

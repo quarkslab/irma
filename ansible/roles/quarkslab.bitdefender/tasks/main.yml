@@ -7,14 +7,3 @@
 
 - include: install.yml
   when: bitdefender_present | failed
-
-- name: BitDefender | Change license key
-  replace:
-    dest: /opt/BitDefender-scanner/etc/bdscan.conf
-    regexp: '^Key =(.*)$'
-    replace: 'Key = {{ bitdefender_scanner_key }}'
-  when: bitdefender_scanner_key is defined
-  become: yes
-
-- name: BitDefender | Download latest definition files
-  command: echo "accept" | bdscan --update

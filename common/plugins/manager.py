@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ class PluginManager(Singleton):
     ##########################################################################
 
     def get_all_plugins(self):
-        return self.__plugins_cls.values()
+        return list(self.__plugins_cls.values())
 
     def discover(self, path=os.path.dirname(__file__), prefix=None):
         dirname = os.path.basename(path)
@@ -54,10 +54,7 @@ class PluginManager(Singleton):
             try:
                 pkg_name = '%s.%s' % (prefix, name)
                 if pkg_name not in sys.modules:
-                    module_meta = importer.find_module(name)
-                    module = module_meta.load_module(pkg_name)
-                else:
-                    module = sys.modules[pkg_name]
+                    __import__(pkg_name)
                 if ispkg:
                     self.discover(os.path.join(path, name), pkg_name)
             except PluginFormatError as error:

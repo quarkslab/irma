@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,8 +14,10 @@
 # terms contained in the LICENSE file.
 
 import os
+import sys
 import logging
 import ssl
+import multiprocessing
 
 from kombu import Queue
 from logging import BASIC_FORMAT, Formatter
@@ -27,6 +29,7 @@ from lib.irma.common.exceptions import IrmaConfigurationError
 from lib.irma.configuration.ini import TemplatedConfiguration
 from lib.irma.ftp.sftp import IrmaSFTP
 from lib.irma.ftp.ftps import IrmaFTPS
+from lib.irma.common.utils import common_celery_options
 
 
 # ==========
@@ -38,6 +41,12 @@ template_probe_config = {
         ('syslog', TemplatedConfiguration.integer, 0),
         ('prefix', TemplatedConfiguration.string, "irma-probe :"),
         ('debug', TemplatedConfiguration.boolean, False),
+    ],
+    'celery_options': [
+        ('concurrency', TemplatedConfiguration.integer,
+         multiprocessing.cpu_count() * 2),
+        ('soft_time_limit', TemplatedConfiguration.integer, 300),
+        ('time_limit', TemplatedConfiguration.integer, 1500),
     ],
     'broker_probe': [
         ('host', TemplatedConfiguration.string, None),
@@ -86,6 +95,23 @@ probe_config = TemplatedConfiguration(cfg_file, template_probe_config)
 #  Celery helpers
 # ================
 
+def get_celery_options(app, app_name):
+    concurrency = probe_config.celery_options.concurrency
+    soft_time_limit = probe_config.celery_options.soft_time_limit
+    time_limit = probe_config.celery_options.time_limit
+    options = common_celery_options(app,
+                                    app_name,
+                                    concurrency,
+                                    soft_time_limit,
+                                    time_limit)
+    if sys.platform.startswith("win32"):
+        # use threadpool on windows as workaround
+        # of hanging tasks after a while
+        options.append('--pool=threads')
+        options.append('--logfile=probe_app.log')
+    return options
+
+
 def _conf_celery(app, broker, backend=None, queue=None):
     app.conf.update(BROKER_URL=broker,
                     CELERY_ACCEPT_CONTENT=['json'],
@@ -131,7 +157,7 @@ def conf_probe_celery(app):
 
 
 def conf_brain_celery(app):
-    broker = get_brain_backend_uri()
+    broker = get_brain_broker_uri()
     backend = get_brain_backend_uri()
     queue = probe_config.broker_brain.queue
     _conf_celery(app, broker, backend=backend, queue=queue)

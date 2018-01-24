@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,9 +41,9 @@ class DrWeb(Antivirus):
         # see man zavcli for return codes
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [0]
         self._scan_patterns = [
-            re.compile(r'(?P<file>.*)'
-                       r'\s+-\s+infected with\s+'
-                       r'(?P<name>.+)', re.IGNORECASE),
+            re.compile(b'(?P<file>.*)'
+                       b'\s+-\s+infected with\s+'
+                       b'(?P<name>.+)', re.IGNORECASE),
         ]
 
     # ==========================================
@@ -57,7 +57,7 @@ class DrWeb(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+([.-]\d+)+)',
+                matches = re.search(b'(?P<version>\d+([.-]\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:

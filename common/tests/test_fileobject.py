@@ -75,7 +75,7 @@ class DbTestCase(unittest.TestCase):
             assert collection.count() <= 0
             assert collection2.count() <= 0
         except IrmaDatabaseError as e:
-            print "TestDatabase Error: {0}".format(e)
+            print("TestDatabase Error: {0}".format(e))
             self.skipTest(DbTestCase)
 
 

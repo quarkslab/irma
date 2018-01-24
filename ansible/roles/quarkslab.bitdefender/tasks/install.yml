@@ -1,5 +1,11 @@
 ---
 
+- name: BitDefender | Install requirements
+  become: yes
+  package:
+    name: psmisc
+    state: present
+
 - name: BitDefender | Download Package
   get_url:
     url: "{{ bitdefender_url }}"
@@ -30,6 +36,10 @@
   shell: (echo 'accept'; echo 'n') | sh /tmp/BitDefender-Antivirus-Scanner-linux.run
   become: yes
 
-- name: BitDefender | Update file definitions
-  shell: echo "accept" | bdscan --update
+- name: BitDefender | Change license key
+  replace:
+    dest: /opt/BitDefender-scanner/etc/bdscan.conf
+    regexp: '^Key =(.*)$'
+    replace: 'Key = {{ bitdefender_scanner_key }}'
+  when: bitdefender_scanner_key is defined
   become: yes

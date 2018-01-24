@@ -1,36 +1,11 @@
 ---
 
-- name: F-Secure | Install dependencies
-  apt:
-    name: "{{ item }}"
-    state: latest
-  become: yes
-  with_items:
-    - lib32stdc++6
-    - rpm
 
 - name: F-Secure | Check version
   command: fsav --version
   ignore_errors: yes
   register: fsecure_present
 
-- name: F-Secure | Create temporary work dir
-  file:
-    path: "{{ fsecure_temp_dir }}/"
-    state: directory
-
 - include: install.yml
   when: fsecure_present | failed
 
-- name: F-Secure | Remove temporary work dir
-  file:
-    path: "{{ fsecure_temp_dir }}/"
-    state: absent
-
-- name: F-Secure | Download latest definition files
-  command: /usr/bin/dbupdate
-  register: command_result
-  # https://help.f-secure.com/product.html?business/igk/5.30/en/topic_9058AA384A0E45A192CEBD211B763FA6-5.30-en
-  # rc = 0 means no update rc = 2 means updated
-  failed_when: "{{ command_result.rc  }} == 1"
-  become: yes

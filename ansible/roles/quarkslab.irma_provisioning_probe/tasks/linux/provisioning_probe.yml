@@ -6,7 +6,7 @@
     state: directory
     owner: "{{ probe_user }}"
     group: "{{ irma_server_group }}"
-    mode: 02750
-    recurse: "{{ vagrant_share|default(false) }}"
+    mode: "u=rwX,g=rX,o="
+    recurse: yes
 
 # vim: sw=2

@@ -23,5 +23,5 @@
 
 - name: Restart machine (needed to launch IRMA)
   win_reboot:
-    shutdown_timeout_sec: 300
-    reboot_timeout_sec: 900
+    shutdown_timeout_sec: 1500
+    reboot_timeout_sec: 1500

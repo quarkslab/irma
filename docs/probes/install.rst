@@ -24,9 +24,10 @@ option of ``cp`` [#]_ (``-L``):
 We assume that you have a command line interface on your system with
 the following tools installed:
 
-* python 2.7.x (see `Python for Windows <https://www.python.org/downloads/windows/>`_
+* python 3.4.x and newer on Linux
+* python 3.5.x and newer on Windows (see `Python for Windows <https://www.python.org/downloads/windows/>`_
   for prebuild MSI installer)
-* python-pip (see `Install pip <https://pip.pypa.io/en/latest/installing.html>`_
+* python3-pip (see `Install pip <https://pip.pypa.io/en/latest/installing.html>`_
   for the recommended way to install pip package manager)
 
 Furthermore, we assume that you have created an user ``irma`` that will be used
@@ -79,14 +80,14 @@ option of ``cp`` (``-L``):
 
 We need few dependencies for future steps:
 
-    $ sudo apt-get install python-virtualenv python-dev
+    $ sudo apt-get install python3-virtualenv python3-dev
 
 
 then, we need to install python dependencies manually in a virtualenv :
 
 .. code-block:: bash
 
-    $ virtualenv --system-site-packages /opt/irma/irma-probe/current/venv
+    $ virtualenv --system-site-packages --python=/usr/bin/python3 /opt/irma/irma-probe/current/venv
     $ /opt/irma/irma-probe/current/venv/bin/pip install -r /opt/irma/irma-probe/current/requirements.txt
     [...]
 

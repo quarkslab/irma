@@ -13,7 +13,7 @@ On GNU/Linux:
 .. code-block:: bash
 
     $ cd /opt/irma/irma-brain/current
-    $ ./venv/bin/celery worker --app=brain.scan_tasks
+    $ ./venv/bin/python -m brain.scan_tasks
 
 
      -------------- celery@brain v3.1.23 (Cipater)
@@ -38,7 +38,7 @@ per probe per file.
 .. code-block:: bash
 
     $ cd /opt/irma/irma-brain/current
-    $ ./venv/bin/celery worker --app=brain.results_tasks
+    $ ./venv/bin/python -m brain.results_tasks
 
      -------------- celery@brain v3.1.23 (Cipater)
     ---- **** -----

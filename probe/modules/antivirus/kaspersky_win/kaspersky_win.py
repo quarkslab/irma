@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,9 +39,9 @@ class KasperskyWin(Antivirus):
         )
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [2, 3]
         self._scan_patterns = [
-            re.compile(r"^[^\s]+\s+[^\s]+" +
-                       r"(?P<file>.+)\s+(detected|suspicion)+" +
-                       r"\s(?P<name>[^\r]*)")
+            re.compile(b"^[^\s]+\s+[^\s]+" +
+                       b"(?P<file>.+)\s+(detected|suspicion)+" +
+                       b"\s(?P<name>[^\r]*)")
         ]
 
     # ==========================================
@@ -51,15 +51,18 @@ class KasperskyWin(Antivirus):
     def get_version(self):
         """return the version of the antivirus"""
         result = None
-        if self.scan_path:
-            # Latest version do not output
-            # version so extract it from path
-            matches = re.search(r'Kaspersky Lab\\[^\\]+ '
-                                r'(?P<version>\d+(\.\d+)+)\\',
-                                self.scan_path,
-                                re.IGNORECASE)
-            if matches:
-                result = matches.group('version').strip()
+        try:
+            if self.scan_path:
+                # Latest version do not output
+                # version so extract it from path
+                matches = re.search(r'Kaspersky Lab\\[^\\]+ '
+                                    r'(?P<version>\d+(\.\d+)+)\\',
+                                    self.scan_path,
+                                    re.IGNORECASE)
+                if matches:
+                    result = matches.group('version').strip()
+        except Exception:
+            pass
         return result
 
     def get_database(self):
@@ -95,3 +98,21 @@ class KasperskyWin(Antivirus):
                           os.environ.get('PROGRAMFILES(X86)', '')])
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None
+
+    def get_virus_database_version(self):
+        """return the db version of the antivirus"""
+        result = None
+        try:
+            if self.scan_path:
+                cmd = self.scan_cmd(self.scan_path)
+                _, stdout, _ = self.run_cmd(cmd)
+                if stdout:
+                    matches = re.search(b'AV bases release date: '
+                                        b'(?P<version>.+)',
+                                        stdout,
+                                        re.IGNORECASE)
+                    if matches:
+                        result = matches.group('version').strip()
+        except Exception:
+            pass
+        return result

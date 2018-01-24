@@ -1,17 +1,5 @@
 ---
 
-- name: Dr Web | Install dependencies
-  apt:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - libfontconfig1
-    - libxrender1
-    - libglib2.0-0
-    - libxi6
-    - xauth
-  become: yes
-
 - name: Dr Web | Check version
   command: drweb-ctl --version
   ignore_errors: yes
@@ -21,8 +9,3 @@
   when: drweb_present | failed
 
 - include: configuration.yml
-
-- name: Dr Web | Update file definitions
-  shell: drweb-ctl update
-  become: yes
-  ignore_errors: yes

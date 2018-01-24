@@ -1,9 +1,5 @@
 ---
 
-- name: Sophos | Installation will proceed
-  debug:
-    msg: "Sophos is going to be installed."
-
 - name: Sophos | Create temporary work dir
   file:
     path: "{{ sophos_temp_dir }}/"
@@ -22,18 +18,32 @@
 
 - name: Sophos | Launch install script (Free mode)
   command: "{{ sophos_temp_dir }}/sophos-av/install.sh {{ sophos_install_dir }} --update-free --acceptlicence --autostart=False --enableOnBoot=False --automatic --ignore-existing-installation --update-source-type=s"
-  when: not (sophos_update_username and sophos_update_password)
+  when: not (sophos_update_username is defined and sophos_update_password is defined)
 
 - name: Sophos | Launch install script (Supported mode)
   command: "{{ sophos_temp_dir }}/sophos-av/install.sh {{ sophos_install_dir }} --acceptlicence --autostart=False --enableOnBoot=False --automatic --ignore-existing-installation --update-source-type=s --update-source-username={{ sophos_update_username }} --update-source-password={{ sophos_update_password }}"
-  when: sophos_update_username and sophos_update_password
+  when: sophos_update_username is defined and sophos_update_password is defined
 
 - name: Sophos | Set parameters
   command: "{{ sophos_install_dir }}/bin/savconfig set {{ item.key }} {{ item.value }}"
   with_items:
     - { key: 'EnableOnStart', value: 'false' }
 
+- name: Sophos | Set update parameters
+  command: "{{ sophos_install_dir }}/bin/savconfig set {{ item.key }} {{ item.value }}"
+  with_items:
+    - { key: 'PrimaryUpdateSourcePath', value: 'sophos:' }
+    - { key: 'UpdatePeriodMinutes', value: "{{ sophos_update_period_minutes }}" }
+
+- name: Sophos | Set credentials for update parameters
+  command: "{{ sophos_install_dir }}/bin/savconfig set {{ item.key }} {{ item.value }}"
+  with_items:
+    - { key: 'PrimaryUpdateUsername', value: "{{ sophos_update_username }}" }
+    - { key: 'PrimaryUpdatePassword', value: "{{ sophos_update_password }}" }
+  when: sophos_update_username is defined and sophos_update_password is defined
+
 - name: Sophos | Remove temporary work dir
   file:
     path: "{{ sophos_temp_dir }}/"
     state: absent
+

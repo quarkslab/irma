@@ -1,0 +1,5 @@
+---
+
+- name: Kaspersky | Download updates
+  command: "{{kaspersky_bin}} --start-task 6"
+  become: yes

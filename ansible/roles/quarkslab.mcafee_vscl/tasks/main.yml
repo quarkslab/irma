@@ -13,17 +13,5 @@
   ignore_errors: yes
   register: mcafee
 
-- name: McAfee VSCL | Create temporary work dir
-  file:
-    path: "{{ mcafee_temp_dir }}/"
-    state: directory
-
 - include: install.yml
   when: mcafee | failed
-
-- include: update.yml
-
-- name: McAfee VSCL | Remove temporary work dir
-  file:
-    path: "{{ mcafee_temp_dir}}/"
-    state: absent

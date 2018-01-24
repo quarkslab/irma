@@ -14,9 +14,44 @@ depends_on = None
 
 from alembic import op
 import sqlalchemy as sa
-from frontend.models.sqlobjects import FileWeb
 from lib.common.utils import UUID
+from sqlalchemy import Column, Integer, ForeignKey, String, BigInteger, Numeric
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import relationship, backref
+
+from api.common.models import tables_prefix
+
+
+Base = declarative_base()
+
+
+class File(Base):
+    __tablename__ = '{0}file'.format(tables_prefix)
+
+    # Fields
+    id = Column(Integer, primary_key=True)
+    sha256 = Column(String)
+    sha1 = Column(String)
+    md5 = Column(String)
+    timestamp_first_scan = Column(Numeric)
+    timestamp_last_scan = Column(Numeric)
+    size = Column(BigInteger)
+    mimetype = Column(String)
+    path = Column(String)
+
+
+class FileWeb(Base):
+    __tablename__ = '{0}fileWeb'.format(tables_prefix)
+
+    # Fields
+    id = Column(Integer, primary_key=True)
+    external_id = Column(String)
+    id_file = Column(Integer)
+    name = Column(String)
+    path = Column(String)
+    id_scan = Column(Integer)
+    id_parent = Column(Integer)
 
 
 def upgrade():

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ class AvastCoreSecurity(Antivirus):
             "-u "  # Report potentionally unwanted programs (PUP)
         )
         self._scan_patterns = [
-            re.compile(r'(?P<file>[^ \t]+)\t+(?P<name>[^\t]+)', re.IGNORECASE)
+            re.compile(b'(?P<file>[^ \t]+)\t+(?P<name>[^\t]+)', re.IGNORECASE)
         ]
 
     # ==========================================
@@ -71,7 +71,7 @@ class AvastCoreSecurity(Antivirus):
             cmd = self.build_cmd(self.scan_path, '-v')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:

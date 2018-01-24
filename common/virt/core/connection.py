@@ -89,7 +89,7 @@ class ConnectionManager(ParametricSingleton):
         :raises: ConnectionManagerError if ``uri`` provided
         is not a string or a valid URI
         """
-        if not isinstance(uri, basestring):
+        if not isinstance(uri, str):
             reason = ("'uri' argument must be supplied as a string, " +
                       "not as a {0}".format(type(uri)))
             raise ConnectionManagerError(reason)
@@ -209,7 +209,7 @@ class ConnectionManager(ParametricSingleton):
         # TODO: perform more type checking,
         # format checking and coherence checking
         valid = False
-        if isinstance(uri, basestring):
+        if isinstance(uri, str):
             valid = True
         return valid
 

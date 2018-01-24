@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
 import logging
 import re
 import os
-import stat
 import tempfile
 
 from ..base import Antivirus
@@ -44,9 +43,9 @@ class BitdefenderForUnices(Antivirus):
             "--log={log}".format(log=self._log_path)
         )
         self._scan_patterns = [
-            re.compile(r'(?P<file>[^\s]+)'
-                       r'\s+(infected:|suspected:)\s+'
-                       r'(?P<name>[^\t]+)', re.IGNORECASE),
+            re.compile(b'(?P<file>[^\s]+)'
+                       b'\s+(infected:|suspected:)\s+'
+                       b'(?P<name>[^\t]+)', re.IGNORECASE),
         ]
 
     def __del__(self):
@@ -61,7 +60,7 @@ class BitdefenderForUnices(Antivirus):
         retcode, stdout, stderr = res[0], None, res[2]
         if self._log_path:
             with open(self._log_path, 'r') as fd:
-                stdout = fd.read()
+                stdout = bytes(fd.read(), 'utf8')
             res = (retcode, stdout, stderr)
         return super(BitdefenderForUnices, self).check_scan_results(paths, res)
 
@@ -72,7 +71,7 @@ class BitdefenderForUnices(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:
@@ -98,3 +97,21 @@ class BitdefenderForUnices(Antivirus):
         """return the full path of the scan tool"""
         paths = self.locate("bdscan")
         return paths[0] if paths else None
+
+    def get_virus_database_version(self):
+        """Return the Virus Database version"""
+        paths = self.locate("bdscan")
+
+        if paths:
+            cmd = self.build_cmd(paths[0], '--info')
+            retcode, stdout, stderr = self.run_cmd(cmd)
+
+            if not retcode:
+                matches = re.search(b'Engine signatures: (?P<version>\d+)',
+                                    stdout,
+                                    re.IGNORECASE)
+
+                if matches:
+                    return matches.group('version').strip()
+
+        return None

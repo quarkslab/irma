@@ -1,0 +1,7 @@
+---
+
+- name: Avast | Update file definitions
+  shell: /var/lib/avast/Setup/avast.vpsupdate
+  become: yes
+  notify:
+    - Restart Avast daemon

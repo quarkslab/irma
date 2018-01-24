@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@ import os
 import sys
 
 from importlib import import_module
+from functools import reduce
 
 try:  # from python3, shutil has a which like command
     from shutil import which
@@ -28,15 +29,12 @@ except ImportError:
 # Plugin imports
 ##############################################################################
 
-from exceptions import PluginError, PluginCrashed
-from exceptions import PluginLoadError, PluginFormatError
-
-from exceptions import DependencyMissing
-from exceptions import ModuleDependencyMissing
-from exceptions import BinaryDependencyMissing
-from exceptions import FileDependencyMissing
-from exceptions import FolderDependencyMissing
-from exceptions import PlatformDependencyMissing
+from .exceptions import DependencyMissing
+from .exceptions import ModuleDependencyMissing
+from .exceptions import BinaryDependencyMissing
+from .exceptions import FileDependencyMissing
+from .exceptions import FolderDependencyMissing
+from .exceptions import PlatformDependencyMissing
 
 
 ##############################################################################
@@ -87,7 +85,7 @@ class BinaryDependency(Dependency):
 
     def is_satisfied(self):
         if isinstance(self.dependency_name, list):
-            dependency_found = map(lambda x: which(x), self.dependency_name)
+            dependency_found = [which(x) for x in self.dependency_name]
             return reduce(lambda x, y: x or y, dependency_found, False)
         else:
             return which(self.dependency_name) is not None

@@ -3,21 +3,21 @@
 
 servers:
   - name: frontend.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
     hostname: frontend.irma
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
   - name: brain.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.31
     hostname: brain.irma
     cpus: 2
     cpuexecutioncap: 100
     memory: 2048
   - name: avs-linux.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.32
     hostname: avs-linux.irma
     cpus: 2
@@ -43,43 +43,27 @@ libvirt_config:
 ansible_config:
   extra_vars:
     vagrant: true
+    irma_environment: production
   groups:
-    frontend:
-      - frontend.irma
-    brain:
-      - brain.irma
-    clamav:
-      - avs-linux.irma
-    comodo:
-      - avs-linux.irma
-    mcafee:
-      - avs-linux.irma
-    static-analyzer:
-      - avs-linux.irma
-    virustotal:
-      - avs-linux.irma
-    avg:
-      - avs-linux.irma
-    bitdefender:
-      - avs-linux.irma
-    escan:
-      - avs-linux.irma
-    virusblokada:
-      - avs-linux.irma
-    zoner:
-      - avs-linux.irma
-    drweb:
-      - avs-linux.irma
-    avast:
-      - avs-linux.irma
-    fsecure:
-      - avs-linux.irma
-    trid:
-      - avs-linux.irma
-    sophos:
-      - avs-linux.irma
-    mcafee-win:
-      - mcafee-win.irma
+    frontend: frontend.irma
+    sql-server: frontend.irma
+    brain: brain.irma
+    clamav: avs-linux.irma
+    comodo: avs-linux.irma
+    mcafee: avs-linux.irma
+    static-analyzer: avs-linux.irma
+    virustotal: avs-linux.irma
+    avg: avs-linux.irma
+    bitdefender: avs-linux.irma
+    escan: avs-linux.irma
+    virusblokada: avs-linux.irma
+    zoner: avs-linux.irma
+    drweb: avs-linux.irma
+    avast: avs-linux.irma
+    fsecure: avs-linux.irma
+    trid: avs-linux.irma
+    sophos: avs-linux.irma
+    mcafee-win: mcafee-win.irma
     "probe:children":
       - clamav
       - comodo

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def download_file(frontend, path, srcname, dstname):
+def download_file(frontend, srcname, dstname):
     IrmaFTP = config.get_ftp_class()
     ftp_config = config.probe_config['ftp_brain']
     with IrmaFTP(ftp_config.host,
@@ -31,12 +31,12 @@ def download_file(frontend, path, srcname, dstname):
                  ftp_config.username,
                  ftp_config.password,
                  dst_user=frontend) as ftp:
-        log.debug("download %s/%s in %s frontend %s", path, srcname,
+        log.debug("download %s in %s frontend %s", srcname,
                   dstname, frontend)
-        ftp.download_file(path, srcname, dstname)
+        ftp.download_file(".", srcname, dstname)
 
 
-def upload_files(frontend, path, srcname_list, scanid):
+def upload_files(frontend, path, srcname_list, parent_filename):
     IrmaFTP = config.get_ftp_class()
     uploaded_files = {}
     ftp_config = config.probe_config['ftp_brain']
@@ -47,11 +47,14 @@ def upload_files(frontend, path, srcname_list, scanid):
                  ftp_config.username,
                  ftp_config.password,
                  dst_user=frontend) as ftp:
+        index = 0
         for srcname in srcname_list:
             full_path = os.path.join(path, srcname)
             if os.path.isdir(full_path):
                 continue
-            log.debug("upload %s in %s", full_path, scanid)
-            hashname = ftp.upload_file(scanid, full_path)
-            uploaded_files[srcname] = hashname
+            dstname = "{}_{}".format(parent_filename, index)
+            index += 1
+            log.debug("upload %s in %s", full_path, dstname)
+            ftp.upload_file(dstname, full_path)
+            uploaded_files[srcname] = dstname
     return uploaded_files

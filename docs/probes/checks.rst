@@ -13,8 +13,7 @@ On GNU/Linux:
 .. code-block:: bash
 
     $ cd /opt/irma/irma-probe/current
-    $ ./venv/bin/celery worker --app=probe.tasks
-    $ celery worker --app=probe.tasks:app --workdir=/opt/irma/irma-probe/current
+    $ ./venv/bin/python -m probe.tasks
     WARNING:root: *** [plugin] Plugin failed to load: Kaspersky miss dependencies: win32 (PlatformDependency).
     WARNING:root: *** [plugin] Plugin failed to load: Sophos miss dependencies: win32 (PlatformDependency).
     WARNING:root: *** [plugin] Plugin failed to load: Symantec miss dependencies: win32 (PlatformDependency).
@@ -45,7 +44,8 @@ The equivalent command on Microsoft Windows is:
 
 .. code-block:: none
 
-    $ C:\Python27\Scripts\celery.exe worker --app=probe.tasks:app --workdir=C:\irma\irma-probe\current
+    C:\> cd "C:\IRMA\irma-probe\current"
+    C:\> .\venv\Scripts\python.exe -m probe.tasks
     [...]
 
 If your Celery worker does not output something similar to the above output,

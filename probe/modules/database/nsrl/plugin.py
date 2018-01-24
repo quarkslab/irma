@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@ import sys
 import re
 
 from datetime import datetime
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 
 from lib.common.utils import timestamp
 from lib.plugins import PluginBase
@@ -27,6 +27,7 @@ from lib.plugins import PluginLoadError
 from lib.plugin_result import PluginResult
 from lib.common.hash import sha1sum
 from lib.irma.common.utils import IrmaProbeType
+from functools import reduce
 
 
 class NSRLPlugin(PluginBase):
@@ -64,7 +65,7 @@ class NSRLPlugin(PluginBase):
     @classmethod
     def verify(cls):
         # load default configuration file
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
         os_db = config.get('NSRL', 'nsrl_os_db')
@@ -74,7 +75,7 @@ class NSRLPlugin(PluginBase):
         databases = [os_db, mfg_db, file_db, prod_db]
 
         # check for configured database path
-        results = map(os.path.exists, databases)
+        results = list(map(os.path.exists, databases))
         dbs_available = reduce(lambda x, y: x or y, results, False)
         if not dbs_available:
             raise PluginLoadError("{0}: verify() failed because "
@@ -82,7 +83,7 @@ class NSRLPlugin(PluginBase):
                                   "".format(cls.__name__))
 
         # check for LOCK file and remove it
-        dbs_locks = map(lambda x: os.path.join(x, "LOCK"), databases)
+        dbs_locks = [os.path.join(x, "LOCK") for x in databases]
         for lock in dbs_locks:
             try:
                 if os.path.exists(lock):
@@ -96,7 +97,7 @@ class NSRLPlugin(PluginBase):
 
     def __init__(self):
         # load default configuration file
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
         # get configuration values

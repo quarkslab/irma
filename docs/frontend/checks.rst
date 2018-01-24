@@ -13,7 +13,7 @@ On GNU/Linux:
 .. code-block:: bash
 
     $ cd /opt/irma/irma-frontend/current
-    $ ./venv/bin/celery worker --app=frontend.tasks:frontend_app
+    $ ./venv/bin/python -m api.tasks.frontend_app
 
      -------------- celery@frontend v3.1.23 (Cipater)
     ---- **** -----

@@ -1,0 +1,19 @@
+---
+- name : "Packaging source code archive"
+  hosts: all
+  tasks:
+  - name: Gather Common src from current directory
+    local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/{{ irma_common_archive }}" "{{ irma_deployment_code_version }}"
+    run_once: true
+
+  - name: Gather Frontend src from current directory
+    local_action: shell cd "{{ playbook_dir }}/../../frontend" && git archive -o "{{ playbook_dir }}/files/{{ irma_frontend_archive }}" "{{ irma_deployment_code_version }}"
+    run_once: true
+
+  - name: Gather Brain src from current directory
+    local_action: shell cd "{{ playbook_dir }}/../../brain" && git archive -o "{{ playbook_dir }}/files/{{ irma_brain_archive }}" "{{ irma_deployment_code_version }}"
+    run_once: true
+
+  - name: Gather Probe src from current directory
+    local_action: shell cd "{{ playbook_dir }}/../../probe" && git archive -o "{{ playbook_dir }}/files/{{ irma_probe_archive }}" "{{ irma_deployment_code_version }}"
+    run_once: true

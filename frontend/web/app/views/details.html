@@ -64,6 +64,7 @@
                 <th>Name</th>
                 <th>Result</th>
                 <th>Version</th>
+                <th>Virus DB Version</th>
                 <th>Duration (in secs)</th>
               </tr>
             </thead>
@@ -74,6 +75,7 @@
                 <td ng-if="output.status == 0"></td>
                 <td ng-if="output.status == -1"><i style="text-align: center;" class="glyphicon glyphicon-exclamation-sign" title="Antivirus scan ended up in an error state :("></i></td>
                 <td>{{output.version}}</td>
+                <td>{{output.virus_database_version || ''}}</td>
                 <td>{{output.duration}}</td>
               </tr>
             </tbody>

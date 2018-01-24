@@ -15,5 +15,5 @@
     owner: "{{ irma_user }}"
     group: "{{ irma_cert_group }}"
     mode: 0640
-  with_items: frontend_openssl_certificates.keys()
+  with_items: "{{ frontend_openssl_certificates.keys() }}"
   tags: ssl

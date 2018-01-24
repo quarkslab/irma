@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,7 +190,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         self.retryFactor = 2.0
 
     def makeSocket(self):
-        if isinstance(self.address, basestring):
+        if isinstance(self.address, str):
             self.unixsocket = 1
             self._connect_unixsocket(self.address)
         else:
@@ -314,7 +314,7 @@ class SysLogHandler(logging.handlers.SysLogHandler):
         prio = '<%d>' % self.encodePriority(self.facility,
                                             self.mapPriority(record.levelname))
         # Message is a string. Convert to bytes as required by RFC 5424
-        if type(msg) is unicode:
+        if type(msg) is str:
             msg = msg.encode('utf-8')
         msg = prio + msg
         try:

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +14,7 @@
 # terms contained in the LICENSE file.
 
 from .exceptions import IrmaValueError
+from common.utils import UUID
 
 
 # ==========================
@@ -130,6 +131,10 @@ class IrmaScanStatus:
             raise IrmaValueError("Wrong scan status [{0}]".format(status_str))
         return
 
+    @staticmethod
+    def code_to_label(code):
+        return IrmaScanStatus.label.get(code, "Unknown status code")
+
 
 # ==========================================================
 #  Lock values for NoSQLDatabaseObjects (internal use only)
@@ -168,12 +173,14 @@ class IrmaProbeType:
     database = "database"
     external = "external"
     metadata = "metadata"
+    tools = "tools"
     from_label = {
         "unknown": unknown,
         "antivirus": antivirus,
         "database": database,
         "external": external,
-        "metadata": metadata
+        "metadata": metadata,
+        "tools": tools,
         }
 
     @staticmethod
@@ -200,27 +207,66 @@ class IrmaScanRequest(object):
     def nb_files(self):
         return len(self.request.keys())
 
-    def add_file(self, filehash, probelist, mimetype):
-        self.request[filehash] = dict()
-        self.request[filehash]['probe_list'] = probelist
-        self.request[filehash]['mimetype'] = mimetype
+    def add_file(self, fileid, probelist, mimetype):
+        self.request[fileid] = dict()
+        self.request[fileid]['probe_list'] = probelist
+        self.request[fileid]['mimetype'] = mimetype
 
-    def del_file(self, filehash):
-        if filehash in self.request.keys():
-            self.request.pop(filehash)
+    def del_file(self, fileid):
+        if fileid in self.request.keys():
+            self.request.pop(fileid)
         return
 
-    def get_probelist(self, filehash):
-        return self.request[filehash]['probe_list']
+    def get_probelist(self, fileid):
+        return self.request[fileid]['probe_list']
 
-    def set_probelist(self, filehash, value):
-        self.request[filehash]['probe_list'] = value
+    def set_probelist(self, fileid, value):
+        self.request[fileid]['probe_list'] = value
 
-    def get_mimetype(self, filehash):
-        return self.request[filehash]['mimetype']
+    def get_mimetype(self, fileid):
+        return self.request[fileid]['mimetype']
 
     def to_dict(self):
         return self.request
 
-    def filehashes(self):
+    def files(self):
         return self.request.keys()
+
+
+# =====================
+#  Irma Celery options
+# =====================
+
+def common_celery_options(app, app_name, concurrency, soft_time_limit,
+                          time_limit):
+    options = list()
+
+    # app path
+    options.append('--app={}'.format(app))
+
+    # logging level
+    options.append('--loglevel=info')
+
+    # do not subscribe to other workers events.
+    options.append('--without-gossip')
+
+    # do not synchronize with other workers at startup
+    options.append('--without-mingle')
+
+    # do not send event heartbeats
+    options.append('--without-heartbeat')
+
+    # concurrency
+    if concurrency != 0:
+        options.append('--concurrency={}'.format(concurrency))
+
+    # soft time limit
+    options.append('--soft-time-limit={}'.format(soft_time_limit))
+
+    # hard time limit
+    options.append('--time-limit={}'.format(time_limit))
+
+    # worker unique id
+    options.append('--hostname={}-{}'.format(app_name, UUID.generate()))
+
+    return options

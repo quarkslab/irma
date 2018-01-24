@@ -17,6 +17,3 @@
 
 - include: install.yml
   when: (sophos_present | failed) and sophos_archive_name
-
-- include: update.yml
-  when: ((sophos_present | success) or ((sophos_present | failed) and sophos_archive_name))

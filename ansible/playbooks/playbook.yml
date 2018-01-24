@@ -2,4 +2,5 @@
 # Master Playbook
 
 - include: provisioning.yml
+- include: updating.yml
 - include: deployment.yml

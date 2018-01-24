@@ -21,14 +21,10 @@
       }, function(response) {
         // In case of error with the API
         if(!options.noAlerts) {
-            if (response.data.type !== 'api_error') {
-                alerts.add({
-                    standard: 'apiErrorWithMsg',
-                    apiMsg: response.data.message,
-                });
-            } else {
-                alerts.add({standard: 'apiError'});
-            }
+          alerts.add({
+            standard: 'apiErrorWithMsg',
+            apiMsg: response.data.errors || {},
+          });
         }
         $timeout(function() { deferred.reject(response.data); }, constants.fakeDelay);
       });
@@ -44,14 +40,10 @@
       }, function(response) {
         // In case of error with the API
         if(!options.noAlerts) {
-            if (response.data.type !== 'api_error') {
-                alerts.add({
-                    standard: 'apiErrorWithMsg',
-                    apiMsg: response.data.message,
-                });
-            } else {
-                alerts.add({standard: 'apiError'});
-            }
+          alerts.add({
+            standard: 'apiErrorWithMsg',
+            apiMsg: response.data.errors || {},
+          });
         }
         $timeout(function() { deferred.reject(response.data); }, constants.fakeDelay);
       });

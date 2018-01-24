@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,10 @@ import re
 import random
 import collections
 from time import mktime
-import urllib
+import urllib.request
+import urllib.parse
+import urllib.error
+from functools import reduce
 
 
 class UUID(object):
@@ -30,7 +33,7 @@ class UUID(object):
     def validate(cls, val):
         try:
             uuid.UUID(val)
-        except:
+        except Exception:
             return False
         return True
 
@@ -58,15 +61,15 @@ class MAC(object):
         if not oui or \
             len(oui) != 3 or \
             not reduce(lambda x, y: x and y,
-                       map(lambda x: isinstance(x, int), oui)):
+                       [isinstance(x, int) for x in oui]):
             # Xensource, Inc.
             oui = [0x00, 0x16, 0x3e]
         mac = []
-        mac.extend(map(lambda x: x % 255, oui))
+        mac.extend([x % 255 for x in oui])
         mac.extend([random.randint(0x00, 0x7f),
                     random.randint(0x00, 0xff),
                     random.randint(0x00, 0xff)])
-        return ':'.join(map(lambda x: "%02x" % x, mac))
+        return ':'.join(["%02x" % x for x in mac])
 
     @classmethod
     def normalize(cls, val):
@@ -74,6 +77,7 @@ class MAC(object):
 
 # author liudmil-mitev
 # source https://github.com/liudmil-mitev/experiments/
+
 
 INTERVALS = [1, 60, 3600, 86400, 604800, 2419200, 29030400]
 NAMES = [('second', 'seconds'),
@@ -103,12 +107,12 @@ def humanize_time(amount, units):
     """
     result = []
 
-    unit = map(lambda a: a[1], NAMES).index(units)
+    unit = [name[1] for name in NAMES].index(units)
     # Convert to seconds
     amount = amount * INTERVALS[unit]
 
     for i in range(len(NAMES) - 1, -1, -1):
-        a = amount / INTERVALS[i]
+        a = int(amount / INTERVALS[i])
         if a > 0:
             result.append((a, NAMES[i][1 % a]))
             amount -= a * INTERVALS[i]
@@ -126,28 +130,22 @@ def timestamp(date):
     return mktime(date.timetuple()) + date.microsecond / 1000000.0
 
 
-def to_unicode(data):
-    if isinstance(data, basestring):
-        encodings = ('ascii', 'utf8', 'latin1')
-        for enc in encodings:
-            try:
-                data = data.decode(enc)
-                break
-            except (UnicodeDecodeError, UnicodeEncodeError):
-                pass
+def bytes_to_utf8(data):
+    if isinstance(data, bytes):
+        data = data.decode("utf-8")
+        return data
+    elif isinstance(data, str):
         return data
     elif isinstance(data, collections.Mapping):
-        return dict(map(to_unicode, data.iteritems()))
+        return dict(list(map(bytes_to_utf8, list(data.items()))))
     elif isinstance(data, collections.Iterable):
-        return type(data)(map(to_unicode, data))
+        return type(data)(list(map(bytes_to_utf8, data)))
     else:
         return data
 
 
 def decode_utf8(utf8_str):
-    unquoted = urllib.unquote(utf8_str)
-    decoded = unquoted.decode("utf8", "replace")
-    return decoded
+    return urllib.parse.unquote(utf8_str)
 
 
 def save_to_file(fileobj, dst_path, chunk_size=2 ** 20):

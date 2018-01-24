@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,7 +91,7 @@ def active_probes():
     log.debug("cache_probelist: %s id: %x", cache_probelist,
               id(cache_probelist))
     now = time.time()
-    cache_time = cache_probelist.values()
+    cache_time = list(cache_probelist.values())
     if len(cache_time) != 0:
         cache_age = now - min(cache_time)
         log.debug("cache age: %s", cache_age)

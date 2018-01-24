@@ -38,7 +38,7 @@ class StoragePoolManager(ParametricSingleton):
     def depends_on(cls, *args, **kwargs):
         # singleton is based on the uri, extracted from the libvirt handler
         (handler,) = args[0]
-        if isinstance(handler, basestring):
+        if isinstance(handler, str):
             handler = ConnectionManager(handler)
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
@@ -99,7 +99,8 @@ class StoragePoolManager(ParametricSingleton):
         self._set_drv(connection)
         # prefetch list of handlers
         if prefetch:
-            map(lambda name: self._lookup(_lookupByName(name)), self.list())
+            list(map(lambda name: self._lookup(_lookupByName(name)),
+                     self.list()))
 
     # =======================
     #  context manager stuff
@@ -115,7 +116,7 @@ class StoragePoolManager(ParametricSingleton):
     # libvirt.virConnection from connection
     def _set_drv(self, connection):
         self._drv = connection
-        if isinstance(self._drv, basestring):
+        if isinstance(self._drv, str):
             self._drv = ConnectionManager(self._drv)
         if isinstance(self._drv, ConnectionManager):
             self._drv = self._drv.connection
@@ -140,7 +141,7 @@ class StoragePoolManager(ParametricSingleton):
         if not isinstance(cache, dict):
             raise ValueError("'cache' fields must be a dict")
         if where and entry:
-            for key, value in where.items():
+            for key, value in list(where.items()):
                 if key in cache:
                     cache[key][value] = entry
 
@@ -190,7 +191,7 @@ class StoragePoolManager(ParametricSingleton):
 
     def lookup(self, pool):
         handle = None
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             handle = self._lookupByName(pool)
             if not handle and UUID.validate(pool):
                 handle = self._lookupByUUID(pool)
@@ -239,7 +240,7 @@ class StoragePoolManager(ParametricSingleton):
             a label, a uuid, a virStoragePool.
         """
         result = (None, None)
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirt.virStoragePool):
@@ -257,7 +258,7 @@ class StoragePoolManager(ParametricSingleton):
 
         :param pool: either a label, uuid, a virStoragePool
         """
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         if isinstance(pool, libvirt.virStoragePool):
             try:
@@ -277,7 +278,7 @@ class StoragePoolManager(ParametricSingleton):
 
         :param pool: either a label, uuid, a virStoragePool
         """
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirt.virStoragePool):
@@ -292,7 +293,7 @@ class StoragePoolManager(ParametricSingleton):
                 raise StoragePoolManagerError(e)
 
     def delete(self, pool, flags=0):
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirt.virStoragePool):
@@ -312,7 +313,7 @@ class StoragePoolManager(ParametricSingleton):
         :param pools: either a label, uuid, a virStoragePool
         """
         result = None
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirt.virStoragePool):
@@ -332,7 +333,7 @@ class StoragePoolManager(ParametricSingleton):
 
     def active(self, pool):
         result = None
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirtError.virStoragePool):
@@ -345,7 +346,7 @@ class StoragePoolManager(ParametricSingleton):
 
     def persistent(self, pool):
         result = None
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirtError.virStoragePool):
@@ -357,7 +358,7 @@ class StoragePoolManager(ParametricSingleton):
         return result
 
     def refresh(self, pool, flags=0):
-        if isinstance(pool, basestring):
+        if isinstance(pool, str):
             pool = self._lookup_pool(pool)
         # TODO: in the future, handle storage pool objects
         if isinstance(pool, libvirtError.virStoragePool):
@@ -372,7 +373,7 @@ class StoragePoolManager(ParametricSingleton):
     def lookupByVolume(self, volume):
         from virt.core.storage_volume import StorageVolumeManager
         pool = None
-        if isinstance(volume, basestring):
+        if isinstance(volume, str):
             volman = StorageVolumeManager(self._drv, None)
             volume = volman.lookup(volume)
         if isinstance(volume, libvirt.virStorageVol):

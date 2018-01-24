@@ -1,0 +1,22 @@
+---
+
+- name: Kaspersky | Check installed version
+  command: "{{kaspersky_bin}} -S --app-info"
+  ignore_errors: yes
+  register: kaspersky_present
+
+- name: Kaspersky | Installation already done
+  debug:
+    msg: "Kaspersky is already installed. Skipping the installation part..."
+  when: kaspersky_present | success
+
+- name: Kaspersky | Installation can not proceed
+  debug:
+    msg: "Kaspersky won't be installed because you have not provided an archive name ('kaspersky_archive_name' variable)."
+  when: kaspersky_present | failed
+
+- include: install.yml
+  when: (kaspersky_present | failed)
+
+- include: configuration.yml
+  when: (kaspersky_present | failed)

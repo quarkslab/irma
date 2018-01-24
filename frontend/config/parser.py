@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2015 QuarksLab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ from lib.irma.common.exceptions import IrmaConfigurationError
 from lib.irma.configuration.ini import TemplatedConfiguration
 from lib.irma.ftp.sftp import IrmaSFTP
 from lib.irma.ftp.ftps import IrmaFTPS
+from lib.irma.common.utils import common_celery_options
 
 # ==========
 #  Template
@@ -57,6 +58,13 @@ template_frontend_config = {
     'celery_frontend': [
         ('timeout', TemplatedConfiguration.integer, 30),
     ],
+    'celery_options': [
+        ('concurrency', TemplatedConfiguration.integer, 0),
+        ('soft_time_limit', TemplatedConfiguration.integer, 300),
+        ('time_limit', TemplatedConfiguration.integer, 1500),
+        ('beat_schedule', TemplatedConfiguration.string,
+         "/var/irma/frontend_beat_schedule"),
+    ],
     'broker_brain': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 5672),
@@ -84,11 +92,17 @@ template_frontend_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
     ],
-    'cron_frontend': [
+    'cron_clean_file_age': [
         ('clean_db_file_max_age', TemplatedConfiguration.integer, 0),
         ('clean_db_cron_hour', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
         ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),
+    ],
+    'cron_clean_file_size': [
+        ('clean_fs_max_size', TemplatedConfiguration.string, '0'),
+        ('clean_fs_size_cron_hour', TemplatedConfiguration.string, '*'),
+        ('clean_fs_size_cron_minute', TemplatedConfiguration.string, '0'),
+        ('clean_fs_size_cron_day_of_week', TemplatedConfiguration.string, '*'),
     ],
     'interprocess_lock': [
         ('path', TemplatedConfiguration.string,
@@ -115,6 +129,21 @@ frontend_config = TemplatedConfiguration(cfg_file, template_frontend_config)
 # ===============
 #  Celery helper
 # ===============
+
+def get_celery_options(app, app_name):
+    concurrency = frontend_config.celery_options.concurrency
+    soft_time_limit = frontend_config.celery_options.soft_time_limit
+    time_limit = frontend_config.celery_options.time_limit
+    options = common_celery_options(app,
+                                    app_name,
+                                    concurrency,
+                                    soft_time_limit,
+                                    time_limit)
+    options.append("--beat")
+    beat_schedule = frontend_config.celery_options.beat_schedule
+    options.append("--schedule={}".format(beat_schedule))
+    return options
+
 
 def _conf_celery(app, broker, backend=None, queue=None):
     app.conf.update(
@@ -174,16 +203,27 @@ def conf_frontend_celery(app):
     queue = frontend_config.broker_frontend.queue
     _conf_celery(app, broker, queue=queue)
     # add celerybeat conf only for frontend app
-    cron_cfg = frontend_config['cron_frontend']
+    cron_age_cfg = frontend_config['cron_clean_file_age']
+    cron_size_cfg = frontend_config['cron_clean_file_size']
     app.conf.update(
         CELERYBEAT_SCHEDULE={
-            # Database clean
+            # File System clean according to file max age
             'clean_db': {
-                'task': 'frontend.tasks.clean_db',
+                'task': 'frontend_app.clean_db',
                 'schedule': crontab(
-                    hour=cron_cfg['clean_db_cron_hour'],
-                    minute=cron_cfg['clean_db_cron_minute'],
-                    day_of_week=cron_cfg['clean_db_cron_day_of_week']
+                    hour=cron_age_cfg['clean_db_cron_hour'],
+                    minute=cron_age_cfg['clean_db_cron_minute'],
+                    day_of_week=cron_age_cfg['clean_db_cron_day_of_week']
+                ),
+                'args': (),
+            },
+            # File System clean according to sum max size
+            'clean_fs_size': {
+                'task': 'frontend_app.clean_fs_size',
+                'schedule': crontab(
+                    hour=cron_size_cfg['clean_fs_size_cron_hour'],
+                    minute=cron_size_cfg['clean_fs_size_cron_minute'],
+                    day_of_week=cron_size_cfg['clean_fs_size_cron_day_of_week']
                 ),
                 'args': (),
             },

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +52,7 @@ class TestCommonUtils(unittest.TestCase):
     def test_uuid_generate(self):
         uuid = UUID.normalize("01234567-abcd-ef01-2345-deadbeaff00d")
         self.assertTrue(UUID.validate(uuid))
-        self.assertEquals(uuid, "01234567-abcd-ef01-2345-deadbeaff00d")
+        self.assertEqual(uuid, "01234567-abcd-ef01-2345-deadbeaff00d")
 
     def test_uuid_validate(self):
         self.assertFalse(UUID.validate("not a uuid"))

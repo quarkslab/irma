@@ -1,0 +1,14 @@
+---
+
+- name: Zoner | Setting update key
+  replace:
+    dest: "/etc/zav/zavd.conf"
+    regexp: '^UPDATE_KEY([\s]+)=(.*)$'
+    replace: 'UPDATE_KEY\1= "{{ zoner_license_key }}"'
+  become: yes
+  notify:
+    - Zoner | Restart daemon
+
+- name: Zoner | Download latest definition files
+  command: /opt/zav/bin/zavd --update
+  become: yes

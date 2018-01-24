@@ -1,5 +1,17 @@
 ---
 
+- name: Dr Web | Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - libfontconfig1
+    - libxrender1
+    - libglib2.0-0
+    - libxi6
+    - xauth
+  become: yes
+
 - name: Dr Web | Create temporary work dir
   file:
     path: "{{ drweb_temp_dir }}/"
@@ -13,13 +25,13 @@
 
 - name: Dr Web | Adding Repository
   apt_repository:
-    repo: deb http://repo.drweb.com/drweb/debian 10.0.0 non-free
+    repo: deb http://repo.drweb.com/drweb/debian 11.0 non-free
     state: present
   become: yes
 
 - name: Dr Web | Installing from repository
   apt:
-    name: drweb-workstations
+    name: drweb-file-servers
     update_cache: yes
   become: yes
 

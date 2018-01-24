@@ -1,0 +1,5 @@
+---
+
+## Update
+- name: Install a2cmd signatures
+  win_command: "\"{{ remote_programfiles }}/{{ emsisoft_win_install_path }}/a2cmd.exe\" /u"

@@ -1,0 +1,11 @@
+---
+
+- name: Determine remote_tmp variable
+  raw: CMD /C echo '%TEMP%'
+  register: echo_temp
+
+- set_fact:
+    remote_tmp: '{{ echo_temp.stdout_lines[0] | regex_replace("\\\\", "/") }}'
+
+- set_fact:
+    remote_install_script: '{{ remote_tmp }}/mcafee-installer.py'

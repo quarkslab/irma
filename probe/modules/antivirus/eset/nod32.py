@@ -39,8 +39,8 @@ class EsetNod32(Antivirus):
             "--no-log-all"        # do not log clean files
         )
         self._scan_patterns = [
-            re.compile(r'name="(?P<file>.*)", threat="(?P<name>.*)", '
-                       r'action=.*', re.IGNORECASE | re.MULTILINE)
+            re.compile(b'name="(?P<file>.*)", threat="(?P<name>.*)", '
+                       b'action=.*', re.IGNORECASE | re.MULTILINE)
         ]
 
     # ==========================================
@@ -54,7 +54,7 @@ class EsetNod32(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:

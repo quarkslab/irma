@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -43,7 +43,7 @@ class ASquaredCmdWin(Antivirus):
         )
         # scan tool variables
         self._scan_patterns = [
-            re.compile(r'\\\s+(?P<file>.*)\s+detected:\s+(?P<name>.*[^\s]+)')
+            re.compile(b'\s+(?P<file>.*)\s+detected:\s+(?P<name>.*[^\s]+)')
         ]
 
     # ==========================================
@@ -57,7 +57,7 @@ class ASquaredCmdWin(Antivirus):
             cmd = self.scan_cmd(self.scan_path)
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout, re.IGNORECASE)
                 if matches:
                     result = matches.group('version').strip()
@@ -68,18 +68,20 @@ class ASquaredCmdWin(Antivirus):
         # TODO: make locate() to be reccursive, and to extend selected folders
         pf_path = [os.environ.get('PROGRAMFILES', ''),
                    os.environ.get('PROGRAMFILES(X86)', '')]
-        search_paths = map(lambda (x, y):
-                           "{path}/Emsisoft/a2cmd/Signatures/{folder}"
-                           "".format(path=x, folder=y),
-                           ((x, y) for x in pf_path for y in ['', 'BD']))
+        folder_list = ['', 'BD']
+        search_paths = list()
+        path_fmt = "{path}/Emsisoft/a2cmd/Signatures/{folder}"
+        for path in pf_path:
+            for folder in folder_list:
+                search_paths.append(path_fmt.format(path=path, folder=folder))
         results = self.locate('*', search_paths, syspath=False)
         return results if results else None
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
         scan_bin = "a2cmd.exe"
-        scan_paths = map(lambda x: "{path}/Emsisoft/a2cmd/".format(path=x),
-                         [os.environ.get('PROGRAMFILES', ''),
-                          os.environ.get('PROGRAMFILES(X86)', '')])
+        pf_path = [os.environ.get('PROGRAMFILES', ''),
+                   os.environ.get('PROGRAMFILES(X86)', '')]
+        scan_paths = ["{path}/Emsisoft/a2cmd/".format(path=x) for x in pf_path]
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None

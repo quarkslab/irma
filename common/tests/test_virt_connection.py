@@ -60,7 +60,7 @@ class CheckConnectionManager(unittest.TestCase):
     def test_version(self):
         with ConnectionManager(self.uri) as cm:
             self.assertIsNotNone(cm.version)
-            self.assertEquals(len(cm.version), 3)
+            self.assertEqual(len(cm.version), 3)
             self.assertIsInstance(cm.version, tuple)
 
     def test_create_uri(self):
@@ -70,7 +70,7 @@ class CheckConnectionManager(unittest.TestCase):
 
     def test_uri(self):
         with ConnectionManager(self.uri) as cm:
-            self.assertEquals(cm.uri, self.uri)
+            self.assertEqual(cm.uri, self.uri)
 
     def test_connection(self):
         with ConnectionManager(self.uri) as cm:

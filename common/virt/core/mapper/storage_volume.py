@@ -97,7 +97,7 @@ class StorageVolume:
 
     # name
     def _set_name(self, value):
-        if not isinstance(value, basestring):
+        if not isinstance(value, str):
             reason = "'value' field '{0}' is not valid".format(value)
             raise StorageVolumeError(reason)
         self._name = value
@@ -108,7 +108,7 @@ class StorageVolume:
 
     # key
     def _set_key(self, value):
-        if value and not isinstance(value, basestring):
+        if value and not isinstance(value, str):
             reason = "'value' field '{0}' is not valid".format(value)
             raise StorageVolumeError(reason)
         self._key = value
@@ -121,7 +121,7 @@ class StorageVolume:
     def _set_capacity(self, value):
         # parsing and saving a variables
         size, unit = None, None
-        if isinstance(value, (basestring, int)):
+        if isinstance(value, (str, int)):
             size = int(value)
         elif isinstance(value, dict):
             size = int(value['#text'])
@@ -150,7 +150,7 @@ class StorageVolume:
     def _set_allocation(self, value):
         # parsing and saving a variables
         size, unit = None, None
-        if isinstance(value, (basestring, int)):
+        if isinstance(value, (str, int)):
             size = int(value)
         elif isinstance(value, dict):
             size = int(value['#text'])
@@ -181,7 +181,7 @@ class StorageVolume:
         # initialization
         path, type, permissions, encryption = None, None, None, None
         # parsing
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             path = value
         elif isinstance(value, dict):
             path = value['path']
@@ -194,7 +194,7 @@ class StorageVolume:
             raise StorageVolumeError(reason)
 
         # saving values into variables
-        if not isinstance(path, basestring):
+        if not isinstance(path, str):
             reason = "'path' field '{0}' is not valid".format(path)
             raise StorageVolumeError(reason)
         if type is not None and type not in sum(
@@ -249,7 +249,7 @@ class StorageVolume:
             self._source = None
         # parsing
         path = None
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             path = value
         elif isinstance(value, dict):
             path = value['path']
@@ -271,7 +271,7 @@ class StorageVolume:
             self._backingstore = None
         # parsing
         path, type, permissions = None, None, None
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             path = value
         elif isinstance(value, dict):
             path = value['path']
@@ -283,7 +283,7 @@ class StorageVolume:
             reason = "'value' field '{0}' is not valid".format(value)
             raise StorageVolumeError(reason)
         # saving to variables
-        if not isinstance(path, basestring):
+        if not isinstance(path, str):
             reason = "'path' field '{0}' is not valid".format(path)
             raise StorageVolumeError(reason)
         if type is not None and type not in sum(

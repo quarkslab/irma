@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,9 +71,9 @@ class TrID(object):
             # iterate through lines
             for line in stdout.splitlines()[4:]:
                 # find info with pattern matching
-                match = re.match(r'\s*(?P<ratio>\d*[.]\d*)[%]\s+'  # percentage
-                                 r'[(](?P<ext>[.]\w*)[)]\s+'  # extension
-                                 r'(?P<desc>.*)$',  # remaining string
+                match = re.match(b'\s*(?P<ratio>\d*[.]\d*)[%]\s+'  # percentage
+                                 b'[(](?P<ext>[.]\w*)[)]\s+'  # extension
+                                 b'(?P<desc>.*)$',  # remaining string
                                  line)
                 # create entries to be appended to results
                 if match:

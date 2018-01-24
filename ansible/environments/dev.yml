@@ -3,7 +3,7 @@
 
 servers:
   - name: frontend.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
     hostname: frontend.irma
     cpus: 2
@@ -11,7 +11,7 @@ servers:
     memory: 2048
     shares:
       - share_from: ../frontend
-        share_to: /opt/irma/irma-frontend/current
+        share_to: /opt/irma/irma-frontend/releases/sync
         share_exclude:
           - .git/
           - venv/
@@ -19,7 +19,7 @@ servers:
           - web/node_modules
           - app/components
   - name: brain.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.31
     hostname: brain.irma
     cpus: 2
@@ -27,13 +27,13 @@ servers:
     memory: 2048
     shares:
       - share_from: ../brain
-        share_to: /opt/irma/irma-brain/current
+        share_to: /opt/irma/irma-brain/releases/sync
         share_exclude:
           - .git/
           - venv/
           - db/
   - name: avs-linux.irma
-    box: quarkslab/debian-8.6.0-amd64
+    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.32
     hostname: avs-linux.irma
     cpus: 2
@@ -41,7 +41,7 @@ servers:
     memory: 2048
     shares:
       - share_from: ../probe
-        share_to: /opt/irma/irma-probe/current
+        share_to: /opt/irma/irma-probe/releases/sync
         share_exclude:
           - .git/
           - venv/
@@ -76,45 +76,27 @@ libvirt_config:
 ansible_config:
   extra_vars:
     vagrant: true
-    vagrant_share: true
     irma_environment: development
   groups:
-    frontend:
-      - frontend.irma
-    brain:
-      - brain.irma
-    clamav:
-      - avs-linux.irma
-    comodo:
-      - avs-linux.irma
-    mcafee:
-      - avs-linux.irma
-    static-analyzer:
-      - avs-linux.irma
-    virustotal:
-      - avs-linux.irma
-    avg:
-      - avs-linux.irma
-    bitdefender:
-      - avs-linux.irma
-    escan:
-      - avs-linux.irma
-    virusblokada:
-      - avs-linux.irma
-    zoner:
-      - avs-linux.irma
-    drweb:
-      - avs-linux.irma
-    avast:
-      - avs-linux.irma
-    fsecure:
-      - avs-linux.irma
-    trid:
-      - avs-linux.irma
-    sophos:
-      - avs-linux.irma
-    windows-probe:
-      - probe-win.irma
+    frontend: frontend.irma
+    sql-server: frontend.irma
+    brain: brain.irma
+    clamav: avs-linux.irma
+    comodo: avs-linux.irma
+    mcafee: avs-linux.irma
+    static-analyzer: avs-linux.irma
+    virustotal: avs-linux.irma
+    avg: avs-linux.irma
+    bitdefender: avs-linux.irma
+    escan: avs-linux.irma
+    virusblokada: avs-linux.irma
+    zoner: avs-linux.irma
+    drweb: avs-linux.irma
+    avast: avs-linux.irma
+    fsecure: avs-linux.irma
+    trid: avs-linux.irma
+    sophos: avs-linux.irma
+    # windows-probe: probe-win.irma
     "probe:children":
       - clamav
       - comodo
@@ -131,6 +113,6 @@ ansible_config:
       - fsecure
       - trid
       - sophos
-      - windows-probe
-    "windows:children":
-      - windows-probe
+    # - windows-probe
+    # "windows:children":
+    #   - windows-probe

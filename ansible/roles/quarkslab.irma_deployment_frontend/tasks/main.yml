@@ -1,37 +1,26 @@
 ---
 
 - set_fact:
-    frontend_deployment_dir: "{{ frontend_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
+    frontend_deployment_dir: "{{ frontend_project_dir }}/releases/{{ irma_deployment_release_name }}"
 
 - name: Ensure that deployment directory has been created
   file:
     path: "{{ frontend_deployment_dir }}"
     state: directory
-  when: irma_deployment_code_version != 'local'
 
-- name: Check if frontend src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/frontend.zip"
-  register: frontend_src_archive
-  ignore_errors: True
-
-- name: Gather frontend src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../frontend" && git archive -o "{{ playbook_dir }}/files/frontend.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not frontend_src_archive.stat.exists
-
-- name: Deploy frontend src archive
-  unarchive:
-    src: files/frontend.zip
-    dest: "{{ frontend_deployment_dir }}"
+- name: Check if frontend src archive is present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_frontend_archive }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Check if common src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/common.zip"
-  register: common_src_archive
-  ignore_errors: True
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
+  when: irma_deployment_code_version != 'local'
 
-- name: Gather common src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/common.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not common_src_archive.stat.exists
+- name: Deploy frontend src archive
+  unarchive:
+    src: "files/{{ irma_frontend_archive }}"
+    dest: "{{ frontend_deployment_dir }}"
+  when: irma_deployment_code_version != 'local'
 
 - name: Remove common symlink
   file:
@@ -47,7 +36,7 @@
 
 - name: Deploy frontend-common src archive
   unarchive:
-    src: files/common.zip
+    src: "files/{{ irma_common_archive }}"
     dest: "{{ frontend_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 
@@ -57,51 +46,6 @@
     virtualenv: "{{ frontend_deployment_dir }}/venv"
     virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }}"
-
-- name: Check if NPM files exists
-  stat:
-    path: "{{frontend_install_dir}}/web/node_modules"
-  register: npm_dir_stat
-
-- name: Copy previous NPM files
-  # Ansible issue: «Currently remote_src does not support recursive copying.»
-  # copy:
-  #   src: "{{frontend_install_dir}}/web/node_modules"
-  #   dest: "{{frontend_deployment_dir}}/frontend/web/node_modules"
-  #   remote_src: yes
-  shell: "cp -rf {{frontend_install_dir}}/web/node_modules {{frontend_deployment_dir}}/frontend/web"
-  when: "{{ npm_dir_stat.stat.exists and irma_deployment_code_version != 'local'}}"
-
-- name: Install NPM dependencies
-  npm:
-    path: "{{ frontend_deployment_dir }}/web"
-    production: "{{ irma_environment == 'production' }}"
-    ignore_scripts: yes
-    state: latest
-
-- name: Check if Bower files exists
-  stat:
-    path: "{{frontend_install_dir}}/web/app/components"
-  register: bower_dir_stat
-
-- name: Copy previous Bower files
-  # Ansible issue: «Currently remote_src does not support recursive copying.»
-  # copy:
-  #   src: "{{frontend_install_dir}}/web/app/components"
-  #   dest: "{{frontend_deployment_dir}}/web/app/components"
-  #   remote_src: yes
-  shell: "cp -rf {{frontend_install_dir}}/web/app/components {{frontend_deployment_dir}}/web/app"
-  when: "{{ bower_dir_stat.stat.exists and irma_deployment_code_version != 'local'}}"
-
-- name: Install Bower dependencies
-  command: node_modules/.bin/bower install --config.interactive=false
-  args:
-    chdir: "{{ frontend_deployment_dir }}/web"
-
-- name: Generate Web Frontend
-  command: node_modules/.bin/gulp dist
-  args:
-    chdir: "{{ frontend_deployment_dir }}/web"
 
 - name: Configure config/frontend.ini file
   ini_file:
@@ -116,7 +60,6 @@
     src: "{{ frontend_deployment_dir }}"
     dest: "{{ frontend_install_dir }}"
     state: link
-  when: "{{ irma_deployment_code_version != 'local'}}"
 
 - name: Restart Supervisor services
   supervisorctl:
@@ -125,10 +68,13 @@
   become: yes
   with_items: "{{ supervisor_programs_frontend }}"
 
-- name: Restart Init.d services
-  service:
-    name: "{{ item }}"
-    state: restarted
-  become: yes
-  with_items:
-    - nginx
+- name: Initialize Database
+  shell : "{{ frontend_deployment_dir }}/venv/bin/alembic upgrade head"
+  args:
+    chdir: "{{ frontend_deployment_dir }}"
+
+- include: webui_build.yml
+  when: irma_environment != 'production'
+
+- include: webui_dist.yml
+  when: irma_environment == 'production'

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,20 +17,13 @@ import celery
 import config.parser as config
 from brain.helpers.celerytasks import async_call
 
-frontend_app = celery.Celery('frontendtasks')
+frontend_app = celery.Celery('frontend_app')
 config.conf_frontend_celery(frontend_app)
 config.configure_syslog(frontend_app)
 
 
-def scan_launched(frontend_scanid, scan_request):
+def scan_result(file, probe, result):
     async_call(frontend_app,
-               "frontend.tasks",
-               "scan_launched",
-               args=[frontend_scanid, scan_request])
-
-
-def scan_result(frontend_scanid, filename, probe, result):
-    async_call(frontend_app,
-               "frontend.tasks",
+               "frontend_app",
                "scan_result",
-               args=[frontend_scanid, filename, probe, result])
+               args=[file, probe, result])

@@ -1,0 +1,8 @@
+---
+
+- name: ComodoCAVL | Download Update
+  get_url:
+    url: "{{ comodo_cavl_update_url }}"
+    dest: "/opt/COMODO/scanners"
+    validate_certs: yes
+    backup: yes

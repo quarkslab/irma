@@ -6,18 +6,17 @@
     state: directory
   when: irma_deployment_code_version != 'local'
 
-- name: Check if probe src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/probe.zip"
-  register: probe_src_archive
-  ignore_errors: True
+- name: Check if probe src archive is present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_probe_archive }}"
+  when: irma_deployment_code_version != 'local'
 
-- name: Gather probe src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../probe" && git archive -o "{{ playbook_dir }}/files/probe.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not probe_src_archive.stat.exists
+- name: Check if common src archive is present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
+  when: irma_deployment_code_version != 'local'
 
 - name: Upload probe src archive
   win_copy:
-    src: files/probe.zip
+    src: "files/{{ irma_probe_archive }}"
     dest: "{{ probe_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
@@ -28,18 +27,9 @@
 
 - name: Unzip probe src archive
   win_unzip:
-    src: "{{ probe_dest_dir }}\\probe.zip"
+    src: "{{ probe_dest_dir }}\\{{ irma_probe_archive }}"
     dest: "{{ probe_dest_dir }}"
   when: irma_deployment_code_version != 'local'
-
-- name: Check if common src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/common.zip"
-  register: common_src_archive
-  ignore_errors: True
-
-- name: Gather common src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/common.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not common_src_archive.stat.exists
 
 - name: Remove common symlink
   win_file:
@@ -47,15 +37,15 @@
     state: absent
   when: irma_deployment_code_version != 'local'
 
-- name: Upload common src archive
+- name: Upload Probe common src archive
   win_copy:
-    src: files/common.zip
+    src: "files/{{ irma_common_archive }}"
     dest: "{{ probe_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
-- name: Unzip common src archive
+- name: Unzip Probe common src archive
   win_unzip:
-    src: "{{ probe_dest_dir }}\\common.zip"
+    src: "{{ probe_dest_dir }}\\{{ irma_common_archive }}"
     dest: "{{ probe_dest_dir }}\\lib"
   when: irma_deployment_code_version != 'local'
 
@@ -65,7 +55,7 @@
   failed_when: result.rc not in {{ item.rc | default([0]) }}
   with_items:
     - cmd: python -m virtualenv --system-site-packages "{{ probe_deployment_dir }}/venv"
-    - cmd: "{{ probe_deployment_dir }}/venv/Scripts/python.exe -m pip install -r {{ probe_deployment_dir }}/requirements.txt"
+    - cmd: "{{ probe_deployment_dir }}/venv/Scripts/python.exe -m pip install -r {{ probe_deployment_dir }}/requirements.txt {{ pip_extra_args | default('') }}"
 
 - name: Configure config/probe.ini file
   win_ini_file:
@@ -84,6 +74,5 @@
       rc: [0, 1, 2]
     - cmd: mklink /d "{{ probe_install_dir }}" "{{ probe_deployment_dir }}"
       rc: [0, 2]
-  when: irma_deployment_code_version != 'local'
 
 - include: startup.yml

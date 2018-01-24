@@ -1,0 +1,7 @@
+---
+
+- name: Deploy webui archive
+  unarchive:
+    src: "{{ core_webui_archive }}"
+    dest: "{{ frontend_deployment_dir }}/web/"
+

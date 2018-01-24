@@ -13,7 +13,7 @@ Install it with the following dependencies:
 
 .. code-block:: bash
 
-    $ sudo apt-get install postgresql-9.4 python-psycopg2
+    $ sudo apt-get install postgresql-9.4 python3-psycopg2
     [...]
 
 You need to manually create the configured database and db user, the tables are automatically

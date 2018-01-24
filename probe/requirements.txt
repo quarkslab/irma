@@ -1,4 +1,4 @@
 celery<3.2
 python-magic
-paramiko<2.0
+paramiko>2.0
 threadpool

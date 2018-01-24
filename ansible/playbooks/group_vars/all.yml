@@ -11,11 +11,10 @@ default_use_debian_repo: no # If yes, use only Debian official repo for provisio
 default_user: deploy
 default_group: deploy
 
-default_celery_options: "--loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=300 --time-limit=1500"
-
 users:
   - username: "{{ default_user }}"
     name: "{{ default_user }}"
+    group: "{{ irma_server_group }}"
     groups: ["{{ irma_server_group }}", 'sudo']
     uid: 1010
     ssh_key: "{{ default_ssh_keys }}"
@@ -25,7 +24,25 @@ sudo_users:
 
 
 ## IRMA specific infrastructure
-irma_environment: production # Can be (development, test)
+irma_environment: production # Can be (development, test, production)
+# irma_release: # in production mode specify the git version to be used
+
+# Deployment
+
+# In development environment code should be synced from localhost either with vagrant or manually
+# Code should be present during ansible deployment
+irma_deployment_code_version: "{{ 'local' if irma_environment=='development' else irma_release|default('HEAD') }}"
+irma_deployment_release_name: "{{ 'sync' if irma_environment=='development' else lookup('pipe', 'date +%Y%m%d%H%M%S' )}}"
+
+# In production mode, code is archived through packaging playbook in playbooks/files folder
+# You could disable archive automatic generation:
+irma_code_archive_generation: True
+
+# Archives are named as follow:
+irma_common_archive: "common-{{ irma_deployment_code_version }}.zip"
+irma_frontend_archive: "frontend-{{ irma_deployment_code_version }}.zip"
+irma_brain_archive: "brain-{{ irma_deployment_code_version }}.zip"
+irma_probe_archive: "probe-{{ irma_deployment_code_version }}.zip"
 
 irma_user: irma
 irma_group: irma
@@ -35,6 +52,12 @@ irma_cert_group: irma-cert
 irma_configurations:
   brain_addr: brain.irma
   rabbitmq:
+    admin:
+      vhost: /
+      user: admin
+      password: admin
+      tags:
+        - administrator
     brain:
       vhost: mqbrain
       user: brain
@@ -59,13 +82,11 @@ irma_configurations:
       username: irma
       password: irma
       db_name: irma-frontend
-  cron_frontend:
+      host: "{{ 'sqlserver.irma' if 'sql-server' not in group_names|default([]) else 'localhost' }}"
+  cron_clean_file_age:
     clean_db_file_max_age: 0
-
-
-# Deployment
-irma_deployment_code_version: "{{ 'local' if vagrant_share|default(false) else irma_release|default('HEAD') }}"
-irma_deployment_release_name: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+  cron_clean_file_size:
+    clean_fs_max_size: 0
 
 ## UFW
 ufw_login: on
@@ -81,3 +102,6 @@ sshd:
   PermitRootLogin: no
   Protocol: 2
   X11Forwarding: no
+  MaxSessions: 1000000
+  MaxStartups: 1000000
+

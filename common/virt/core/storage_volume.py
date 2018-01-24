@@ -44,13 +44,13 @@ class StorageVolumeManager(ParametricSingleton):
         # extracted from the libvirt handler
         (conn_handler, pool_handler) = args[0]
         # get libvirt.virConnect instance from conn_handler
-        if isinstance(conn_handler, basestring):
+        if isinstance(conn_handler, str):
             conn_handler = ConnectionManager(conn_handler)
         if isinstance(conn_handler, ConnectionManager):
             conn_handler = conn_handler.connection
         # TODO: in the future, also handle StoragePool objects
         # get libvirt.virStoragePool instance from pool_handler
-        if isinstance(pool_handler, basestring):
+        if isinstance(pool_handler, str):
             manager = StoragePoolManager(conn_handler)
             pool_handler = manager.lookup(pool_handler)
         # get attribute and add to singleton
@@ -134,14 +134,14 @@ connection is required. Set to ``False`` by default
         # get libvirt.virStoragePool from virStoragePool
         # TODO: in the future, also handle StoragePool objects
         self._set_pool(pool)
-        if isinstance(self._pool, basestring):
+        if isinstance(self._pool, str):
             manager = StoragePoolManager(conn_handler)
             self._pool = manager.lookup(self._pool)
         # prefetch list of handlers
         if self._pool and prefetch:
             # extra flags; not used yet, so callers should always pass 0
             self._pool.refresh(flags=0)
-            map(lambda name: self._lookupByName(name), self.list())
+            list(map(lambda name: self._lookupByName(name), self.list()))
 
     # =======================
     #  context manager stuff
@@ -157,14 +157,14 @@ connection is required. Set to ``False`` by default
     # TODO: update when new cache pattern will be implemented
     def _cache_handle(self, cache, entry, where):
         if where and entry:
-            for key, value in where.items():
+            for key, value in list(where.items()):
                 if key in cache:
                     cache[key][value] = entry
 
     # libvirt.virConnection from connection
     def _set_drv(self, connection):
         self._drv = connection
-        if isinstance(self._drv, basestring):
+        if isinstance(self._drv, str):
             self._drv = ConnectionManager(self._drv)
         if isinstance(self._drv, ConnectionManager):
             self._drv = self._drv.connection
@@ -172,7 +172,7 @@ connection is required. Set to ``False`` by default
     # libvirt.virStoragePool from virStoragePool
     def _set_pool(self, pool):
         self._pool = pool
-        if isinstance(self._pool, basestring):
+        if isinstance(self._pool, str):
             manager = StoragePoolManager(self._drv)
             self._pool = manager.lookup(self._pool)
 
@@ -272,7 +272,7 @@ connection is required. Set to ``False`` by default
         if self._pool:
             self._pool.refresh(flags=0)
         # perform lookup first by name, then by key and finally by path
-        if isinstance(volume, basestring):
+        if isinstance(volume, str):
             handle = self._lookupByName(volume)
             if not handle:
                 handle = self._lookupByKey(volume)
@@ -310,7 +310,7 @@ connection is required. Set to ``False`` by default
         return tuple(labels)
 
     def info(self, volume):
-        if isinstance(volume, basestring):
+        if isinstance(volume, str):
             volume = self._lookup_volume(volume)
         try:
             # extra flags; not used yet, so callers should always pass 0
@@ -465,7 +465,7 @@ connection is required. Set to ``False`` by default
 
         def _download_worker(volume, filename, offset, length, flags, status):
             try:
-                if isinstance(filename, basestring):
+                if isinstance(filename, str):
                     if os.path.exists(filename):
                         e = "file {0} already exists".format(filename)
                         log.error(e)
@@ -491,7 +491,7 @@ connection is required. Set to ``False`` by default
         # TODO: enable more formats ?
         if isinstance(volume, StorageVolume):
             volume = self._lookup_volume(volume.name)
-        elif isinstance(volume, basestring):
+        elif isinstance(volume, str):
             volume = self._lookup_volume(volume)
         # determining byte count to download
         bytecount = length
@@ -530,7 +530,7 @@ connection is required. Set to ``False`` by default
 
         def _upload_worker(volume, filename, offset, length, flags, status):
             try:
-                if isinstance(filename, basestring):
+                if isinstance(filename, str):
                     if not os.path.isfile(filename):
                         e = "{0} is not a file".format(filename)
                         log.error(e)

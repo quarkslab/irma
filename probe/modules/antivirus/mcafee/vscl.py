@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,18 +47,18 @@ class McAfeeVSCL(Antivirus):
         )
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x not in [0]
         self._scan_patterns = [
-            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
-                       r'Found the (?P<name>[^!]+)!(.+)\!{1,3}$',
+            re.compile(b'(?P<file>[^\s]+) \.\.\. ' +
+                       b'Found the (?P<name>[^!]+)!(.+)!{1,3}$',
                        re.IGNORECASE),
-            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
-                       r'Found the (?P<name>[^!]+) [a-z]+ \!{1,3}$',
+            re.compile(b'(?P<file>[^\s]+) \.\.\. ' +
+                       b'Found the (?P<name>[^!]+) [a-z]+ !{1,3}$',
                        re.IGNORECASE),
-            re.compile(r'(?P<file>[^\s]+) \.\.\. ' +
-                       r'Found [a-z]+ or variant (?P<name>[^!]+) \!{1,3}$',
+            re.compile(b'(?P<file>[^\s]+) \.\.\. ' +
+                       b'Found [a-z]+ or variant (?P<name>[^!]+) !{1,3}$',
                        re.IGNORECASE),
-            re.compile(r'(?P<file>.*(?=\s+\.\.\.\s+Found:\s+))'
-                       r'\s+\.\.\.\s+Found:\s+'
-                       r'(?P<name>.*(?=\s+NOT\s+a\s+virus\.))',
+            re.compile(b'(?P<file>.*(?=\s+\.\.\.\s+Found:\s+))'
+                       b'\s+\.\.\.\s+Found:\s+'
+                       b'(?P<name>.*(?=\s+NOT\s+a\s+virus\.))',
                        re.IGNORECASE),
         ]
 
@@ -73,7 +73,7 @@ class McAfeeVSCL(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:
@@ -103,3 +103,18 @@ class McAfeeVSCL(Antivirus):
         scan_paths = os.path.normpath("/usr/local/uvscan/")
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None
+
+    def get_virus_database_version(self):
+        """Return the Virus Database version"""
+
+        cmd = self.build_cmd(self.scan_path, '--version')
+        retcode, stdout, stderr = self.run_cmd(cmd)
+        if retcode:
+            raise RuntimeError(
+                "Bad return code while getting database version")
+        matches = re.search(b'AV Engine version: (?P<version>[0-9]*\.[0-9]*)',
+                            stdout,
+                            re.IGNORECASE)
+        if not matches:
+            raise RuntimeError("Cannot read database version in stdout")
+        return matches.group('version').strip()

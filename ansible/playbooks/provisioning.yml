@@ -14,13 +14,20 @@
     - { role: willshersystems.sshd, tags: openssh }
 
 
-- name: Frontend provisioning
-  hosts: [frontend, frontend-demo]
+- name: SQL server provisioning
+  hosts: sql-server
   become: yes
   roles:
-    - { role: quarkslab.nodejs, tags: nodejs }
-    - { role: gdamjan.uwsgi, tags: uwsgi }
     - { role: ANXS.postgresql, tags: postgresql }
+    - { role: quarkslab.ufw_additional, tags: ufw, ufw_additional_rules: "{{ sql_server_ufw_additional_rules }}", when: irma_standalone_sql_server }
+    - { role: quarkslab.irma_provisioning_sql_server, tags: sql-server }
+
+
+- name: Frontend provisioning
+  hosts: frontend
+  become: yes
+  roles:
+    - { role: quarkslab.nodejs, tags: nodejs, when: irma_environment != 'production' }
     - { role: quarkslab.supervisor, tags: supervisor, supervisor_programs: "{{ supervisor_programs_frontend }}" }
     - { role: quarkslab.irma_provisioning_frontend, tags: frontend }
     - { role: jdauphant.nginx, tags: nginx }
@@ -46,6 +53,7 @@
     - { role: quarkslab.supervisor, become: yes, tags: supervisor, supervisor_programs: "{{ supervisor_programs_probe }}", when: "ansible_distribution in ['Debian', 'Ubuntu']"}
 
 # Antivirus section
+# Default role with just install AV / update is done in playbook updating.yml
 - name: ClamAV provisioning
   hosts: clamav
   become: yes
@@ -75,13 +83,13 @@
   hosts: mcafee
   become: yes
   roles:
-    - { role: quarkslab.mcafee_vscl, tags: mcafee_vscl }
+    - { role: quarkslab.mcafee_vscl, tags: mcafee }
 
 - name: McAfee VSCL provisioning (Windows)
   hosts: mcafee-win
   become: no
   roles:
-    - { role: quarkslab.mcafee_vscl_windows, tags: mcafee_vscl_windows }
+    - { role: quarkslab.mcafee_vscl_windows, tags: mcafee-win }
 
 - name: StaticAnalyzer provisioning
   hosts: static-analyzer
@@ -146,10 +154,15 @@
   roles:
     - { role: quarkslab.peid, tags: peid }
 
+- name: Kaspersky provisioning
+  hosts: kaspersky
+  roles:
+    - { role: quarkslab.kaspersky, tags: kaspersky }
+
 - name: Emsisoft a2cmd provisioning
   hosts: emsisoft-win
   roles:
-    - { role: quarkslab.emsisoft_a2cmd_windows, tags: emsisoft }
+    - { role: quarkslab.emsisoft_a2cmd_windows, tags: emsisoft-win }
 
 - name: Unarchiver provisioning
   hosts: unarchiver

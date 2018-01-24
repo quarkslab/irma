@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,10 +38,6 @@ class DrWebPlugin(PluginBase, DrWeb, AntivirusPluginInterface):
         BinaryDependency(
             'drweb-ctl',
             help='drweb-ctl executable is provided by Dr Web antivirus'
-        ),
-        FileDependency(
-            '/etc/opt/drweb.com/drweb32.key',
-            help='Missing drweb32.key licence key file'
         )
     ]
 

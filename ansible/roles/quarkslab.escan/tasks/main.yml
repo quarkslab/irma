@@ -7,7 +7,3 @@
 
 - include: install.yml
   when: escan_present | failed
-
-- name: eScan | Download latest definition files
-  command: escan -xs --update
-  become: yes

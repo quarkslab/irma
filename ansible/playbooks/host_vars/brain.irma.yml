@@ -81,6 +81,14 @@
 # Check the psb server number on your license ([1-4])
 # fsecure_psb_server: http://psb1-bw.sp.f-secure.com/
 
+# Virusblokada installer url
+# virusblokada_tgz_url:
+
+# Sophos
+# sophos_archive_url:
+# sophos_update_username:
+# sophos_update_password:
+
 ###########################
 #
 # Windows Antivirus Params

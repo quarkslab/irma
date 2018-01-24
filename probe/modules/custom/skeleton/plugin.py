@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ class SkeletonPlugin(PluginBase):
     #  plugin metadata
     # =================
     _plugin_name_ = "Skeleton"
-    _plugin_display_name = "Skeleton Display Name"
+    _plugin_display_name_ = "Skeleton Display Name"
     _plugin_author_ = "<author name>"
     _plugin_version_ = "<version>"
     _plugin_category_ = "custom"

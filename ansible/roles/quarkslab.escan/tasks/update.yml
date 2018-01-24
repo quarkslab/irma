@@ -1,0 +1,23 @@
+---
+
+- name: eScan | Download latest definition files
+  command: escan -xs --update
+  become: yes
+
+- name: eScan | Manually masking realtime scanner
+  become: yes
+  file:
+    state: link
+    src: /dev/null
+    dest: /etc/systemd/system/rtscanner.service
+    force: true
+    owner: root
+    group: root
+
+- name: eScan | Disable realtime scanner
+  become: yes
+  systemd:
+    name: rtscanner
+    state: stopped
+    enabled: no
+    masked: yes

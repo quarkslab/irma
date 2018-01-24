@@ -83,7 +83,7 @@ class CheckDomainManager(unittest.TestCase):
             self.assertIsInstance(dm, DomainManager)
             machines = dm.list()
             self.assertIsInstance(machines, tuple)
-            self.assertEquals(len(machines), 2)
+            self.assertEqual(len(machines), 2)
             self.assertTrue('fv0' in machines)
             self.assertTrue('fc4' in machines)
 

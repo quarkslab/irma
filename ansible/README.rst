@@ -129,7 +129,6 @@ Some of roles from `Ansible Galaxy <https://galaxy.ansible.com/>`_ used here:
 - UFW role from `weareinteractive/ansible-ufw <https://github.com/weareinteractive/ansible-ufw>`_
 - Sudo role from `weareinteractive/ansible-sudo <https://github.com/weareinteractive/ansible-sudo>`_
 - Users role from `mivok/ansible-users <https://github.com/mivok/ansible-users>`_
-- uWSGI role from `gdamjan/ansible-uwsgi <https://github.com/gdamjan/ansible-uwsgi>`_
 
 
 .. |build-status| image:: https://travis-ci.org/quarkslab/irma-ansible.svg?branch=master

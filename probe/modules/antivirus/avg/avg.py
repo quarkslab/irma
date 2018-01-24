@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +15,6 @@
 
 import logging
 import re
-import os
-import stat
 
 from ..base import Antivirus
 
@@ -44,10 +42,10 @@ class AVGAntiVirusFree(Antivirus):
             "--pup "       # scan for Potentially Unwanted Programs
         )
         self._scan_patterns = [
-            re.compile(r'(?P<file>.*)'
-                       r'\s+(Found|Virus found|Potentially harmful program|'
-                       r'Virus identified|Trojan horse)\s+'
-                       r'(?P<name>.*)(\\n)*.*$', re.IGNORECASE)
+            re.compile(b'(?P<file>.*)'
+                       b'\s+(Found|Virus found|Potentially harmful program|'
+                       b'Virus identified|Trojan horse)\s+'
+                       b'(?P<name>.*).*$', re.IGNORECASE | re.DOTALL)
         ]
 
         def is_error_fn(x):
@@ -69,7 +67,7 @@ class AVGAntiVirusFree(Antivirus):
             cmd = self.build_cmd(self.scan_path, '-v')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:
@@ -86,6 +84,7 @@ class AVGAntiVirusFree(Antivirus):
                            '{avg_path}/av/update/{folder}/'
                            ''.format(avg_path=avg_path, folder=x),
                            ['backup', 'download', 'prepare'])
+        search_paths = list(search_paths)
         database_patterns = [
             '*',
         ]

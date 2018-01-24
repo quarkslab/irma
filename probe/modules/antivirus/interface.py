@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,11 @@
 # terms contained in the LICENSE file.
 
 import os
-import hashlib
 
 from datetime import datetime
 from lib.common.utils import timestamp
 from lib.plugin_result import PluginResult
+from lib.common.hash import sha256sum
 
 
 class AntivirusPluginInterface(object):
@@ -40,13 +40,17 @@ class AntivirusPluginInterface(object):
             results.status = self.module.scan(paths)
             stopped = timestamp(datetime.utcnow())
             results.duration = stopped - started
+            # as only one result is expected, we simply remove the filename
+            # and we return the result got
+            return_results = list(self.module.scan_results.values())[0]
             # add scan results or append error
             if results.status < 0:
-                results.error = self.module.scan_results
+                results.error = return_results
             else:
-                # as only one result is expected, we simply remove the filename
-                # and we return the result got
-                results.results = self.module.scan_results.values()[0]
+                results.results = return_results
+
+            # Add virus_database_version metadata
+            results.virus_database_version = self.module.virus_database_version
         except Exception as e:
             results.status = -1
             results.error = str(e)
@@ -60,7 +64,7 @@ class AntivirusPluginInterface(object):
             result['ctime'] = os.path.getctime(filename)
             try:
                 with open(filename, 'rb') as fd:
-                    result['sha256'] = hashlib.sha256(fd.read()).hexdigest()
-            except Exception as e:
+                    result['sha256'] = sha256sum(fd)
+            except Exception:
                 result['sha256'] = None
         return result

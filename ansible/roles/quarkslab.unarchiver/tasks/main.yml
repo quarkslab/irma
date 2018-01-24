@@ -3,6 +3,7 @@
   pip:
     name: "{{ item }}"
     state: "latest"
+    executable: pip3
     extra_args: "{{ pip_extra_args | default('') }}"
   with_items:
     - patool

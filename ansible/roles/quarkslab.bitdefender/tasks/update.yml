@@ -1,0 +1,5 @@
+---
+
+- name: BitDefender | Update file definitions
+  shell: echo "accept" | bdscan --update
+  become: yes

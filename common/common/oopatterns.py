@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -226,7 +226,7 @@ class PluginMetaClass(type):
 
     def get_plugin(mcs, name, *args, **kwargs):
         """return instance of a named plugin"""
-        plugin = filter(lambda x: x.plugin_name == name, mcs._plugins)
+        plugin = [x for x in mcs._plugins if x.plugin_name == name]
         return plugin[0] if plugin else None
 
 # Metaclass compatible with python 2 and 3. Inherit from this for Plugins

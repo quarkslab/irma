@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +50,7 @@ class AviraWin(Antivirus):
         # is used when heurlevel is set)
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [1, 3]
         self._scan_patterns = [
-            re.compile(r" ALERT:\s+\[(?P<name>.*)\] (?P<file>.*)\s+<")
+            re.compile(b" ALERT:\s+\[(?P<name>.*)\] (?P<file>.*)\s+<")
         ]
 
     # ==========================================
@@ -68,7 +68,7 @@ class AviraWin(Antivirus):
                 #                     r'(?P<version>\d+(\.\d+)+)',
                 #                    stdout, re.IGNORECASE)
                 # match engine version
-                matches = re.search(r'engine set:\s+(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'engine set:\s+(?P<version>\d+(\.\d+)+)',
                                     stdout, re.IGNORECASE)
                 if matches:
                     result = matches.group('version').strip()
@@ -79,6 +79,7 @@ class AviraWin(Antivirus):
         search_paths = map(lambda x: "{path}/Avira/scancl".format(path=x),
                                      [os.environ.get('PROGRAMFILES', ''),
                                       os.environ.get('PROGRAMFILES(X86)', '')])
+        search_paths = list(search_paths)
         database_patterns = [
             '*.vdf'
         ]
@@ -94,5 +95,6 @@ class AviraWin(Antivirus):
         scan_paths = map(lambda x: "{path}/Avira/*".format(path=x),
                          [os.environ.get('PROGRAMFILES', ''),
                           os.environ.get('PROGRAMFILES(X86)', '')])
+        scan_paths = list(scan_paths)
         paths = self.locate(scan_bin, scan_paths)
         return paths[0] if paths else None

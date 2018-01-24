@@ -7,6 +7,11 @@
 
   Alerts.$inject = ['$timeout'];
 
+  // With the Hug migration, some of the `map` message aren't not use anymore.
+  // There is a need to take a deep look at this factory to check if it is
+  // necessary to keep the complexity of different messages, or just on
+  // (apiErrorWithMsg) to display error messages from the API.
+  // See IRMA-656
   function Alerts($timeout) {
     // The array that stores the currently displayed alerts
     var messages = [];
@@ -93,7 +98,15 @@
       // Tries to populate the alert with a standard one
       if (alert.standard && map[alert.standard]) {
         alert = _.extend(alert, map[alert.standard]);
-        if (alert.apiMsg) { alert.message += alert.apiMsg; }
+
+        if (alert.apiMsg) {
+          // The API should not return multiple errors, but in case there can
+          // be multiple, this function display all API Errors separate with a
+          // comma.
+          alert.message += _.map(alert.apiMsg, function(message) {
+            return message;
+          }).join(", ");
+        }
       }
 
       if (alert.standard && !map[alert.standard]) {

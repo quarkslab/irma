@@ -4,13 +4,13 @@ import os
 import sys
 import logging
 import argparse
-import urllib2
+from urllib.request import urlopen
 import zipfile
 import tempfile
 import re
 
 def download(url, f):
-  dl = urllib2.urlopen(url)
+  dl = urlopen(url)
   f.write(dl.read())
 
 def unzip(f, dest_path):
@@ -28,12 +28,12 @@ def do_install(args):
     dl_and_unzip(args.url, args.path)
 
 def get_last_signature_url(url):
-    dl = urllib2.urlopen(url)
+    dl = urlopen(url)
     dir_list = dl.read()
-    regexp = re.compile(r"avvdat-.+.zip")
+    regexp = re.compile(b"avvdat-.+.zip")
     m = regexp.findall(dir_list)
     if m:
-        file_name = m[0]
+        file_name = str(m[0], "utf-8")
         return file_name, os.path.join(url, file_name)
 
 def do_update(args):

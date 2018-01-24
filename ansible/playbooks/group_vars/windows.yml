@@ -14,18 +14,15 @@ ansible_connection: winrm
 # Default winrm timeout are set by pywinrm Protocol class
 # DEFAULT_OPERATION_TIMEOUT_SEC = 20
 # DEFAULT_READ_TIMEOUT_SEC = 30
-ansible_winrm_operation_timeout_sec: 120
-ansible_winrm_read_timeout_sec: 180
+ansible_winrm_operation_timeout_sec: 600
+ansible_winrm_read_timeout_sec: 900
+
 
 win_packages:
-  - name: vcredist_x64.exe
-    url: https://download.microsoft.com/download/b/d/5/bd57058a-d6b4-40d6-9e31-35777dd48820/vcredist_x64.exe
-    install_args: /qn
+  - name: python-3.5.3.amd64.exe
+    url: https://www.python.org/ftp/python/3.5.3/python-3.5.3-amd64.exe
+    install_args: "'/quiet', 'InstallAllUsers=1', 'PrependPath=1'"
     type: exe
-  - name: VCForPython27.msi
-    url: https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB28-B59FBF6D907B/VCForPython27.msi
-    install_args: /qn /norestart
-    type: msi
   - name: python-2.7.12.amd64.msi
     url: https://www.python.org/ftp/python/2.7.12/python-2.7.12.amd64.msi
     install_args: /qn /norestart

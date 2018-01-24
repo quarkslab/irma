@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -70,7 +70,7 @@ class FTPSTestCase(unittest.TestCase):
             ftp = self.ftp_connect()
             ftp.deletepath("/")
         except IrmaFtpError as e:
-            print "Testftp Error: {0}".format(e)
+            print("Testftp Error: {0}".format(e))
             self.skipTest(FTPSTestCase)
 
     def ftp_connect(self, host=None, port=None,
@@ -104,7 +104,7 @@ class FTPSTestCase(unittest.TestCase):
                             passwd,
                             **kwargs)
         except IrmaFtpError as e:
-            print "Testftp Error: {0}".format(e)
+            print("Testftp Error: {0}".format(e))
             self.skipTest(FTPSTestCase)
 
     def test_ftp_upload_file(self):
@@ -209,7 +209,7 @@ class FTPSTestCase(unittest.TestCase):
         ftp._connect()
         new_conn = ftp._conn
         # TODO when singleton will be done
-        self.assertEquals(old_conn, new_conn)
+        self.assertEqual(old_conn, new_conn)
 
     def test_ftp_double_connect(self):
         self.ftp(self.test_ftp_host,

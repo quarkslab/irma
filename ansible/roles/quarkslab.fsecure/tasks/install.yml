@@ -1,5 +1,19 @@
 ---
 
+- name: F-Secure | Install dependencies
+  apt:
+    name: "{{ item }}"
+    state: latest
+  become: yes
+  with_items:
+    - lib32stdc++6
+    - rpm
+
+- name: F-Secure | Create temporary work dir
+  file:
+    path: "{{ fsecure_temp_dir }}/"
+    state: directory
+
 - name: F-Secure | Download Package
   get_url:
     url: "{{ fsecure_url }}"
@@ -21,6 +35,15 @@
   become: true
   when: fsecure_license_key is defined
 
+- name: F-Secure | Disable real-time virus scan
+  shell: /opt/f-secure/fsma/bin/chtest s 45.1.40.10 0 && /opt/f-secure/fsma/bin/chtest s 45.1.70.10 0
+  become: true
+
 - name: F-Secure | Disable Web Interface and Firewall with fschooser
   shell: printf "f\nw\n\n" | /opt/f-secure/fsav/sbin/fschooser
   become: true
+
+- name: F-Secure | Remove temporary work dir
+  file:
+    path: "{{ fsecure_temp_dir }}/"
+    state: absent

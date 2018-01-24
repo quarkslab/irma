@@ -6,29 +6,19 @@
     state: directory
   when: irma_deployment_code_version != 'local'
 
-- name: Check if probe src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/probe.zip"
-  register: probe_src_archive
-  ignore_errors: True
-
-- name: Gather probe src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../probe" && git archive -o "{{ playbook_dir }}/files/probe.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not probe_src_archive.stat.exists
-
-- name: Upload probe src archive
-  unarchive:
-    src: files/probe.zip
-    dest: "{{ probe_deployment_dir }}"
+- name: Check if probe src archive is present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_probe_archive }}"
   when: irma_deployment_code_version != 'local'
 
 - name: Check if common src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/common.zip"
-  register: common_src_archive
-  ignore_errors: True
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
+  when: irma_deployment_code_version != 'local'
 
-- name: Gather common src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/common.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not common_src_archive.stat.exists
+- name: Upload probe src archive
+  unarchive:
+    src: "files/{{ irma_probe_archive }}"
+    dest: "{{ probe_deployment_dir }}"
+  when: irma_deployment_code_version != 'local'
 
 - name: Remove common symlink
   file:
@@ -44,7 +34,7 @@
 
 - name: Deploy probe-common src archive
   unarchive:
-    src: files/common.zip
+    src: "files/{{ irma_common_archive }}"
     dest: "{{ probe_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 
@@ -68,7 +58,6 @@
     src: "{{ probe_deployment_dir }}"
     dest: "{{ probe_install_dir }}"
     state: link
-  when: irma_deployment_code_version != 'local'
 
 - name: Restart Supervisor services
   supervisorctl:

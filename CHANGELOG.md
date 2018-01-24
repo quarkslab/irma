@@ -1,3 +1,42 @@
+2.0.4 (released 22/12/2017)
+===========================
+
+    * Bugfixes
+
+
+2.0.3 (released 15/12/2017)
+===========================
+
+    * [frontend] fix file cleanup
+
+2.0.2 (released 21/11/2017)
+===========================
+
+    * [frontend] PKI updated support client cert
+    * [frontend] allow standalone SQL server (new ansible host sql-server to add)
+    * [frontend/api] Add /about endpoint to display version
+    * [probe] Add DrWeb file server linux AV
+
+2.0.1 (released 17/10/2017)
+===========================
+
+    * [all] Virus DB version is supported and displayed when available
+    * [frontend/api] add a list of results for a file to quickly jump to other results
+    * [frontend] Delete file according to a max size settings (could be combined with max days)
+    * [all] Update default box to debian9
+    * [all] Use random diskname for libvirt
+    * [brain/probe] retry on rabbitmq down
+    * [probe] Add kaspersky linux and Eset file server linux AVs
+
+2.0.0 (released 08/09/2017)
+===========================
+
+    * [frontend] API/V2 WIP (not stable version yet)
+    * [all] Move to python3
+    * [frontend] Move to hug
+    * [frontend] scan load optimization
+    * [frontend] enable CORS by default
+    * [probe] bugfixes
 
 1.5.3 (released 28/11/2016)
 ===========================

@@ -1,0 +1,8 @@
+---
+
+- name: VBA32 | Update definition files
+  shell: "./vbacl --update"
+  args:
+    chdir: /opt/vba/vbacl
+  register: update_result
+  failed_when: "update_result.rc not in [0, 5]"

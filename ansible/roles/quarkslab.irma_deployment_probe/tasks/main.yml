@@ -1,7 +1,7 @@
 ---
 
 - set_fact:
-    probe_deployment_dir: "{{ probe_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
+    probe_deployment_dir: "{{ probe_project_dir }}/releases/{{ irma_deployment_release_name }}"
 
 # Install Probe
 - include: linux/probe_deployment.yml

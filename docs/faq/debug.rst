@@ -46,7 +46,7 @@ file.
 
 	$ sudo su deploy
 	$ cd /opt/irma/irma-probe/current
-	$ ./venv/bin/python -m tools.run_module
+	$ ./venv/bin/python -m extras.tools.run_module
 
 	[...]
 	usage: run_module.py [-h] [-v]
@@ -60,7 +60,7 @@ Here 4 probes are automatically detected. Now try one on a file:
 
 .. code-block:: bash
 
-	$ ./venv/bin/python -m tools.run_module ClamAV requirements.txt
+	$ ./venv/bin/python -m extras.tools.run_module ClamAV requirements.txt
 	{'database': {'/var/lib/clamav/bytecode.cvd': {'ctime': 1458640823.285298,
                                                'mtime': 1458640823.069295,
                                                'sha256': '82972e6cc5f1204829dba913cb1a0b5f8152eb73d3407f6b86cf388626cff1a1'},

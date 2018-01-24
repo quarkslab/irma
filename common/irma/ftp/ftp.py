@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ class IrmaFTP(object):
     #  Constructor and Destructor stuff
     # ==================================
     def __init__(self, host, port, auth, key_path, user, passwd,
-                 dst_user, upload_path):
+                 dst_user, upload_path, hash_check):
         self._host = host
         self._port = port
         self._auth = auth
@@ -37,6 +37,7 @@ class IrmaFTP(object):
         self._passwd = passwd
         self._dst_user = dst_user
         self._upload_path = upload_path
+        self.hash_check = hash_check
         self._conn = None
 
     def __del__(self):
@@ -104,7 +105,7 @@ class IrmaFTP(object):
         try:
             with open(filename, 'rb') as src:
                 dstname = self.upload_fobj(path, src)
-            return dstname
+                return dstname
         except Exception as e:
             raise IrmaFtpError("{0}".format(e))
 

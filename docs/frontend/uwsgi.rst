@@ -12,7 +12,8 @@ straightforward:
 
 .. code-block:: bash
 
-    $ sudo apt-get install uwsgi uwsgi-plugin-python
+    $ cd /opt/irma/irma-frontend/current
+    $ ./venv/bin/pip install https://projects.unbit.it/downloads/uwsgi-lts.tar.gz
     [...]
 
 Please refer to the documentation of your preferred distribution to install

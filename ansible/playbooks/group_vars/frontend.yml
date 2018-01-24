@@ -66,9 +66,15 @@ frontend_deployment_configs:
   - section: sqldb
     option: dbname
     value: "{{irma_configurations.postgresql.frontend.db_name}}"
-  - section: cron_frontend
+  - section: sqldb
+    option: host
+    value: "{{irma_configurations.postgresql.frontend.host}}"
+  - section: cron_clean_file_age
     option: clean_db_file_max_age
-    value: "{{irma_configurations.cron_frontend.clean_db_file_max_age}}"
+    value: "{{irma_configurations.cron_clean_file_age.clean_db_file_max_age}}"
+  - section: cron_clean_file_size
+    option: clean_fs_max_size
+    value: "{{irma_configurations.cron_clean_file_size.clean_fs_max_size}}"
 
 
 ## UFW Rules
@@ -100,13 +106,6 @@ frontend_openssl_certificates:
 apt_repositories_code_names:
   - '{{ ansible_distribution_release }}'
   - '{{ ansible_distribution_release }}-updates'
-  - '{{ ansible_distribution_release }}-backports'
-
-
-## uWSGI role
-uwsgi_install_method: "{{ 'pip' if (default_use_debian_repo | bool) == False else 'repo' }}"
-uwsgi_plugins:
-  - python
 
 
 ## NodeJS role
@@ -115,30 +114,10 @@ nodejs_global_packages:
   - debug
 
 
-## PostgreSQL role
-# Basic settings
-postgresql_version: "9.4"
-postgresql_client_encoding: "UTF8"
-
-## Databases informations
-postgresql_databases:
-  - name: irma-frontend
-
-postgresql_users:
-  - name: "{{irma_configurations.postgresql.frontend.username}}"
-    pass: "{{irma_configurations.postgresql.frontend.password}}"
-    encrypted: no
-
-postgresql_user_privileges:
-  - name: "{{irma_configurations.postgresql.frontend.username}}"
-    db: "{{irma_configurations.postgresql.frontend.db_name}}"
-    priv: "ALL"
-
-
 ## Supervisor role
 supervisor_programs_frontend:
   - name: frontend_app
-    command: "{{ frontend_venv_dir }}/bin/celery worker -A frontend.tasks:frontend_app --hostname=frontend_app.%%h {{default_celery_options}} --beat --schedule={{ frontend_beat_schedule }}"
+    command: "{{ frontend_venv_dir }}/bin/python -m api.tasks.frontend_app"
     directory: "{{ frontend_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1
@@ -149,9 +128,10 @@ supervisor_programs_frontend:
     killasgroup: true
   - name: frontend_api
     command: >
-      uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
-      --plugins python --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
-      --python-path {{ frontend_install_dir }}/venv --mount /api=frontend/api/base.py --lazy
+      {{ frontend_venv_dir}}/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+      --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
+      {% if irma_environment == 'development' %}--python-autoreload 1{% endif %}
+      --python-path {{ frontend_install_dir }}/venv --wsgi-file api/base.py --callable __hug_wsgi__ --lazy --offload-threads 4
     user: "{{ irma_user }}"
     numprocs: 1
     stdout_logfile: /var/log/supervisor/frontend_api.log
@@ -195,15 +175,31 @@ nginx_sites:
     - location ~ /\.ht {
         deny all;
       }
-    - location /api {
-        include uwsgi_params;
+    - |
+      location /api {
+        if ($request_method ~* "(GET|POST)") {
+          add_header "Access-Control-Allow-Origin"  *;
+        }
+
+        if ($request_method = OPTIONS) {
+          add_header "Access-Control-Allow-Origin"  *;
+          add_header "Access-Control-Allow-Methods" "GET, POST, OPTIONS, HEAD";
+          add_header "Access-Control-Allow-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
+          add_header "Access-Control-Expose-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
+          return 200;
+        }
+
         add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        add_header 'Access-Control-Allow-Origin' '*';
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
-        add_header 'Access-Control-Expose-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range';
+        include uwsgi_params;
+        rewrite ^/api/v1.1/(.+) /v1/$1 break;
         rewrite ^/api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
+      }
+    - location /server-status {
+        stub_status;
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
       }
     - location /swagger {
         alias {{ frontend_install_dir }}/swagger/ui;
@@ -228,11 +224,32 @@ nginx_sites:
     #- location ~ /\.ht {
         #deny all;
       #}
-    #- location /api {
+    #- |
+      #location /api {
+        #if ($request_method ~* "(GET|POST)") {
+          #add_header "Access-Control-Allow-Origin"  *;
+         #}
+
+        #if ($request_method = OPTIONS) {
+          #add_header "Access-Control-Allow-Origin"  *;
+          #add_header "Access-Control-Allow-Methods" "GET, POST, OPTIONS, HEAD";
+          #add_header "Access-Control-Allow-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
+          #add_header "Access-Control-Expose-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
+          #return 200;
+        #}
+
+        #add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
         #include uwsgi_params;
+        #rewrite ^/api/v1.1/(.+) /v1/$1 break;
         #rewrite ^/api/(.+) /$1 break;
         #uwsgi_pass 127.0.0.1:8081;
       #}
+    # - location /server-status {
+    #   stub_status;
+    #   access_log off;
+    #   allow 127.0.0.1;
+    #   deny all;
+    # }
     # - location /swagger {
     #     alias {{ frontend_install_dir }}/swagger/ui;
     #     index index.html;
@@ -250,6 +267,8 @@ nginx_sites:
     #- ssl on
     #- ssl_certificate {{ frontend_openssl_certificates.cert.dst }}
     #- ssl_certificate_key {{ frontend_openssl_certificates.key.dst }}
+    #- ssl_client_certificate {{ frontend_openssl_certificates.ca.dst }}
+    #- ssl_verify_client on
     ## dhparam of 2048 bit or greater (1024 if java6 required)
     #- ssl_dhparam {{ frontend_openssl_dh_param }}
     #- ssl_session_timeout 5m

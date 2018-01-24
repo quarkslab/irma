@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,9 +66,9 @@ class FSecure(Antivirus):
         self._scan_retcodes[INFECTED] = lambda x: x in [3, 4, 6, 8]
         self._scan_retcodes[ERROR] = lambda x: x in [1, 7, 9]
         self._scan_patterns = [
-            re.compile(r'(?P<file>.*)'
-                       r':\s+(Infected|Suspected):\s+'
-                       r'(?P<name>.*)', re.IGNORECASE),
+            re.compile(b'(?P<file>.*)'
+                       b':\s+(Infected|Suspected):\s+'
+                       b'(?P<name>.*)', re.IGNORECASE),
         ]
 
     # ==========================================
@@ -82,7 +82,7 @@ class FSecure(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, _ = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+([.-]\d+)+)',
+                matches = re.search(b'(?P<version>\d+([.-]\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:
@@ -98,3 +98,20 @@ class FSecure(Antivirus):
         """return the full path of the scan tool"""
         paths = self.locate("fsav")
         return paths[0] if paths else None
+
+    def get_virus_database_version(self):
+        """Return the Virus Database version"""
+        paths = self.locate("fsav")
+
+        if paths:
+            cmd = self.build_cmd(paths[0], '--version')
+            retcode, stdout, stderr = self.run_cmd(cmd)
+            if not retcode:
+                matches = re.search(b'Database version: (?P<version>.*)',
+                                    stdout,
+                                    re.IGNORECASE)
+
+                if matches:
+                    return matches.group('version').strip()
+
+        return None

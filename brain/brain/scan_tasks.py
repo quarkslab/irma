@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,7 @@
 
 import celery
 import logging
+import time
 import config.parser as config
 from celery.utils.log import get_task_logger
 from fasteners import interprocess_locked
@@ -28,11 +29,12 @@ from brain.helpers.sql import session_transaction
 from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
     IrmaScanRequest
 
+RETRY_MAX_DELAY = 30
 
 # Get celery's logger
 log = get_task_logger(__name__)
 
-scan_app = celery.Celery('scantasks')
+scan_app = celery.Celery('scan_tasks')
 config.conf_brain_celery(scan_app)
 config.configure_syslog(scan_app)
 
@@ -49,9 +51,18 @@ if config.debug_enabled():
     celery.signals.after_setup_logger.connect(after_setup_logger_handler)
     celery.signals.after_setup_task_logger.connect(after_setup_logger_handler)
 
-# Refresh all probes before starting
-with session_transaction() as session:
-    probe_ctrl.refresh_probes(session)
+delay = 1
+while True:
+    try:
+        # Refresh all probes before starting
+        with session_transaction() as session:
+            probe_ctrl.refresh_probes(session)
+        break
+    except OSError as e:
+        log.error("Error refreshing probe %s waiting %s seconds", e, delay)
+        time.sleep(delay)
+        delay = min([2*delay, RETRY_MAX_DELAY])
+        pass
 
 
 # ===================
@@ -89,14 +100,14 @@ def mimetype_filter_scan_request(scan_request_dict):
         with session_transaction() as session:
             available_probelist = probe_ctrl.get_list(session)
             scan_request = IrmaScanRequest(scan_request_dict)
-            for filehash in scan_request.filehashes():
+            for file in scan_request.files():
                 filtered_probelist = []
-                mimetype = scan_request.get_mimetype(filehash)
+                mimetype = scan_request.get_mimetype(file)
                 mimetype_probelist = probe_ctrl.mimetype_probelist(mimetype,
                                                                    session)
-                probe_list = scan_request.get_probelist(filehash)
-                log.debug("filehash: %s probe_list: %s",
-                          filehash, "-".join(probe_list))
+                probe_list = scan_request.get_probelist(file)
+                log.debug("file: %s probe_list: %s",
+                          file, "-".join(probe_list))
                 # first check probe_list for unknown probe
                 for probe in probe_list:
                     # check if probe exists
@@ -104,12 +115,12 @@ def mimetype_filter_scan_request(scan_request_dict):
                         log.warning("probe %s not available", probe)
                     if probe in mimetype_probelist:
                         # probe is asked and supported by mimetype
-                        log.debug("filehash %s probe %s asked" +
+                        log.debug("file %s probe %s asked" +
                                   " and supported for %s append to request",
-                                  filehash, probe, mimetype)
+                                  file, probe, mimetype)
                         filtered_probelist.append(probe)
                 # update probe list in scan request
-                scan_request.set_probelist(filehash, filtered_probelist)
+                scan_request.set_probelist(file, filtered_probelist)
             return IrmaTaskReturn.success(scan_request.to_dict())
     except Exception as e:
         log.exception(e)
@@ -117,44 +128,37 @@ def mimetype_filter_scan_request(scan_request_dict):
 
 
 @scan_app.task(ignore_result=False, acks_late=True)
-def scan(frontend_scanid, scan_request_dict):
+def scan(file, probelist, frontend_scan):
     try:
         with session_transaction() as session:
-            log.debug("scanid: %s received %s", frontend_scanid,
-                      scan_request_dict)
+            log.debug("scan_id: %s fileweb_id: %s received %s", frontend_scan,
+                      file, probelist)
             user = User.get_by_rmqvhost(session)
-            scan_request = IrmaScanRequest(scan_request_dict)
-            scan = scan_ctrl.new(frontend_scanid, user, scan_request.nb_files,
-                                 session)
+            scan = scan_ctrl.new(frontend_scan, user, session)
             available_probelist = probe_ctrl.get_list(session)
             # Now, create one subtask per file to
             # scan per probe
             new_jobs = []
-            for filehash in scan_request.filehashes():
-                probelist = scan_request.get_probelist(filehash)
-                for probe in probelist:
-                    if probe in available_probelist:
-                        j = Job(scan.id, filehash, probe)
-                        session.add(j)
-                        new_jobs.append(j)
-                    else:
-                        # send an error message to not stuck the scan
-                        # One probe asked is no more present
-                        res = probe_ctrl.create_error_results(probe,
-                                                              "missing probe",
-                                                              session)
-                        celery_frontend.scan_result(frontend_scanid,
-                                                    filehash,
-                                                    probe,
-                                                    res)
+            for probe in probelist:
+                if probe in available_probelist:
+                    j = Job(scan.id, file, probe)
+                    session.add(j)
+                    new_jobs.append(j)
+                else:
+                    # send an error message to not stuck the scan
+                    # One probe asked is no more present
+                    res = probe_ctrl.create_error_results(probe,
+                                                          "missing probe",
+                                                          session)
+                    celery_frontend.scan_result(file,
+                                                probe,
+                                                res)
             session.commit()
             scan_ctrl.launch(scan, new_jobs, session)
-            celery_frontend.scan_launched(scan.scan_id,
-                                          scan_request.to_dict())
-            log.info("scanid %s: %d file(s) received / %d active probe(s) / "
+            log.info("scan_id %s: file %s received / %d active probe(s) / "
                      "%d job(s) launched",
                      scan.scan_id,
-                     scan.nb_files,
+                     file,
                      len(available_probelist),
                      len(scan.jobs))
     except Exception as e:
@@ -163,11 +167,12 @@ def scan(frontend_scanid, scan_request_dict):
 
 
 @scan_app.task(acks_late=True)
-def scan_cancel(frontend_scan_id):
+def scan_cancel(scan_id):
     try:
+        log.info("scan %s: cancel", scan_id)
         with session_transaction() as session:
             user = User.get_by_rmqvhost(session)
-            scan = Scan.get_scan(frontend_scan_id, user.id, session)
+            scan = Scan.get_scan(scan_id, user.id, session)
             res = scan_ctrl.cancel(scan, session)
             return IrmaTaskReturn.success(res)
     except Exception as e:
@@ -176,13 +181,23 @@ def scan_cancel(frontend_scan_id):
 
 
 @scan_app.task(ignore_result=True, acks_late=True)
-def scan_flush(frontend_scan_id):
+def scan_flush(scan_id):
     try:
-        log.info("scan_id %s: scan flush requested", frontend_scan_id)
+        log.info("scan %s: flush requested", scan_id)
         with session_transaction() as session:
             user = User.get_by_rmqvhost(session)
-            scan = Scan.get_scan(frontend_scan_id, user.id, session)
+            scan = Scan.get_scan(scan_id, user.id, session)
             scan_ctrl.flush(scan, session)
     except Exception as e:
         log.exception(e)
         return
+
+
+########################
+# command line launcher
+########################
+
+if __name__ == '__main__':
+    options = config.get_celery_options("brain.scan_tasks",
+                                        "scan_app")
+    scan_app.worker_main(options)

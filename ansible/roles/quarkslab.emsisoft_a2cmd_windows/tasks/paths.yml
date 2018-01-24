@@ -1,0 +1,15 @@
+---
+
+- name: Determine remote_tmp variable
+  raw: CMD /C echo '%TEMP%'
+  register: echo_temp
+
+- set_fact:
+    remote_tmp: '{{ echo_temp.stdout_lines[0] | regex_replace("\\\\", "/") }}'
+
+- name: Determine ProgramFiles(x86)
+  raw: CMD /C echo '%PROGRAMFILES(x86)%'
+  register: echo_programfiles
+
+- set_fact:
+    remote_programfiles: '{{ echo_programfiles.stdout_lines[0] | regex_replace("\\\\", "/") }}'

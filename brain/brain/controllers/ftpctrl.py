@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,7 @@
 import config.parser as config
 
 
-def flush_dir(ftpuser, scanid):
-    print("Flushing dir {0}".format(scanid))
+def flush(ftpuser, filename_list):
     IrmaFTP = config.get_ftp_class()
     conf_ftp = config.brain_config['ftp_brain']
     with IrmaFTP(conf_ftp.host,
@@ -27,4 +26,5 @@ def flush_dir(ftpuser, scanid):
                  conf_ftp.username,
                  conf_ftp.password,
                  dst_user=ftpuser) as ftp:
-        ftp.deletepath(scanid, deleteParent=True)
+        for filename in filename_list:
+            ftp.delete(".", filename)

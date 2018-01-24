@@ -16,14 +16,19 @@ fileConfig(config.config_file_name)
 import sys
 sys.path.append(".")
 
-from frontend.helpers.sql import url
-from frontend.models.sqlobjects import Base
+from config.parser import get_sql_url
+from api.common.models import Base
+import api.files.models
+import api.files_ext.models
+import api.scans.models
+import api.tags.models
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+url = get_sql_url()
 
 
 def run_migrations_offline():

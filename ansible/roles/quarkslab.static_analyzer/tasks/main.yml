@@ -5,7 +5,8 @@
   pip:
     name: "{{ item }}"
     state: "latest"
+    executable: pip3
     extra_args: "{{ pip_extra_args | default('') }}"
   with_items:
-    - pefile
+    - https://github.com/erocarrera/pefile/releases/download/v2017.5.26/pefile-2017.5.26.zip
     - python-magic

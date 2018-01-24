@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,7 @@ class GDataWin(Antivirus):
         super(GDataWin, self).__init__(*args, **kwargs)
         # scan tool variables
         self._scan_patterns = [
-            re.compile(r"Infected:\s+(?P<file>.*); (?P<name>.*)")
+            re.compile(b"Infected:\s+(?P<file>.*); (?P<name>.*)")
         ]
 
     # ==========================================
@@ -48,7 +48,7 @@ class GDataWin(Antivirus):
             cmd = self.build_cmd(self.scan_path)
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'Version (?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'Version (?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:

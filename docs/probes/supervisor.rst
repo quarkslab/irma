@@ -14,8 +14,8 @@ Install it with apt:
 
 .. code-block:: bash
 
-    $ sudo apt-get install python-virtualenv python-dev
-    $ sudo pip install supervisor
+    $ sudo apt-get install python3-virtualenv python3-dev
+    $ sudo pip install supervisor # should be installed with python2
 
 We will create one new application called probe_app.
 
@@ -34,7 +34,7 @@ Create a file called ``probe_app`` located at ``/etc/supervisor/conf.d`` with th
     stopwaitsecs = 600
     killasgroup = True
     stderr_logfile = /var/log/supervisor/probe_app.log
-    command = /opt/irma/irma-probe/current/venv/bin/celery worker -A probe.tasks:probe_app --hostname=probe_app.%%h --loglevel=INFO --without-gossip --without-mingle --without-heartbeat --soft-time-limit=60 --time-limit=300
+    command = /opt/irma/irma-probe/current/venv/bin/python -m probe.tasks
     user = irma
     autostart = True
     directory = /opt/irma/irma-probe/current/

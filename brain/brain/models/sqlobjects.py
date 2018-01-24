@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,11 +75,6 @@ class Scan(Base, SQLDatabaseObject):
         nullable=False,
         name='timestamp'
     )
-    nb_files = Column(
-        Integer,
-        nullable=False,
-        name='nb_files'
-    )
     # Many to one Scan <-> User
     user_id = Column(
         Integer,
@@ -89,12 +84,19 @@ class Scan(Base, SQLDatabaseObject):
     )
     jobs = relationship("Job", backref="scan", lazy='subquery')
 
-    def __init__(self, frontend_scanid, user_id, nb_files):
+    def __init__(self, frontend_scanid, user_id):
         self.scan_id = frontend_scanid
         self.status = IrmaScanStatus.empty
         self.timestamp = timestamp()
-        self.nb_files = nb_files
         self.user_id = user_id
+
+    @property
+    def files(self):
+        return set(job.filename for job in self.jobs)
+
+    @property
+    def nb_files(self):
+        return len(self.files)
 
     @classmethod
     def get_scan(cls, scan_id, user_id, session):
@@ -178,10 +180,10 @@ class Job(Base, SQLDatabaseObject):
         index=True,
         nullable=False,
     )
-    filehash = Column(
+    filename = Column(
         String,
         nullable=False,
-        name='filehash'
+        name='filename'
     )
     probename = Column(
         String,
@@ -189,10 +191,10 @@ class Job(Base, SQLDatabaseObject):
         name='probename'
     )
 
-    def __init__(self, scanid, filehash, probename):
-        self.scan_id = scanid
+    def __init__(self, scanid, filename, probename):
         self.task_id = UUID.generate()
-        self.filehash = filehash
+        self.scan_id = scanid
+        self.filename = filename
         self.probename = probename
 
 

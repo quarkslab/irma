@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,9 +34,10 @@ class IrmaSFTP(IrmaFTP):
     #  Constructor and Destructor stuff
     # ==================================
     def __init__(self, host, port, auth, key_path, user, passwd,
-                 dst_user=None, upload_path='uploads'):
+                 dst_user=None, upload_path='uploads', hash_check=False):
         super(IrmaSFTP, self).__init__(host, port, auth, key_path, user,
-                                       passwd, dst_user, upload_path)
+                                       passwd, dst_user, upload_path,
+                                       hash_check)
         self._client = None
         self._connect()
 
@@ -46,7 +47,7 @@ class IrmaSFTP(IrmaFTP):
 
     def _connect(self):
         if self._conn is not None:
-            log.warn("Already connected to sftp server")
+            log.warning("Already connected to sftp server")
             return
         try:
             self._conn = Transport((self._host, self._port))
@@ -84,25 +85,36 @@ class IrmaSFTP(IrmaFTP):
             raise IrmaSFTPError("{0}".format(e))
 
     def upload_fobj(self, path, fobj):
-        """ Upload <data> to remote directory <path>"""
+        """ Upload <data> to remote destination
+            if hash check is on:
+                remote dest is <path>/<sha256 value>
+            if hash check is off:
+                remote dest is <path>
+        """
         try:
-            dstname = self._hash(fobj)
-            path = self._tweaked_join(path, dstname)
+            if self.hash_check:
+                dstname = self._hash(fobj)
+                path = self._tweaked_join(path, dstname)
             dstpath = self._get_realpath(path)
             self._client.putfo(fobj, dstpath)
-            return dstname
+            if self.hash_check:
+                return dstname
         except Exception as e:
             raise IrmaSFTPError("{0}".format(e))
 
     def download_fobj(self, path, remotename, fobj):
-        """ returns <remotename> found in <path>"""
-        # self._client.getfo(fobj, dstpath)
+        """ returns <remotename> found in <path>
+            if hash check is on:
+            remotename should be a <sha256 val> and
+            will be compared after transfer
+        """
         try:
             dstpath = self._get_realpath(path)
             full_dstpath = self._tweaked_join(dstpath, remotename)
             self._client.getfo(full_dstpath, fobj)
-            # remotename is hashvalue of data
-            self._check_hash(remotename, fobj)
+            if self.hash_check:
+                # remotename is hashvalue of data
+                self._check_hash(remotename, fobj)
         except Exception as e:
             raise IrmaSFTPError("{0}".format(e))
 

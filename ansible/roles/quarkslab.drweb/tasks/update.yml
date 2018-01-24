@@ -1,0 +1,6 @@
+---
+
+- name: Dr Web | Update file definitions
+  shell: drweb-ctl update
+  become: yes
+  ignore_errors: yes

@@ -1,0 +1,45 @@
+---
+
+irma_standalone_sql_server: "{{ 'frontend' not in group_names }}"
+
+## PostgreSQL role
+# Basic settings
+postgresql_version: "9.4"
+postgresql_client_encoding: "UTF8"
+
+
+## Databases informations
+postgresql_databases:
+  - name: "{{irma_configurations.postgresql.frontend.db_name}}"
+
+postgresql_users:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    pass: "{{irma_configurations.postgresql.frontend.password}}"
+    encrypted: no
+
+postgresql_user_privileges:
+  - name: "{{irma_configurations.postgresql.frontend.username}}"
+    db: "{{irma_configurations.postgresql.frontend.db_name}}"
+    priv: "ALL"
+
+postgresql_listen_addresses:
+  - "{{ '*' if irma_standalone_sql_server else 'localhost' }}"
+
+postgresql_pg_hba_passwd_hosts:
+  - "{{ irma_configurations.brain_addr if irma_standalone_sql_server else 'localhost' }}"
+
+
+# SSL serverside
+
+# postgresql_ssl:
+#   - "{{ True if 'frontend' not in group_names else False }}"
+# postgresql_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
+# postgresql_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
+# postgresql_ssl_ca_file: ''
+# postgresql_ssl_crl_file: ''
+
+
+## UFW Rules
+sql_server_ufw_additional_rules:
+  - port: "{{ postgresql_port }}"
+    rule: 'allow'

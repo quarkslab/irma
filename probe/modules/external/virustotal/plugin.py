@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,9 +15,8 @@
 
 import os
 import sys
-import hashlib
 
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 from datetime import datetime
 
 from lib.common.utils import timestamp
@@ -25,6 +24,7 @@ from lib.plugins import PluginBase
 from lib.plugins import ModuleDependency, FileDependency
 from lib.plugin_result import PluginResult
 from lib.irma.common.utils import IrmaProbeType
+from lib.common.hash import md5sum
 
 
 class VirusTotalPlugin(PluginBase):
@@ -60,7 +60,7 @@ class VirusTotalPlugin(PluginBase):
 
     def __init__(self, apikey=None, private=None):
         # load default configuration file
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
         # override default values if specified
@@ -83,7 +83,7 @@ class VirusTotalPlugin(PluginBase):
 
     def get_file_report(self, filename):
         with open(filename, 'rb') as filedesc:
-            digest = hashlib.md5(filedesc.read()).hexdigest()
+            digest = md5sum(filedesc)
         return self.module.get_file_report(digest)
 
     # ==================
@@ -104,14 +104,14 @@ class VirusTotalPlugin(PluginBase):
             if 'error' in response:
                 results.status = self.VirusTotalResult.ERROR
                 results.error = str(response['error'])
-            elif (response['response_code'] == 204):
+            elif response['response_code'] == 204:
                 results.status = self.VirusTotalResult.ERROR
                 results.error = "Public API request rate limit exceeded"
-            elif (response['response_code'] == 403):
+            elif response['response_code'] == 403:
                 results.status = self.VirusTotalResult.ERROR
                 results.error = "Access forbidden (wrong key value or type)"
-            elif (response['response_code'] == 200) and \
-                 (response['results']['response_code'] != 1):
+            elif response['response_code'] == 200 and \
+                    response['results']['response_code'] != 1:
                 results.status = self.VirusTotalResult.NOT_FOUND
             else:
                 results.status = self.VirusTotalResult.FOUND

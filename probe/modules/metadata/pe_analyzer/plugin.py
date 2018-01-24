@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,7 +83,7 @@ class PEAnalyzerPlugin(PluginBase):
             raise RuntimeError("file does not exist")
         result = None
         # look for PE mime type
-        if mimetype and re.match('PE32', mimetype):
+        if mimetype and 'PE32' in mimetype:
             result = self.module.analyze(filename)
         else:
             logging.warning("{0} not yet handled".format(mimetype))

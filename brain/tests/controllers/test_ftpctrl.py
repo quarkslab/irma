@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,12 +22,14 @@ import config.parser as config
 class TestFtpCtrl(TestCase):
 
     @patch("config.parser.IrmaSFTP")
-    def test001_flush_dir(self, m_IrmaSFTP):
+    def test_flush(self, m_IrmaSFTP):
         m_ftp = MagicMock()
         m_IrmaSFTP().__enter__.return_value = m_ftp
         ftpuser = "ftpuser"
-        scanid = "scanid"
-        module.flush_dir(ftpuser, scanid)
+        m_file1 = "m_file1"
+        m_file2 = "m_file2"
+        files = [m_file1, m_file2]
+        module.flush(ftpuser, files)
         conf_ftp = config.brain_config['ftp_brain']
         m_IrmaSFTP.assert_any_call(conf_ftp.host,
                                    conf_ftp.port,
@@ -36,4 +38,5 @@ class TestFtpCtrl(TestCase):
                                    conf_ftp.username,
                                    conf_ftp.password,
                                    dst_user=ftpuser)
-        m_ftp.deletepath.assert_called_once_with(scanid, deleteParent=True)
+        m_ftp.delete.assert_any_call('.', m_file1)
+        m_ftp.delete.assert_any_call('.', m_file2)

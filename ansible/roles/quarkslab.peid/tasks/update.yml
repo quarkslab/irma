@@ -1,0 +1,7 @@
+---
+
+- name: PEiD | Update Signatures
+  get_url:
+    url: "{{ peid_sig_url }}"
+    dest: "{{ sig_dir}}"
+

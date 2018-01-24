@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,26 +47,35 @@ if config.debug_enabled():
 # ===================
 
 @results_app.task(ignore_result=True, acks_late=True)
-def job_success(result, frontend_scanid, filename, probe):
+def job_success(result, file, probe):
     try:
-        log.info("scanid %s: filename:%s probe %s",
-                 frontend_scanid, filename, probe)
-        celery_frontend.scan_result(frontend_scanid, filename, probe, result)
+        log.info("file:%s probe %s",
+                 file, probe)
+        celery_frontend.scan_result(file, probe, result)
     except Exception as e:
         log.exception(e)
         raise job_success.retry(countdown=5, max_retries=3, exc=e)
 
 
 @results_app.task(ignore_result=True, acks_late=True)
-def job_error(parent_taskid, frontend_scan_id, filename, probename):
+def job_error(parent_taskid, file, probe):
     try:
-        log.info("scanid %s: filename:%s probe %s",
-                 frontend_scan_id, filename, probename)
+        log.info("file:%s probe %s", file, probe)
         with session_query() as session:
-            result = probe_ctrl.create_error_results(probename, "job error",
+            result = probe_ctrl.create_error_results(probe, "job error",
                                                      session)
-            celery_frontend.scan_result(frontend_scan_id, filename,
-                                        probename, result)
+            celery_frontend.scan_result(file, probe, result)
     except Exception as e:
         log.exception(e)
         raise job_error.retry(countdown=5, max_retries=3, exc=e)
+
+
+########################
+# command line launcher
+########################
+
+
+if __name__ == '__main__':
+    options = config.get_celery_options("brain.results_tasks",
+                                        "brain_results_app")
+    results_app.worker_main(options)

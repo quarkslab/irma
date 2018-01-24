@@ -9,4 +9,4 @@
   ignore_errors: yes
 
 - include: npm_compile.yml
-  when: "{{npm_wanted_version_installed.rc}} != 0"
+  when: npm_wanted_version_installed.rc != 0

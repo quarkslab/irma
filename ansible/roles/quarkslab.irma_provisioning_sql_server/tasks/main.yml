@@ -1,0 +1,13 @@
+---
+
+- name: Install tools for PostgreSQL support
+  apt:
+    name: "postgresql-server-dev-{{postgresql_version}}"
+    state: present
+
+- name: Enable postgreSQL at boot
+  service: name=postgresql enabled=yes
+  become: yes
+
+- include: hosts.yml
+

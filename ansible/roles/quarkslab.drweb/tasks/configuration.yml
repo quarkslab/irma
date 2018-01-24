@@ -1,20 +1,28 @@
 ---
 
-- name: Dr Web | Checking licence file
-  fail:
-    msg: "Please ensure that 'drweb_license_file' is set in your host_vars or group_vars"
-  when: drweb_license_file is not defined
+# - name: Dr Web | Checking licence file
+#   fail:
+#     msg: "Please ensure that 'drweb_license_file' is set in your host_vars or group_vars"
+#   when: drweb_license_file is not defined
 
-- name: Dr Web | Installing license key
-  copy:
-    src: "{{ drweb_license_file }}"
-    dest: /etc/opt/drweb.com
-    owner: root
-    group: root
-    mode: 0644
-  become: yes
-  notify:
-    - Restart DrWeb Daemon
+# - name: Dr Web | Installing license key
+#   copy:
+#     src: "{{ drweb_license_file }}"
+#     dest: /etc/opt/drweb.com
+#     owner: root
+#     group: root
+#     mode: 0644
+#   become: yes
+#   notify:
+#     - Restart DrWeb Daemon
+
+- name: Dr Web | Ask demo licence
+  command: drweb-ctl license --GetDemo
+  when: drweb_license_key  is not defined
+
+- name: Dr Web | Add license key
+  command: drweb-ctl license --GetRegistered "{{ drweb_license_key }}"
+  when: drweb_license_key  is  defined
 
 - name: Configure DrWeb ini file
   ini_file:

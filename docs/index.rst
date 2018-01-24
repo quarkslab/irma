@@ -14,6 +14,7 @@ it at will.
    automated/index.rst
    manual/index.rst
    migration/index.rst
+   evolution/index.rst
    references/index.rst
    faq/index.rst
    resources/index.rst

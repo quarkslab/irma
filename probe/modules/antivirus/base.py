@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,8 @@ import re
 import os
 import sys
 import glob
-import locale
 
 from subprocess import Popen, PIPE
-from lib.common.hash import sha256sum
 
 log = logging.getLogger(__name__)
 
@@ -60,6 +58,7 @@ class Antivirus(object):
         # scan pattern-matching
         self._scan_patterns = []
         self._scan_results = dict()
+        self._virus_database_version = None
         self._is_windows = sys.platform.startswith('win')
 
     # ====================
@@ -80,7 +79,7 @@ class Antivirus(object):
             raise ValueError("scan_patterns not defined")
         # build the command to be executed and run it
         if isinstance(paths, list):
-            paths = map(os.path.abspath, paths)
+            paths = list(map(os.path.abspath, paths))
         else:
             paths = os.path.abspath(paths)
         cmd = self.scan_cmd(paths)
@@ -110,20 +109,12 @@ class Antivirus(object):
         cmdarray = cmd.split()
         # execute command with popen, clean up outputs
         pd = Popen(cmdarray, stdout=PIPE, stderr=PIPE)
-        raw_stdout, stderr = map(lambda x: x.strip() if x.strip() else None,
-                                 pd.communicate())
+
+        stdout, stderr = [x.strip() if x.strip() else
+                             None for x in pd.communicate()]
         retcode = pd.returncode
-        if raw_stdout is not None and sys.platform.startswith('win'):
-            # get local encoding
-            local_encoding = sys.__stdout__.encoding
-            if local_encoding is None:
-                local_encoding = locale.getpreferredencoding()
-            # decode local encoding of stdout
-            stdout = raw_stdout.decode(local_encoding)
-        else:
-            stdout = raw_stdout
         # return tuple (retcode, out, err)
-        return (retcode, stdout, stderr)
+        return retcode, stdout, stderr
 
     @staticmethod
     def locate(file, paths=None, syspath=True):
@@ -132,21 +123,24 @@ class Antivirus(object):
         search_paths = search_paths.split(os.pathsep) if search_paths else []
         # append additionnal paths
         if paths:
-            paths = [paths] if isinstance(paths, basestring) else list(paths)
+            paths = [paths] if isinstance(paths, str) else list(paths)
             search_paths.extend(paths)
         # search path using glob to support meta-characters
         results = []
-        search_paths = map(lambda p: os.path.join(p, file), search_paths)
+        search_paths = [os.path.join(p, file) for p in search_paths]
         for path in search_paths:
             results.extend(glob.glob(path))
         # convert to absolute paths
-        return map(os.path.abspath, results) if results else []
+        path = list(map(os.path.abspath, results)) if results else []
+        return path
 
     def check_scan_results(self, paths, results):
         log.debug("scan results for {0}: {1}".format(paths, results))
         # create clean entries for all paths
         # TODO: add more info
         self._scan_results[paths] = None
+        # convert path to bytes for comparison
+        bpaths = bytes(paths, "utf8")
         # unpack results and uniformize return code
         retcode, stdout, stderr = results
         if self._scan_retcodes[self.ScanResult.INFECTED](retcode):
@@ -182,8 +176,8 @@ class Antivirus(object):
                             # NOTE: as 'filename' does not correspond exactly
                             # to the filename parsed from the output, we need
                             # to inverse the conditions.
-                            if paths.lower() in filename or \
-                               os.path.relpath(paths.lower()) in filename:
+                            if bpaths.lower() in filename or \
+                               os.path.relpath(bpaths.lower()) in filename:
                                 name = match.group('name')
                                 # NOTE: get first result, ignore others if
                                 # binary is packed.
@@ -218,7 +212,15 @@ class Antivirus(object):
     @property
     def version(self):
         if not self._version:
-            self._version = self.get_version()
+            try:
+                self._version = self.get_version()
+            except Exception as e:
+                log.error(
+                    "Exception raised by AV {} while getting its version."
+                    " exception: {}".format(self.name, e))
+            finally:
+                if not self._version:
+                    self._version = "unavailable"
         return self._version
 
     @property
@@ -227,7 +229,7 @@ class Antivirus(object):
             self._database = self.get_database()
             # NOTE: Expecting to have only files, thus filtering folders
             if self._database:
-                self._database = filter(os.path.isfile, self._database)
+                self._database = list(filter(os.path.isfile, self._database))
         return self._database
 
     @property
@@ -254,6 +256,12 @@ class Antivirus(object):
     def scan_results(self):
         return self._scan_results
 
+    @property
+    def virus_database_version(self):
+        if not self._virus_database_version:
+            self._virus_database_version = self.get_virus_database_version()
+        return self._virus_database_version
+
     # ==========================================
     #  Antivirus methods (need to be overriden)
     # ==========================================
@@ -276,4 +284,8 @@ class Antivirus(object):
 
     def get_scan_args(self):
         """return the scan arguments"""
+        return None
+
+    def get_virus_database_version(self):
+        """return the version of the Virus Database of the Antivirus"""
         return None

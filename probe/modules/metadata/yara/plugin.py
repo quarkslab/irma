@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,7 @@
 import os
 import sys
 
-from ConfigParser import SafeConfigParser
+from configparser import ConfigParser
 from datetime import datetime
 
 from lib.common.utils import timestamp
@@ -59,7 +59,7 @@ class YaraPlugin(PluginBase):
 
     def __init__(self, rule_path=None):
         # load default configuration file
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
         # override default values if specified

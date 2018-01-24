@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,37 +22,35 @@ from brain.helpers.celerytasks import route
 class TestProbeTasks(TestCase):
 
     @patch("brain.controllers.probetasks.async_call")
-    def test001_job_launch(self, m_async_call):
+    def test_job_launch(self, m_async_call):
         ftpuser = "ftpuser"
-        frontend_scanid = "frontend_scanid"
         filename = "filename"
         probe = "probe"
         task_id = "task_id"
         signature = module.results_app.signature
         hook_success = route(signature("brain.results_tasks.job_success",
-                                       [frontend_scanid, filename, probe]))
+                                       [filename, probe]))
         hook_error = route(signature("brain.results_tasks.job_error",
-                                     [frontend_scanid, filename, probe]))
-        module.job_launch(ftpuser, frontend_scanid, filename, probe, task_id)
+                                     [filename, probe]))
+        module.job_launch(ftpuser, filename, probe, task_id)
         m_async_call.assert_called_once_with(module.probe_app,
                                              "probe.tasks",
                                              "probe_scan",
-                                             args=(ftpuser, frontend_scanid,
-                                                   filename),
+                                             args=(ftpuser, filename),
                                              routing_key=probe,
                                              link=hook_success,
                                              link_error=hook_error,
                                              task_id=task_id)
 
     @patch("brain.controllers.probetasks.probe_app")
-    def test002_job_cancel(self, m_probe_app):
-        job_list = map(lambda x: str(x), range(10))
+    def test_job_cancel(self, m_probe_app):
+        job_list = [str(x) for x in range(10)]
         module.job_cancel(job_list)
         m_probe_app.control.revoke.assert_called_once_with(job_list,
                                                            terminate=True)
 
     @patch("brain.controllers.probetasks.async_call")
-    def test003_get_info(self, m_async_call):
+    def test_get_info(self, m_async_call):
         queue_name = "queue_name"
         module.get_info(queue_name)
         m_async_call.assert_called_once_with(module.probe_app,

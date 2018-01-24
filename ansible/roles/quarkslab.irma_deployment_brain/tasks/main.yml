@@ -1,37 +1,26 @@
 ---
 
 - set_fact:
-    brain_deployment_dir: "{{ brain_project_dir }}/{{ 'current' if irma_deployment_code_version == 'local' else 'releases/' + irma_deployment_release_name }}"
+    brain_deployment_dir: "{{ brain_project_dir }}/releases/{{ irma_deployment_release_name }}"
 
 - name: Ensure that releases directory has been created
   file:
     path: "{{ brain_deployment_dir }}"
     state: directory
+
+- name: Check if brain src archive is present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_brain_archive }}"
   when: irma_deployment_code_version != 'local'
 
-- name: Check if brain src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/brain.zip"
-  register: brain_src_archive
-  ignore_errors: True
+- name: Check if common src archive is present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
+  when: irma_deployment_code_version != 'local'
 
-- name: Gather brain src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../brain" && git archive -o "{{ playbook_dir }}/files/brain.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not brain_src_archive.stat.exists
-
-- name: Upload brain src archive
+- name: Deploy brain src archive
   unarchive:
-    src: files/brain.zip
+    src: "files/{{ irma_brain_archive }}"
     dest: "{{ brain_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
-
-- name: Check if common src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/common.zip"
-  register: common_src_archive
-  ignore_errors: True
-
-- name: Gather common src from current directory
-  local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/common.zip" "{{ irma_deployment_code_version }}"
-  when: irma_deployment_code_version != 'local' and not common_src_archive.stat.exists
 
 - name: Remove common symlink
   file:
@@ -47,7 +36,7 @@
 
 - name: Deploy brain-common src archive
   unarchive:
-    src: files/common.zip
+    src: "files/{{ irma_common_archive }}"
     dest: "{{ brain_deployment_dir }}/lib"
   when: irma_deployment_code_version != 'local'
 
@@ -77,7 +66,6 @@
     src: "{{ brain_deployment_dir }}"
     dest: "{{ brain_install_dir }}"
     state: link
-  when: irma_deployment_code_version != 'local'
 
 - name: Restart Supervisor services
   supervisorctl:

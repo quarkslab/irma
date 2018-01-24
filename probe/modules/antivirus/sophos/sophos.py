@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +51,7 @@ class Sophos(Antivirus):
         # NOTE: on windows, 0 can be returned even if the file is infected
         self._scan_retcodes[code_infected] = lambda x: x in [0, 1, 2, 3]
         self._scan_patterns = [
-            re.compile(r">>> Virus '(?P<name>.+)' found in file (?P<file>.+)",
+            re.compile(b">>> Virus '(?P<name>.+)' found in file (?P<file>.+)",
                        re.IGNORECASE)
         ]
 
@@ -66,7 +66,7 @@ class Sophos(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:

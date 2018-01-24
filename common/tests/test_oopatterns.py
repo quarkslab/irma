@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +49,7 @@ class CheckSingleton(unittest.TestCase):
 
         a = SingletonClass()
         b = SingletonClass()
-        self.assertEquals(id(a), id(b))
+        self.assertEqual(id(a), id(b))
 
     def test_inheritance_singleton(self):
         # define simple classes
@@ -61,7 +61,7 @@ class CheckSingleton(unittest.TestCase):
 
         a = SingletonClass()
         b = InheritedSingletonClass()
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
 
 # ====================================
@@ -84,12 +84,12 @@ class CheckParametricSingleton(unittest.TestCase):
         a = ParametricSingletonClass1()
         key = ParametricSingletonClass1.__name__
         b = ParametricSingletonClass1(depends_on=lambda x, *y, **z: key)
-        self.assertEquals(id(a), id(b))
+        self.assertEqual(id(a), id(b))
 
         a = ParametricSingletonClass2()
         key = ParametricSingletonClass2.__name__
         b = ParametricSingletonClass2(depends_on=lambda x, *y, **z: key)
-        self.assertEquals(id(a), id(b))
+        self.assertEqual(id(a), id(b))
 
     def test_inheritance_singleton(self):
         # define inner classes
@@ -111,12 +111,12 @@ class CheckParametricSingleton(unittest.TestCase):
         a = ParametricSingleton1()
         key = ParametricSingleton1.__name__
         b = InheritedParametricSingleton1(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
         a = ParametricSingleton2()
         key = ParametricSingleton2.__name__
         b = InheritedParametricSingleton2(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
     def test_inheritance_singleton_with_identical_param(self):
         # define inner classes
@@ -137,23 +137,23 @@ class CheckParametricSingleton(unittest.TestCase):
         # Perform checks
         a = ParametricSingleton1()
         b = InheritedParametricSingleton1()
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
         key = ParametricSingleton1.__name__
         a = ParametricSingleton1(depends_on=lambda x, *y, **z: key)
         # use the same key to check if the is not collision
         b = InheritedParametricSingleton1(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
         a = ParametricSingleton2()
         b = InheritedParametricSingleton2()
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
         key = ParametricSingleton2.__name__
         a = ParametricSingleton2(depends_on=lambda x, *y, **z: key)
         # use the same key to check if the is not collision
         b = InheritedParametricSingleton2(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
     def test_inheritance_singleton_with_different_param(self):
         # define inner classes
@@ -175,22 +175,22 @@ class CheckParametricSingleton(unittest.TestCase):
         a = ParametricSingleton1()
         key = InheritedParametricSingleton1.__name__
         b = InheritedParametricSingleton1(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
         a = ParametricSingleton1(depends_on=lambda x, *y, **z: x.__name__)
         key = InheritedParametricSingleton1.__name__
         b = InheritedParametricSingleton1(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
         a = ParametricSingleton2()
         key = InheritedParametricSingleton2.__name__
         b = InheritedParametricSingleton2(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
         a = ParametricSingleton2(depends_on=lambda x, *y, **z: x.__name__)
         key = InheritedParametricSingleton2.__name__
         b = InheritedParametricSingleton2(depends_on=lambda x, *y, **z: key)
-        self.assertNotEquals(id(a), id(b))
+        self.assertNotEqual(id(a), id(b))
 
     def test_depends_on_errors(self):
         # depends_on not defined
@@ -223,12 +223,12 @@ class CheckParametricSingleton(unittest.TestCase):
         # create a new key1
         obj2 = ParametricSingleton1(depends_on=lambda x, *y, **z: "key1")
         self.assertIsNotNone(obj2)
-        self.assertNotEquals(id(obj1), id(obj2))
+        self.assertNotEqual(id(obj1), id(obj2))
         # create a new key2 and check
         obj3 = ParametricSingleton1(depends_on=lambda x, *y, **z: "key2")
         self.assertIsNotNone(obj3)
-        self.assertEquals(id(obj1), id(obj3))
-        self.assertNotEquals(id(obj2), id(obj3))
+        self.assertEqual(id(obj1), id(obj3))
+        self.assertNotEqual(id(obj2), id(obj3))
 
 
 # ========================
@@ -259,33 +259,33 @@ class CheckPlugin(unittest.TestCase):
 
     def test_plugin_name(self):
         # define simple classes
-        self.assertEquals(PluginOne.plugin_name, "plugin1 name")
-        self.assertEquals(PluginTwo.plugin_name, "plugin2 name")
+        self.assertEqual(PluginOne.plugin_name, "plugin1 name")
+        self.assertEqual(PluginTwo.plugin_name, "plugin2 name")
 
     def test_plugin_version(self):
         # define simple classes
-        self.assertEquals(PluginOne.plugin_version, "plugin1 version")
-        self.assertEquals(PluginTwo.plugin_version, "plugin2 version")
+        self.assertEqual(PluginOne.plugin_version, "plugin1 version")
+        self.assertEqual(PluginTwo.plugin_version, "plugin2 version")
 
     def test_plugin_description(self):
         # define simple classes
-        self.assertEquals(PluginOne.plugin_description, "plugin1 description")
-        self.assertEquals(PluginTwo.plugin_description, "plugin2 description")
+        self.assertEqual(PluginOne.plugin_description, "plugin1 description")
+        self.assertEqual(PluginTwo.plugin_description, "plugin2 description")
 
     def test_plugin_dependencies(self):
         # define simple classes
-        self.assertEquals(PluginOne.plugin_dependencies, "plugin1 deps")
-        self.assertEquals(PluginTwo.plugin_dependencies, "plugin2 deps")
+        self.assertEqual(PluginOne.plugin_dependencies, "plugin1 deps")
+        self.assertEqual(PluginTwo.plugin_dependencies, "plugin2 deps")
 
     def test_plugins(self):
         # get plugins
-        self.assertEquals(len(PluginGroup.plugins), 2)
+        self.assertEqual(len(PluginGroup.plugins), 2)
         self.assertTrue(PluginOne in PluginGroup.plugins)
         self.assertTrue(PluginTwo in PluginGroup.plugins)
 
     def test_get_plugin(self):
-        self.assertEquals(PluginGroup.get_plugin("plugin1 name"), PluginOne)
-        self.assertEquals(PluginGroup.get_plugin("plugin2 name"), PluginTwo)
+        self.assertEqual(PluginGroup.get_plugin("plugin1 name"), PluginOne)
+        self.assertEqual(PluginGroup.get_plugin("plugin2 name"), PluginTwo)
         self.assertIsNone(PluginGroup.get_plugin("unknown"))
 
     def test_get_plugins(self):

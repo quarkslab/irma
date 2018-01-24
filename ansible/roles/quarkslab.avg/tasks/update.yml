@@ -1,0 +1,18 @@
+---
+
+# This is required since sometimes an update is already running and never finish
+- name: AVG | Kill a possibly running update
+  shell: pkill -9 avgupd
+  become: yes
+  ignore_errors: yes
+
+- name: AVG | Update database
+  shell: avgupdate
+  register: avgupdate_results
+  until: avgupdate_results.rc == 0 or avgupdate_results.rc == 2
+  retries: 5
+  delay: 30
+  failed_when: avgupdate_results.rc != 0 and avgupdate_results.rc != 2
+  become: yes
+  notify:
+    - AVG | Restart agvd service

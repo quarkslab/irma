@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ from lib.irma.common.exceptions import IrmaConfigurationError
 from lib.irma.configuration.ini import TemplatedConfiguration
 from lib.irma.ftp.sftp import IrmaSFTP
 from lib.irma.ftp.ftps import IrmaFTPS
+from lib.irma.common.utils import common_celery_options
 
 # ==========
 #  TEMPLATE
@@ -38,6 +39,11 @@ template_brain_config = {
         ('prefix', TemplatedConfiguration.string, "irma-brain :"),
         ('debug', TemplatedConfiguration.boolean, False),
         ('sql_debug', TemplatedConfiguration.boolean, False),
+    ],
+    'celery_options': [
+        ('concurrency', TemplatedConfiguration.integer, 0),
+        ('soft_time_limit', TemplatedConfiguration.integer, 300),
+        ('time_limit', TemplatedConfiguration.integer, 1500),
     ],
     'broker_brain': [
         ('host', TemplatedConfiguration.string, None),
@@ -108,6 +114,21 @@ brain_config = TemplatedConfiguration(cfg_file, template_brain_config)
 # ================
 #  Celery helpers
 # ================
+
+
+def get_celery_options(app, app_name):
+    concurrency = brain_config.celery_options.concurrency
+    soft_time_limit = brain_config.celery_options.soft_time_limit
+    time_limit = brain_config.celery_options.time_limit
+    options = common_celery_options(app,
+                                    app_name,
+                                    concurrency,
+                                    soft_time_limit,
+                                    time_limit)
+    #  disable prefetching behavior
+    options.append("-Ofair")
+    return options
+
 
 def _conf_celery(app, broker, backend=None, queue=None):
     app.conf.update(BROKER_URL=broker,

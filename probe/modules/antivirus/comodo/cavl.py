@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,8 @@
 import logging
 import re
 import os
+import os.path
+from datetime import datetime
 
 from ..base import Antivirus
 
@@ -40,8 +42,8 @@ class ComodoCAVL(Antivirus):
             "-s ",  # scan a file or directory
         )
         self._scan_patterns = [
-            re.compile(r'(?P<file>.*) ---\> Found .*,' +
-                       r' Malware Name is (?P<name>.*)', re.IGNORECASE)
+            re.compile(b'(?P<file>.*) ---> Found .*,' +
+                       b' Malware Name is (?P<name>.*)', re.IGNORECASE)
         ]
 
     # ==========================================
@@ -80,3 +82,9 @@ class ComodoCAVL(Antivirus):
         # provided paths to absolute paths first
         paths = os.path.abspath(paths)
         return super(ComodoCAVL, self).scan(paths)
+
+    def get_virus_database_version(self):
+        """Return the Virus Database version"""
+
+        d = os.path.getmtime("/opt/COMODO/scanners/bases.cav")
+        return datetime.fromtimestamp(d).strftime('%Y-%m-%d')

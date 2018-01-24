@@ -124,9 +124,7 @@
       $log.info('Scan was launched');
 
       this.status = constants.scanStatusCodes.STARTED;
-      this.api.scan.launch(this, params).then(function(response){
-        this.updateScan();
-      }.bind(this));
+      this.api.scan.launch(this, params);
     }
 
     function cancelScan() {

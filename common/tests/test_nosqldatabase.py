@@ -114,7 +114,7 @@ class TestNoSQLDatabaseObject(DbTestCase):
     def test_add_two_testobjects(self):
         t1 = TestObject()
         t2 = TestObject()
-        self.assertNotEquals(t1.id, t2.id)
+        self.assertNotEqual(t1.id, t2.id)
         self.assertEqual(self.collection.count(), 2)
 
     def test_check_type(self):
@@ -124,7 +124,7 @@ class TestNoSQLDatabaseObject(DbTestCase):
         self.assertEqual(type(t2.id), str)
         self.assertEqual(type(t2.list), list)
         self.assertEqual(type(t2.dict), dict)
-        self.assertEqual(type(t2.user), unicode)
+        self.assertEqual(type(t2.user), str)
         self.assertEqual(type(t2.date), datetime)
 
     def test_check_invalid_id(self):

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 Xvfb -ac :1 &
-export DISPLAY=localhost:1
+export DISPLAY=:1
 {{ eset_nod32_temp_dir }}/esetnod32.linux &
 sleep 1;
 WID=`xdotool search --name 'ESET NOD32.*'`

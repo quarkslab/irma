@@ -7,23 +7,36 @@
     - aria2
     - git
     - python-dev
+    - python3-dev
     - unzip
     - make
+    - python-setuptools
+    - python3-setuptools
+    - build-essential
+    - libssl-dev
+    - libffi-dev
 
-# Install python-pip (cause the debian version is only 1.1)
+  # Install python-pip (cause the debian version is only 1.1)
 - name: Downloading script get-pip.py
   get_url:
     url: 'https://bootstrap.pypa.io/get-pip.py'
     dest: '/tmp'
 
-- name: Installing pip
+- name: Installing pip for python2
   command: python get-pip.py
   args:
    chdir: '/tmp'
 
+- name: Installing pip for python3
+  command: python3 get-pip.py
+  args:
+   chdir: '/tmp'
 
 # Install virtualenv
 - name: Install virtualenv with pip
-  pip: name={{ item }} state=present
+  pip:
+    name: "{{ item }}"
+    state: present
+    executable: pip3
   with_items:
     - virtualenv

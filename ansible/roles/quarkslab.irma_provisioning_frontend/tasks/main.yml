@@ -1,13 +1,21 @@
 ---
 
+- name: add a fancy message to the box
+  copy:
+    src: rc.local
+    dest: /etc/rc.local
+    owner: root
+    group: root
+    mode: 0750
+
 - name: Ensure that directory Frontend project directory is present
   file:
     path: "{{ frontend_project_dir }}"
     state: directory
     owner: "{{ frontend_user }}"
     group: "{{ irma_server_group }}"
-    mode: 02750
-    recurse: "{{ vagrant_share|default(false) }}"
+    mode: "u=rwX,g=rX,o="
+    recurse: yes
 
 - name: Ensure that www-data can access IRMA files and certificates
   user:
@@ -15,21 +23,15 @@
     groups: "{{ irma_server_group }},{{ irma_cert_group }}"
     append: yes
 
-- name: Install tools for PostgreSQL support
-  apt:
-    name: "postgresql-server-dev-{{postgresql_version}}"
-    state: present
-
-- name: Enable postgreSQL at boot
-  service: name=postgresql enabled=yes
-  become: yes
-
 - pip:
     name: psycopg2
     state: present
+    executable: pip3
     extra_args: "{{ pip_extra_args | default('') }}"
 
 - include: openssl_configuration.yml
   when: frontend_openssl|default(False) == True
+
+- include: hosts.yml
 
 # vim: sw=2

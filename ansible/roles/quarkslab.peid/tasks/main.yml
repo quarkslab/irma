@@ -1,18 +1,3 @@
 ---
-- name: PEiD | Installing dependencies with pip
-  pip:
-    name: "{{ item }}"
-    state: "latest"
-  with_items:
-    - pefile
 
-- name: PEiD | Ensure that signatures directory has been created
-  file:
-    path: "{{ sig_dir }}"
-    state: directory
-
-- name: PEiD | Download Signatures
-  get_url:
-    url: "{{ peid_sig_url }}"
-    dest: "{{ sig_dir}}"
-
+- include: install.yml

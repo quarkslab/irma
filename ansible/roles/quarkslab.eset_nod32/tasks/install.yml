@@ -8,6 +8,7 @@
     - xvfb
     - xdotool
     - coreutils
+    - psmisc
 
 - name: EsetNod32 | Create temporary work dir
   file:

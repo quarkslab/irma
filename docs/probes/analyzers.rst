@@ -293,7 +293,7 @@ database by filling the configuration file located at ``modules/database/nsrl/co
 
         fatal error: Python.h: No such file or directory
 
-    Then you'll need to install python-dev package (for Debian like systems).
+    Then you'll need to install python3-dev package (for Debian like systems).
 
 .. note:: leveldb.LevelDBError: IO error: /home/irma/leveldb/file_db/LOCK: Permission denied
 
@@ -319,7 +319,7 @@ On GNU/Linux:
     [...]
 
 On Microsoft Windows, you need cygwin to successfully install the requirements
-(see `python-magic documentation
+(see `python3-magic documentation
 <https://github.com/ahupp/python-magic#dependencies>`_ for installation details):
 
 .. code-block:: none

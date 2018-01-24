@@ -48,7 +48,7 @@ class DomainManager(ParametricSingleton):
     def depends_on(cls, *args, **kwargs):
         # singleton is based on the uri, extracted from the libvirt handler
         handler = args[0][0]
-        if isinstance(handler, basestring):
+        if isinstance(handler, str):
             handler = ConnectionManager(handler)
         if isinstance(handler, ConnectionManager):
             handler = handler.connection
@@ -156,7 +156,7 @@ class DomainManager(ParametricSingleton):
         """
         if isinstance(connection, libvirt.virConnect):
             connection = connection.getURI()
-        if isinstance(connection, basestring):
+        if isinstance(connection, str):
             connection = ConnectionManager(connection)
 
         try:
@@ -218,7 +218,7 @@ class DomainManager(ParametricSingleton):
 
     def _lookupByName(self, name):
         # type checking
-        if not isinstance(name, basestring):
+        if not isinstance(name, str):
             reason = "'name' field type '{0}' is not valid".format(type(name))
             raise DomainManagerError(reason)
 
@@ -232,7 +232,7 @@ class DomainManager(ParametricSingleton):
 
     def _lookupByUUID(self, uuid):
         # type checking
-        if not isinstance(uuid, basestring) or not UUID.validate(uuid):
+        if not isinstance(uuid, str) or not UUID.validate(uuid):
             reason = "'uuid' field '{0}' is not valid".format(uuid)
             raise DomainManagerError(reason)
 
@@ -268,7 +268,7 @@ class DomainManager(ParametricSingleton):
             handle = tuple(handle)
         elif isinstance(domain, int):
             handle = self._lookupByID(domain)
-        elif isinstance(domain, basestring):
+        elif isinstance(domain, str):
             handle = self._lookupByName(domain)
             if not handle and UUID.validate(domain.lower()):
                 handle = self._lookupByUUID(domain)
@@ -328,7 +328,7 @@ class DomainManager(ParametricSingleton):
                 result = (state, descr)
             except libvirt.libvirtError as e:
                 log.error('{0}'.format(e))
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.state(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -362,7 +362,7 @@ class DomainManager(ParametricSingleton):
                 domain = domains.get('domain', None)
                 flags = domains.get('flags', flags)
                 result = self.start(domain, flags)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.start(self.lookup(domains), flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -403,7 +403,7 @@ class DomainManager(ParametricSingleton):
                 flags = domains.get('flags', flags)
                 force = domains.get('force', force)
                 result = self.stop(domain, force, flags)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.stop(self.lookup(domains), force, flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -437,7 +437,7 @@ class DomainManager(ParametricSingleton):
                 domain = domains.get('domain', None)
                 autostart = domains.get('autostart', autostart)
                 result = self.autostart(domain, autostart)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.autostart(self.lookup(domains), autostart)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -471,7 +471,7 @@ class DomainManager(ParametricSingleton):
                 domain = domains.get('domain', None)
                 autostart = domains.get('flags', flags)
                 result = self.reboot(domain, flags)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.reboot(self.lookup(domains), flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -505,7 +505,7 @@ class DomainManager(ParametricSingleton):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 result = self.reset(domain)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.reset(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -539,7 +539,7 @@ class DomainManager(ParametricSingleton):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 result = self.resume(domain)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.reset(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -573,7 +573,7 @@ class DomainManager(ParametricSingleton):
             if 'domain' in domains:
                 domain = domains.get('domain', None)
                 result = self.suspend(domain)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.suspend(self.lookup(domains))
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -623,7 +623,7 @@ class DomainManager(ParametricSingleton):
                 name = domains.get('name', None)
                 screen = domains.get('screen', screen)
                 result = self.screenshot(domain, name, screen)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.screenshot(self.lookup(domains), name, screen)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -664,7 +664,7 @@ class DomainManager(ParametricSingleton):
                 name = domains.get('name', name)
                 flags = domains.get('flags', flags)
                 result = self.coredump(domain, name, flags)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.coredump(self.lookup(domains), name, flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -700,7 +700,7 @@ class DomainManager(ParametricSingleton):
                 size = domains.get('size', size)
                 flags = domains.get('flags', flags)
                 result = self.memdump(domain, start, size, flags)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.memdump(self.lookup(domains), start, size, flags)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -749,7 +749,8 @@ class DomainManager(ParametricSingleton):
                     clone_dict['domain']['name'] = name
                     clone_dict['domain']['uuid'] = uuid
                     # change devices
-                    for type, dev in clone_dict['domain']['devices'].items():
+                    devices = clone_dict['domain']['devices']
+                    for type, dev in list(devices.items()):
                         if type == 'interface':
                             if isinstance(dev, list):
                                 interfaces = dev
@@ -785,7 +786,7 @@ class DomainManager(ParametricSingleton):
                 domain = domains.get('domain', None)
                 name = domains.get('name', None)
                 result = self.clone(domain, name)
-        elif isinstance(domains, (basestring, int)):
+        elif isinstance(domains, (str, int)):
             result = self.clone(self.lookup(domains), name)
         elif isinstance(domains, (list, tuple)):
             result = list()
@@ -819,7 +820,7 @@ class DomainManager(ParametricSingleton):
             # Destroy volumes
             orig_xml = machine.XMLDesc(libvirt.VIR_DOMAIN_XML_INACTIVE)
             orig_dict = xmltodict.parse(orig_xml)
-            for type, dev in orig_dict['domain']['devices'].items():
+            for type, dev in list(orig_dict['domain']['devices'].items()):
                 if not type == 'disk':
                     continue
                 disks = dev if isinstance(dev, list) else [dev]

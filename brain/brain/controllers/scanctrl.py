@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,21 +19,23 @@ import brain.controllers.probetasks as celery_probe
 import brain.controllers.ftpctrl as ftp_ctrl
 from lib.irma.common.utils import IrmaScanStatus
 from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+import config.parser as config
+from fasteners import interprocess_locked
 
+interprocess_lock_path = config.get_lock_path()
 log = logging.getLogger(__name__)
 
 
-def new(frontend_scan_id, user, nb_files, session):
+@interprocess_locked(interprocess_lock_path)
+def new(frontend_scan_id, user, session):
     try:
         scan = Scan.get_scan(frontend_scan_id, user.id, session)
-        scan.nb_files += nb_files
-        scan.update(['nb_files'], session)
     except IrmaDatabaseResultNotFound:
-        scan = Scan(frontend_scan_id, user.id, nb_files)
-        scan.save(session)
-    session.commit()
-    log.debug("scanid %s: user_id %s nb_files %s id %s",
-              frontend_scan_id, user.id, nb_files, scan.id)
+        scan = Scan(frontend_scan_id, user.id)
+        session.add(scan)
+        session.commit()
+    log.debug("scanid %s: user_id %s id %s",
+              frontend_scan_id, user.id, scan.id)
     return scan
 
 
@@ -44,16 +46,17 @@ def set_status(scan, status, session):
     session.commit()
 
 
+@interprocess_locked(interprocess_lock_path)
 def flush(scan, session):
     if scan.status == IrmaScanStatus.flushed:
         log.info("scan_id %s: already flushed", scan.scan_id)
         return
     log.debug("scan_id %s: flush scan %s", scan.scan_id, scan.id)
     ftpuser = scan.user.ftpuser
-    ftp_ctrl.flush_dir(ftpuser, scan.scan_id)
-    jobs = scan.jobs
-    log.debug("scan_id %s: delete %s jobs", scan.scan_id, len(jobs))
-    for job in jobs:
+    log.debug("Flushing files %s", scan.files)
+    ftp_ctrl.flush(ftpuser, scan.files)
+    log.debug("scan_id %s: delete %s jobs", scan.scan_id, len(scan.jobs))
+    for job in scan.jobs:
         session.delete(job)
     set_status(scan, IrmaScanStatus.flushed, session)
     return
@@ -61,17 +64,17 @@ def flush(scan, session):
 
 def launch(scan, jobs, session):
     ftpuser = scan.user.ftpuser
-    frontend_scanid = scan.scan_id
     for job in jobs:
-        filehash = job.filehash
+        filename = job.filename
         probename = job.probename
         task_id = job.task_id
-        celery_probe.job_launch(ftpuser, frontend_scanid, filehash,
+        celery_probe.job_launch(ftpuser, filename,
                                 probename, task_id)
     set_status(scan, IrmaScanStatus.launched, session)
     return
 
 
+@interprocess_locked(interprocess_lock_path)
 def cancel(scan, session):
     log.info("scanid %s: cancelling", scan.scan_id)
     status = IrmaScanStatus.label[scan.status]

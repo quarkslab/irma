@@ -1,0 +1,31 @@
+---
+
+- name: Kaspersky | Checking licence file
+  fail:
+    msg: "Please ensure that 'kaspersky_license_file' is set in your host_vars or group_vars"
+  when: kaspersky_license_file is not defined
+
+- name: Kaspersky | Create etc dir
+  file:
+    path: "{{kaspersky_etc_dir}}"
+    state: directory
+    mode: 0777
+  become: yes
+
+- name: Kaspersky | Upload conf
+  copy:
+    src: conf.txt
+    dest: "{{kaspersky_etc_dir}}"
+
+- name: Kaspersky | Upload license key
+  copy:
+    src: "{{kaspersky_license_file}}"
+    dest: "{{kaspersky_etc_dir}}/license.key"
+
+- name: Kaspersky| Installing license key
+  command: "{{kaspersky_bin}} --install-active-key {{kaspersky_etc_dir}}/license.key"
+  become: yes
+
+- name: Kaspersky| Configuration
+  command: "{{kaspersky_setup}} --auto-install {{kaspersky_etc_dir}}/conf.txt"
+  become: yes

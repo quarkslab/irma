@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,20 +18,23 @@ import shutil
 import tempfile
 import os
 import sys
-import uuid
 import config.parser as config
 import celery
 import logging
+import time
 
 from celery import Celery, current_task
 from celery.utils.log import get_task_logger
 from celery.exceptions import TimeoutError
 
 from lib.plugins import PluginManager
-from lib.common.utils import to_unicode
+from lib.common.utils import bytes_to_utf8
+from lib.irma.common.exceptions import IrmaTaskError
 
 from probe.controllers.braintasks import register_probe
 import probe.controllers.ftpctrl as ftp_ctrl
+
+RETRY_MAX_DELAY = 30
 
 ##############################################################################
 # celery application configuration
@@ -69,7 +72,7 @@ manager = PluginManager()
 manager.discover(plugin_path)
 
 # determine dynamically queues to connect to using plugin names
-probes = PluginManager().get_all_plugins()
+probes = manager.get_all_plugins()
 if not probes:
     log.error("No probe found, exiting application")
     sys.exit(1)
@@ -119,21 +122,23 @@ probe_app.conf.update(
 for p in probes:
     # register probe on Brain
     log.info('Register probe %s' % p.plugin_name)
-    try_nb = 1
+    delay = 1
     while True:
         try:
-            try_nb += 1
             task = register_probe(p.plugin_name,
                                   p.plugin_display_name,
                                   p.plugin_category,
                                   p.plugin_mimetype_regexp)
             task.get(timeout=10)
             break
-        except TimeoutError:
-            log.info("Registering on brain try %s", format(try_nb))
+        except (TimeoutError, IrmaTaskError):
+            log.error("Registering on brain failed retry in %s seconds...",
+                      delay)
+            time.sleep(delay)
+            delay = min([2*delay, RETRY_MAX_DELAY])
             pass
 
-# instanciation of probes and queue creation
+# instantiation of probes and queue creation
 probes = dict((probe.plugin_name, probe()) for probe in probes)
 
 
@@ -141,7 +146,7 @@ probes = dict((probe.plugin_name, probe()) for probe in probes)
 # declare celery tasks
 ##############################################################################
 
-def handle_output_files(results, frontend, scanid):
+def handle_output_files(results, frontend, filename):
     # First check if there is some output files
     output_files = results.pop('output_files', None)
     if output_files is None:
@@ -150,7 +155,8 @@ def handle_output_files(results, frontend, scanid):
     file_list = output_files.get('file_list', None)
     if tmpdir is None or file_list is None:
         return
-    uploaded_files = ftp_ctrl.upload_files(frontend, tmpdir, file_list, scanid)
+    uploaded_files = ftp_ctrl.upload_files(frontend, tmpdir, file_list,
+                                           filename)
     log.debug("handle_output_files: uploaded %s", ",".join(file_list))
     results['uploaded_files'] = uploaded_files
     shutil.rmtree(tmpdir)
@@ -172,41 +178,35 @@ def register():
 
 
 @probe_app.task(acks_late=True)
-def probe_scan(frontend, scanid, filename):
+def probe_scan(frontend, filename):
     try:
         tmpname = None
         # retrieve queue name and the associated plugin
         routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
-        log.debug("scanid %s: filename %s probe %s", scanid, filename, probe)
+        log.debug("filename %s probe %s", filename, probe)
         (fd, tmpname) = tempfile.mkstemp()
         os.close(fd)
-        ftp_ctrl.download_file(frontend, scanid, filename, tmpname)
+        ftp_ctrl.download_file(frontend, filename, tmpname)
         results = probe.run(tmpname)
-        handle_output_files(results, frontend, scanid)
-        return to_unicode(results)
+        handle_output_files(results, frontend, filename)
+        return bytes_to_utf8(results)
     except Exception as e:
         log.exception(e)
         raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
     finally:
         # Some AV always delete suspicious file
         if tmpname is not None and os.path.exists(tmpname):
-            log.debug("scanid %s: filename %s probe %s removing tmp_name %s",
-                      scanid, filename, probe, tmpname)
+            log.debug("filename %s probe %s removing tmp_name %s",
+                      filename, probe, tmpname)
             os.remove(tmpname)
 
-##############################################################################
-# command line launcher, only for debug purposes
-##############################################################################
+
+########################
+# command line launcher
+########################
 
 if __name__ == '__main__':
-    probe_app.worker_main([
-        '--app=probe.tasks:probe_app',  # app instance to use
-        '-l', 'info',             # logging level
-        '-P', 'threads',          # use threadpool
-        '--without-gossip',       # do not subscribe to other workers events.
-        '--without-mingle',       # do not synchronize with
-                                  # other workers at startup
-        # '--without-heartbeat',    # do not send event heartbeats
-        '-nprobe-{0}'.format(uuid.uuid4())   # unique id
-    ])
+    options = config.get_celery_options("probe.tasks",
+                                        "probe_app")
+    probe_app.worker_main(options)

@@ -1,0 +1,21 @@
+---
+
+- include: paths.yml
+
+- name: Uploading script
+  win_copy:
+    src: mcafee-installer.py
+    dest: "{{ remote_install_script }}"
+
+## Update
+- name: Install McAfee signatures
+  raw: "py -3 {{ remote_install_script }} -v update -u {{ mcafee_win_url_signatures }} -p {{ mcafee_win_install_path }}"
+
+- name: Decompress McAfee signatures
+  raw: '{{ mcafee_win_install_path }}/scan.exe /DECOMPRESS'
+
+## Clean
+- name: Delete script
+  win_file:
+    path:  "{{ remote_install_script }}"
+    state: "absent"

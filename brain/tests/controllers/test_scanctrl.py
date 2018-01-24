@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,46 +41,33 @@ class TestScanctrl(TestCase):
         self.frontend_scanid = "frontend_scanid"
         self.nb_files = randint(50, 100)
         self.scan = Scan(frontend_scanid=self.frontend_scanid,
-                         user_id=self.user.id,
-                         nb_files=self.nb_files)
+                         user_id=self.user.id)
         self.scan.user = self.user
 
     def tearDown(self):
         pass
 
     @patch("brain.controllers.scanctrl.Scan")
-    def test001_new_scan_existing(self, m_scan):
+    def test_new_scan_existing(self, m_scan):
         m_scan.get_scan.return_value = self.scan
-        old_nb_files = self.scan.nb_files
-        new_nb_files = randint(150, 200)
-        scan = module.new(self.frontend_scanid, self.user, new_nb_files,
-                          self.session)
-        self.session.query().filter().update.assert_called()
-        m_scan().save.assert_not_called()
-        self.assertNotEqual(self.nb_files, new_nb_files)
+        scan = module.new(self.frontend_scanid, self.user, self.session)
+        self.session.add.assert_not_called()
         self.assertEqual(scan, self.scan)
-        self.assertEqual(scan.nb_files, new_nb_files+old_nb_files)
 
     @patch("brain.controllers.scanctrl.Scan")
-    def test002_new_file_not_existing(self, m_scan):
+    def test_new_file_not_existing(self, m_scan):
         m_scan.get_scan.side_effect = IrmaDatabaseResultNotFound()
-        old_nb_files = self.scan.nb_files
-        new_nb_files = randint(150, 200)
-        scan = module.new(self.frontend_scanid, self.user, new_nb_files,
-                          self.session)
-        self.session.query().filter().update.assert_not_called()
-        m_scan().save.assert_called()
-        self.assertNotEqual(self.nb_files, new_nb_files)
-        self.assertEqual(scan.nb_files, m_scan().nb_files)
+        module.new(self.frontend_scanid, self.user, self.session)
+        self.session.add.assert_called()
 
-    def test003_set_status_existing(self):
+    def test_set_status_existing(self):
         self.assertEqual(self.scan.status, IrmaScanStatus.empty)
-        status = choice(IrmaScanStatus.label.keys())
+        status = choice(list(IrmaScanStatus.label.keys()))
         module.set_status(self.scan, status, self.session)
         self.assertEqual(self.scan.status, status)
         self.session.commit.assert_called_once()
 
-    def test004_set_status_not_existing(self):
+    def test_set_status_not_existing(self):
         self.assertEqual(self.scan.status, IrmaScanStatus.empty)
         status = "whatever"
         with self.assertRaises(ValueError):
@@ -88,43 +75,41 @@ class TestScanctrl(TestCase):
         self.assertEqual(self.scan.status, IrmaScanStatus.empty)
         self.session.commit.assert_not_called()
 
-    def test008_flush_already_flushed(self):
+    def test_flush_already_flushed(self):
         self.scan.status = IrmaScanStatus.flushed
         module.flush(self.scan, self.session)
         self.session.delete.assert_not_called()
 
     @patch("brain.controllers.scanctrl.ftp_ctrl")
-    def test009_flush(self, m_ftp_ctrl):
+    def test_flush(self, m_ftp_ctrl):
         self.assertNotEqual(self.scan.status, IrmaScanStatus.flushed)
         j1, j2 = MagicMock(), MagicMock()
         self.scan.jobs = [j1, j2]
         module.flush(self.scan, self.session)
-        m_ftp_ctrl.flush_dir.assert_called_once_with(self.ftpuser,
-                                                     self.frontend_scanid)
+        m_ftp_ctrl.flush.assert_called_once_with(self.ftpuser,
+                                                 self.scan.files)
         self.session.delete.assert_any_call(j1)
         self.session.delete.assert_any_call(j2)
         self.assertEqual(self.scan.status, IrmaScanStatus.flushed)
 
     @patch("brain.controllers.scanctrl.celery_probe")
-    def test010_scan_launch(self, m_celery_probe):
+    def test_scan_launch(self, m_celery_probe):
         j1, j2 = MagicMock(), MagicMock()
         self.scan.jobs = [j1, j2]
         module.launch(self.scan, self.scan.jobs, self.session)
         m_celery_probe.job_launch.assert_any_call(self.ftpuser,
-                                                  self.frontend_scanid,
-                                                  j1.filehash,
+                                                  j1.filename,
                                                   j1.probename,
                                                   j1.task_id)
         m_celery_probe.job_launch.assert_any_call(self.ftpuser,
-                                                  self.frontend_scanid,
-                                                  j2.filehash,
+                                                  j2.filename,
                                                   j2.probename,
                                                   j2.task_id)
         self.assertEqual(self.scan.status, IrmaScanStatus.launched)
 
     @patch("brain.controllers.scanctrl.flush")
     @patch("brain.controllers.scanctrl.celery_probe")
-    def test011_scan_cancel(self, m_celery_probe, m_flush):
+    def test_scan_cancel(self, m_celery_probe, m_flush):
         j1, j2 = MagicMock(), MagicMock()
         self.scan.jobs = [j1, j2]
         module.cancel(self.scan, self.session)
@@ -134,7 +119,7 @@ class TestScanctrl(TestCase):
 
     @patch("brain.controllers.scanctrl.flush")
     @patch("brain.controllers.scanctrl.celery_probe")
-    def test012_scan_cancel_no_jobs(self, m_celery_probe, m_flush):
+    def test_scan_cancel_no_jobs(self, m_celery_probe, m_flush):
         self.scan.jobs = []
         module.cancel(self.scan, self.session)
         m_celery_probe.job_cancel.assert_not_called()

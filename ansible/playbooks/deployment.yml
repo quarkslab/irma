@@ -1,8 +1,11 @@
 ---
 - include: check.yml
 
+- include: packaging.yml
+  when: irma_deployment_code_version != 'local' and irma_code_archive_generation == True
+
 - name: Frontend deployment
-  hosts: [ frontend, frontend-demo]
+  hosts: frontend
   remote_user: "{{ frontend_user }}"
   roles:
     - { role: quarkslab.irma_deployment_frontend, tags: deployment_frontend }

@@ -16,7 +16,7 @@
   with_items: "{{ win_packages }}"
 
 - name: Install Windows exe packages
-  win_command: "{{remote_tmp}}\\{{ item.name }} {{ item.install_args}}"
+  win_shell: "Start-Process {{remote_tmp}}\\{{ item.name }} -ArgumentList {{ item.install_args}} -Wait"
   with_items: "{{ win_packages }}"
   when: item.type == 'exe'
 
@@ -38,18 +38,13 @@
   raw: $ENV:PATH
   register: path_out
 
-- name: Add Python27 to PATH
-  raw: SETX /M PATH "$ENV:PATH;C:\Python27;C:\Python27\Scripts"
-  when: path_out.stdout.find('Python27') == -1
-
 # Installing pip packages
-
 - name: Download get-pip.py for pip
   win_get_url:
     url: "https://bootstrap.pypa.io/get-pip.py"
     dest: "{{ remote_tmp }}/get-pip.py"
 
 - name: Run get-pip.py for pip
-  raw: python "{{ remote_tmp }}/get-pip.py"
+  raw: py -3 "{{ remote_tmp }}/get-pip.py"
 
 - include: pip.yml

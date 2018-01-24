@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,25 +21,13 @@ import brain.controllers.frontendtasks as module
 class TestFrontendTasks(TestCase):
 
     @patch("brain.controllers.frontendtasks.async_call")
-    def test001_scan_launched(self, m_async_call):
-        frontend_scanid = "frontend_scanid"
-        scan_request = "scan_request"
-        module.scan_launched(frontend_scanid, scan_request)
-        m_async_call.assert_called_once_with(module.frontend_app,
-                                             "frontend.tasks",
-                                             "scan_launched",
-                                             args=[frontend_scanid,
-                                                   scan_request])
-
-    @patch("brain.controllers.frontendtasks.async_call")
-    def test002_scan_result(self, m_async_call):
-        frontend_scanid = "frontend_scanid"
+    def test_scan_result(self, m_async_call):
         filename = "filename"
         probe = "probe"
         result = "result"
-        module.scan_result(frontend_scanid, filename, probe, result)
+        module.scan_result(filename, probe, result)
         m_async_call.assert_called_once_with(module.frontend_app,
-                                             "frontend.tasks",
+                                             "frontend_app",
                                              "scan_result",
-                                             args=[frontend_scanid, filename,
+                                             args=[filename,
                                                    probe, result])

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ class FProt(Antivirus):
             "--verbose=0 "  # Report infections only.
         )
         self._scan_patterns = [
-            re.compile(r'\<(?P<name>.*)\>\s+(?P<file>.*)', re.IGNORECASE)
+            re.compile(b'<(?P<name>.*)>\s+(?P<file>.*)', re.IGNORECASE)
         ]
 
     # ==========================================
@@ -56,7 +56,7 @@ class FProt(Antivirus):
             cmd = self.build_cmd(self.scan_path, '--version')
             retcode, stdout, stderr = self.run_cmd(cmd)
             if not retcode:
-                matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                     stdout,
                                     re.IGNORECASE)
                 if matches:

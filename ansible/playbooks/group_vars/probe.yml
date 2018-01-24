@@ -52,7 +52,7 @@ probe_deployment_configs:
 ## Supervisor Role
 supervisor_programs_probe:
   - name: probe_app
-    command: "{{ probe_venv_dir }}/bin/celery worker -A probe.tasks --hostname=probe_app.%%h {{default_celery_options}}"
+    command: "{{ probe_venv_dir }}/bin/python -m probe.tasks"
     directory: "{{ probe_install_dir }}"
     user: "{{ irma_user }}"
     numprocs: 1
@@ -83,7 +83,7 @@ supervisor_programs_probe:
 #   - section: LinuxSpider
 #     option: Start
 #     value: No
-# drweb_license_file: files/drweb32.key
+# drweb_license_key: XXXX-XXXX-XXXX-XXXX
 
 # Avast! licence file - Put your licence file here
 # avast_license_file: files/license.avastlic
@@ -92,3 +92,6 @@ supervisor_programs_probe:
 # sophos_archive_name: sav-linux-free-9.9.tgz
 # sophos_update_username: ABCDEFGH
 # sophos_update_password: 01s21z54ee
+
+#Kaspersky license file - Put your license file here
+# kaspersky_license_file: files/license.key

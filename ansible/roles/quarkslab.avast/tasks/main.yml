@@ -1,3 +1,9 @@
 ---
 
-- include: debian.yml
+- name: Avast | Check version
+  command: scan -v
+  ignore_errors: yes
+  register: avast_present
+
+- include: install.yml
+  when: avast_present | failed

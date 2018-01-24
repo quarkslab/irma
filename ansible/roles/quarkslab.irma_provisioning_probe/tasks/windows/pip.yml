@@ -1,6 +1,6 @@
 ---
 
 - name: Installing pip packages
-  raw: python -m easy_install {{ item }}
+  raw: pip install {{ item }} {{ pip_extra_args | default('') }}
   with_items:
     - virtualenv

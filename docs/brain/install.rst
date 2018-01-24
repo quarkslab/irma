@@ -14,9 +14,8 @@ Pre-requisites
 We assume that you have a command line interface on your system with
 the following tools installed:
 
-* python 2.7.x (see `Python for Windows <https://www.python.org/downloads/windows/>`_
-  for prebuild MSI installer)
-* python-pip (see `Install pip <https://pip.pypa.io/en/latest/installing.html>`_
+* python 3.4.x and newer
+* python3-pip (see `Install pip <https://pip.pypa.io/en/latest/installing.html>`_
   for the recommended way to install pip package manager)
 
 Furthermore, we assume that you have created an user ``irma`` that will be used
@@ -50,7 +49,7 @@ option of ``cp`` (``-L``):
 
 We need few dependencies for future steps:
 
-    $ sudo apt-get install python-virtualenv python-dev
+    $ sudo apt-get install python3-virtualenv python3-dev
 
 
 then, we need to install python dependencies manually in a virtualenv :

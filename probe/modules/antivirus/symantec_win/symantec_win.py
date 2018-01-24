@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +40,7 @@ class SymantecWin(Antivirus):
             "/ScanFile "  # scan command
         )
         self._scan_patterns = [
-            re.compile(r"([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]+).*",
+            re.compile(b"([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]+).*",
                        re.IGNORECASE)
         ]
         pdata_path_parts = [os.environ.get('PROGRAMDATA', ''),
@@ -57,7 +57,7 @@ class SymantecWin(Antivirus):
         """return the version of the antivirus"""
         result = None
         if self._pdata_path:
-            matches = re.search(r'(?P<version>\d+(\.\d+)+)',
+            matches = re.search(b'(?P<version>\d+(\.\d+)+)',
                                 self._pdata_path,
                                 re.IGNORECASE)
             if matches:

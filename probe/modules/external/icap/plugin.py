@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 QuarksLab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,8 @@
 import os
 import sys
 
-from ConfigParser import SafeConfigParser, NoOptionError
-from Cookie import Cookie
+from configparser import ConfigParser, NoOptionError
+from http.cookies import SimpleCookie
 from datetime import datetime
 
 from lib.common.utils import timestamp
@@ -60,7 +60,7 @@ class ICAPPlugin(PluginBase):
 
     def __init__(self, **kwargs):
         # load default configuration file
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
         self.conn_kwargs = self.retrieve_options(config, kwargs,
@@ -118,7 +118,7 @@ class ICAPPlugin(PluginBase):
             threat = resp.get_icap_header('X-Infection-Found')
             if threat is not None:
                 # only return the human readable threat name
-                cookie = Cookie(threat)
+                cookie = SimpleCookie(threat)
                 kv = cookie.get('Threat')
                 if kv is not None:
                     threat = kv.value

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2013-2016 Quarkslab.
+# Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,10 +44,9 @@ class NSRLSerializer(object):
     def loads(cls, value):
         value = json.loads(value)
         if isinstance(value[0], list):
-            result = map(lambda col:
-                         dict((field, col[index])
+            result = [dict((field, col[index])
                               for index, field in
-                              enumerate(cls.fields)), value)
+                              enumerate(cls.fields)) for col in value]
         else:
             result = dict((field, value[index])
                           for index, field in
@@ -63,19 +62,14 @@ class NSRLSerializer(object):
 
         try:
             if isinstance(value, list):
-                result = json.dumps(map(lambda row:
-                                        map(lambda key: row.get(key),
-                                            cls.fields),
-                                        value))
+                result = json.dumps([[row.get(key) for key in cls.fields] for row in value])
             else:
-                result = json.dumps(map(lambda col:
-                                        value.get(col),
-                                        cls.fields))
+                result = json.dumps([value.get(col) for col in cls.fields])
         except Exception:
             if isinstance(value, list):
                 for row in value:
-                    for colkey, colval in row.items():
-                        if not isinstance(colval, unicode):
+                    for colkey, colval in list(row.items()):
+                        if not isinstance(colval, str):
                             charset = detect_charset(colval)
                             if charset is None:
                                 charset = 'unicode-escape'
@@ -83,14 +77,10 @@ class NSRLSerializer(object):
                                 row[colkey] = colval.decode(charset)
                             except:
                                 row[colkey] = colval.decode('unicode-escape')
-                result = json.dumps(map(lambda row:
-                                        map(lambda key:
-                                            row.get(key),
-                                            cls.fields),
-                                        value))
+                result = json.dumps([[row.get(key) for key in cls.fields] for row in value])
             else:
-                for colkey, colval in value.items():
-                    if not isinstance(colval, unicode):
+                for colkey, colval in list(value.items()):
+                    if not isinstance(colval, str):
                         # try to use chardet to find encoding
                         charset = detect_charset(colval)
                         if charset is None:
@@ -100,8 +90,7 @@ class NSRLSerializer(object):
                         except:
                             # treat false positive from chardet
                             value[colkey] = colval.decode('unicode-escape')
-                result = json.dumps(map(lambda col: value.get(col),
-                                        cls.fields))
+                result = json.dumps([value.get(col) for col in cls.fields])
         return result
 
 
@@ -124,19 +113,15 @@ class NSRLFileSerializer(NSRLSerializer):
 
         try:
             if isinstance(value, list):
-                result = json.dumps(map(lambda row:
-                                        map(lambda key: row.get(key),
-                                            cls.fields),
-                                        value))
+                result = json.dumps([[row.get(key) for key in cls.fields] for row in value])
             else:
-                result = json.dumps(map(lambda col: value.get(col),
-                                        cls.fields))
+                result = json.dumps([value.get(col) for col in cls.fields])
         except Exception:
             # failed to json it, bruteforce encoding
             if isinstance(value, list):
                 for row in value:
                     fname = row['FileName']
-                    if not isinstance(fname, unicode):
+                    if not isinstance(fname, str):
                         charset = detect_charset(fname)
                         charset = 'unicode-escape' if not charset else charset
                         try:
@@ -144,13 +129,10 @@ class NSRLFileSerializer(NSRLSerializer):
                         except:
                             # treat false positive from chardet
                             row['FileName'] = fname.decode('unicode-escape')
-                result = json.dumps(map(lambda col:
-                                        map(lambda key: col.get(key),
-                                            cls.fields),
-                                        value))
+                result = json.dumps([[col.get(key) for key in cls.fields] for col in value])
             else:
                 fname = value['FileName']
-                if not isinstance(fname, unicode):
+                if not isinstance(fname, str):
                     # try to use chardet to find encoding
                     charset = detect_charset(fname)
                     charset = 'unicode-escape' if not charset else charset
@@ -159,8 +141,7 @@ class NSRLFileSerializer(NSRLSerializer):
                     except:
                         # treat false positive from chardet
                         value['FileName'] = fname.decode('unicode-escape')
-                result = json.dumps(map(lambda col: value.get(col),
-                                        cls.fields))
+                result = json.dumps([value.get(col) for col in cls.fields])
         return result
 
 
@@ -225,7 +206,7 @@ class NSRLLevelDict(LevelDictSerialized, LevelDBSingleton):
                     # made in memory and __setitem__ is never called
                     db[key] = value + [row]
             if (index % log_threshold) == 0:
-                print("Current progress: {0}".format(index))
+                print(("Current progress: {0}".format(index)))
 
         return db
 
@@ -328,10 +309,10 @@ class NSRL(object):
                     entries[key][value] = database[value]
                 else:
                     subkeys = set()
-                    for subkey, subitem in entries[where].items():
+                    for subkey, subitem in list(entries[where].items()):
                         if not isinstance(subitem, list):
                             subitem = [subitem]
-                        subkeys.update(map(lambda x: x[key], subitem))
+                        subkeys.update([x[key] for x in subitem])
                     for subkey in subkeys:
                         entries[key][subkey] = database[subkey]
         except:
@@ -372,7 +353,7 @@ if __name__ == '__main__':
                                                  block_cache_size=1 << 30,
                                                  max_open_files=3000)
         value = database.get(kwargs['key'])
-        print("key {0}: value {1}".format(kwargs['key'], value))
+        print(("key {0}: value {1}".format(kwargs['key'], value)))
 
     def nsrl_resolve(**kwargs):
         # TODO: handle in a better way NRSL object
@@ -381,7 +362,7 @@ if __name__ == '__main__':
         kwargs['nsrl_os_db'] = kwargs['os']
         kwargs['nsrl_mfg_db'] = kwargs['manufacturer']
         handle = NSRL(**kwargs)
-        print(pprint.pformat(handle.lookup_by_sha1(kwargs['sha1'])))
+        print((pprint.pformat(handle.lookup_by_sha1(kwargs['sha1']))))
 
     ##########################################################################
     # arguments

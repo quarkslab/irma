@@ -94,6 +94,7 @@ Vagrant.configure("2") do |config|
           libvirt.volume_cache = "writeback"
           libvirt.autostart = true
           libvirt.keymap = "fr"
+          libvirt.random_hostname = true
 
           if server.has_key?('extra_storage')
             libvirt.storage :file, :size => server['extra_storage']
