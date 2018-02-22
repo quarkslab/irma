@@ -8,6 +8,7 @@ Create Date: 2017-07-07 08:28:33.876751
 
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '17cafa6e8016'
@@ -127,8 +128,7 @@ def upgrade():
     op.create_table('irma_fileSuricata',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('context',
-                              sa.dialects.postgresql.json.JSONB(
-                                      astext_type=sa.Text()),
+                              postgresql.JSONB(astext_type=sa.Text()),
                               nullable=True),
                     sa.ForeignKeyConstraint(['id'], ['irma_fileExt.id'], ),
                     sa.PrimaryKeyConstraint('id')
