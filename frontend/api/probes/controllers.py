@@ -30,5 +30,5 @@ def list():
     log.debug("probe list: %s", "-".join(probelist))
     return {
         "total": len(probelist),
-        "data": probelist
+        "data": sorted(probelist)
     }
