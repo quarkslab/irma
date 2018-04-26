@@ -346,3 +346,115 @@ class TestScansRoutes(TestCase):
         m_Scan.load_from_ext_id.side_effect = Exception()
         with self.assertRaises(Exception):
             api_scans.get_results(scan_id)
+
+    def test_status_msg(self):
+        res = api_scans.status_msg(True, 1, 1)
+        self.assertIsNotNone(res, msg=None)
+        res = api_scans.status_msg(False, 1, 3)
+        self.assertIsNotNone(res, msg=None)
+
+    def test_report_msg(self):
+        res = api_scans.report_msg(1, 1)
+        self.assertIsNotNone(res, msg=None)
+        res = api_scans.report_msg(1, 3)
+        self.assertIsNotNone(res, msg=None)
+
+    def test_status_code(self):
+        res = api_scans.status_code(True, 1, 1)
+        self.assertIsNotNone(res, msg=None)
+        res = api_scans.status_code(False, 1, 3)
+        self.assertIsNotNone(res, msg=None)
+
+    def test_report_code(self):
+        res = api_scans.report_code(1, 1)
+        self.assertIsNotNone(res, msg=None)
+        res = api_scans.report_code(1, 3)
+        self.assertIsNotNone(res, msg=None)
+
+    @patch("api.scans.controllers.File")
+    @patch("irma.common.base.utils.IrmaScanStatus")
+    @patch("api.scans.controllers.FileExt")
+    @patch("api.scans.controllers.probe_ctrl")
+    @patch("api.scans.controllers.add_files_v2", return_value={})
+    @patch("api.scans.controllers.launch_v1", return_value={})
+    def test_launch_vtapi_v2_ok(self, m_launch_v1, m_add_file,
+                                m_probe_ctrl, m_FileExt, m_IrmaScanStatus,
+                                m_File):
+        m_file = MagicMock()
+        m_request = MagicMock()
+        force = False
+        mimetype_filtering = False
+        resubmit_files = False
+        probes = ["probe1", "probe2"]
+        m_body = {
+            "files": ["file_ext1"],
+            "options": {
+                "probes": probes,
+                "force": force,
+                "mimetype_filtering": mimetype_filtering,
+                "resubmit_files": resubmit_files,
+            }
+        }
+        m_file_ext = MagicMock()
+        m_file_ext.scan = None
+        m_FileExt.load_from_ext_id.return_value = m_file_ext
+        result = api_scans.launch_vtapi_v2(m_request, m_body)
+        m_launch_v1.assert_called_once()
+        m_add_file.assert_called_once()
+
+    @patch("api.scans.controllers.FileExt")
+    def test_launch_vtapi_v2_error(self, m_FileExt):
+        m_request = MagicMock()
+        exception = Exception("test")
+        m_request.remote_addr.side_effect = exception
+        force = False
+        mimetype_filtering = False
+        resubmit_files = False
+        probes = ["probe1", "probe2"]
+        m_body = {
+            "files": ["file_ext1"],
+            "options": {
+                "probes": probes,
+                "force": force,
+                "mimetype_filtering": mimetype_filtering,
+                "resubmit_files": resubmit_files,
+            }
+        }
+        m_file_ext = MagicMock()
+        m_file_ext.scan = None
+        m_FileExt.load_from_ext_id.return_value = m_file_ext
+        with self.assertRaises(Exception):
+            api_scans.launch_vtapi_v2(m_request, m_body)
+
+
+    @patch("api.scans.controllers.rescan_files")
+    def test_rescan(self, m_rescan):
+        m_request = MagicMock()
+        m_body = MagicMock()
+        m_rescan(m_request, m_body)
+        m_rescan.assert_called_with(m_request, m_body)
+
+    @patch("api.scans.controllers.get_report")
+    def test_report(self, m_report):
+        scan_id = "ecb6abd9-e25c-4103-808d-e7b15fdd7a34"
+        m_request = MagicMock()
+        m_report(m_request, scan_id)
+        self.assertTrue(True)
+
+    @patch("api.scans.controllers.File")
+    @patch("api.scans.controllers.FileExt")
+    @patch("api.scans.controllers.IrmaScanStatus")
+    @patch("api.scans.controllers.Scan")
+    def test_add_files_v2_ok(self, m_scan, m_IrmaScanStatus,
+                             m_FileExt, m_File):
+        m_file = MagicMock()
+        m_request = MagicMock()
+        scan_id = "whatever"
+        data = b"DATA"
+        filename = "filename"
+        m_file.filename = filename
+        m_file.file = io.BytesIO(data)
+        m_request.get_param_as_list.return_value = [m_file]
+        result = api_scans.add_files_v2(m_request, scan_id)
+        m_scan.load_from_ext_id.assert_called_once_with(scan_id, self.session)
+        self.assertIsScan(result)

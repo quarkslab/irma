@@ -33,6 +33,7 @@ from lib.common.utils import decode_utf8
 from lib.irma.common.utils import IrmaScanStatus
 from .models import Scan
 from .schemas import ScanSchema
+import time
 
 scan_schema = ScanSchema()
 log = logging.getLogger(__name__)
@@ -229,6 +230,63 @@ def launch_v2(request, body):
 
     return scan_schema.dump(scan).data
 
+@hug.post("/scan" , versions=2)
+def launch_vtapi_v2(request, body,
+                    probes: comma_separated_list=None,
+                    force: smart_boolean=False,
+                    mimetype_filtering: smart_boolean=True,
+                    resubmit_files: smart_boolean=True,
+                    ):
+    """ Launch a scam after adding the file Version 2.
+        The request should be performed using a POST request method
+        The sample curl command is as below
+        {
+            curl -v -F 'file=@/home/vagrant/test.log' \
+              http://127.0.0.1/vtapi/v2/file/scan/
+            options:
+               probes: list of probes or None for all available, }
+               force: boolean (default False),
+               mimetype_filtering: boolean (default True),
+               resubmit_files: boolean (default True),
+        }
+    """
+    log.info("Entering version2 scan method")
+    session = db.session
+    ip = request.remote_addr
+    scan = Scan(compat.timestamp(), ip)
+    session.add(scan)
+    log.info("Session created and scan added")
+    scan.set_status(IrmaScanStatus.empty)
+    session.commit()
+    log.info("scan %s: created", scan.external_id)
+    msg = str(type(scan.external_id))
+    msg = str(scan.external_id)
+    scan_id = uuid(scan.external_id)
+    log.info(str(scan_id))
+    add_files_v2(request, scan_id)
+    launch_v1(scan_id, probes, force)
+    time.sleep(5)
+    session.refresh(scan)
+    if not scan.files:
+        file_md5 = 'File not present'
+        file_sha256 = 'File not present'
+    else:
+        file_md5 = scan.files[0].md5
+        file_sha256 = scan.files[0].sha256
+    results_check = scan_schema.dump(scan).data
+    return {
+        "response_code": status_code(results_check['force'],
+                                     results_check['probes_finished'],
+                                     results_check['probes_total']),
+        "scan_id": str(scan_id),
+        "sha256": file_sha256,
+        "permalink": "http;//frontend.irma/scan/"+str(scan_id),
+        "verbose_msg": status_msg(results_check['force'],
+                                  results_check['probes_finished'],
+                                  results_check['probes_total']),
+        "resource": file_md5
+    }
+
 
 @hug.post("/{scan_id}/cancel")
 def cancel(scan_id: uuid):
@@ -298,3 +356,125 @@ def get_results(scan_id: uuid):
     schema = FileExtSchema(exclude=('probe_results',
                                     'file_infos'))
     return schema.dump(scan.files_ext, many=True).data
+
+def add_files_v2(request, scan_id: uuid):
+    log.debug("scan %s: add_files", scan_id)
+    session = db.session
+    scan = Scan.load_from_ext_id(scan_id, session)
+    IrmaScanStatus.filter_status(scan.status,
+                                 IrmaScanStatus.empty,
+                                 IrmaScanStatus.ready)
+    req_dict = request.get_param_as_list('file')
+    if len(req_dict) == 0:
+        raise HTTPInvalidParam("Empty list", "files")
+    for f in req_dict:
+        filename = decode_utf8(f.filename)
+        data = f.file
+        log.debug("scan %s: add filename: %s", scan_id, filename)
+        file = File.get_or_create(data, session)
+        (path, name) = ntpath.split(filename)
+        if path != "":
+            file_ext = FileCli(file, filename)
+        else:
+            file_ext = FileWeb(file, filename)
+        session.add(file_ext)
+        file_ext.scan = scan
+        session.commit()
+    scan.set_status(IrmaScanStatus.ready)
+    session.commit()
+    return scan_schema.dump(scan).data
+
+
+def status_code(context_force, probes_finished, probes_total):
+    try:
+        if context_force is True:
+            return 0
+        if probes_finished == probes_total and probes_total != 0:
+            return 1
+        if probes_finished != probes_total and probes_total != 0:
+            return 0
+        else:
+            return -1
+    except Exception as e:
+        return -1
+
+def status_msg(context_force, probes_finished, probes_total):
+    try:
+        if context_force is True:
+            return "Scan request successfully queued, " \
+                "come back later for the report"
+        if probes_finished == probes_total and probes_total != 0:
+            return "Scan finished, scan information available"
+        if probes_finished != probes_total and probes_total != 0:
+            return "Scan request successfully queued, " \
+                "come back later for the report"
+        else:
+            return "Scan can't be queued, there is an error"
+    except Exception as e:
+        return "Scan can't be queued, there is an error"
+
+@hug.post("/report", versions=2)
+def get_report(request, scan_id: hug.types.uuid):
+    """Retrieve the report from the provided resource"""
+    session = db.session
+    scan = Scan.load_from_ext_id(scan_id, session)
+    scan_schema = ScanSchema()
+    result_list = []
+    log.info(scan_schema.dump(scan).data)
+    for item in scan.files_ext:
+        for res in item.probe_results:
+            result_list.append(res.get_details())
+    positive_count = 0
+    for r in result_list:
+        if r['results'] is not None:
+            positive_count += 1
+    final_list = []
+    for d in result_list:
+        res_dict = {k: d[k] for k in ('results', 'duration',
+                                      'virus_database_version',
+                                      'version', 'type')}
+        final_dict = {d['name']: res_dict}
+        final_list.append(final_dict.copy())
+    return {
+        "scan_id": str(scan_id),
+        "scans": final_list,
+        "total": scan.probes_total,
+        "resource": scan.files[0].md5,
+        "sha256": scan.files[0].sha256,
+        "scan_date": time.strftime('%Y-%m-%d %H:%M:%S',
+                                   time.localtime(scan.date)),
+        "md5": scan.files[0].md5,
+        "sha1": scan.files[0].sha1,
+        "response_code": report_code(scan.probes_finished, scan.probes_total),
+        "verbose_msg": report_msg(scan.probes_finished, scan.probes_total),
+        "positives": positive_count,
+    }
+
+def report_code(probes_finished, probes_total):
+    try:
+        if probes_finished == probes_total and probes_total != 0:
+            return 1
+        if probes_finished != probes_total and probes_total != 0:
+            return 0
+        else:
+            return -1
+    except Exception as e:
+        return -1
+
+
+def report_msg(probes_finished, probes_total):
+    try:
+        if probes_finished == probes_total and probes_total != 0:
+            return "Scan finished, scan information embedded in this object"
+        if probes_finished != probes_total and probes_total != 0:
+            return "Scan request successfully queued, " \
+                "come back later for the report"
+        else:
+            return "Scan can't be queued, there is an error"
+    except Exception as e:
+        return "Scan can't be queued, there is an error"
+
+
+@hug.post("/rescan", versions=2)
+def rescan_files(request, body):
+    return launch_vtapi_v2(request, body, None, True)

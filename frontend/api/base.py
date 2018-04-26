@@ -45,6 +45,7 @@ api.extend(files_ext_routes, '/files_ext')
 api.extend(scans_routes, '/scans')
 api.extend(tags_routes, '/tags')
 api.extend(about_routes, '/about')
+api.extend(scans_routes, '/file')
 
 # v1.1 legacy
 api.extend(files_ext_routes, '/results')
