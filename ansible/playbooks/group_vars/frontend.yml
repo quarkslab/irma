@@ -195,6 +195,26 @@ nginx_sites:
         rewrite ^/api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
+    - |
+      location /vtapi {
+        if ($request_method ~* "(GET|POST)") {
+          add_header "Access-Control-Allow-Origin"  *;
+        }
+
+        if ($request_method = OPTIONS) {
+          add_header "Access-Control-Allow-Origin"  *;
+          add_header "Access-Control-Allow-Methods" "GET, POST, OPTIONS, HEAD";
+          add_header "Access-Control-Allow-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Con$
+          add_header "Access-Control-Expose-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Co$
+          return 200;
+        }
+
+        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+        include uwsgi_params;
+        rewrite ^/vtapi/v1.1/(.+) /v1/$1 break;
+        rewrite ^/vtapi/(.+) /$1 break;
+        uwsgi_pass 127.0.0.1:8081;
+      }
     - location /server-status {
         stub_status;
         access_log off;
