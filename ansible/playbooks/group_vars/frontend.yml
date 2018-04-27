@@ -195,7 +195,8 @@ nginx_sites:
         rewrite ^/api/(.+) /$1 break;
         uwsgi_pass 127.0.0.1:8081;
       }
-    - location /vtapi {
+    - |
+      location /vtapi {
         if ($request_method ~* "(GET|POST)") {
           add_header "Access-Control-Allow-Origin"  *;
         }
