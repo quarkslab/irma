@@ -1,12 +1,5 @@
 ---
 
-- name: Disable Windows Updates
-  win_regedit:
-    key: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU\
-    value: NoAutoUpdate
-    data: 00000001
-    datatype: dword
-
 - name: Disable WinDefender AntiSpyware
   win_regedit:
     key: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\
@@ -24,5 +17,5 @@
 
 - name: Configure HOSTS file
   raw: powershell -command "ac -Encoding UTF8 $env:SYSTEMROOT/system32/drivers/etc/hosts '{{ hostvars[item].ansible_eth1.ipv4.address }} {{ item }}'"
-  when: hostvars[item].ansible_eth1 is defined and hostvars[item].ansible_eth1.ipv4.address is defined
+  when: hostvars[item].ansible_eth1 is defined and hostvars[item].ansible_eth1.ipv4 is defined and hostvars[item].ansible_eth1.ipv4.address is defined
   with_items: "{{ groups['all'] }}"

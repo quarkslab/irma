@@ -5,7 +5,7 @@
     - import_tasks: check.yml
 
 - name: Common tasks to execute on all Linux servers
-  hosts: all:!windows:!localhost
+  hosts: frontend:brain:probe:sql-server:!windows
   become: yes
   roles:
     - { role: quarkslab.apt, tags: apt }
@@ -152,6 +152,11 @@
   roles:
     - { role: quarkslab.fsecure, tags: fsecure }
 
+- name: Kaspersky provisioning
+  hosts: kaspersky
+  roles:
+    - { role: quarkslab.kaspersky, tags: kaspersky }
+
 - name: TrID provisioning
   hosts: trid
   roles:
@@ -189,5 +194,10 @@
   hosts: lief
   roles:
     - { role: quarkslab.lief, tags: lief }
+
+- name: Dummy provisionning
+  hosts: dummy
+  roles:
+    - { role: quarkslab.dummy, tags: dummy }
 
 # vim: sw=2

@@ -15,13 +15,11 @@
 
 import uuid
 import re
-import random
 import collections
 from time import mktime
 import urllib.request
 import urllib.parse
 import urllib.error
-from functools import reduce
 
 
 class UUID(object):
@@ -44,36 +42,6 @@ class UUID(object):
     @classmethod
     def normalize(cls, val):
         return str(uuid.UUID(val))
-
-
-class MAC(object):
-
-    pattern = re.compile(r'[0-9a-f]{2}(:[0-9a-f]{2}){5}', re.IGNORECASE)
-
-    @classmethod
-    def validate(cls, val):
-        if MAC.pattern.match(val.strip()):
-            return True
-        return False
-
-    @classmethod
-    def generate(cls, oui=None):
-        if not oui or \
-            len(oui) != 3 or \
-            not reduce(lambda x, y: x and y,
-                       [isinstance(x, int) for x in oui]):
-            # Xensource, Inc.
-            oui = [0x00, 0x16, 0x3e]
-        mac = []
-        mac.extend([x % 255 for x in oui])
-        mac.extend([random.randint(0x00, 0x7f),
-                    random.randint(0x00, 0xff),
-                    random.randint(0x00, 0xff)])
-        return ':'.join(["%02x" % x for x in mac])
-
-    @classmethod
-    def normalize(cls, val):
-        return str(val)
 
 
 def timestamp(date):

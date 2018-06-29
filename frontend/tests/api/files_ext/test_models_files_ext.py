@@ -1,13 +1,15 @@
 import os
 from unittest import TestCase
 from random import randint
-from mock import MagicMock, patch
+from mock import MagicMock, patch, call
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from api.files_ext.models import FileExt
+from api.probe_results.models import ProbeResult
 from irma.common.base.exceptions import IrmaDatabaseError
 from irma.common.base.exceptions import IrmaDatabaseResultNotFound
 from irma.common.base.utils import IrmaProbeType
+import api.files_ext.models as module
 
 
 class TestFileExt(TestCase):
@@ -28,17 +30,17 @@ class TestFileExt(TestCase):
         m_filter = m_session.query(FileExt).filter
         m_filter.is_called_once_with(FileExt.external_id == ext_id)
 
-    def test_load_from_ext_id_raises(self):
+    def test_load_from_ext_id_raises_noresult(self):
         m_session = MagicMock()
         ext_id = "whatever"
-        m_session.query.side_effect = NoResultFound()
+        m_session.query().filter().one.side_effect = NoResultFound()
         with self.assertRaises(IrmaDatabaseResultNotFound):
             FileExt.load_from_ext_id(ext_id, m_session)
 
-    def test_load_from_ext_id_raises(self):
+    def test_load_from_ext_id_raises_multiple(self):
         m_session = MagicMock()
         ext_id = "whatever"
-        m_session.query.side_effect = MultipleResultsFound()
+        m_session.query().filter().one.side_effect = MultipleResultsFound()
         with self.assertRaises(IrmaDatabaseError):
             FileExt.load_from_ext_id(ext_id, m_session)
 
@@ -84,31 +86,38 @@ class TestFileExt(TestCase):
 
     def test_probes_finished(self):
         pr1, pr2 = MagicMock(), MagicMock()
-        pr1.doc = None
-        pr2.doc = "whatever"
+        pr1.status = None
+        pr2.status = 1
         self.fw.probe_results = [pr1, pr2]
         self.assertEqual(self.fw.probes_finished, 1)
 
     def test_probes_finished_all_none(self):
         pr1, pr2 = MagicMock(), MagicMock()
-        pr1.doc = None
-        pr2.doc = None
+        pr1.status = None
+        pr2.status = None
         self.fw.probe_results = [pr1, pr2]
         self.assertEqual(self.fw.probes_finished, 0)
 
     def test_status_0(self):
         pr1, pr2 = MagicMock(), MagicMock()
-        pr1.doc = {'type': IrmaProbeType.antivirus, 'status': 0}
-        pr2.doc = {'type': IrmaProbeType.antivirus, 'status': 0}
+        pr1.type, pr1.status = IrmaProbeType.antivirus, 0
+        pr2.type, pr2.status = IrmaProbeType.antivirus, 0
         self.fw.probe_results = [pr1, pr2]
         self.assertEqual(self.fw.status, 0)
 
     def test_status_1(self):
         pr1, pr2 = MagicMock(), MagicMock()
-        pr1.doc = {'type': IrmaProbeType.antivirus, 'status': 0}
-        pr2.doc = {'type': IrmaProbeType.antivirus, 'status': 1}
+        pr1.type, pr1.status = IrmaProbeType.antivirus, 0
+        pr2.type, pr2.status = IrmaProbeType.antivirus, 1
         self.fw.probe_results = [pr1, pr2]
         self.assertEqual(self.fw.status, 1)
+
+    def test_status_2(self):
+        pr1, pr2 = MagicMock(), MagicMock()
+        pr1.type, pr1.status = IrmaProbeType.antivirus, None
+        pr2.type, pr2.status = IrmaProbeType.antivirus, 1
+        self.fw.probe_results = [pr1, pr2]
+        self.assertEqual(self.fw.status, None)
 
     def test_get_probe_results_as_list(self):
         pr1, pr2 = MagicMock(), MagicMock()
@@ -123,13 +132,24 @@ class TestFileExt(TestCase):
 
     def test_get_probe_results_as_dict(self):
         pr1, pr2 = MagicMock(), MagicMock()
+        pr3 = MagicMock()
         pr1.doc = "whatever"
         pr2.doc = "something"
-        self.fw.probe_results = [pr1, pr2]
+        pr3.status = None
+        self.fw.probe_results = [pr1, pr2, pr3]
         self.assertIsInstance(self.fw.get_probe_results(results_as="dict"),
                               dict)
         pr1.get_details.assert_called_with(True)
         pr2.get_details.assert_called_with(True)
+        pr3.get_details.assert_not_called()
+
+    def test_get_probe_results_errors1(self):
+        pr1, pr2 = MagicMock(), MagicMock()
+        pr1.doc = "whatever"
+        pr2.doc = "something"
+        self.fw.probe_results = [pr1, pr2]
+        with self.assertRaises(ValueError):
+            self.fw.get_probe_results(results_as="unknown")
 
     def test_fetch_probe_results(self):
         m_pr = MagicMock()
@@ -182,3 +202,128 @@ class TestFileExt(TestCase):
         m_pr2.name = probename2
         self.fw.probe_results = [m_pr1, m_pr2]
         self.assertCountEqual(self.fw.probes, ["probename1", "probename2"])
+
+    @patch("api.files_ext.models.inspect")
+    def test_other_results(self, m_inspect):
+        m_session = MagicMock()
+        ret = MagicMock()
+        ret.session = m_session
+        m_inspect.return_value = ret
+        res = self.fw.other_results
+        self.assertEqual(res,
+                         m_session.query().join().filter().order_by().all())
+
+    @patch("api.files_ext.models.log")
+    def test_hook_finished_submitter_id(self, m_log):
+        self.scan.date = "scan_date"
+        payload = {'submitter_id': "my_kiosk_id"}
+        fw = module.FileKiosk(self.file, self.name, payload)
+        fw.scan = self.scan
+        fw.file.sha256 = "sha256"
+        fw.name = "filename"
+        fw.file.timestamp_first_scan = "ts_first_scan"
+        fw.file.timestamp_last_scan = "ts_last_scan"
+        fw.file.size = "size"
+        pr1 = MagicMock()
+        fw.probe_results = [pr1]
+        pr1.name = "probe1"
+        pr1.type = "antivirus"
+        pr1.status = "status1"
+        pr1.duration = "duration1"
+        pr1.results = "results1"
+        pr1.get_details.return_value = pr1
+        fw.hook_finished()
+
+        expected1 = "[files_results] date: %s file_id: %s scan_id: %s "
+        expected1 += "status: %s probes: %s submitter: %s submitter_id: %s"
+        call1 = call(expected1,
+                     'scan_date',
+                     fw.external_id,
+                     fw.scan.external_id, 'Clean', 'probe1',
+                     'kiosk', 'my_kiosk_id')
+
+        expected2 = '[av_results] date: %s av_name: "%s" '
+        expected2 += "status: %d virus_name: \"%s\" file_id: %s "
+        expected2 += "file_sha256: %s scan_id: %s duration: %f "
+        expected2 += "submitter: %s submitter_id: %s"
+        call2 = call(expected2,
+                     'scan_date',
+                     'probe1',
+                     'status1',
+                     'results1',
+                     fw.external_id,
+                     'sha256', fw.scan.external_id, 'duration1',
+                     'kiosk', 'my_kiosk_id')
+
+        m_log.info.assert_has_calls([call1])
+        m_log.info.assert_has_calls([call2])
+
+    @patch("api.files_ext.models.log")
+    def test_hook_finished(self, m_log):
+        self.scan.date = "scan_date"
+        self.fw.scan = self.scan
+        self.fw.file.sha256 = "sha256"
+        self.fw.name = "filename"
+        self.fw.file.timestamp_first_scan = "ts_first_scan"
+        self.fw.file.timestamp_last_scan = "ts_last_scan"
+        self.fw.file.size = "size"
+        pr1, pr2 = MagicMock(), MagicMock()
+        self.fw.probe_results = [pr1, pr2]
+        pr1.name = "probe1"
+        pr1.type = "antivirus"
+        pr1.status = "status1"
+        pr1.duration = "duration1"
+        pr1.results = "results1"
+        pr2.name = "probe2"
+        pr2.type = "metadata"
+        pr2.status = "status2"
+        pr2.duration = None
+        pr2.results = "results2"
+        pr1.get_details.return_value = pr1
+        pr2.get_details.return_value = pr2
+        self.fw.hook_finished()
+
+        expected1 = "[files_results] date: %s file_id: %s scan_id: %s "
+        expected1 += "status: %s probes: %s submitter: %s submitter_id: %s"
+        call1 = call(expected1,
+                     'scan_date',
+                     self.fw.external_id,
+                     self.fw.scan.external_id, 'Clean', 'probe1, probe2',
+                     'unknown', 'undefined')
+
+        expected2 = '[av_results] date: %s av_name: "%s" '
+        expected2 += "status: %d virus_name: \"%s\" file_id: %s "
+        expected2 += "file_sha256: %s scan_id: %s duration: %f "
+        expected2 += "submitter: %s submitter_id: %s"
+        call2 = call(expected2,
+                     'scan_date',
+                     'probe1',
+                     'status1',
+                     'results1',
+                     self.fw.external_id,
+                     'sha256', self.fw.scan.external_id, 'duration1',
+                     'unknown', 'undefined')
+
+        expected3 = '[probe_results] date: %s name: "%s" '
+        expected3 += "status: %d file_sha256: %s file_id: %s "
+        expected3 += "duration: %f submitter: %s submitter_id: %s"
+        call3 = call(expected3,
+                     'scan_date',
+                     'probe2',
+                     'status2',
+                     self.fw.external_id,
+                     'sha256', 0, 'unknown', 'undefined')
+
+        m_log.info.assert_has_calls([call1])
+        m_log.info.assert_has_calls([call2])
+        m_log.info.assert_has_calls([call3])
+
+    def test_FileProbeResult(self):
+        pr = ProbeResult("doc", "name", "status", "type")
+        fe = module.FileProbeResult(self.file, self.name, pr, "depth")
+        self.assertEqual(fe.probe_result_parent, pr)
+        self.assertEqual(fe.depth, "depth")
+
+    def test_FileSuricata(self):
+        fe = module.FileSuricata(self.file, self.name, "context")
+        self.assertEqual(fe.context, "context")

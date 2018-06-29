@@ -1,0 +1,9 @@
+---
+
+- include_vars: puppeteer.yml
+
+- name: Install Puppeteer dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ puppeteer_apt_requirements }}"

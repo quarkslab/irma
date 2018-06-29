@@ -95,10 +95,8 @@ def scan_launch_file_ext(file_ext_id):
         try:
             file_ext = FileExt.load_from_ext_id(file_ext_id, session)
             scan_id = file_ext.scan.external_id
-            # Have some information of file/probe before scanning
-            for probe in file_ext.probes:
-                log.info("scan %s: file %s send to %s",
-                         scan_id, file_ext_id, probe)
+            log.debug("scan %s: launch scan for file_ext: %s",
+                      scan_id, file_ext_id)
             ftp_ctrl.upload_file(file_ext_id, file_ext.file.path)
             # launch new celery scan task on brain
             celery_brain.scan_launch(file_ext_id, file_ext.probes, scan_id)
@@ -110,16 +108,26 @@ def scan_launch_file_ext(file_ext_id):
             log.exception(e)
 
 
-@frontend_app.task(acks_late=True)
-def scan_result(file_ext_id, probe, result):
+@frontend_app.task(bind=True, acks_late=True)
+def scan_result(self, file_ext_id, probe, result):
+    max_retries = 3
     try:
-        log.debug("result for file_ext: %s probe: %s",
-                  file_ext_id, probe)
+        log.debug("file_ext: %s result from probe %s retry: %d",
+                  file_ext_id, probe, self.request.retries)
         scan_ctrl.handle_output_files(file_ext_id, result)
         scan_ctrl.set_result(file_ext_id, probe, result)
     except IrmaDatabaseError as e:
         log.exception(e)
-        raise scan_result.retry(countdown=2, max_retries=3, exc=e)
+        raise self.retry(countdown=2, max_retries=max_retries, exc=e)
+
+
+@frontend_app.task(bind=True, acks_late=True)
+def scan_result_error(self, parent_taskid, file_ext_id, probe, result):
+    log.debug("Error result file_ext: %s probe %s", file_ext_id, probe)
+    result["error"] = "Error raised during result insert"
+    result["status"] = -1
+    scan_ctrl.handle_output_files(file_ext_id, result, error_case=True)
+    scan_ctrl.set_result(file_ext_id, probe, result)
 
 
 @frontend_app.task()
@@ -161,7 +169,7 @@ def clean_fs_size():
 # command line launcher
 ########################
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     options = config.get_celery_options("api.tasks.frontend_app",
                                         "frontend_app")
     frontend_app.worker_main(options)

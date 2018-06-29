@@ -21,22 +21,22 @@ import config.parser as config
 
 class TestFtpCtrl(TestCase):
 
-    @patch("config.parser.IrmaSFTP")
-    def test_flush(self, m_IrmaSFTP):
+    @patch("config.parser.IrmaSFTPv2")
+    def test_flush(self, m_IrmaSFTPv2):
         m_ftp = MagicMock()
-        m_IrmaSFTP().__enter__.return_value = m_ftp
+        m_IrmaSFTPv2().__enter__.return_value = m_ftp
         ftpuser = "ftpuser"
         m_file1 = "m_file1"
         m_file2 = "m_file2"
         files = [m_file1, m_file2]
         module.flush(ftpuser, files)
         conf_ftp = config.brain_config['ftp_brain']
-        m_IrmaSFTP.assert_any_call(conf_ftp.host,
-                                   conf_ftp.port,
-                                   conf_ftp.auth,
-                                   conf_ftp.key_path,
-                                   conf_ftp.username,
-                                   conf_ftp.password,
-                                   dst_user=ftpuser)
+        m_IrmaSFTPv2.assert_any_call(conf_ftp.host,
+                                     conf_ftp.port,
+                                     conf_ftp.auth,
+                                     conf_ftp.key_path,
+                                     conf_ftp.username,
+                                     conf_ftp.password,
+                                     dst_user=ftpuser)
         m_ftp.delete.assert_any_call('.', m_file1)
         m_ftp.delete.assert_any_call('.', m_file2)

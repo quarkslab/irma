@@ -52,7 +52,10 @@ copyright = '2013-2018, Quarkslab'
 #
 # The short X.Y version.
 version_comp = __version__.split(".")
-version = version_comp[0] + "." + version_comp[1]
+try:
+    version = version_comp[0] + "." + version_comp[1]
+except:
+    version = __version__
 # The full version, including alpha/beta/rc tags.
 release = __version__
 

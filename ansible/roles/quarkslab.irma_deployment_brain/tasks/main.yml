@@ -74,10 +74,4 @@
     dest: "{{ brain_install_dir }}"
     state: link
 
-- name: Restart systemd services
-  systemd:
-    name: "{{ item.name }}"
-    enabled: yes
-    state: restarted
-  become: yes
-  with_items: "{{ systemd_units_brain }}"
+- include_tasks: restart.yml

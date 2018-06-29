@@ -2,6 +2,3 @@
 
 - import_playbook: updating_auto.yml
   when: av_update_mode == "automatic"
-
-- import_playbook: updating_manual.yml
-  when: av_update_mode == "manual"

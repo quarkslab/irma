@@ -1,0 +1,21 @@
+---
+
+- name: Restart IRMA units on frontend
+  hosts: frontend
+  tasks:
+    - include_role: { name: quarkslab.irma_deployment_frontend, tasks_from: restart }
+      tags: restart_frontend
+
+- name: Restart IRMA units on brain
+  hosts: brain
+  tasks:
+    - include_role: { name: quarkslab.irma_deployment_brain, tasks_from: restart }
+      tags: restart_brain
+
+- name: Restart IRMA units on probes
+  hosts: probe
+  tasks:
+    - include_role: { name: quarkslab.irma_deployment_probe, tasks_from: restart }
+      tags: restart_probe
+
+# vim: sw=2

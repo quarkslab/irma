@@ -1,18 +1,20 @@
 Purpose
 -------
 
-IRMA intends to be an open-source platform designed to help identifying and
-analyzing malicious files.
+IRMA provides its users with the ability to objectively assess whether content
+is malicious or not. Content may be delivered by various means as described in
+this document, and subsequently distributed to various configurable analysis
+engines ("probes"). After analysis, this information is then conveyed to the
+user.
 
-However, today's defense is not only about learning about a file, but it is
-also getting a fine overview of the incident you dealt with: where / when a
-malicious file has been seen, who submitted a hash, where a hash has been
-noticed, which anti-virus detects it, ...
+In addition to this core functionality, IRMA provides an overview of the overall
+analysis process and incident.
 
-An important value with IRMA comes from *you keep control over where goes and
-who gets your data*. Once you install IRMA on your network, your data stays on
-your network.
+Finally, IRMA is designed to be installed and maintained in self-contained
+on-premises environment. This enables discreet and self-contained analysis for
+organizations which do not wish to disclose potentially confidential files to
+third parties.
 
-Each submitted files is analyzed in various ways. For now, we focus our efforts
-on multiple anti-virus engines, but we are working on other "probes" (feel free
-to submit your own).
+The ultimate purpose of IRMA is to orchestrate the entire analysis process and
+provide organizations with a flexible platform with which to manage and asses
+the content flowing through their organizations.

@@ -1,0 +1,9 @@
+---
+  
+- name: Restart systemd services
+  systemd:
+    name: "{{ item.name }}"
+    state: restarted
+    enabled: yes
+  become: yes
+  with_items: "{{ systemd_units_probe }}"

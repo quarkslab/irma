@@ -1,0 +1,26 @@
+# DO NOT MODIFY THIS FILE
+# Groups of groups declaration file
+
+[emsisoft-win]
+
+[kaspersky-win]
+
+[gdata-win]
+
+[mcafee-win]
+
+[sophos-win]
+
+[probe:children]
+emsisoft-win
+kaspersky-win
+gdata-win
+mcafee-win
+sophos-win
+
+[windows:children]
+emsisoft-win
+kaspersky-win
+gdata-win
+mcafee-win
+sophos-win

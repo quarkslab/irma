@@ -90,3 +90,11 @@ def scan_flush(scan_id):
                       BRAIN_SCAN_TASKS,
                       "scan_flush",
                       args=[scan_id])
+
+
+def files_flush(files, scan_id):
+    """ send a task to the brain to flush additional scan files"""
+    return async_call(brain_app,
+                      BRAIN_SCAN_TASKS,
+                      "files_flush",
+                      args=[files, scan_id])

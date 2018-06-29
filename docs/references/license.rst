@@ -19,4 +19,5 @@ The full license text can be found below (:ref:`irma-license`).
 Apache License, version 2.0
 ---------------------------
 
-.. include:: ../LICENSE
+.. include:: ../../LICENSE
+    :literal:

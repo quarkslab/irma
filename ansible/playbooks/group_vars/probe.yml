@@ -66,7 +66,15 @@ probe_deployment_configs:
   - section: ssl_config
     option: certfile
     value: "{{ dst_pki_folder }}/probe-client.crt"
-
+  - section: probes_config
+    option: unarchive_max_size
+    value: 5Go
+  - section: probes_config
+    option: unarchive_max_file_size
+    value: 50Mo
+  - section: probes_config
+    option: unarchive_max_files
+    value: 300
 ## Systemd role
 systemd_units_probe:
   - name: "{{ irma_unit_prefix }}probe_app.service"

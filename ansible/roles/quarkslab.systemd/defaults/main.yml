@@ -9,3 +9,6 @@ unit_default:
     StandardError: "syslog"
     User: "{{ irma_user }}"
     ProtectSystem: "full" # /usr /boot and /etc mounted RO
+
+# Don't activate the log persistance between (re)boot
+#systemd_journald_log: "absent"

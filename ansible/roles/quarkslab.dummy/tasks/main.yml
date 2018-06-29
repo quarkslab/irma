@@ -1,0 +1,7 @@
+---
+
+- name: Dummy
+  file:
+    path: /opt/Dummy_probe_activated
+    state: touch
+  become: yes

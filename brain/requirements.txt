@@ -6,3 +6,4 @@ pylint
 mock
 fasteners
 paramiko>2.0
+ssh2-python

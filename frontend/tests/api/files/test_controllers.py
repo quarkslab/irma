@@ -178,7 +178,7 @@ class TestFilesRoutes(TestCase):
     def test_download(self, m_File, m_open):
         sha256 = "whatever"
         m_response = MagicMock()
-        api_files.get(m_response, sha256, alt="media")
+        api_files.download(m_response, sha256)
         m_File.load_from_sha256.assert_called_once_with(sha256,
                                                         self.session)
 
@@ -190,5 +190,5 @@ class TestFilesRoutes(TestCase):
         m_fobj.path = None
         m_File.load_from_sha256.return_value = m_fobj
         with self.assertRaises(IrmaDatabaseResultNotFound) as context:
-            api_files._download(sha256, self.db)
+            api_files.download(sha256, self.db)
         self.assertEqual(str(context.exception), "downloading a removed file")

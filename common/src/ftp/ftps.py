@@ -13,14 +13,10 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import logging
 import ssl
-import os
 from ftplib import FTP_TLS
 from irma.common.base.exceptions import IrmaFTPSError, IrmaConfigurationError
-from irma.common.ftp.ftp import IrmaFTP
-
-log = logging.getLogger(__name__)
+from irma.common.ftp.ftp import FTPInterface
 
 
 class FTP_TLS_Data(FTP_TLS):
@@ -53,131 +49,80 @@ class FTP_TLS_Data(FTP_TLS):
         return self.voidresp()
 
 
-class IrmaFTPS(IrmaFTP):
+class IrmaFTPS(FTPInterface):
     """Irma FTP/TLS handler
 
     This class handles the connection with a ftp server over tls
     functions for interacting with it.
     """
+
+    _Exception = IrmaFTPSError
+
     # ==================================
     #  Constructor and Destructor stuff
     # ==================================
+
     def __init__(self, host, port, auth, key_path, user, passwd,
-                 dst_user=None, upload_path=None, hash_check=False):
+                 dst_user=None, upload_path=None, hash_check=False,
+                 autoconnect=True):
+        self._conn = None
         if auth != "password":
             raise IrmaConfigurationError("key authentication not supported for"
                                          " FTPS")
-        super(IrmaFTPS, self).__init__(host, port, auth, key_path, user,
-                                       passwd, dst_user, upload_path,
-                                       hash_check)
         # TODO support connection on non standard port
-        if self._port != FTP_TLS.port:
+        if port != FTP_TLS.port:
             reason = ("connection supported " +
                       "only on port {0}".format(FTP_TLS.port))
             raise IrmaFTPSError(reason)
-        self._connect()
+        super().__init__(host, port, auth, key_path, user, passwd, dst_user,
+                         upload_path, hash_check, autoconnect)
 
-    # =================
-    #  Private methods
-    # =================
+    def connected(self):
+        return self._conn is not None
+
+    # ============================
+    #  Overridden private methods
+    # ============================
 
     def _connect(self):
-        if self._conn is not None:
-            log.warn("Already connected to ftps server")
-            return
-        try:
-            self._conn = FTP_TLS_Data(self._host, self._user, self._passwd)
-            # Explicitly ask for secure data channel
-            self._conn.prot_p()
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
+        self._conn = FTP_TLS_Data(self._host, self._user, self._passwd)
+        # Explicitly ask for secure data channel
+        self._conn.prot_p()
 
-    # ================
-    #  Public methods
-    # ================
+    def _disconnect(self, *, force=False):
+        if not force:
+            self._conn.close()
+        self._conn = None
 
-    def mkdir(self, path):
-        try:
-            dst_path = self._get_realpath(path)
-            self._conn.mkd(dst_path)
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
-        return
+    def _upload(self, remote, fobj):
+        self._conn.storbinarydata("STOR {0}".format(remote), fobj)
 
-    def list(self, path):
-        """ list remote directory <path>"""
-        try:
-            dst_path = self._get_realpath(path)
-            return self._conn.nlst(dst_path)
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
+    def _download(self, remote, fobj):
+        self._conn.retrbinary("RETR {0}".format(remote), fobj.write)
 
-    def upload_fobj(self, path, fobj):
-        """ Upload <data> to remote directory <path>"""
-        try:
-            if self.hash_check:
-                dstname = self._hash(fobj)
-                path = os.path.join(path, dstname)
-            dstpath = self._get_realpath(path)
-            self._conn.storbinarydata("STOR {0}".format(dstpath),
-                                      fobj)
-            if self.hash_check:
-                return dstname
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
+    def _ls(self, remote):
+        return self._conn.nlst(remote)
 
-    def download_fobj(self, path, remotename, fobj):
-        """ returns <remotename> found in <path>"""
-        try:
-            dstpath = self._get_realpath(path)
-            dstpath = self._tweaked_join(dstpath, remotename)
-            self._conn.retrbinary("RETR {0}".format(dstpath),
-                                  lambda x: fobj.write(x))
-            if self.hash_check:
-                self._check_hash(remotename, fobj)
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
+    def _is_file(self, remote):
+        return not self._is_dir(remote)
 
-    def delete(self, path, filename):
-        """ Delete <filename> into directory <path>"""
+    def _is_dir(self, remote):
         try:
-            dstpath = self._get_realpath(path)
-            full_dstpath = self._tweaked_join(dstpath, filename)
-            self._conn.delete(full_dstpath)
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
-
-    def deletepath(self, path, deleteParent=False):
-        # recursively delete all subdirs and files
-        try:
-            for f in self.list(path):
-                if self.is_file(path, f):
-                    self.delete(path, f)
-                else:
-                    self.deletepath(self._tweaked_join(path, f),
-                                    deleteParent=True)
-            if deleteParent:
-                dstpath = self._get_realpath(path)
-                self._conn.rmd(dstpath)
-        except Exception as e:
-            reason = "{0} [{1}]".format(e, path)
-            raise IrmaFTPSError(reason)
-
-    def is_file(self, path, filename):
-        try:
-            dstpath = self._get_realpath(path)
-            pathfilename = self._tweaked_join(dstpath, filename)
-            current = self._conn.pwd()
-            self._conn.cwd(pathfilename)
-            self._conn.cwd(current)
-            return False
-        except Exception:
+            oldcwd = self._conn.pwd()
+            self._conn.cwd(remote)
+            self._conn.cwd(oldcwd)
             return True
+        except Exception:
+            return False
 
-    def rename(self, oldpath, newpath):
-        try:
-            old_realpath = self._get_realpath(oldpath)
-            new_realpath = self._get_realpath(newpath)
-            self._conn.rename(old_realpath, new_realpath)
-        except Exception as e:
-            raise IrmaFTPSError("{0}".format(e))
+    def _rm(self, remote):
+        self._conn.delete(remote)
+
+    def _rmdir(self, remote):
+        self._conn.rmd(remote)
+
+    def _mkdir(self, remote):
+        self._conn.mkd(remote)
+
+    def _mv(self, oldremote, newremote):
+        self._conn.rename(oldremote, newremote)

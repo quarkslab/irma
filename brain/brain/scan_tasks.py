@@ -21,13 +21,12 @@ import config.parser as config
 from celery.utils.log import get_task_logger
 from fasteners import interprocess_locked
 from brain.models.sqlobjects import User, Job, Scan
+import brain.controllers.ftpctrl as ftp_ctrl
 import brain.controllers.scanctrl as scan_ctrl
 import brain.controllers.probectrl as probe_ctrl
-import brain.controllers.probetasks as celery_probe
 import brain.controllers.frontendtasks as celery_frontend
 from brain.helpers.sql import session_transaction
-from irma.common.base.utils import IrmaTaskReturn, IrmaScanStatus, \
-    IrmaScanRequest
+from irma.common.base.utils import IrmaTaskReturn, IrmaScanRequest
 
 RETRY_MAX_DELAY = 30
 
@@ -56,7 +55,7 @@ while True:
     try:
         # Refresh all probes before starting
         with session_transaction() as session:
-            probe_ctrl.refresh_probes(session)
+            probe_ctrl.refresh_probelist(session)
         break
     except OSError as e:
         log.error("Error refreshing probe %s waiting %s seconds", e, delay)
@@ -85,10 +84,16 @@ def register_probe(name, display_name, category, mimetype_filter):
 
 @scan_app.task(acks_late=True)
 def probe_list():
+    # convert to list because ListProxy is not serializable
+    probes = list(probe_ctrl.available_probes)
+    return IrmaTaskReturn.success(probes)
+
+
+@scan_app.task
+def probe_list_refresh():
     try:
         with session_transaction() as session:
-            probe_list = probe_ctrl.get_list(session)
-            return IrmaTaskReturn.success(probe_list)
+            probe_ctrl.refresh_probelist(session)
     except Exception as e:
         log.exception(e)
         return IrmaTaskReturn.error("Error getting probelist")
@@ -98,7 +103,6 @@ def probe_list():
 def mimetype_filter_scan_request(scan_request_dict):
     try:
         with session_transaction() as session:
-            available_probelist = probe_ctrl.get_list(session)
             scan_request = IrmaScanRequest(scan_request_dict)
             for file in scan_request.files():
                 filtered_probelist = []
@@ -111,7 +115,7 @@ def mimetype_filter_scan_request(scan_request_dict):
                 # first check probe_list for unknown probe
                 for probe in probe_list:
                     # check if probe exists
-                    if probe not in available_probelist:
+                    if probe not in probe_ctrl.available_probes:
                         log.warning("probe %s not available", probe)
                     if probe in mimetype_probelist:
                         # probe is asked and supported by mimetype
@@ -135,12 +139,10 @@ def scan(file, probelist, frontend_scan):
                       file, probelist)
             user = User.get_by_rmqvhost(session)
             scan = scan_ctrl.new(frontend_scan, user, session)
-            available_probelist = probe_ctrl.get_list(session)
-            # Now, create one subtask per file to
-            # scan per probe
+            # Now, create one subtask per file to scan per probe
             new_jobs = []
             for probe in probelist:
-                if probe in available_probelist:
+                if probe in probe_ctrl.available_probes:
                     j = Job(scan.id, file, probe)
                     session.add(j)
                     new_jobs.append(j)
@@ -159,7 +161,7 @@ def scan(file, probelist, frontend_scan):
                      "%d job(s) launched",
                      scan.scan_id,
                      file,
-                     len(available_probelist),
+                     len(probe_ctrl.available_probes),
                      len(scan.jobs))
     except Exception as e:
         log.exception(e)
@@ -193,9 +195,23 @@ def scan_flush(scan_id):
         return
 
 
+@scan_app.task(ignore_result=True, acks_late=True)
+def files_flush(files, scan_id):
+    try:
+        with session_transaction() as session:
+            user = User.get_by_rmqvhost(session)
+            scan = Scan.get_scan(scan_id, user.id, session)
+            ftpuser = scan.user.ftpuser
+            log.debug("Flushing files %s", files)
+            ftp_ctrl.flush(ftpuser, files)
+    except Exception as e:
+        log.exception(e)
+        return
+
 ########################
 # command line launcher
 ########################
+
 
 if __name__ == '__main__':
     options = config.get_celery_options("brain.scan_tasks",

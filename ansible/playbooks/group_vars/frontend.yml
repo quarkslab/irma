@@ -157,7 +157,7 @@ systemd_units_frontend:
     Service:
       SyslogIdentifier: "{{ syslog_identifiers.frontend_api.name }}"
       ExecStart: >
-        {{ frontend_venv_dir}}/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+        /usr/bin/uwsgi_python3 -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
         --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
         {% if irma_environment == 'development' %}--python-autoreload 1{% endif %}
         --python-path {{ frontend_install_dir }}/venv --wsgi-file api/base.py --callable __hug_wsgi__ --lazy --offload-threads 4
@@ -165,6 +165,8 @@ systemd_units_frontend:
 
 
 ## Nginx role
+nginx_log_dir: "/var/log/nginx"
+nginx_conf_dir: "/etc/nginx"
 nginx_configs:
   proxy:
     - proxy_set_header X-Real-IP $remote_addr

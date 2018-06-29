@@ -13,6 +13,7 @@
     vm.cancel = cancel;
     vm.newScan = newScan;
     vm.csvReportURI = undefined;
+    vm.getLabelByFileStatus = getLabelByFileStatus;
 
     activate();
 
@@ -34,6 +35,26 @@
     function newScan() {
       state.newScan();
       state.goTo('selection');
+    }
+
+    function getLabelByFileStatus(status)
+    {
+      var label;
+
+      switch(status){
+          case null:
+              label = 'label-info';
+              break;
+          case 0:
+              label =  'label-success';
+              break;
+          case 1:
+              label =  'label-danger';
+              break;
+          default:
+              label =  'label-warning';
+       }
+      return label;
     }
 
     $scope.$on('$destroy', function(){

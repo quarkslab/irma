@@ -14,12 +14,12 @@
 # terms contained in the LICENSE file.
 
 import os
-import re
+import shutil
 import sys
 import tempfile
-
+import resource
 from datetime import datetime
-
+import config.parser as config
 from irma.common.utils.utils import timestamp
 from irma.common.plugins import PluginBase
 from irma.common.plugin_result import PluginResult
@@ -55,7 +55,7 @@ class UnarchivePlugin(PluginBase):
             help='unarchiver frontend required to support various formats'
         ),
     ]
-    _plugin_mimetype_regexp = 'archive'
+    _plugin_mimetype_regexp = 'archive|compressed'
 
     # =============
     #  constructor
@@ -65,9 +65,32 @@ class UnarchivePlugin(PluginBase):
         pass
 
     def unarchive(self, filename, dst_dir):
+        limit_data, limit_fsize, limit_nofile = config.get_unpack_limits()
+        soft_as, hard_as = resource.getrlimit(resource.RLIMIT_AS)
+        resource.setrlimit(resource.RLIMIT_AS, (limit_data, hard_as))
+        soft_data, hard_data = resource.getrlimit(resource.RLIMIT_DATA)
+        resource.setrlimit(resource.RLIMIT_DATA, (limit_data, hard_data))
+        soft_stack, hard_stack = resource.getrlimit(resource.RLIMIT_STACK)
+        resource.setrlimit(resource.RLIMIT_STACK, (limit_data, hard_stack))
+        soft_fsize, hard_fsize = resource.getrlimit(resource.RLIMIT_FSIZE)
+        resource.setrlimit(resource.RLIMIT_FSIZE, (limit_fsize, hard_fsize))
+        soft_nofile, hard_nofile = resource.getrlimit(resource.RLIMIT_NOFILE)
+        resource.setrlimit(resource.RLIMIT_NOFILE, (limit_nofile, hard_nofile))
         Archive = sys.modules['pyunpack'].Archive
-        Archive(filename).extractall(dst_dir,
-                                     auto_create_dir=True)
+        try:
+            Archive(filename).extractall(dst_dir,
+                                         auto_create_dir=True)
+        except Exception:
+            shutil.rmtree(dst_dir)
+            raise
+        finally:
+            resource.setrlimit(resource.RLIMIT_AS, (soft_as, hard_as))
+            resource.setrlimit(resource.RLIMIT_DATA, (soft_data, hard_data))
+            resource.setrlimit(resource.RLIMIT_STACK, (soft_stack, hard_stack))
+            resource.setrlimit(resource.RLIMIT_FSIZE, (soft_fsize, hard_fsize))
+            resource.setrlimit(resource.RLIMIT_NOFILE,
+                               (soft_nofile, hard_nofile))
+
         path_list = []
         # Make sure dst_dir ends with a '/'
         # useful when removing from filepath
@@ -101,5 +124,5 @@ class UnarchivePlugin(PluginBase):
             results.results = None
         except Exception as e:
             results.status = self.UnarchiveResult.ERROR
-            results.error = str(e)
+            results.error = "Maybe a zip bomb : " + str(e)
         return results

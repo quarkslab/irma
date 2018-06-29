@@ -32,12 +32,14 @@ class TestProbeTasks(TestCase):
                                        [filename, probe]))
         hook_error = route(signature("brain.results_tasks.job_error",
                                      [filename, probe]))
+        exchange = probe + "_exchange"
         module.job_launch(ftpuser, filename, probe, task_id)
         m_async_call.assert_called_once_with(module.probe_app,
                                              "probe.tasks",
                                              "probe_scan",
                                              args=(ftpuser, filename),
                                              routing_key=probe,
+                                             exchange=exchange,
                                              link=hook_success,
                                              link_error=hook_error,
                                              task_id=task_id)

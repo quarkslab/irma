@@ -1,6 +1,27 @@
-2.2.x
-=====
+2.2.2 (release 13/06/2018)
+==========================
+    * [frontend] Add /scan/quick api endpoint
+    * [ansible] irma-ansible as submodule
+
+2.2.1 (release 09/05/2018)
+==========================
+    * [fix] zipbomb detection bug preventing files resubmit
+
+2.2.0 (release 20/04/2018)
+==========================
+
+    * [UI] Add a timeline of scans for a given file
+    * [UI] Support navigation actions (back, forward) on the search page
+    * [UI] File progress is in blue till scan is not finished
+    * [all] new SFTP implementation based on ssh2-python
+    * [frontend] file_ext status initialized to None till scan not finished
+    * [frontend] Add a maximum resubmit parameter to avoid infinite loop
+    * [frontend] Add a status parameter to scan list API endpoint
+    * [brain] Use celerybeat to update probelist
+    * [ansible] First version of irma-ansible script
     * [ansible] Split ansible/vagrant files (break older environments files)
+    * [fix] bug when scanning several time same archive with unarchiver
+    * [fix] zipbomb detection
 
 2.1.1 (release 28/02/2018)
 ==========================

@@ -2,28 +2,14 @@
 
 servers:
   - name: brain.irma
-    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
-    hostname: brain.irma
+    ansible_groups: [sql-server, frontend, brain, unarchiver, clamav, peid, lief]
+    box: quarkslab/debian-9.0.0-amd64
     cpus: 2
-    cpuexecutioncap: 100
     memory: 2048
     share_code: false
 
-ansible_config:
-  extra_vars:
-    vagrant: true
-    vagrant_share: false
-    irma_release: v2.1.1
-    irma_environment: production
-  groups:
-    frontend: brain.irma
-    sql-server: brain.irma
-    brain: brain.irma
-    clamav: brain.irma
-    unarchiver: brain.irma
-    static-analyzer: brain.irma
-    "probe:children":
-      - clamav
-      - static-analyzer
-      - unarchiver
+ansible_vars:
+  irma_environment: production
+  irma_release: v2.2.2
+  vagrant: true

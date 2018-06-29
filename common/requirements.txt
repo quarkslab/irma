@@ -1,5 +1,4 @@
-xmltodict
-bson
-sqlalchemy
 paramiko
+ssh2-python
 python-magic
+mock

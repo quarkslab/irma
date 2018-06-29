@@ -7,13 +7,12 @@
 ##########################
 
 irma_environment: production # Can be (development, test, production)
-irma_release: HEAD # in production mode specify the git version to be used
 
 # In production mode, code is archived through packaging playbook in playbooks/files folder
 # You could disable archive automatic generation:
-irma_code_archive_generation: True
+irma_code_archive_generation: False
 
-# AV update mode (automatic, manual, disable)
+# AV update mode (automatic, disable)
 av_update_mode: automatic
 
 # SSL config
@@ -23,13 +22,14 @@ nginx_http_enabled: False
 nginx_https_enabled: True
 nginx_https_client_enabled: False
 rabbitmq_ssl: False
+postgresql_ssl: False
 
 provisioning_ssh_key: files/ssh_keys/vagrant.pub
 
 # Configuration
 brain_addr: 172.16.1.31
-frontend_addr: 172.16.1.30
-sql_addr: 172.16.1.32
+frontend_addr: localhost
+sql_addr: localhost
 
 rmq_admin_password: admin
 rmq_brain_password: brain
@@ -90,31 +90,8 @@ eset_file_security_licence_file:
 #
 ###########################
 
-
-# Avast!
-avast_win_url:
-# avast_win_certfile: files/License.avastlic
-avast_win_certfile:
-
-# AVG
-avg_win_url:
-# avg_win_license_key: RRRRR-RRRRR-RRRRR-RRRRR-RRRRR-RRRRR
-avg_win_license_key:
-
-# AVIRA Registration - requires a valid key, Identity and email address
-avira_win_firstname:
-avira_win_lastname:
-avira_win_email:
-# avira_win_key: XXXXXXXXXXXXXXXXXXXXXXXXX
-avira_win_key:
-
 # Emsisoft A2cmd
 emsisoft_win_url:
-
-# F-Secure
-fsecure_win_url:
-# fsecure_win_key: XXXX-XXXX-XXXX-XXXX-XXXX
-fsecure_win_key:
 
 # Gdata
 gdata_win_url:

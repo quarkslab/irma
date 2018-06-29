@@ -1,5 +1,5 @@
 import io
-from random import randint
+from random import randint, choice
 from unittest import TestCase
 
 import api.scans.controllers as api_scans
@@ -54,18 +54,37 @@ class TestScansRoutes(TestCase):
         self.assertEqual(result["offset"], default_offset)
         self.assertEqual(result["limit"], default_limit)
         self.session.query.assert_called_with(Scan)
-        self.session.query().options().limit.assert_called_with(default_limit)
-        m_offset = self.session.query().options().limit().offset
+        self.session.query().limit.assert_called_with(default_limit)
+        m_offset = self.session.query().limit().offset
         m_offset.assert_called_with(default_offset)
-        self.session.query().options().count.assert_not_called()
+        self.session.query().count.assert_not_called()
 
-    def test_list_custom_request(self):
+    def test_list_custom_request_no_status(self):
         offset, limit = randint(1, 100), randint(1, 100)
+        status = choice(list(IrmaScanStatus.label.values()))
         result = api_scans.list(offset=offset, limit=limit)
         self.assertEqual(result["offset"], offset)
         self.assertEqual(result["limit"], limit)
         self.assertIsScanList(result["data"])
-        self.session.query().options().count.assert_called()
+        self.session.query().count.assert_called()
+
+    def test_list_custom_request_status(self):
+        offset, limit = randint(1, 100), randint(1, 100)
+        status = choice(list(IrmaScanStatus.label.values()))
+        for (k, v) in IrmaScanStatus.label.items():
+            if v == status:
+                status_code = k
+                break
+        result = api_scans.list(status=status, offset=offset, limit=limit)
+        self.assertEqual(result["offset"], offset)
+        self.assertEqual(result["limit"], limit)
+        self.assertIsScanList(result["data"])
+        self.session.query().filter().count.assert_called()
+
+    def test_list_custom_request_status_not_existing(self):
+        offset, limit = randint(1, 100), randint(1, 100)
+        with self.assertRaises(api_scans.HTTPInvalidParam):
+            api_scans.list(status="whatever", offset=offset, limit=limit)
 
     @patch("api.scans.controllers.Scan")
     def test_new_ok(self, m_Scan):
@@ -103,28 +122,32 @@ class TestScansRoutes(TestCase):
             api_scans.get(scan_id)
 
     @patch("api.scans.controllers.celery_frontend")
-    @patch("api.scans.controllers.probe_ctrl")
+    @patch("api.probes.services.check_probe")
     @patch("api.scans.controllers.Scan")
-    def test_launch_v1_ok(self, m_Scan, m_probe_ctrl, m_celery_frontend):
-        m_scan = Scan("date", "ip")
-        m_scan.force = None
-        m_scan.mimetype_filtering = None
-        m_scan.resubmit_files = None
-        m_scan.events = [ScanEvents(IrmaScanStatus.empty, m_scan)]
-        m_Scan.load_from_ext_id.return_value = m_scan
+    def test_launch_v1_ok(self, m_Scan, m_check_probe, m_celery_frontend):
         scan_id = "whatever"
         probes = ["probe1", "probe2"]
         force = "False"
         mimetype_filtering = "False"
         resubmit_files = "False"
+        m_check_probe.return_value = []
+
+        m_scan = Scan("date", "ip")
+        m_check_probe.assert_called_once_with(None)
+
+        m_scan.force = None
+        m_scan.mimetype_filtering = None
+        m_scan.resubmit_files = None
+        m_scan.events = [ScanEvents(IrmaScanStatus.empty, m_scan)]
+        m_Scan.load_from_ext_id.return_value = m_scan
         result = api_scans.launch_v1(scan_id=scan_id,
                                      probes=probes,
                                      force=force,
                                      mimetype_filtering=mimetype_filtering,
                                      resubmit_files=resubmit_files
                                      )
+        m_check_probe.assert_called()
         m_Scan.load_from_ext_id.assert_called_once_with(scan_id, self.session)
-        m_probe_ctrl.check_probe.assert_called_once_with(probes)
         m_celery_frontend.scan_launch.assert_called_once_with(scan_id)
         self.assertIsScan(result)
         self.assertEqual(result["force"], force, "force")
@@ -151,8 +174,8 @@ class TestScansRoutes(TestCase):
 
     @patch("api.scans.controllers.FileExt")
     @patch("api.scans.controllers.celery_frontend")
-    @patch("api.scans.controllers.probe_ctrl")
-    def test_launch_v2_ok(self, m_probe_ctrl, m_celery_frontend, m_FileExt):
+    @patch("api.scans.controllers.probe_ctrl.check_probe")
+    def test_launch_v2_ok(self, m_check_probe, m_celery_frontend, m_FileExt):
         m_request = MagicMock()
         force = False
         mimetype_filtering = False
@@ -171,7 +194,7 @@ class TestScansRoutes(TestCase):
         m_file_ext.scan = None
         m_FileExt.load_from_ext_id.return_value = m_file_ext
         result = api_scans.launch_v2(m_request, m_body)
-        m_probe_ctrl.check_probe.assert_called_once_with(probes)
+        m_check_probe.assert_called_once_with(probes)
         m_celery_frontend.scan_launch.assert_called_once()
         self.assertIsScan(result)
         self.assertEqual(result["force"], force,
@@ -286,6 +309,33 @@ class TestScansRoutes(TestCase):
         with self.assertRaises(HTTPInvalidParam):
             api_scans.launch_v2(m_request, m_body)
 
+    def test_launch_v2_force_wrong_type(self):
+        m_request = MagicMock()
+        m_body = {"files": [MagicMock()],
+                  "options": {"force": 15,
+                              "mimetype_filtering": True,
+                              "resubmit_files": True}}
+        with self.assertRaises(HTTPInvalidParam):
+            api_scans.launch_v2(m_request, m_body)
+
+    def test_launch_v2_mimetype_filtering_wrong_type(self):
+        m_request = MagicMock()
+        m_body = {"files": [MagicMock()],
+                  "options": {"force": True,
+                              "mimetype_filtering": 42,
+                              "resubmit_files": True}}
+        with self.assertRaises(HTTPInvalidParam):
+            api_scans.launch_v2(m_request, m_body)
+
+    def test_launch_v2_resubmit_files_wrong_type(self):
+        m_request = MagicMock()
+        m_body = {"files": [MagicMock()],
+                  "options": {"force": True,
+                              "mimetype_filtering": True,
+                              "resubmit_files": 17}}
+        with self.assertRaises(HTTPInvalidParam):
+            api_scans.launch_v2(m_request, m_body)
+
     @patch("api.scans.controllers.scan_ctrl")
     @patch("api.scans.controllers.Scan")
     def test_cancel_ok(self, m_Scan, m_scan_ctrl):
@@ -346,3 +396,98 @@ class TestScansRoutes(TestCase):
         m_Scan.load_from_ext_id.side_effect = Exception()
         with self.assertRaises(Exception):
             api_scans.get_results(scan_id)
+
+    @patch("api.scans.controllers.Scan")
+    def test_report_as_csv(self, m_Scan):
+        m_scan = MagicMock()
+        m_fe = MagicMock()
+        m_scan.date = "scan_date"
+        m_fe.file.sha256 = "sha256"
+        m_fe.name = "filename"
+        m_fe.file.timestamp_first_scan = "ts_first_scan"
+        m_fe.file.timestamp_last_scan = "ts_last_scan"
+        m_fe.file.size = "size"
+        m_fe.status = "status"
+        m_fe.get_probe_results.return_value = {
+            "antivirus":
+                {
+                    "av1": {"status": "result_av1"},
+                }
+        }
+        m_scan.files_ext = [m_fe]
+        m_Scan.load_from_ext_id.return_value = m_scan
+        request = MagicMock()
+        response = MagicMock()
+        api_scans.report_as_csv("whatever", request, response)
+        expected = [
+            b'Date,SHA256Sum,Filename,First seen,Last seen,Size,Status,av1',
+            b'\r\n',
+            b'scan_date,sha256,filename,ts_first_scan,ts_last_scan,size,'
+            b'status,result_av1',
+            b'\r\n']
+        self.assertEqual(list(response.stream), expected)
+
+    @patch("api.scans.controllers.Scan")
+    def test_report_as_csv_no_avlist(self, m_Scan):
+        m_scan = MagicMock()
+        m_fe = MagicMock()
+        m_scan.date = "scan_date"
+        m_fe.file.sha256 = "sha256"
+        m_fe.name = "filename"
+        m_fe.file.timestamp_first_scan = "ts_first_scan"
+        m_fe.file.timestamp_last_scan = "ts_last_scan"
+        m_fe.file.size = "size"
+        m_fe.status = "status"
+        m_fe.get_probe_results.return_value = {
+            "metadata":
+                {
+                    "probe1": {"status": "result_probe1"},
+                }
+        }
+        m_scan.files_ext = [m_fe]
+        m_Scan.load_from_ext_id.return_value = m_scan
+        request = MagicMock()
+        response = MagicMock()
+        api_scans.report_as_csv("whatever", request, response)
+        expected = [
+            b'Date,SHA256Sum,Filename,First seen,Last seen,Size,Status',
+            b'\r\n',
+            b'scan_date,sha256,filename,ts_first_scan,ts_last_scan,size,'
+            b'status',
+            b'\r\n']
+        self.assertEqual(list(response.stream), expected)
+
+    @patch("api.scans.controllers.Scan")
+    def test_get_report(self, m_Scan):
+        scan_id = "whatever"
+        request = MagicMock()
+        response = MagicMock()
+        self.assertEqual(api_scans.get_report(request, response, scan_id),
+                         scan_id)
+
+    @patch("api.scans.controllers.Scan")
+    def test_get_report_error(self, m_Scan):
+        m_scan = MagicMock()
+        m_scan.finished.return_value = False
+        m_Scan.load_from_ext_id.return_value = m_scan
+        request = MagicMock()
+        response = MagicMock()
+        with self.assertRaises(api_scans.HTTPUnauthorized):
+            api_scans.get_report(request, response, "whatever")
+
+    @patch("api.scans.controllers.Scan")
+    @patch("api.scans.controllers.FileExt")
+    @patch("api.scans.controllers.celery_frontend")
+    @patch("api.scans.controllers.files_ctrl")
+    def test_quick_scan(self, m_files_ctrl, m_celery_frontend, m_FileExt,
+                        m_Scan):
+        m_request = MagicMock()
+        m_file_ext = MagicMock()
+        m_FileExt.load_from_ext_id.return_value = m_file_ext
+        m_Scan.return_value.external_id = "extid_HOvDI2"
+
+        result = api_scans.quick_scan(m_request)
+
+        m_files_ctrl.create.assert_called_once_with(m_request)
+        m_celery_frontend.scan_launch.assert_called_once_with("extid_HOvDI2")
+        self.assertIsScan(result)

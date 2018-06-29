@@ -34,6 +34,13 @@ class TestFileModels(TestCase):
         self.assertEqual(self.file.tags, list())
         self.assertIsInstance(self.file, module.File)
 
+    def test___init__with_tags(self):
+        tags = [module.Tag("tag1"), module.Tag("tag2")]
+        file = module.File(self.sha256, self.sha1, self.md5, self.size,
+                           self.mimetype, self.path, self.first_ts,
+                           self.last_ts, tags=tags)
+        self.assertEqual(file.tags, tags)
+
     def test_classmethod_load_from_sha256_raise_NoResultFound(self):
         sample = "test"
         session = MagicMock()
@@ -165,6 +172,25 @@ class TestFileModels(TestCase):
         self.file.remove_file_from_fs()
         self.assertIsNone(self.file.path)
 
+    def test_remove_old_files(self):
+        f1, f2 = MagicMock(), MagicMock()
+        session = MagicMock()
+        session.query().filter().filter().all.return_value = [f1, f2]
+        res = module.File.remove_old_files(10, session)
+        self.assertEqual(res, 2)
+        f1.remove_file_from_fs.assert_called_once()
+        f2.remove_file_from_fs.assert_called_once()
+
+    def test_remove_files_max_size(self):
+        f1, f2 = MagicMock(), MagicMock()
+        session = MagicMock()
+        session.query().filter().subquery().c.total = 50
+        session.query().filter().all.return_value = [f1, f2]
+        res = module.File.remove_files_max_size(10, session)
+        self.assertEqual(res, 2)
+        f1.remove_file_from_fs.assert_called_once()
+        f2.remove_file_from_fs.assert_called_once()
+
     @patch("api.files.models.os")
     def test_load_from_sha256_no_more_exists(self, m_os):
         path = "RandomPath"
@@ -245,3 +271,44 @@ class TestFileModels(TestCase):
         m_sha256sum.assert_called_once_with(fobj)
         m_save_to_file.assert_called_with(fobj, path)
         m_magic.assert_called()
+
+    @patch("api.files.models.md5sum")
+    @patch("api.files.models.sha1sum")
+    @patch("api.files.models.sha256sum")
+    @patch("api.files.models.Magic")
+    @patch("api.files.models.save_to_file")
+    @patch("api.files.models.build_sha256_path")
+    def test_new_file_race_integrity_error(self, m_build_sha256_path,
+                                           m_save_to_file, m_magic,
+                                           m_sha256sum, m_sha1sum, m_md5sum):
+        sha256val = "whatever"
+        m_sha256sum.return_value = sha256val
+
+        m_session = MagicMock()
+        m_session.query(module.File).filter(
+                module.File.sha256 == sha256val
+        ).one.side_effect = IrmaDatabaseResultNotFound
+        stmt, params, orig = MagicMock(), MagicMock(), MagicMock()
+        m_session.add.side_effect = module.IntegrityError(stmt, params, orig)
+        fobj = MagicMock()
+        path = "/a/absolute/path/to/testpath"
+        m_build_sha256_path.return_value = path
+        with self.assertRaises(module.IrmaDatabaseError):
+            module.File.get_or_create(fobj, m_session)
+        m_md5sum.assert_called_once_with(fobj)
+        m_sha1sum.assert_called_once_with(fobj)
+        m_sha256sum.assert_called_once_with(fobj)
+        m_save_to_file.assert_called_with(fobj, path)
+        m_magic.assert_called()
+
+    @patch("api.files.models.inspect")
+    def test_get_ref_result(self, m_inspect):
+        m_session = MagicMock()
+        m_inspect(self.file).session = m_session
+        probename = "probeX"
+        res = self.file.get_ref_result(probename)
+        expected = m_session.query().join().filter().\
+            filter(module.ProbeResult.name == probename).\
+            order_by().\
+            first()
+        self.assertEqual(res, expected)

@@ -10,12 +10,16 @@
 irma_environment: production # Can be (development, test, production)
 irma_release: HEAD # in production mode specify the git version to be used
 
-# In production mode, code is archived through packaging playbook in playbooks/files folder
-# You could disable archive automatic generation:
-irma_code_archive_generation: True
+# In production mode, code is deployed through archives
+# these archives are generated during a release package
+# to test production deployment you could generate these archives through packaging
+# playbook in playbooks/files folder by enabling the following value:
+irma_code_archive_generation: False
 
-# AV update mode (automatic, manual, disable)
-av_update_mode: automatic
+# Default installation is online
+offline: false
+# AV update mode (automatic, disable)
+av_update_mode: "automatic"
 
 # SSL config
 infra_name: Qb
@@ -83,6 +87,7 @@ irma_common_archive: "common-{{ irma_deployment_code_version }}.zip"
 irma_frontend_archive: "frontend-{{ irma_deployment_code_version }}.zip"
 irma_brain_archive: "brain-{{ irma_deployment_code_version }}.zip"
 irma_probe_archive: "probe-{{ irma_deployment_code_version }}.zip"
+core_webui_archive: "core-webui-{{ irma_deployment_code_version }}.zip"
 
 # Irma common module directories
 irma_install_dir_linux: /opt/irma

@@ -4,7 +4,6 @@ from mock import MagicMock, patch
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from api.scans.models import Scan
-from api.files.models import File
 from irma.common.base.utils import IrmaScanStatus
 from irma.common.base.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaDatabaseError
@@ -12,7 +11,9 @@ from irma.common.base.exceptions import IrmaCoreError, \
 
 class TestScan(TestCase):
 
-    def setUp(self):
+    @patch("api.probes.services.check_probe")
+    def setUp(self, m_check_probe):
+        m_check_probe.return_value = []
         self.date = "date"
         self.ip = "ip"
         self.scan = Scan(self.date, self.ip)
@@ -27,11 +28,8 @@ class TestScan(TestCase):
         self.assertFalse(self.scan.finished())
 
     def test_finished_launched_not_finished(self):
-        a, b = MagicMock(), MagicMock()
-        a.doc = "something"
-        b.doc = None
         file_ext = MagicMock()
-        file_ext.probe_results = [a, b]
+        file_ext.status = None
         self.scan.files_ext = [file_ext]
         self.scan.set_status(IrmaScanStatus.launched)
         self.assertFalse(self.scan.finished())

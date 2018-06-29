@@ -1,5 +1,5 @@
 from unittest import TestCase
-from mock import MagicMock
+from mock import MagicMock, PropertyMock, patch
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from brain.models.sqlobjects import Scan
@@ -20,6 +20,14 @@ class TestModelsScan(TestCase):
         self.assertEqual(scan.user_id, self.user_id)
         self.assertEqual(scan.status, IrmaScanStatus.empty)
         self.assertIsNotNone(scan.timestamp)
+
+    def test_nb_files(self):
+        with patch('brain.models.sqlobjects.Scan.files',
+                   new_callable=PropertyMock) as mock_files:
+            mock_files.return_value = {}
+            scan = Scan(self.frontend_scanid, self.user_id)
+            self.assertEqual(scan.nb_files, 0)
+            mock_files.assert_called_once()
 
     def test_get_scan(self):
         scan_id = "scan_id"

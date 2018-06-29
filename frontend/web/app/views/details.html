@@ -2,20 +2,55 @@
   <div class="col-md-9" role="main">
     <p><a href="/scan/{{vm.results.scan_id}}">Back to the scan summary</a></p>
 
+    <div id="history">
+      <h3>
+        Timeline
+        (<ng-pluralize
+          count="vm.results.other_results.length"
+          when="{'1': '1 scan', 'other': '{} scans'}"></ng-pluralize>)
+      </h3>
+      <h5>Current: {{ vm.results.scan_date | amDateFormat: 'lll' }}</h5>
+
+      <div id="timeline">
+        <div class="t-legend">
+          <div ng-repeat="label in vm.timeline.labels">
+            <div class="t-label" style="left: {{ label.leftShiftPercentage }}%;">{{ label.year }}</div>
+          </div>
+        </div>
+        <div class="t-line">
+          <div
+             ng-repeat="res in vm.results.other_results"
+             class="t-marker {{ (vm.results.result_id === res.external_id) ? 'active' : '' }} {{ (res.status === 1) ? 't-danger' : 't-ok' }}"
+             ng-click="vm.goTo('results/' + res.external_id)"
+             data-toggle="tooltip"
+             title="{{ res.scan_date | amDateFormat:'lll' }}"
+             style="left: {{ vm.timeline.getMarkerLeftShiftPercentage(res.scan_date) }}%;">
+          </div>
+        </div>
+      </div>
+
+      <a href="/results/{{ vm.timeline.nextResultId || '' }}" id="next-result" class="btn" ng-disabled="!vm.timeline.nextResultId">
+        Next <span class="glyphicon glyphicon-arrow-right"></span>
+      </a>
+      <a href="/results/{{ vm.timeline.previousResultId || '' }}" id="previous-result" class="btn" ng-disabled="!vm.timeline.previousResultId">
+        <span class="glyphicon glyphicon-arrow-left"></span> Previous
+      </a>
+    </div>
+
     <div class="result-section">
       <h2 id="file-informations">File informations</h2>
       <tags-input
-            ng-model="tags"
-            on-tag-added="tagAdded($tag)"
-            on-tag-removed="tagRemoved($tag)"
-            add-from-autocomplete-only="true">
-            <auto-complete
-                    load-on-down-arrow="true"
-                    load-on-empty="true"
-                    load-on-focus="true"
-                    min-length="0"
-                    source="loadAvailableTags($query)">
-            </auto-complete>
+        ng-model="vm.results.file_infos.tags"
+        on-tag-added="vm.tagAdded($tag)"
+        on-tag-removed="vm.tagRemoved($tag)"
+        add-from-autocomplete-only="true">
+        <auto-complete
+          load-on-down-arrow="true"
+          load-on-empty="true"
+          load-on-focus="true"
+          min-length="0"
+          source="vm.searchTags($query)">
+        </auto-complete>
       </tags-input>
       <table class="table table-bordered">
         <tbody>

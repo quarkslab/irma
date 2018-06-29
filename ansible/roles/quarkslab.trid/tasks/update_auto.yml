@@ -1,5 +1,15 @@
 ---
 
+- name: TrID | Creating temp directory
+  file: path="{{ trid_temp_dir }}" state="directory"
+
+- name: TrID | Download Update
+  get_url: url="{{ tridupdate_zip_url }}" dest="{{ trid_temp_dir }}/tridupdate.zip"
+
+- name: TrID | Extracting Update
+  unarchive: src="{{ trid_temp_dir }}/tridupdate.zip" dest="{{ trid_install_dir }}" copy=no
+  become: yes
+
 - name: TrID | Update
   command: python tridupdate.py
   args:

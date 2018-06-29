@@ -35,6 +35,8 @@ postgresql_pg_hba_passwd_hosts_not_standalone:
 
 postgresql_pg_hba_passwd_hosts: "{{ postgresql_pg_hba_passwd_hosts_standalone if irma_standalone_sql_server else postgresql_pg_hba_passwd_hosts_not_standalone }}"
 
+postgresql_log_directory: "/var/log/postgresql"
+
 
 # SSL serverside
 postgresql_ssl_cert_file: "{{ postgresql_path }}/psql-server.crt"

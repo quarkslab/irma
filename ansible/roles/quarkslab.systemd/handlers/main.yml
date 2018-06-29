@@ -7,3 +7,8 @@
     enabled: yes
     state: restarted
   with_items: "{{ systemd_units }}"
+
+- name: Systemd | Restart Journald service
+  systemd:
+    name: "systemd-journald"
+    state: restarted

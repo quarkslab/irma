@@ -24,10 +24,12 @@ from logging import BASIC_FORMAT, Formatter
 from logging.handlers import SysLogHandler
 from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
+from humanfriendly import parse_size
 
 from irma.common.base.exceptions import IrmaConfigurationError
 from irma.common.configuration.ini import TemplatedConfiguration
 from irma.common.ftp.sftp import IrmaSFTP
+from irma.common.ftp.sftpv2 import IrmaSFTPv2
 from irma.common.ftp.ftps import IrmaFTPS
 from irma.common.base.utils import common_celery_options
 
@@ -45,15 +47,16 @@ template_probe_config = {
     'celery_options': [
         ('concurrency', TemplatedConfiguration.integer,
          multiprocessing.cpu_count() * 2),
-        ('soft_time_limit', TemplatedConfiguration.integer, 300),
-        ('time_limit', TemplatedConfiguration.integer, 1500),
+        ('soft_time_limit', TemplatedConfiguration.integer, 120),
+        ('time_limit', TemplatedConfiguration.integer, 200),
     ],
     'broker_probe': [
         ('host', TemplatedConfiguration.string, None),
         ('port', TemplatedConfiguration.integer, 5672),
         ('vhost', TemplatedConfiguration.string, None),
         ('username', TemplatedConfiguration.string, None),
-        ('password', TemplatedConfiguration.string, None)
+        ('password', TemplatedConfiguration.string, None),
+        ('ttl', TemplatedConfiguration.integer, 300000)
     ],
     'broker_brain': [
         ('host', TemplatedConfiguration.string, None),
@@ -64,7 +67,7 @@ template_probe_config = {
         ('queue', TemplatedConfiguration.string, None)
     ],
     'ftp': [
-        ('protocol', TemplatedConfiguration.string, "sftp"),
+        ('protocol', TemplatedConfiguration.string, "sftpv2"),
     ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
@@ -83,6 +86,11 @@ template_probe_config = {
     'probe_list': [
         ('disabled_list', TemplatedConfiguration.string, None),
         ('enabled_list', TemplatedConfiguration.string, None),
+    ],
+    'probes_config': [
+        ('unarchive_max_size', TemplatedConfiguration.string, "5Go"),
+        ('unarchive_max_file_size', TemplatedConfiguration.string, "50Mo"),
+        ('unarchive_max_files', TemplatedConfiguration.integer, 300),
     ],
 }
 
@@ -182,6 +190,10 @@ def get_brain_backend_uri():
     return _get_broker_uri(probe_config.broker_brain)
 
 
+def get_probe_ttl():
+    return probe_config.broker_probe.ttl
+
+
 # ================
 #  Syslog helpers
 # ================
@@ -228,6 +240,11 @@ def setup_debug_logger(logger):
 
 def get_ftp_class():
     protocol = probe_config.ftp.protocol
+    if sys.platform.startswith("win32") and protocol == "sftpv2":
+        # sftpv2 is not working on windows
+        # http://libssh2-devel.cool.haxx.narkive.com/gPjIsFaS/key-exchange-failure
+        # fallback to sftp
+        protocol = "sftp"
     if protocol == "sftp":
         key_path = probe_config.ftp_brain.key_path
         auth = probe_config.ftp_brain.auth
@@ -236,6 +253,11 @@ def get_ftp_class():
                   "the private key does not exist:['" + key_path + "']"
             raise IrmaConfigurationError(msg)
         return IrmaSFTP
+    elif protocol == "sftpv2":
+        auth = probe_config.ftp_brain.auth
+        if auth == "key":
+            raise IrmaConfigurationError("SFTPv2 pubkey auth not implemented")
+        return IrmaSFTPv2
     elif protocol == "ftps":
         return IrmaFTPS
 
@@ -255,3 +277,13 @@ def get_enabled_list():
 def check_error_list():
     return (probe_config.probe_list.disabled_list and
             probe_config.probe_list.enabled_list)
+
+
+# ========
+#  Probes
+# ========
+
+def get_unpack_limits():
+    return (parse_size(probe_config.probes_config.unarchive_max_size),
+            parse_size(probe_config.probes_config.unarchive_max_file_size),
+            probe_config.probes_config.unarchive_max_files)

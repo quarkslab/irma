@@ -48,9 +48,11 @@ def list(name: text = None,
         :param name: lookup name
         :param hash: lookup hash value
         :param tags: lookup tag list
+        :param offset: start index in matching results
+        :param limit: max number of results
         :rtype: dict of 'total': int, 'page': int, 'per_page': int,
         'items': list of file(s) found
-    :return:
+        :return:
         on success 'items' contains a list of files found
         on error 'msg' gives reason message
     """
@@ -101,13 +103,13 @@ def list(name: text = None,
 @hug.get('/{sha256}')
 def get(response,
         sha256: text,
-        alt: one_of(('media', '')) = '',
         offset: number = 0,
         limit: number = 25):
     """ Detail about one file and all known scans summary where file was
     present (identified by sha256). Support pagination.
-    :param all params are sent using query method
-    :param if alt parameter is "media", response will contains the binary data
+    :param sha256: full sha256 value to look for
+    :param offset: start index in matching results
+    :param limit: max number of results
     :rtype: dict of 'total': int, 'page': int, 'per_page': int,
     :return:
         on success fileinfo contains file information
@@ -116,9 +118,6 @@ def get(response,
     """
     session = db.session
     log.debug("h_value %s", sha256)
-    # Check wether its a download attempt or not
-    if alt == "media":
-        return _download(response, sha256)
 
     file = File.load_from_sha256(sha256, session)
     # query all known results not only those with different names
@@ -174,9 +173,10 @@ def remove_tag(sha256: text, tagid: number):
 
 
 # called by get
-@hug.get(output=hug.output_format.file)
-def _download(response, sha256):
-    """Retrieve a file based on its sha256"""
+@hug.get('/{sha256}/download', output=hug.output_format.file)
+def download(response, sha256: text):
+    """Retrieve a file based on its sha256
+    """
     session = db.session
     log.debug("h_value %s", sha256)
     fobj = File.load_from_sha256(sha256, session)

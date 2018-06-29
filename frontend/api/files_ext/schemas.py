@@ -38,7 +38,7 @@ class FileExtSchema(Schema):
     parent_file_sha256 = fields.Nested('FileSchema', attribute="parent",
                                        only='sha256')
     other_results = fields.Nested('FileExtSchema',
-                                  only=("external_id", "scan_date"),
+                                  only=("external_id", "scan_date", "status"),
                                   many=True)
 
     class Meta:
@@ -62,6 +62,12 @@ class FileCliSchema(FileExtSchema):
 
     class Meta(FileExtSchema.Meta):
         fields = FileExtSchema.Meta.fields + ("path",)
+
+
+class FileKioskSchema(FileExtSchema):
+
+    class Meta(FileExtSchema.Meta):
+        fields = FileExtSchema.Meta.fields + ("path", "submitter_id",)
 
 
 class FileProbeResultSchema(FileExtSchema):

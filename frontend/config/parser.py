@@ -30,6 +30,7 @@ from irma.common.base.exceptions import IrmaConfigurationError
 from irma.common.configuration.ini import TemplatedConfiguration
 from irma.common.configuration.sql import SQLConf
 from irma.common.ftp.sftp import IrmaSFTP
+from irma.common.ftp.sftpv2 import IrmaSFTPv2
 from irma.common.ftp.ftps import IrmaFTPS
 
 # ==========
@@ -61,9 +62,6 @@ template_frontend_config = {
     'celery_brain': [
         ('timeout', TemplatedConfiguration.integer, 60),
     ],
-    'celery_frontend': [
-        ('timeout', TemplatedConfiguration.integer, 30),
-    ],
     'celery_options': [
         ('concurrency', TemplatedConfiguration.integer, 0),
         ('soft_time_limit', TemplatedConfiguration.integer, 300),
@@ -88,7 +86,7 @@ template_frontend_config = {
         ('queue', TemplatedConfiguration.string, None),
     ],
     'ftp': [
-        ('protocol', TemplatedConfiguration.string, "sftp"),
+        ('protocol', TemplatedConfiguration.string, "sftpv2"),
     ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
@@ -119,6 +117,9 @@ template_frontend_config = {
         ('ca_certs', TemplatedConfiguration.string, None),
         ('keyfile', TemplatedConfiguration.string, None),
         ('certfile', TemplatedConfiguration.string, None),
+    ],
+    'processing': [
+        ('max_resubmit', TemplatedConfiguration.integer, 15),
     ],
 }
 
@@ -234,10 +235,6 @@ def get_brain_celery_timeout():
     return frontend_config.celery_brain.timeout
 
 
-def get_frontend_celery_timeout():
-    return frontend_config.celery_admin.timeout
-
-
 # ========================
 #  Broker/Backend helpers
 # ========================
@@ -337,6 +334,11 @@ def get_ftp_class():
                   "the private key does not exist:['" + key_path + "']"
             raise IrmaConfigurationError(msg)
         return IrmaSFTP
+    elif protocol == "sftpv2":
+        auth = frontend_config.ftp_brain.auth
+        if auth == "key":
+            raise IrmaConfigurationError("SFTPv2 pubkey auth not implemented")
+        return IrmaSFTPv2
     elif protocol == "ftps":
         return IrmaFTPS
 
@@ -347,3 +349,11 @@ def get_ftp_class():
 
 def get_lock_path():
     return frontend_config.interprocess_lock.path
+
+
+# ====================
+#  Processing helpers
+# ====================
+
+def get_max_resubmit_level():
+    return frontend_config.processing.max_resubmit

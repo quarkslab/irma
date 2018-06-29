@@ -31,7 +31,8 @@ from irma.common.utils.compat import timestamp
 # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
 if config.sqldb.dbms == 'sqlite':
     @event.listens_for(Engine, "connect")
-    def set_sqlite_pragma(dbapi_connection, connection_record):
+    def set_sqlite_pragma(dbapi_connection,
+                          connection_record):  # pragma: no cover
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()

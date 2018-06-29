@@ -7,6 +7,14 @@
      value: 'manual'
      vtype: 'string'
 
+- lineinfile:
+    path: /etc/hosts
+    line: '127.0.0.1 database.clamav.net current.cvd.clamav.net db.local.clamav.net'
+    owner: root
+    group: root
+    state: present
+    mode: 0644
+
 - name: ClamAV | Install package
   apt: name={{ item }} state=latest
   with_items:
@@ -16,3 +24,11 @@
     - clamav-daemon
     - clamav-unofficial-sigs
   register: clamav_install
+
+- lineinfile:
+    path: /etc/hosts
+    line: '127.0.0.1 database.clamav.net current.cvd.clamav.net db.local.clamav.net'
+    owner: root
+    group: root
+    state: absent
+    mode: 0644

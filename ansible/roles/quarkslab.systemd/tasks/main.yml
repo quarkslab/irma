@@ -45,3 +45,15 @@
     force: yes
     owner: root
     group: root
+
+  # Log are persist to `/var/log/journal` when the directory is present and
+  # `Storage=auto` in `/etc/systemd/journald.conf`.
+  # See: https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs#past-boots
+- name: Systemd | Enable Journald log persistance
+  file:
+    path: "/var/log/journal"
+    state: "{{ systemd_journald_log|default('directory') }}"
+    owner: root
+    group: root
+    mode: 0700
+  notify: "Systemd | Restart Journald service"

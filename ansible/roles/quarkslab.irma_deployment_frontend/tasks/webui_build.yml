@@ -1,20 +1,15 @@
 ---
 
-- name: Check if NPM files exists
-  stat:
-    path: "{{frontend_install_dir}}/web/node_modules"
-  register: npm_dir_stat
-
 - name: Install NPM dependencies
   npm:
     path: "{{ frontend_deployment_dir }}/web"
-    ignore_scripts: yes
     state: latest
+    global: no
 
 - name: Install Bower dependencies
-  command: node_modules/.bin/bower install --config.interactive=false
-  args:
-    chdir: "{{ frontend_deployment_dir }}/web"
+  bower:
+    path: "{{ frontend_deployment_dir }}/web"
+    relative_execpath: "node_modules/.bin"
 
 - name: Generate Web Frontend
   command: node_modules/.bin/gulp dist

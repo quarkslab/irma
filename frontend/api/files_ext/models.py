@@ -89,22 +89,26 @@ class FileExt(Base):
     parent = relationship(File,
                           backref="children",
                           foreign_keys='FileExt.id_parent')
+    depth = Column(
+        Integer,
+        name='depth')
+
     submitter = Column(
         String(50),
         name="submitter")
     __mapper_args__ = {
         'polymorphic_on': submitter,
-        'polymorphic_identity': 'file_ext',
-        'polymorphic_identity': submitter_type,
+        'polymorphic_identity': submitter_type
     }
 
     # insure there are no dup external_id
     __table_args__ = (UniqueConstraint('external_id'),)
 
-    def __init__(self, file, name):
+    def __init__(self, file, name, depth=0):
         self.external_id = UUID.generate()
         self.file = file
         self.name = name
+        self.depth = depth
 
     @classmethod
     def load_from_ext_id(cls, external_id, session):
@@ -136,21 +140,17 @@ class FileExt(Base):
 
     @property
     def probes_finished(self):
-        finished = 0
-        for pr in self.probe_results:
-            if pr.doc is not None:
-                finished += 1
-        return finished
+        return sum(1 for pr in self.probe_results if pr.status is not None)
 
     @property
     def status(self):
-        for pr in self.probe_results:
-            if pr.doc is not None:
-                probe_result = pr.doc
-                if probe_result['type'] == IrmaProbeType.antivirus and \
-                   probe_result['status'] == 1:
-                    return 1
-        return 0
+        if not self.probe_results \
+                or any(pr.status is None for pr in self.probe_results):
+            return None
+        else:
+            return 1 if any(pr.type == IrmaProbeType.antivirus
+                            and pr.status == 1
+                            for pr in self.probe_results) else 0
 
     def get_probe_results(self, formatted=True, results_as="dict"):
         if results_as == "dict":
@@ -161,7 +161,7 @@ class FileExt(Base):
             raise ValueError("unknown output format")
 
         for pr in self.probe_results:
-            if pr.doc is None:
+            if pr.status is None:
                 continue
             result = pr.get_details(formatted)
             if results_as == "dict":
@@ -258,9 +258,49 @@ class FileExt(Base):
     def other_results(self):
         session = inspect(self).session
         query = session.query(FileExt).join(Scan).filter(
-            FileExt.id_file == self.id_file).filter(
-                FileExt.id != self.id).order_by(Scan.date)
+            FileExt.id_file == self.id_file).order_by(Scan.date)
         return query.all()
+
+    def hook_finished(self):
+        """Function called when scan is finished
+        """
+        results = self.get_probe_results(results_as="list")
+        submitter_id = getattr(self, 'submitter_id', 'undefined')
+        log.info("[files_results] date: %s file_id: %s scan_id: %s "
+                 "status: %s probes: %s submitter: %s submitter_id: %s",
+                 self.scan.date, self.external_id,
+                 self.scan.external_id, "Infected" if self.status else "Clean",
+                 ', '.join(self.probes), self.submitter,
+                 submitter_id)
+        for result in results:
+            if result.duration is None:
+                duration = 0
+            else:
+                duration = result.duration
+            if result.type == "antivirus":
+                log.info('[av_results] date: %s av_name: "%s" '
+                         "status: %d "
+                         "virus_name: \"%s\" file_id: %s "
+                         "file_sha256: %s "
+                         "scan_id: %s "
+                         "duration: %f submitter: %s submitter_id: %s",
+                         self.scan.date, result.name, result.status,
+                         result.results,
+                         self.external_id,
+                         self.file.sha256, self.scan.external_id, duration,
+                         self.submitter, submitter_id)
+            else:
+                log.info('[probe_results] date: %s name: "%s" '
+                         "status: %d file_sha256: %s "
+                         "file_id: %s "
+                         "duration: %f "
+                         "submitter: %s "
+                         "submitter_id: %s",
+                         self.scan.date, result.name, result.status,
+                         self.external_id, self.file.sha256,
+                         duration,
+                         self.submitter,
+                         submitter_id)
 
 
 class FileWeb(FileExt):
@@ -299,9 +339,10 @@ class FileProbeResult(FileExt):
         foreign_keys='FileProbeResult.id_probe_parent'
     )
 
-    def __init__(self, file, filename, probe_result_parent):
+    def __init__(self, file, filename, probe_result_parent, depth):
         super(FileProbeResult, self).__init__(file, filename)
         self.probe_result_parent = probe_result_parent
+        self.depth = depth
 
 
 class FileCli(FileExt):
@@ -325,6 +366,35 @@ class FileCli(FileExt):
         (path, name) = ntpath.split(filepath)
         super(FileCli, self).__init__(file, name)
         self.path = path
+
+
+class FileKiosk(FileExt):
+    submitter_type = "kiosk"
+    __tablename__ = '{0}fileKiosk'.format(tables_prefix)
+    __mapper_args__ = {'polymorphic_identity': submitter_type}
+    # Fields
+    id = Column(
+        Integer,
+        ForeignKey('{0}fileExt.id'.format(tables_prefix)),
+        name='id',
+        primary_key=True
+    )
+    path = Column(
+        String(length=255),
+        nullable=True,
+        name='path'
+    )
+    submitter_id = Column(
+        String(length=255),
+        nullable=True,
+        name='submitter_id'
+        )
+
+    def __init__(self, file, filepath, payload):
+        (path, name) = ntpath.split(filepath)
+        super(FileKiosk, self).__init__(file, name)
+        self.path = path
+        self.submitter_id = payload.pop('submitter_id')
 
 
 class FileSuricata(FileExt):

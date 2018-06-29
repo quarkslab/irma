@@ -19,6 +19,7 @@ import logging
 from sqlalchemy import Column, BigInteger, Integer, Numeric, String, \
     UniqueConstraint, inspect, desc, func, Index
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import aliased
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -255,6 +256,13 @@ class File(Base):
                 file.path = path
         except IrmaDatabaseResultNotFound:
             # It doesn't
+            file = cls.create(fileobj, sha256, path, session)
+        return file
+
+    @classmethod
+    def create(cls, fileobj, sha256, path, session):
+        try:
+            # Create a new file
             time = compat.timestamp()
             sha1 = sha1sum(fileobj)
             md5 = md5sum(fileobj)
@@ -270,4 +278,6 @@ class File(Base):
             file = File(sha256, sha1, md5, size, mimetype, path, time, time)
             session.add(file)
             session.commit()
-        return file
+            return file
+        except IntegrityError:
+            raise IrmaDatabaseError("Integrity error")

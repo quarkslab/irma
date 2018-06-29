@@ -1,7 +1,8 @@
 IRMA: Incident Response & Malware Analysis
 ------------------------------------------
 
-|docs|
+|docs| |cover|
+
 
 IRMA is an asynchronous and customizable analysis system for suspicious files.
 This repository is a subproject of IRMA and contains the source code for IRMA's
@@ -40,4 +41,7 @@ involved in the project.
     :alt: Documentation Status
     :scale: 100%
     :target: https://irma.readthedocs.org
+.. |cover| image:: /../badges/master/coverage.svg
+    :alt: Code coverage
+    :scale: 100%
 .. _on Read The Docs Website: https://irma.readthedocs.org

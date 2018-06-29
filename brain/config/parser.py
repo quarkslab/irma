@@ -27,8 +27,11 @@ from irma.common.base.exceptions import IrmaConfigurationError
 from irma.common.configuration.ini import TemplatedConfiguration
 from irma.common.configuration.sql import SQLConf
 from irma.common.ftp.sftp import IrmaSFTP
+from irma.common.ftp.sftpv2 import IrmaSFTPv2
 from irma.common.ftp.ftps import IrmaFTPS
 from irma.common.base.utils import common_celery_options
+
+from datetime import timedelta
 
 # ==========
 #  TEMPLATE
@@ -45,6 +48,9 @@ template_brain_config = {
         ('concurrency', TemplatedConfiguration.integer, 0),
         ('soft_time_limit', TemplatedConfiguration.integer, 300),
         ('time_limit', TemplatedConfiguration.integer, 1500),
+        ('beat_schedule', TemplatedConfiguration.string,
+         "/var/irma/brain_beat_schedule"),
+        ('probelist_cache_lifetime', TemplatedConfiguration.integer, 30),
     ],
     'broker_brain': [
         ('host', TemplatedConfiguration.string, None),
@@ -81,7 +87,7 @@ template_brain_config = {
         ('tables_prefix', TemplatedConfiguration.string, None),
     ],
     'ftp': [
-        ('protocol', TemplatedConfiguration.string, "sftp"),
+        ('protocol', TemplatedConfiguration.string, "sftpv2"),
     ],
     'ftp_brain': [
         ('host', TemplatedConfiguration.string, None),
@@ -129,6 +135,9 @@ def get_celery_options(app, app_name):
                                     time_limit)
     #  disable prefetching behavior
     options.append("-Ofair")
+    options.append("--beat")
+    beat_schedule = brain_config.celery_options.beat_schedule
+    options.append("--schedule={}".format(beat_schedule))
     return options
 
 
@@ -171,6 +180,17 @@ def conf_brain_celery(app):
     backend = get_brain_backend_uri()
     queue = brain_config.broker_brain.queue
     _conf_celery(app, broker, backend=backend, queue=queue)
+    cache_lifetime = brain_config.celery_options.probelist_cache_lifetime
+    app.conf.update(
+        CELERYBEAT_SCHEDULE={
+            'probe_list_refresh': {
+                'task': 'scan_tasks.probe_list_refresh',
+                'schedule': timedelta(seconds=cache_lifetime),
+                'args': (),
+            },
+        },
+        CELERY_TIMEZONE='UTC'
+    )
 
 
 def conf_probe_celery(app):
@@ -303,5 +323,10 @@ def get_ftp_class():
                   "the private key does not exist:['" + key_path + "']"
             raise IrmaConfigurationError(msg)
         return IrmaSFTP
+    elif protocol == "sftpv2":
+        auth = brain_config.ftp_brain.auth
+        if auth == "key":
+            raise IrmaConfigurationError("SFTPv2 pubkey auth not implemented")
+        return IrmaSFTPv2
     elif protocol == "ftps":
         return IrmaFTPS

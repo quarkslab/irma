@@ -1,0 +1,7 @@
+---
+
+- include_tasks: linux/restart.yml
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- include_tasks: windows/restart.yml
+  when: "'Windows' in ansible_distribution"

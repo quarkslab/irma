@@ -1,0 +1,4 @@
+# DO NOT MODIFY THIS FILE
+# Groups of groups declaration file
+
+localhost ansible_connection=local

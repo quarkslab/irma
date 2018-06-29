@@ -1,7 +1,7 @@
 <div id="search">
     <div class="row">
-        <form class="form-inline" ng-submit="vm.tableParams.reload()" role="form">
-            <tags-input 
+        <form class="form-inline" ng-submit="vm.doSearch()" role="form">
+            <tags-input
                 ng-model="vm.searchedTags"
                 add-from-autocomplete-only="true">
                 <auto-complete
@@ -9,7 +9,7 @@
                     load-on-empty="true"
                     load-on-focus="true"
                     min-length="0"
-                    source="loadAvailableTags($query)">
+                    source="vm.loadAvailableTags($query)">
                 </auto-complete>
             </tags-input>
             <div class="form-group">

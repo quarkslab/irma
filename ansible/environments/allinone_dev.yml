@@ -1,13 +1,11 @@
 ---
-# Variables used by Vagrantfile are defined here
 
 servers:
   - name: brain.irma
-    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
-    hostname: brain.irma
+    ansible_groups: [frontend, sql-server, brain, comodo, lief, trid]
+    box: quarkslab/debian-9.0.0-amd64
     cpus: 2
-    cpuexecutioncap: 100
     memory: 2048
     shares:
       - share_from: ../common
@@ -37,24 +35,7 @@ servers:
 
 libvirt_config:
   driver: kvm
-  # connect_via_ssh: true
-  # host:
-  # username:
-  # storage_pool_name:
-  # id_ssh_key_file:
 
-ansible_config:
-  extra_vars:
-    vagrant: true
-    irma_environment: development
-  groups:
-    frontend: brain.irma
-    sql-server: brain.irma
-    brain: brain.irma
-    comodo: brain.irma
-    lief: brain.irma
-    trid: brain.irma
-    "probe:children":
-      - comodo
-      - lief
-      - trid
+ansible_vars:
+  irma_environment: development
+  vagrant: true

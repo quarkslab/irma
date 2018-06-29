@@ -1,12 +1,25 @@
 ---
 
-- include: debian_install_packages.yml
-  when: ansible_distribution == 'Debian'
+  # This is needed because NodeSource repositories are using TLS
+- apt:
+    name: "apt-transport-https"
+    state: present
 
-- name: Checking installed version of npm
-  shell: "/usr/bin/test $(npm -v 2> /dev/null) = {{ nodejs_npm_version }}"
-  register: npm_wanted_version_installed
-  ignore_errors: yes
+- name: Add NodeJS apt Key
+  apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
 
-- include: npm_compile.yml
-  when: npm_wanted_version_installed.rc != 0
+- name: Add NodeJS Debian
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/{{ nodejs_repo }} {{ ansible_distribution_release }} main"
+    state: present
+    filename: "nodejs"
+    update_cache: yes
+
+- apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nodejs
+    - npm

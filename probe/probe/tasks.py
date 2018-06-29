@@ -105,13 +105,22 @@ if not probes:
 
 
 queues = []
+dlx = kombu.Exchange('dlx', type='direct')
+queues.append(kombu.Queue('dlq', exchange=dlx, routing_key='dlq'))
+probe_queues_options = {'x-dead-letter-exchange': 'dlx',
+                        'x-dead-letter-routing-key': 'dlq',
+                        'x-message-ttl': config.get_probe_ttl()}
 for p in probes:
     # display successfully loaded plugin
     probe_name = p.plugin_name
     probe_category = p.plugin_category
+    exchange_name = probe_name + '_exchange'
+    exchange = kombu.Exchange(exchange_name, type='direct')
     log.info(' *** [{category}] Plugin {name} successfully loaded'
              .format(category=probe_category, name=probe_name))
-    queues.append(kombu.Queue(probe_name, routing_key=probe_name))
+    queues.append(kombu.Queue(probe_name, routing_key=probe_name,
+                              exchange=exchange,
+                              queue_arguments=probe_queues_options))
 
 log.info('Configure Queues')
 # update configuration
@@ -179,10 +188,13 @@ def register():
 
 @probe_app.task(acks_late=True)
 def probe_scan(frontend, filename):
+    routing_key = current_task.request.delivery_info['routing_key']
+    if routing_key == 'dlq':
+        log.error("filename %s scan timeout", filename)
+        raise ValueError("Timeout")
     try:
         tmpname = None
         # retrieve queue name and the associated plugin
-        routing_key = current_task.request.delivery_info['routing_key']
         probe = probes[routing_key]
         log.debug("filename %s probe %s", filename, probe)
         (fd, tmpname) = tempfile.mkstemp()

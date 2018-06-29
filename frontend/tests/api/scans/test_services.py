@@ -154,13 +154,14 @@ class TestModuleScanctrl(TestCase):
         m_fobj = MagicMock()
         m_proberesult = MagicMock()
         m_ftpctrl.download_file_data.return_value = m_fobj
-        module._append_new_files_to_scan(m_scan, uploaded_files, m_proberesult)
+        module._append_new_files_to_scan(m_scan, uploaded_files,
+                                         m_proberesult, 1)
         m_download = m_ftpctrl.download_file_data
         m_download.assert_called_once_with(fileid)
         m_File.get_or_create.assert_called_once_with(m_fobj, m_session)
         m_FileProbeResult.assert_called_once_with(m_File.get_or_create(),
                                                   filename,
-                                                  m_proberesult)
+                                                  m_proberesult, 1)
 
     def test_sanitize_res(self):
         pattern = "\u0000test" + "\x00"
@@ -358,8 +359,9 @@ class TestModuleScanctrl(TestCase):
         m_file_ext, m_session = MagicMock(), MagicMock()
         m_session_transaction().__enter__.return_value = m_session
         m_file_ext.scan.resubmit_files = False
+        m_file_ext.depth = 0
         m_FileExt.load_from_ext_id.return_value = m_file_ext
-        result = {'uploaded_files': []}
+        result = {'uploaded_files': {}}
         module.handle_output_files("filewebid", result)
         m_FileExt.load_from_ext_id.assert_called_once_with("filewebid",
                                                            m_session)
@@ -374,6 +376,7 @@ class TestModuleScanctrl(TestCase):
         m_file_ext, m_session = MagicMock(), MagicMock()
         m_session_transaction().__enter__.return_value = m_session
         m_file_ext.resubmit_files = True
+        m_file_ext.depth = 0
         m_FileExt.load_from_ext_id.return_value = m_file_ext
         uploaded_files = {'filename': 'filehash'}
         result = {'uploaded_files': uploaded_files, 'name': 'probe_name'}
@@ -386,9 +389,10 @@ class TestModuleScanctrl(TestCase):
         m_FileExt.load_from_ext_id.assert_called_once_with("filewebid",
                                                            m_session)
         m_append_new_files_to_scan.assert_called_once_with(
-                m_file_ext.scan,
-                uploaded_files,
-                m_file_ext.fetch_probe_result(result['name']))
+            m_file_ext.scan,
+            uploaded_files,
+            m_file_ext.fetch_probe_result(result['name']),
+            m_file_ext.depth+1)
         self.assertCountEqual(m_parentfile.children, [fw1])
 
     @patch("api.scans.services._append_new_files_to_scan")
@@ -401,6 +405,7 @@ class TestModuleScanctrl(TestCase):
         m_file_ext, m_session = MagicMock(), MagicMock()
         m_session_transaction().__enter__.return_value = m_session
         m_file_ext.scan.resubmit_files = True
+        m_file_ext.depth = 0
         m_FileExt.load_from_ext_id.return_value = m_file_ext
         result = {}
         fw1 = MagicMock()
@@ -409,6 +414,62 @@ class TestModuleScanctrl(TestCase):
         m_parentfile.children = []
         m_file_ext.file = m_parentfile
         module.handle_output_files("filewebid",  result)
+        m_FileExt.load_from_ext_id.assert_called_once_with("filewebid",
+                                                           m_session)
+        m_append_new_files_to_scan.assert_not_called()
+        self.assertCountEqual(m_parentfile.children, [])
+
+    @patch("api.scans.services._append_new_files_to_scan")
+    @patch("api.scans.services.FileExt")
+    @patch("api.scans.services.session_transaction")
+    def test_handle_output_files_resubmit_level_ok(
+            self,
+            m_session_transaction,
+            m_FileExt,
+            m_append_new_files_to_scan):
+        m_file_ext, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_file_ext.resubmit_files = True
+        m_file_ext.depth = 15
+        m_FileExt.load_from_ext_id.return_value = m_file_ext
+        uploaded_files = {'filename': 'filehash'}
+        result = {'uploaded_files': uploaded_files, 'name': 'probe_name'}
+        fw1 = MagicMock()
+        m_append_new_files_to_scan.return_value = [fw1]
+        m_parentfile = MagicMock()
+        m_file_ext.file = m_parentfile
+        m_parentfile.children = []
+        module.handle_output_files("filewebid", result)
+        m_FileExt.load_from_ext_id.assert_called_once_with("filewebid",
+                                                           m_session)
+        m_append_new_files_to_scan.assert_called_once_with(
+            m_file_ext.scan,
+            uploaded_files,
+            m_file_ext.fetch_probe_result(result['name']),
+            m_file_ext.depth+1)
+        self.assertCountEqual(m_parentfile.children, [fw1])
+
+    @patch("api.scans.services._append_new_files_to_scan")
+    @patch("api.scans.services.FileExt")
+    @patch("api.scans.services.session_transaction")
+    def test_handle_output_files_resubmit_level_ok(
+            self,
+            m_session_transaction,
+            m_FileExt,
+            m_append_new_files_to_scan):
+        m_file_ext, m_session = MagicMock(), MagicMock()
+        m_session_transaction().__enter__.return_value = m_session
+        m_file_ext.resubmit_files = True
+        m_file_ext.depth = 16
+        m_FileExt.load_from_ext_id.return_value = m_file_ext
+        uploaded_files = {'filename': 'filehash'}
+        result = {'uploaded_files': uploaded_files, 'name': 'probe_name'}
+        fw1 = MagicMock()
+        m_append_new_files_to_scan.return_value = [fw1]
+        m_parentfile = MagicMock()
+        m_file_ext.file = m_parentfile
+        m_parentfile.children = []
+        module.handle_output_files("filewebid", result)
         m_FileExt.load_from_ext_id.assert_called_once_with("filewebid",
                                                            m_session)
         m_append_new_files_to_scan.assert_not_called()

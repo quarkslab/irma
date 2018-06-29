@@ -70,7 +70,9 @@ class TestFilesExtRoutes(TestCase):
         filename = "filename"
         m_file.filename = filename
         m_file.file = io.BytesIO(data)
-        m_request._params = {'files': m_file, 'json': '{"submitter": "cli"}'}
+        m_request._params = {'files': m_file,
+                             'json': '{"submitter": "cli",'
+                             '"submitter_id": "undefined"}'}
         m_file_obj = MagicMock()
         m_File.get_or_create.return_value = m_file_obj
         api_files_ext.create(m_request)

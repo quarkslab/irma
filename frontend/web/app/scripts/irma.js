@@ -74,8 +74,13 @@ angular.module('irma', [
         controller: 'SearchCtrl',
         controllerAs: 'vm',
         location: 'search',
+        // This prevent the page to reload when `$location.search` function is call to modify URL query string parameters
+        reloadOnSearch: false,
         resolve: {
-          maintenance: ['state', function(state){ return state.pingApi();}]
+          maintenance: ['state', function(state){ return state.pingApi();}],
+          tagPrepService: ['resultsManager', function(resultsManager) {
+            return resultsManager.getAvailableTags();
+          }],
         }
       })
       .when('/maintenance',

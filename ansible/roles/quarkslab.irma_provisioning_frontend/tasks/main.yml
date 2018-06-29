@@ -12,6 +12,8 @@
   apt: name={{ item }} state=present
   with_items:
     - postgresql-server-dev-9.6
+    - uwsgi-plugin-python3
+    - python3-psycopg2
 
 - name: Ensure good rights on IRMA-Frontend install directory
   file:
@@ -33,5 +35,9 @@
 
 - include: openssl_configuration.yml
   when: frontend_openssl|default(False) == True
+
+  # See https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md
+- include: puppeteer_requirements.yml
+  when: irma_environment != 'production'
 
 # vim: sw=2

@@ -22,18 +22,21 @@
   pip:
     requirements: "{{ common_install_dir }}/requirements.txt"
     virtualenv: "{{ frontend_deployment_dir }}/venv"
+    virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }} --upgrade"
 
 - name: Install irma.common in a Frontend virtualenv
   pip:
     name: "{{ common_install_dir }}/"
     virtualenv: "{{ frontend_deployment_dir }}/venv"
+    virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }} --upgrade"
 
 - name: Install requirements in a Frontend virtualenv
   pip:
     requirements: "{{ frontend_deployment_dir }}/requirements.txt"
     virtualenv: "{{ frontend_deployment_dir }}/venv"
+    virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Configure config/frontend.ini file
@@ -89,13 +92,7 @@
     dest: "{{ frontend_install_dir }}"
     state: link
 
-- name: Restart systemd services
-  systemd:
-    name: "{{ item.name }}"
-    enabled: yes
-    state: restarted
-  become: yes
-  with_items: "{{ systemd_units_frontend }}"
+- include_tasks: restart.yml
 
 - include: webui_build.yml
   when: irma_environment != 'production'

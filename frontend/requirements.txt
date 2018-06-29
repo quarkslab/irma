@@ -9,9 +9,8 @@ nose
 requests
 python-magic
 paramiko>2.0
+ssh2-python
 fasteners
 falcon-multipart
-https://projects.unbit.it/downloads/uwsgi-lts.tar.gz
 alembic
 humanfriendly
-psycopg2 --no-binary :all:

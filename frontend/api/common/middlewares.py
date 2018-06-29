@@ -28,7 +28,7 @@ class DatabaseSessionManager:
         self.session.flush()
         self.session.close()
 
-    def init_app(self, app):
+    def init_app(self, app):  # pragma: no cover
         @hug.request_middleware(api=app)
         def process_data(request, response):
             self.connect()

@@ -17,11 +17,12 @@ import logging
 import ntpath
 
 import hug
-from hug.types import number, smart_boolean, uuid, comma_separated_list
+from hug.types import number, smart_boolean, uuid, comma_separated_list, text
 from falcon.errors import HTTPInvalidParam, HTTPUnauthorized
 
 import api.scans.services as scan_ctrl
 import api.probes.services as probe_ctrl
+import api.files_ext.controllers as files_ctrl
 import api.tasks.frontendtasks as celery_frontend
 from api.common.middlewares import db
 from api.files.models import File
@@ -34,18 +35,32 @@ from irma.common.base.utils import IrmaScanStatus
 from .models import Scan
 from .schemas import ScanSchema
 
+import api.files_ext.controllers
+
 scan_schema = ScanSchema()
 log = logging.getLogger(__name__)
 
 
 @hug.get("/")
-def list(offset: number = 0,
+def list(status: text = None,
+         offset: number = 0,
          limit: number = 5):
     """ Get a list of all scans which have been launched.
     """
     session = db.session
     log.debug("offset %s limit %s", offset, limit)
-    base_query = Scan.query_joined(session)
+    base_query = session.query(Scan)
+    # Lookup status code from status label
+    status_code = None
+    if status is not None:
+        for (k, v) in IrmaScanStatus.label.items():
+            if v == status:
+                status_code = k
+                break
+        if status_code is None:
+            raise HTTPInvalidParam("unknown value", "status")
+        else:
+            base_query = base_query.filter(Scan.status == status_code)
 
     items = base_query.limit(limit).offset(offset).all()
 
@@ -241,70 +256,46 @@ def launch_v2(request, body):
     # override with given values if set
     scan_options = body.get("options", None)
     if scan_options is not None:
-        force = scan_options.get("force", False)
+        force = scan_options.get("force", force)
         if type(force) is not bool:
             raise HTTPInvalidParam("Should be boolean", "force")
-        mimetype_filtering = scan_options.get("mimetype_filtering", True)
+        mimetype_filtering = scan_options.get("mimetype_filtering",
+                                              mimetype_filtering)
         if type(mimetype_filtering) is not bool:
             raise HTTPInvalidParam("Should be boolean",
                                    "mimetype_filtering")
-        resubmit_files = scan_options.get("resubmit_files", True)
+        resubmit_files = scan_options.get("resubmit_files", resubmit_files)
         if type(resubmit_files) is not bool:
             raise HTTPInvalidParam("Should be boolean",
                                    "resubmit_files")
-        probes = scan_options.get("probes", None)
+        probes = scan_options.get("probes", probes)
 
     session = db.session
     ip = request.remote_addr
-    scan = Scan(compat.timestamp(), ip)
-    session.add(scan)
 
-    # handle scan parameter
-    # cached results: "force" (default: True)
-    scan.force = force
-
-    # use mimetype for probelist: "mimetype_filtering" (default: True)
-    scan.mimetype_filtering = mimetype_filtering
-
-    # rescan file outputted from probes "resubmit_files" (default: True)
-    scan.resubmit_files = resubmit_files
-
-    scan.set_status(IrmaScanStatus.empty)
-    session.commit()
-
-    log.debug("scan %s: created", scan.external_id)
-
-    msg = "scan %s: Force %s MimeF %s"
-    msg += " Resub %s Probes %s"
-    log.debug(msg, scan.external_id, scan.force, scan.mimetype_filtering,
-              scan.resubmit_files, probes)
-
+    files_ext = []
     for fe_id in files_list:
-        log.info("scan %s adding file %s", scan.external_id,
-                 fe_id)
         try:
             file_ext = FileExt.load_from_ext_id(fe_id, session)
         except IrmaDatabaseResultNotFound:
             raise HTTPInvalidParam("File %s not found" % fe_id,
                                    "files")
-
         if file_ext.file.path is None:
             raise HTTPInvalidParam("File with hash %s should be ("
                                    "re)uploaded" %
                                    file_ext.file.sha256,
                                    "files")
-
         if file_ext.scan is not None:
             raise HTTPInvalidParam("File %s already scanned" %
                                    fe_id,
                                    "files")
-        file_ext.scan = scan
+        files_ext.append(file_ext)
 
-    scan.set_status(IrmaScanStatus.ready)
-    session.commit()
-
-    probelist = probe_ctrl.check_probe(probes)
-    scan.set_probelist(probelist)
+    scan = Scan(compat.timestamp(), ip,
+                force=force, mimetype_filtering=mimetype_filtering,
+                resubmit_files=resubmit_files, files_ext=files_ext,
+                probes=probes)
+    session.add(scan)
     session.commit()
     # launch_asynchronous scan via frontend task
     celery_frontend.scan_launch(str(scan.external_id))
@@ -380,3 +371,25 @@ def get_results(scan_id: uuid):
     schema = FileExtSchema(exclude=('probe_results',
                                     'file_infos'))
     return schema.dump(scan.files_ext, many=True).data
+
+
+@hug.post("/quick", versions=2)
+def quick_scan(request):
+    """ Launch a scan for one file
+    """
+    session = db.session
+    ip = request.remote_addr
+
+    # Create file
+    fe = files_ctrl.create(request)
+    fe = FileExt.load_from_ext_id(fe['result_id'], session)
+
+    # Create a scan
+    scan = Scan(compat.timestamp(), ip, files_ext=[fe, ])
+    session.add(scan)
+    session.commit()
+
+    # launch_asynchronous scan via frontend task
+    celery_frontend.scan_launch(str(scan.external_id))
+
+    return scan_schema.dump(scan).data

@@ -41,11 +41,13 @@ def job_launch(ftpuser, filename, probename, task_id):
     hook_error = route(
         results_app.signature("brain.results_tasks.job_error",
                               [filename, probename]))
+    exchange = probename + "_exchange"
     task = async_call(probe_app,
                       "probe.tasks",
                       "probe_scan",
                       args=(ftpuser, filename),
                       routing_key=probename,
+                      exchange=exchange,
                       link=hook_success,
                       link_error=hook_error,
                       task_id=task_id)

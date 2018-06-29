@@ -16,6 +16,7 @@
     - build-essential
     - libssl-dev
     - libffi-dev
+    - psmisc
 
 # Install python-pip (cause the debian version is only 1.1)
 - name: Downloading script get-pip.py

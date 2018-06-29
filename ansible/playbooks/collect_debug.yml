@@ -1,0 +1,113 @@
+---
+
+- name: Collect debugging data
+  hosts: all:!localhost
+  become: yes
+  vars:
+    # This is relative to where the playbook file is store
+    debug_directory: "../debug/"
+  tasks:
+    - when: 'ansible_service_mgr == "systemd"'
+      block:
+        - tags: ['systemd', 'logs']
+          block:
+            - find:
+                paths: "/var/log/journal"
+                recurse: yes
+              register: find_output
+
+            - fetch:
+                src: "{{ item.path }}"
+                dest: "{{ debug_directory }}"
+              with_items: "{{ find_output.files }}"
+
+
+    - when: '"frontend" in group_names'
+      block:
+        - tags: ['irma']
+          when: 'debug_collect_irma_files|default(False)'
+          block:
+            - find:
+                paths: "{{ frontend_install_dir }}"
+                recurse: yes
+              register: find_output
+
+            - fetch:
+                src: "{{ item.path }}"
+                dest: "{{ debug_directory }}"
+              with_items: "{{ find_output.files }}"
+
+        - tags: ['nginx', 'logs']
+          block:
+            - find:
+                paths:
+                  - "{{ nginx_log_dir  }}"
+                  - "{{ nginx_conf_dir }}"
+                recurse: yes
+              register: find_output
+
+            - fetch:
+                src: "{{ item.path }}"
+                dest: "{{ debug_directory }}"
+              with_items: "{{ find_output.files }}"
+
+
+    - when: '"brain" in group_names'
+      block:
+        - when: 'debug_collect_irma_files|default(False)'
+          tags: ['irma']
+          block:
+            - find:
+                paths: "{{ brain_install_dir }}"
+                recurse: yes
+              register: find_output
+
+            - fetch:
+                src: "{{ item.path }}"
+                dest: "{{ debug_directory }}"
+              with_items: "{{ find_output.files }}"
+
+        - tags: ['rabbitmq', 'logs']
+          block:
+            - find:
+                # For the moment, RabbitMQ log directory is not modifiable by
+                # the Ansible role used, so it's hardcoded
+                paths: "/var/log/rabbitmq"
+                recurse: yes
+              register: find_output
+
+            - fetch:
+                src: "{{ item.path }}"
+                dest: "{{ debug_directory }}"
+              with_items: "{{ find_output.files }}"
+
+
+    - when: '"probe" in group_names and ansible_system == "Linux"'
+      block:
+        - when: 'debug_collect_irma_files|default(False)'
+          tags: ['irma']
+          block:
+            - find:
+                paths: "{{ probe_install_dir }}"
+                recurse: yes
+              register: find_output
+
+            - fetch:
+                src: "{{ item.path }}"
+                dest: "{{ debug_directory }}"
+              with_items: "{{ find_output.files }}"
+
+
+    - when: '"sql-server" in group_names'
+      block:
+        - tags: ['database', 'logs']
+          block:
+            - find:
+                paths: "{{ postgresql_log_directory }}"
+                recurse: yes
+              register: find_output
+
+            - fetch:
+                src: "{{ item.path }}"
+                dest: "{{ debug_directory }}"
+              with_items: "{{ find_output.files }}"

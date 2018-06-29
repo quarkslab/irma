@@ -1,21 +1,18 @@
 ---
-# Variables used by Vagrantfile are defined here
 
 servers:
   - name: brain.irma
-    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
-    hostname: brain.irma
+    ansible_groups: [sql-server, frontend, brain, unarchiver, fsecure, comodo, clamav, escan, avg, peid, trid, lief]
+    box: quarkslab/debian-9.0.0-amd64
     cpus: 2
-    cpuexecutioncap: 100
     memory: 2048
     share_code: false
 ##   - name: probe-win.irma
-##     box: eval-win10-enterprise
 ##     ip: 172.16.1.31
-##     hostname: probe-win.irma
+##     ansible_groups: [mcafee-win]
+##     box: eval-win10-enterprise
 ##     cpus: 2
-##     cpuexecutioncap: 100
 ##     memory: 2048
 ##     windows: true
 
@@ -27,29 +24,8 @@ libvirt_config:
   # storage_pool_name:
   # id_ssh_key_file:
 
-ansible_config:
-  extra_vars:
-    vagrant: true
-    irma_environment: production
-  groups:
-    frontend: brain.irma
-    sql-server: brain.irma
-    brain: brain.irma
-    clamav: brain.irma
-    comodo: brain.irma
-    mcafee: brain.irma
-    trid: brain.irma
-    static-analyzer: brain.irma
-    virustotal: brain.irma
-##    windows-probe:
-##      - probe-win.irma
-    "probe:children":
-      - clamav
-      - comodo
-      - mcafee
-      - trid
-      - static-analyzer
-      - virustotal
-##      - windows-probe
-##    "windows:children":
-##      - windows-probe
+ansible_vars:
+  irma_environment: production
+  vagrant: true
+  irma_release: HEAD
+  irma_code_archive_generation: True

@@ -1,0 +1,10 @@
+---
+
+- name: Add /etc/hosts additional entries
+  lineinfile:
+    dest: "{{ hosts_file }}"
+    regexp: '.*{{ item.name }}$'
+    line: '{{ item.ip }} {{ item.name }}'
+    state: present
+  with_items:
+    - "{{ etc_hosts_additional_entries }}"

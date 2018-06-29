@@ -4,8 +4,10 @@
     probe_deployment_dir: "{{ probe_project_dir }}/releases/{{ irma_deployment_release_name }}"
 
 # Install Probe
-- include: linux/probe_deployment.yml
+- include_tasks: linux/probe_deployment.yml
   when: ansible_distribution in ['Debian', 'Ubuntu']
 
-- include: windows/probe_deployment.yml
+- include_tasks: windows/probe_deployment.yml
   when: "'Windows' in ansible_distribution"
+
+- include_tasks: restart.yml

@@ -6,3 +6,85 @@
     font-weight: bold;
   }
 }
+
+#history {
+  width: 100%;
+  padding-bottom: 20px;
+
+  h5 {
+    margin-bottom: 20px;
+  }
+
+  #timeline {
+    padding: 0px 0px;
+    margin: 0px auto;
+    position: absolute;
+    width: 78%;
+    left: 11%;
+
+    .t-legend {
+      width: 100%;
+
+      .t-label {
+        position: absolute;
+        font-size: 10px;
+        color: black;
+        border-left: 1px solid gray;
+        height: 40px;
+        padding-left: 4px;
+      }
+    }
+
+    .t-line {
+      background: gray;
+      width: 100%;
+      height: 2px;
+      position: absolute;
+      top: 40px;
+
+      .t-marker {
+        background: black;
+        position: absolute;
+        height: 8px;
+        width: 8px;
+        border-radius: 4px;
+        margin-left: -4px;
+        margin-top: -3px;
+
+        &.active {
+          transform: scale(2);
+        }
+
+        &:not(.active):hover {
+          cursor: pointer;
+          transform: scale(1.5);
+        }
+
+        &.t-danger {
+          background-color: firebrick;
+        }
+
+        &.t-ok {
+          background-color: teal;
+        }
+      }
+    }
+  }
+
+  a {
+    position: absolute;
+    width: 10%;
+  }
+
+  #next-result {
+    right: 0;
+  }
+
+  #previous-result {
+    left: 0;
+
+    > span {
+      margin-left: 2px;
+    }
+  }
+}

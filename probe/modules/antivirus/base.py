@@ -179,7 +179,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
             if isinstance(unpckd_cmd, Path): # case: a Path
                 cmd = list(Antivirus.sanitize(cmd))
             elif isinstance(unpckd_cmd, str):  # case: a string
-                cmd = cmd.split()
+                cmd = unpckd_cmd.split()
             else:  # last case: a sequence
                 cmd = list(Antivirus.sanitize(unpckd_cmd))
 

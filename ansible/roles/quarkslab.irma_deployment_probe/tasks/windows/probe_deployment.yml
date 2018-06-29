@@ -67,5 +67,3 @@
       rc: [0, 1, 2]
     - cmd: mklink /d "{{ probe_install_dir }}" "{{ probe_deployment_dir }}"
       rc: [0, 2]
-
-- include: startup.yml

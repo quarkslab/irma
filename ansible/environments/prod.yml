@@ -1,34 +1,29 @@
 ---
-# Variables used by Vagrantfile are defined here
 
 servers:
   - name: frontend.irma
-    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.30
-    hostname: frontend.irma
+    ansible_groups: [frontend, sql-server]
+    box: quarkslab/debian-9.0.0-amd64
     cpus: 2
-    cpuexecutioncap: 100
     memory: 2048
   - name: brain.irma
-    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.31
-    hostname: brain.irma
+    ansible_groups: [brain]
+    box: quarkslab/debian-9.0.0-amd64
     cpus: 2
-    cpuexecutioncap: 100
     memory: 2048
   - name: avs-linux.irma
-    box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.32
-    hostname: avs-linux.irma
+    ansible_groups: [avast, avg, bitdefender, clamav, comodo, escan]
+    box: quarkslab/debian-9.0.0-amd64
     cpus: 2
-    cpuexecutioncap: 100
     memory: 2048
   - name: mcafee-win.irma
-    box: eval-win8x64-enterprise
     ip: 172.16.1.33
-    hostname: mcafee-win.irma
+    ansible_groups: [mcafee-win]
+    box: eval-win10x64-enterprise
     cpus: 2
-    cpuexecutioncap: 100
     memory: 2048
     windows: true
 
@@ -40,46 +35,7 @@ libvirt_config:
   # storage_pool_name:
   # id_ssh_key_file:
 
-ansible_config:
-  extra_vars:
-    vagrant: true
-    irma_environment: production
-  groups:
-    frontend: frontend.irma
-    sql-server: frontend.irma
-    brain: brain.irma
-    clamav: avs-linux.irma
-    comodo: avs-linux.irma
-    mcafee: avs-linux.irma
-    static-analyzer: avs-linux.irma
-    virustotal: avs-linux.irma
-    avg: avs-linux.irma
-    bitdefender: avs-linux.irma
-    escan: avs-linux.irma
-    virusblokada: avs-linux.irma
-    zoner: avs-linux.irma
-    drweb: avs-linux.irma
-    avast: avs-linux.irma
-    fsecure: avs-linux.irma
-    trid: avs-linux.irma
-    sophos: avs-linux.irma
-    mcafee-win: mcafee-win.irma
-    "probe:children":
-      - clamav
-      - comodo
-      - mcafee
-      - virustotal
-      - static-analyzer
-      - avg
-      - bitdefender
-      - escan
-      - virusblokada
-      - zoner
-      - drweb
-      - avast
-      - fsecure
-      - trid
-      - sophos
-      - mcafee-win
-    "windows:children":
-      - mcafee-win
+ansible_vars:
+  irma_environment: production
+  vagrant: true
+  irma_code_archive_generation: False

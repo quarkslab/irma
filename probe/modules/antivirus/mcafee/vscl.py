@@ -89,5 +89,5 @@ class McAfeeVSCL(AntivirusUnix):
         """Return the Virus Database version"""
         return self._run_and_parse(
             '--version',
-            regexp='AV Engine version: (?P<dbversion>[0-9]*\.[0-9]*)',
+            regexp='Dat set version: (?P<dbversion>[0-9]*)',
             group='dbversion')

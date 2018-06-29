@@ -1,4 +1,8 @@
 celery<3.2
 python-magic
 paramiko>2.0
+ssh2-python
 threadpool
+humanfriendly
+mock
+nose

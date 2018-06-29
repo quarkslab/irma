@@ -25,11 +25,10 @@ from api.files.models import File
 from api.files_ext.models import FileExt, FileProbeResult
 from api.probe_results.models import ProbeResult
 from api.scans.models import Scan
-from config.parser import get_lock_path
+from config.parser import get_lock_path, get_max_resubmit_level
 from irma.common.base.exceptions import IrmaValueError, IrmaTaskError
 from irma.common.base.utils import IrmaReturnCode, IrmaScanStatus
 from irma.common.base.utils import IrmaScanRequest
-
 
 log = logging.getLogger(__name__)
 interprocess_lock_path = get_lock_path()
@@ -136,19 +135,32 @@ def _sanitize_res(d):
         return d
 
 
-def _append_new_files_to_scan(scan, uploaded_files, probe_result):
-    new_files_ext = []
-    session = inspect(scan).session
-    for (file_realname, file_tmp_id) in uploaded_files.items():
+def _get_or_create_new_files(uploaded_files, session):
+    new_files = {}
+    for file_tmp_id in uploaded_files:
         file_obj = ftp_ctrl.download_file_data(file_tmp_id)
         file = File.get_or_create(file_obj, session)
-        file_ext = FileProbeResult(file, file_realname, probe_result)
-        file_ext.scan = scan
         file_obj.close()
+        new_files[file_tmp_id] = file
+    return new_files
+
+
+def _append_new_files_to_scan(scan, uploaded_files, probe_result, depth):
+    new_files_ext = []
+    session = inspect(scan).session
+    # Do it in two times for allowing retries
+    # First create all new files then rename temp name on brain
+    # to file_id name
+    new_files = _get_or_create_new_files(uploaded_files.values(), session)
+    for (file_realname, file_tmp_id) in uploaded_files.items():
+        file = new_files[file_tmp_id]
+        file_ext = FileProbeResult(file, file_realname, probe_result, depth)
+        file_ext.scan = scan
         session.add(file_ext)
         session.commit()
         log.debug("scan %s: new file_ext id %s for file %s",
                   scan.external_id, file_ext.external_id, file_ext.name)
+
         ftp_ctrl.rename_file(file_tmp_id, file_ext.external_id)
         new_files_ext.append(file_ext)
     return new_files_ext
@@ -234,6 +246,9 @@ def is_finished(scan_id):
         log.debug("scan %s: is_finished %d/%d", scan_id,
                   scan.probes_finished, scan.probes_total)
         if scan.finished() and scan.status != IrmaScanStatus.finished:
+            # call finished hook for each files
+            for file_ext in scan.files_ext:
+                file_ext.hook_finished()
             scan.set_status(IrmaScanStatus.finished)
             session.commit()
             # launch flush celery task on brain
@@ -241,21 +256,38 @@ def is_finished(scan_id):
             celery_brain.scan_flush(scan.external_id)
 
 
-def handle_output_files(file_ext_id, result):
+def handle_output_files(file_ext_id, result, error_case=False):
     log.info("Handling output for file %s", file_ext_id)
     with session_transaction() as session:
         file_ext = FileExt.load_from_ext_id(file_ext_id, session)
         scan = file_ext.scan
         uploaded_files = result.get('uploaded_files', None)
-        if uploaded_files is None or not scan.resubmit_files:
-            log.debug("scan %s: Nothing to resubmit or resubmit disabled",
-                      scan.external_id)
+        log.debug("scan %s file %s depth %s", scan.external_id,
+                  file_ext_id, file_ext.depth)
+        if uploaded_files is None:
+            return
+        resubmit = scan.resubmit_files
+        max_resubmit_level = get_max_resubmit_level()
+        if max_resubmit_level != 0 and file_ext.depth > \
+                max_resubmit_level:
+            log.warning("scan %s file %s resubmit level %s exceeded max "
+                        "level (%s)", scan.external_id,
+                        file_ext_id, file_ext.depth,
+                        max_resubmit_level
+                        )
+            resubmit = False
+        if not resubmit or error_case:
+            reason = "Error case" if error_case else "Resubmit disabled"
+            log.debug("scan %s: %s flushing files", scan.external_id, reason)
+            celery_brain.files_flush(list(uploaded_files.values()),
+                                     scan.external_id)
             return
         log.debug("scan %s: found files %s", scan.external_id, uploaded_files)
         # Retrieve the DB probe_result to link it with
         # a new FileProbeResult in _append_new_files
         probe_result = file_ext.fetch_probe_result(result['name'])
-        new_fws = _append_new_files_to_scan(scan, uploaded_files, probe_result)
+        new_fws = _append_new_files_to_scan(scan, uploaded_files,
+                                            probe_result, file_ext.depth+1)
         parent_file = file_ext.file
         for new_fw in new_fws:
             parent_file.children.append(new_fw)
@@ -266,7 +298,14 @@ def handle_output_files(file_ext_id, result):
         scan_request = _create_scan_request(new_fws,
                                             scan.get_probelist(),
                                             scan.mimetype_filtering)
-        _add_empty_results(new_fws, scan_request, scan, session)
+        scan_request = _add_empty_results(new_fws, scan_request, scan, session)
+        if scan_request.nb_files == 0:
+            scan.set_status(IrmaScanStatus.finished)
+            log.info("scan %s: nothing to do flushing files",
+                     scan.external_id)
+            celery_brain.files_flush(list(uploaded_files.values()),
+                                     scan.external_id)
+            return
         for new_fw in new_fws:
             celery_brain.scan_launch(new_fw.external_id,
                                      new_fw.probes,

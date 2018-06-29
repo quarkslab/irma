@@ -72,9 +72,7 @@
 <script type="text/ng-template" id="tree">
   <div class="file">
     <div class="infos">
-      <span class="pull-right label" ng-class="(file.status == 0) ? 'label-success' : 'label-danger'">
-        {{file.probes_finished}} / {{file.probes_total}}
-      </span>
+      <span class="pull-right label" ng-class="vm.getLabelByFileStatus(file.status)">{{file.probes_finished}} / {{file.probes_total}}</span>
       <button ng-if="file.children.length" ng-click="file.displayChildren = !file.displayChildren">
         {{file.displayChildren? '-': '+'}}
       </button>

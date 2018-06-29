@@ -26,8 +26,13 @@ class TestFrontendTasks(TestCase):
         probe = "probe"
         result = "result"
         module.scan_result(filename, probe, result)
+        hook_error = module.route(
+                        module.frontend_app.signature(
+                                "frontend_app.scan_result_error",
+                                [filename, probe, result]))
         m_async_call.assert_called_once_with(module.frontend_app,
                                              "frontend_app",
                                              "scan_result",
                                              args=[filename,
-                                                   probe, result])
+                                                   probe, result],
+                                             link_error=hook_error)

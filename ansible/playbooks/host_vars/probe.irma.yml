@@ -52,27 +52,8 @@
 #
 ###########################
 
-
-# # Avast!
-# avast_win_url:
-# avast_win_certfile: files/License.avastlic
-
-# # AVG
-# avg_win_url:
-# avg_win_license_key: "RRRRR-RRRRR-RRRRR-RRRRR-RRRRR-RRRRR"
-
-# # AVIRA Registration - requires a valid key, Identity and email address
-# avira_win_firstname: ''
-# avira_win_lastname: ''
-# avira_win_email: ''
-# avira_win_key: 'XXXXXXXXXXXXXXXXXXXXXXXXX'
-
 # # Emsisoft A2cmd
 # emsisoft_win_url:
-
-# # F-Secure
-# fsecure_win_url:
-# fsecure_win_key: 'XXXX-XXXX-XXXX-XXXX-XXXX'
 
 # # Gdata
 # gdata_win_url:

@@ -13,9 +13,11 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from sqlalchemy import Column, Integer, Numeric, Boolean, ForeignKey, String
+from sqlalchemy import Column, Integer, Numeric, Boolean,\
+    ForeignKey, String, select, func
 from sqlalchemy.orm import relationship, backref, subqueryload
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from irma.common.base.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaCoreError
@@ -23,6 +25,13 @@ from irma.common.utils import compat
 from irma.common.base.utils import IrmaScanStatus
 from irma.common.utils.utils import UUID
 from api.common.models import Base, tables_prefix
+
+import api.probes.services as probe_ctrl
+
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 class Scan(Base):
@@ -74,14 +83,32 @@ class Scan(Base):
     def set_probelist(self, value):
         self.probelist = ",".join(value)
 
-    def __init__(self, date, ip):
+    def __init__(self, date, ip, force=True, mimetype_filtering=True,
+                 resubmit_files=True, files_ext=[], probes=None):
         super(Scan, self).__init__()
         self.external_id = UUID.generate()
         self.date = date
         self.ip = ip
-        self.force = False
-        self.mimetype_filtering = False
-        self.resubmit_files = False
+        self.force = force
+        self.mimetype_filtering = mimetype_filtering
+        self.resubmit_files = resubmit_files
+
+        self.set_status(IrmaScanStatus.empty)
+
+        if files_ext:
+            for fe in files_ext:
+                log.info("scan {} adding file {}"
+                         .format(self.external_id, fe.external_id))
+                fe.scan = self
+            self.set_status(IrmaScanStatus.ready)
+
+        self.set_probelist(probe_ctrl.check_probe(probes))
+
+        log.debug("scan {}: created".format(self.external_id))
+        log.debug("scan {}: Force {} MimeF {} Resub {} Probes {}"
+                  .format(self.external_id, self.force,
+                          self.mimetype_filtering, self.resubmit_files,
+                          probes))
 
     @classmethod
     def query_joined(cls, session):
@@ -128,15 +155,17 @@ class Scan(Base):
         # there so just check that we are at least at uploaded
         if self.status < IrmaScanStatus.uploaded:
             return False
-        for file_ext in self.files_ext:
-            for pr in file_ext.probe_results:
-                if pr.doc is None:
-                    return False
-        return True
+        return all(fe.status is not None for fe in self.files_ext)
 
-    @property
+    @hybrid_property
     def status(self):
         return max(evt.status for evt in self.events)
+
+    @status.expression
+    def status(cls):
+        query = select([func.max(ScanEvents.status)])
+        query = query.where(cls.id == ScanEvents.id_scan)
+        return query.as_scalar()
 
     @property
     def probes_total(self):
