@@ -10,7 +10,7 @@ ensure that, from the installation directory, execute the Celery worker:
 
 On GNU/Linux:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd /opt/irma/irma-frontend/current
     $ ./venv/bin/python -m api.tasks.frontend_app
@@ -40,7 +40,7 @@ SFTP accounts
 
 Defaut File Transport Protocol since v1.4.0 is now SFTP, you can check whether the configured account is valid.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sftp <user>@<hostname of the brain>
 
@@ -52,7 +52,7 @@ Additionnally, if you have configured IRMA to use FTP-TLS, you can check
 whether the configured account is valid. On Debian, this can be done with the
 ``ftp-ssl`` package:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install ftp-ssl
     [...]
@@ -84,7 +84,7 @@ Restful API
 One can verify that the restful API is up and running by querying a specific
 route on the web server or by checking the system logs:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ curl http://localhost/api/v1.1/probes
     {"total": 9, "data": ["ClamAV", "ComodoCAVL", "EsetNod32", "FProt", "Kaspersky", "McAfeeVSCL", "NSRL", "StaticAnalyzer", "VirusTotal"]}

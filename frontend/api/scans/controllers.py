@@ -18,7 +18,7 @@ import ntpath
 
 import hug
 from hug.types import number, smart_boolean, uuid, comma_separated_list
-from falcon.errors import HTTPInvalidParam
+from falcon.errors import HTTPInvalidParam, HTTPUnauthorized
 
 import api.scans.services as scan_ctrl
 import api.probes.services as probe_ctrl
@@ -27,10 +27,10 @@ from api.common.middlewares import db
 from api.files.models import File
 from api.files_ext.models import FileExt, FileWeb, FileCli
 from api.files_ext.schemas import FileExtSchema
-from lib.common import compat
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
-from lib.common.utils import decode_utf8
-from lib.irma.common.utils import IrmaScanStatus
+from irma.common.utils import compat
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound
+from irma.common.utils.utils import decode_utf8
+from irma.common.base.utils import IrmaScanStatus
 from .models import Scan
 from .schemas import ScanSchema
 
@@ -39,8 +39,8 @@ log = logging.getLogger(__name__)
 
 
 @hug.get("/")
-def list(offset: number=0,
-         limit: number=5):
+def list(offset: number = 0,
+         limit: number = 5):
     """ Get a list of all scans which have been launched.
     """
     session = db.session
@@ -91,12 +91,94 @@ def get(scan_id: uuid):
     return scan_schema.dump(scan).data
 
 
+@hug.format.content_type('text/csv; charset=utf-8')
+def report_as_csv(scan_id, request=None, response=None, hug_api_version=2):
+    def gen_stream():
+        s = Scan.load_from_ext_id(scan_id, db.session)
+
+        # CSV Header
+        header = [
+            "Date",
+            "SHA256Sum",
+            "Filename",
+            "First seen",
+            "Last seen",
+            "Size",
+            "Status",
+        ]
+
+        # To display the antivirus list (with the right antivirus name), we use
+        # an file_ext value from the database, and iterate over its antivirus
+        # probes.
+        if s.files_ext:
+            av_list = []
+            try:
+                av_list = (s
+                           .files_ext[0]
+                           .get_probe_results()['antivirus']
+                           .keys())
+            except KeyError:
+                # In case there is no antivirus probes, do nothing, av_list
+                # will be empty.
+                pass
+
+            header += av_list
+
+        yield bytes(",".join(map(str, header)), 'utf-8')
+        yield bytes('\r\n', 'utf-8')
+
+        for f in s.files_ext:
+            row = [
+                s.date,
+                f.file.sha256,
+                f.name,
+                f.file.timestamp_first_scan,
+                f.file.timestamp_last_scan,
+                f.file.size,
+                f.status,
+            ]
+
+            if av_list:
+                av_results = f.get_probe_results()['antivirus']
+                for av_name in av_list:
+                    row += [av_results[av_name]['status'], ]
+
+            yield bytes(",".join(map(str, row)), 'utf-8')
+            yield bytes('\r\n', 'utf-8')
+
+    response.append_header('Content-Disposition',
+                           ('attachment; filename="Scan report - %s.csv"' %
+                            scan_id))
+    # Using stream is useful when the report generated contains a lot of files
+    response.stream = gen_stream()
+
+
+# For the moment the report is generated in csv format.
+# For the future, if you want to generate it depending on the MIME type return
+# by the Content-Type header, you can use this:
+# @hug.get('/{scan_id}/report', output=hug.output_format.on_content_type(
+#     {'text/csv': report_as_csv,
+#     'text/plain': report_as_plain}
+# ))
+@hug.get('/{scan_id}/report', output=report_as_csv)
+def get_report(request, response, scan_id: uuid):
+    """
+    Retrieve the scan report as a csv file
+    """
+    scan = Scan.load_from_ext_id(scan_id, db.session)
+
+    if scan.finished():
+        return scan_id
+
+    raise HTTPUnauthorized('Scan is not finished.')
+
+
 @hug.post("/{scan_id}/launch", versions=1)
 def launch_v1(scan_id: uuid,
-              probes: comma_separated_list=None,
-              force: smart_boolean=False,
-              mimetype_filtering: smart_boolean=True,
-              resubmit_files: smart_boolean=True,
+              probes: comma_separated_list = None,
+              force: smart_boolean = False,
+              mimetype_filtering: smart_boolean = True,
+              resubmit_files: smart_boolean = True,
               ):
     """ Launch a scan.
         The request should be performed using a POST request method.

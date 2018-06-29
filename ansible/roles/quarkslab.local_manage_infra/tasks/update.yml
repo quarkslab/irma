@@ -1,0 +1,10 @@
+---
+
+- name: Get input data from '{{ infra_data_file }}'
+  include_vars: "{{ infra_data_file }}"
+
+- include_tasks: update_nginx.yml
+  when: frontend_openssl
+
+- include_tasks: update_psql.yml
+  when: postgresql_ssl

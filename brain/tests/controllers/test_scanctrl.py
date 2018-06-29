@@ -15,13 +15,13 @@
 
 from unittest import TestCase
 from mock import MagicMock, patch
-from random import randint, choice, shuffle
+from random import randint, choice
 
-from lib.irma.common.utils import IrmaScanStatus
+from irma.common.base.utils import IrmaScanStatus
 import brain.controllers.scanctrl as module
 
 from brain.models.sqlobjects import Scan, User
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound
 
 
 # ============

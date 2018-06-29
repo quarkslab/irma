@@ -9,7 +9,7 @@ from mock import MagicMock, patch
 from api.scans.models import Scan, ScanEvents
 from api.scans.schemas import ScanSchema
 from api.files_ext.schemas import FileExtSchema
-from lib.irma.common.utils import IrmaScanStatus
+from irma.common.base.utils import IrmaScanStatus
 
 
 class TestScansRoutes(TestCase):

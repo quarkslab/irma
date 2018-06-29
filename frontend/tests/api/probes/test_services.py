@@ -3,7 +3,7 @@ from unittest import TestCase
 from mock import patch
 
 import api.probes.services as module
-from lib.irma.common.exceptions import IrmaValueError
+from irma.common.base.exceptions import IrmaValueError
 
 
 class TestModuleProbectrl(TestCase):

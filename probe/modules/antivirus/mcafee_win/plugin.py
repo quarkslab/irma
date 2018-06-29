@@ -13,23 +13,21 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import os
-
 from .vscl import McAfeeVSCLWin
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class McAfeeVSCLWinPlugin(PluginBase, McAfeeVSCLWin, AntivirusPluginInterface):
+class McAfeeVSCLWinPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "McAfeeVSCLWin"
-    _plugin_display_name_ = McAfeeVSCLWin._name
+    _plugin_display_name_ = McAfeeVSCLWin.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -39,22 +37,8 @@ class McAfeeVSCLWinPlugin(PluginBase, McAfeeVSCLWin, AntivirusPluginInterface):
         PlatformDependency('win32')
     ]
 
-    @classmethod
-    def verify(cls):
-        # create an instance
-        module = McAfeeVSCLWin()
-        path = module.scan_path
-        del module
-        # perform checks
-        if not path or not os.path.exists(path):
-            raise PluginLoadError("{0}: verify() failed because "
-                                  "McAfeeVSCL executable was not found."
-                                  "".format(cls.__name__))
+    # ================
+    #  interface data
+    # ================
 
-    # =============
-    #  constructor
-    # =============
-
-    def __init__(self):
-        # load default configuration file
-        self.module = McAfeeVSCLWin()
+    module_cls = McAfeeVSCLWin

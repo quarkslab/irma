@@ -1,0 +1,54 @@
+#{{ ansible_managed }}
+
+{% if nginx_http_enabled %}
+server {
+
+{% for v in item.value.nginx_http %}
+{% if v.find('\n') != -1 %}
+   {{v.replace("\n","\n   ")}}
+{% else %}
+   {% if v != "" %}{{ v.replace(";",";\n      ").replace(" {"," {\n      ").replace(" }"," \n   }\n") }}{% if v.find('{') == -1%};
+{% endif %}{% endif %}{% endif %}
+{% endfor %}
+
+{% for v in item.value.nginx_common %}
+{% if v.find('\n') != -1 %}
+   {{v.replace("\n","\n   ")}}
+{% else %}
+   {% if v != "" %}{{ v.replace(";",";\n      ").replace(" {"," {\n      ").replace(" }"," \n   }\n") }}{% if v.find('{') == -1%};
+{% endif %}{% endif %}{% endif %}
+{% endfor %}
+
+}
+{% endif %}
+
+{% if nginx_https_enabled %}
+server {
+
+{% for v in item.value.nginx_https_server %}
+{% if v.find('\n') != -1 %}
+   {{v.replace("\n","\n   ")}}
+{% else %}
+   {% if v != "" %}{{ v.replace(";",";\n      ").replace(" {"," {\n      ").replace(" }"," \n   }\n") }}{% if v.find('{') == -1%};
+{% endif %}{% endif %}{% endif %}
+{% endfor %}
+
+{% for v in item.value.nginx_common %}
+{% if v.find('\n') != -1 %}
+   {{v.replace("\n","\n   ")}}
+{% else %}
+   {% if v != "" %}{{ v.replace(";",";\n      ").replace(" {"," {\n      ").replace(" }"," \n   }\n") }}{% if v.find('{') == -1%};
+{% endif %}{% endif %}{% endif %}
+{% endfor %}
+
+{% if nginx_https_client_enabled %}
+{% for v in item.value.nginx_https_client %}
+{% if v.find('\n') != -1 %}
+   {{v.replace("\n","\n   ")}}
+{% else %}
+   {% if v != "" %}{{ v.replace(";",";\n      ").replace(" {"," {\n      ").replace(" }"," \n   }\n") }}{% if v.find('{') == -1%};
+{% endif %}{% endif %}{% endif %}
+{% endfor %}
+{% endif %}
+}
+{% endif %}

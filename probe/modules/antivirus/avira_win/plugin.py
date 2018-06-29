@@ -13,24 +13,21 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import os
-
 from .avira_win import AviraWin
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError
-from lib.plugins import PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class AviraWinPlugin(PluginBase, AviraWin, AntivirusPluginInterface):
+class AviraWinPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "AviraWin"
-    _plugin_display_name_ = AviraWin._name
+    _plugin_display_name_ = AviraWin.name
     _plugin_author_ = "y0ug"
     _plugin_version_ = "0.0.1"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -39,22 +36,8 @@ class AviraWinPlugin(PluginBase, AviraWin, AntivirusPluginInterface):
         PlatformDependency('win32')
     ]
 
-    @classmethod
-    def verify(cls):
-        # create an instance
-        module = AviraWin()
-        path = module.scan_path
-        del module
-        # perform checks
-        if not path or not os.path.exists(path):
-            raise PluginLoadError("{0}: verify() failed because "
-                                  "Avira executable was not found."
-                                  "".format(cls.__name__))
+    # ================
+    #  interface data
+    # ================
 
-    # =============
-    #  constructor
-    # =============
-
-    def __init__(self):
-        # load default configuration file
-        self.module = AviraWin()
+    module_cls = AviraWin

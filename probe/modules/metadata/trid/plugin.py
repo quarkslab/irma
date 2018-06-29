@@ -17,11 +17,11 @@ import os
 import sys
 
 from datetime import datetime
-from lib.common.utils import timestamp
-from lib.plugins import PluginBase
-from lib.plugins import FileDependency
-from lib.plugins import PlatformDependency
-from lib.plugin_result import PluginResult
+from irma.common.utils.utils import timestamp
+from irma.common.plugins import PluginBase
+from irma.common.plugins import FileDependency
+from irma.common.plugins import PlatformDependency
+from irma.common.plugin_result import PluginResult
 
 
 class TrIDPlugin(PluginBase):

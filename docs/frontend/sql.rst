@@ -11,7 +11,7 @@ On Debian, one can install a PostgreSQL server in few commands:
 
 Install it with the following dependencies:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install postgresql-9.4 python3-psycopg2
     [...]

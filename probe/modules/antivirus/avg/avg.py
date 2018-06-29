@@ -15,14 +15,15 @@
 
 import logging
 import re
+from pathlib import Path
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class AVGAntiVirusFree(Antivirus):
-    _name = "AVG AntiVirus Free (Linux)"
+class AVGAntiVirusFree(AntivirusUnix):
+    name = "AVG AntiVirus Free (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -30,31 +31,30 @@ class AVGAntiVirusFree(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(AVGAntiVirusFree, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "--heur "      # use heuristics for scanning
-            "--paranoid "  # Enable paranoid mode. Scan for less dangerous
+        self.scan_args = (
+            "--heur",      # use heuristics for scanning
+            "--paranoid",  # Enable paranoid mode. Scan for less dangerous
                            # malware and more time consuming algoritms.
-            "--arc "       # scan through archives
-            "--macrow "    # report documents with macros.
-            "--pwdw "      # report password protected files
-            "--pup "       # scan for Potentially Unwanted Programs
+            "--arc",       # scan through archives
+            "--macrow",    # report documents with macros.
+            "--pwdw",      # report password protected files
+            "--pup",       # scan for Potentially Unwanted Programs
         )
-        self._scan_patterns = [
-            re.compile(b'(?P<file>.*)'
-                       b'\s+(Found|Virus found|Potentially harmful program|'
-                       b'Virus identified|Trojan horse)\s+'
-                       b'(?P<name>.*).*$', re.IGNORECASE | re.DOTALL)
+        self.scan_patterns = [
+            re.compile('(?P<file>\S+)\s+'
+                       '(Found|Virus found|Potentially harmful program|'
+                       'Virus identified|Trojan horse)\s+'
+                       '(?P<name>.+)', re.IGNORECASE),
         ]
 
-        def is_error_fn(x):
-            return x in [1, 2, 3, 6, 7, 8, 9, 10]
-
         # NOTE: do 'man avgscan' for return codes
-        self._scan_retcodes[self.ScanResult.CLEAN] = lambda x: x in [0]
-        self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [4, 5]
-        self._scan_retcodes[self.ScanResult.ERROR] = lambda x: is_error_fn(x)
+        self._scan_retcodes = {
+            self.ScanResult.CLEAN: lambda x: x in [0],
+            self.ScanResult.INFECTED: lambda x: x in [4, 5],
+            self.ScanResult.ERROR: lambda x: x in [1, 2, 3, 6, 7, 8, 9, 10],
+        }
 
     # ==========================================
     #  Antivirus methods (need to be overriden)
@@ -62,39 +62,43 @@ class AVGAntiVirusFree(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '-v')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '-v',
+            regexp='(?P<version>\d+(\.\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
         # extract folder where are installed definition files
-        avg_path = '/opt/avg/'
+        avgdir = Path('/opt/avg/')
         # NOTE: the structure/location of the update folders are documented in
         # the /var/lib/avast/Setup/avast.setup script.
-        search_paths = map(lambda x:
-                           '{avg_path}/av/update/{folder}/'
-                           ''.format(avg_path=avg_path, folder=x),
-                           ['backup', 'download', 'prepare'])
-        search_paths = list(search_paths)
-        database_patterns = [
-            '*',
-        ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        search_paths = [avgdir / 'av/update' / d
+                        for d in ['backup', 'download', 'prepare']]
+        return self.locate('*', search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("avgscan")
-        return paths[0] if paths else None
+        return self.locate_one("avgscan")
+
+    def get_virus_database_version(self):
+        """Return the Virus Database version"""
+        path = self.locate_one("avgctl")
+        retcode, stdout, _ = self.run_cmd(path, '--stat-all')
+        if retcode:
+            raise RuntimeError(
+                "Bad return code while getting database version")
+        matches = re.search('Virus database version *: *(?P<version>.*)',
+                            stdout,
+                            re.IGNORECASE)
+        if not matches:
+            raise RuntimeError("Cannot read database version in stdout")
+        version = matches.group('version').strip()
+        matches = re.search('Virus database release date *:.*, '
+                            '(?P<date>\d\d \w+ \d\d\d\d)',
+                            stdout,
+                            re.IGNORECASE)
+        if not matches:
+            return version
+        date = matches.group('date').strip()
+        return version + ' (' + date + ')'

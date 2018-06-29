@@ -14,21 +14,15 @@ ansible_config:
   extra_vars:
     vagrant: true
     vagrant_share: false
-    irma_release: v2.0.3
+    irma_release: v2.1.1
     irma_environment: production
   groups:
-    frontend:
-      - brain.irma
-    sql-server:
-      - brain.irma
-    brain:
-      - brain.irma
-    clamav:
-      - brain.irma
-    unarchiver:
-      - brain.irma
-    static-analyzer:
-      - brain.irma
+    frontend: brain.irma
+    sql-server: brain.irma
+    brain: brain.irma
+    clamav: brain.irma
+    unarchiver: brain.irma
+    static-analyzer: brain.irma
     "probe:children":
       - clamav
       - static-analyzer

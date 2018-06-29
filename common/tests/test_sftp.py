@@ -16,8 +16,8 @@
 import logging
 import unittest
 import os
-from irma.ftp.sftp import IrmaSFTP
-from tests.test_ftps import FTPSTestCase
+from irma.common.ftp.sftp import IrmaSFTP
+from .test_ftps import FTPSTestCase
 
 
 # =================
@@ -61,6 +61,7 @@ class SFTPTestCase(FTPSTestCase):
     def tearDown(self):
         # do the teardown
         self.flush_all()
+
 
 if __name__ == '__main__':
     enable_logging()

@@ -1,10 +1,61 @@
 ---
 
+#_____________________________________________________________
+#
+# Following vars are made to be customized
+# in an extra_vars file. Default values are set here
+#_____________________________________________________________
+
+
+irma_environment: production # Can be (development, test, production)
+irma_release: HEAD # in production mode specify the git version to be used
+
+# In production mode, code is archived through packaging playbook in playbooks/files folder
+# You could disable archive automatic generation:
+irma_code_archive_generation: True
+
+# AV update mode (automatic, manual, disable)
+av_update_mode: automatic
+
+# SSL config
+infra_name: Qb
+frontend_openssl: False            # For HTTPs using OpenSSL change it to True
+nginx_http_enabled: True
+nginx_https_enabled: False         # require frontend_openssl
+nginx_https_client_enabled: False # require nginx_https_enabled
+
+rabbitmq_ssl: False
+postgresql_ssl: False
+
+provisioning_ssh_key: files/ssh_keys/vagrant.pub
+
+# Configuration
+brain_addr: brain.irma
+sql_addr: localhost
+frontend_addr: localhost
+
+rmq_admin_password: admin
+rmq_brain_password: brain
+rmq_frontend_password: frontend
+rmq_probe_password: probe
+
+ftpd_frontend_password: frontend
+ftpd_probe_password: probe
+
+postgresql_frontend_password: irma
+
+frontend_clean_db_file_max_age: 0
+frontend_clean_db_file_max_size: 0
+
+
+#_____________________________________________________________
+
+
 # Update requirements.txt when changing Ansible required version
-required_ansible_version: 2.2.1.0
+required_ansible_version: 2.4.2.0
 
 default_ssh_keys:
-  - "{{ lookup('file', 'files/ssh_keys/vagrant.pub') }}"   # Vagrant
+  - "{{ lookup('file', '{{ provisioning_ssh_key }}') }}"   # Vagrant
 
 default_use_debian_repo: no # If yes, use only Debian official repo for provisioning tasks
 
@@ -22,21 +73,10 @@ users:
 sudo_users:
   - { name: "{{ default_user }}", nopasswd: yes }
 
-
-## IRMA specific infrastructure
-irma_environment: production # Can be (development, test, production)
-# irma_release: # in production mode specify the git version to be used
-
-# Deployment
-
 # In development environment code should be synced from localhost either with vagrant or manually
 # Code should be present during ansible deployment
 irma_deployment_code_version: "{{ 'local' if irma_environment=='development' else irma_release|default('HEAD') }}"
 irma_deployment_release_name: "{{ 'sync' if irma_environment=='development' else lookup('pipe', 'date +%Y%m%d%H%M%S' )}}"
-
-# In production mode, code is archived through packaging playbook in playbooks/files folder
-# You could disable archive automatic generation:
-irma_code_archive_generation: True
 
 # Archives are named as follow:
 irma_common_archive: "common-{{ irma_deployment_code_version }}.zip"
@@ -44,49 +84,96 @@ irma_frontend_archive: "frontend-{{ irma_deployment_code_version }}.zip"
 irma_brain_archive: "brain-{{ irma_deployment_code_version }}.zip"
 irma_probe_archive: "probe-{{ irma_deployment_code_version }}.zip"
 
+# Irma common module directories
+irma_install_dir_linux: /opt/irma
+irma_install_dir_windows: C:/IRMA
+irma_install_dir: "{{ irma_install_dir_linux if 'Windows' not in ansible_distribution else irma_install_dir_windows }}"
+
+common_user: "{{ default_user }}"
+common_group: "{{ default_group }}"
+common_project_dir: "{{ irma_install_dir }}/irma-common"
+common_install_dir: "{{ common_project_dir }}/current"
+
 irma_user: irma
 irma_group: irma
 irma_server_group: irma-server
 irma_cert_group: irma-cert
 
-irma_configurations:
-  brain_addr: brain.irma
-  rabbitmq:
-    admin:
-      vhost: /
-      user: admin
-      password: admin
-      tags:
-        - administrator
-    brain:
-      vhost: mqbrain
-      user: brain
-      password: brain
-    frontend:
-      vhost: mqfrontend
-      user: frontend
-      password: frontend
-    probe:
-      vhost: mqprobe
-      user: probe
-      password: probe
-  ftpd:
-    frontend:
-      username: frontend
-      password: frontend
-    probe:
-      username: probe
-      password: probe
-  postgresql:
-    frontend:
-      username: irma
-      password: irma
-      db_name: irma-frontend
-      host: "{{ 'sqlserver.irma' if 'sql-server' not in group_names|default([]) else 'localhost' }}"
-  cron_clean_file_age:
-    clean_db_file_max_age: 0
-  cron_clean_file_size:
-    clean_fs_max_size: 0
+# it SSL Enabled rmq server will listen on rabbimq_ssl_port
+# else on rabbimq_tcp_port
+rabbimq_tcp_port: 5672
+rabbimq_ssl_port: 5671
+rabbitmq_cacert     : "{{ pki_folder }}/rabbitmq/ca/ca-chain.crt"
+rabbitmq_server_key : "{{ pki_folder }}/rabbitmq/server/brain.key"
+rabbitmq_server_cert: "{{ pki_folder }}/rabbitmq/server/brain.crt"
+
+rabbitmq_configuration:
+  port: "{{ rabbimq_ssl_port if rabbitmq_ssl else rabbimq_tcp_port }}"
+  admin:
+    vhost: /
+    user: admin
+    password: "{{ rmq_admin_password }}"
+    tags:
+      - administrator
+  brain:
+    vhost: mqbrain
+    user: brain
+    password: "{{ rmq_brain_password }}"
+  frontend:
+    vhost: mqfrontend
+    user: frontend
+    password: "{{  rmq_frontend_password }}"
+  probe:
+    vhost: mqprobe
+    user: probe
+    password: "{{ rmq_probe_password }}"
+
+ftpd_configuration:
+  frontend:
+    username: frontend
+    password: "{{ ftpd_frontend_password }}"
+  probe:
+    username: probe
+    password: "{{ ftpd_probe_password }}"
+
+postgresql_configuration:
+  username: irma
+  password: "{{ postgresql_frontend_password }}"
+  db_name: irma-frontend
+  host: "{{ sql_addr }}"
+  port: 5432
+  sslmode: "{{ 'verify-ca' if postgresql_ssl else 'disable' }}"
+  sslcert: "{{ dst_pki_folder }}/frontend-psql.crt"
+  sslkey: "{{ dst_pki_folder }}/frontend-psql.key"
+  sslrootcert: "{{ dst_pki_folder }}/psql-ca.crt"
+
+irma_unit_prefix: "irma."
+
+# Defined identifiers used in systemd units so that we can filter
+# logs into separate files
+syslog_identifiers:
+  frontend:
+    name: "[{{ irma_unit_prefix }}frontend]"
+    enabled: true
+    logfile: "/var/log/irma/frontend_app.log"
+  frontend_api:
+    name: "[{{ irma_unit_prefix }}frontend.api]"
+    enabled: true
+    logfile: "/var/log/irma/frontend_api.log"
+  brain_scan:
+    name: "[{{ irma_unit_prefix }}brain.scan]"
+    enabled: true
+    logfile: "/var/log/irma/brain_scan_app.log"
+  brain_results:
+    name: "[{{ irma_unit_prefix }}brain.results]"
+    enabled: true
+    logfile: "/var/log/irma/brain_results_app.log"
+  probe:
+    name: "[{{ irma_unit_prefix }}probe]"
+    enabled: true
+    logfile: "/var/log/irma/probe_app.log"
+
+syslog_logrotate: true
 
 ## UFW
 ufw_login: on
@@ -105,3 +192,17 @@ sshd:
   MaxSessions: 1000000
   MaxStartups: 1000000
 
+## Infra config
+infra_folder: "../infras/{{ infra_name }}"
+pki_folder: "{{ infra_folder }}/pki"
+dst_pki_folder: /etc/irma/ssl
+infra_data_file: "{{ infra_folder }}/{{infra_name}}-infra.yml"
+pki_scripts_folder: "{{playbook_dir}}/../extras/pki"
+pki_confs_folder: "{{ pki_scripts_folder }}/conf"
+config_root: "{{ pki_confs_folder }}/root.config"
+config_ca_rabbitmq: "{{ pki_confs_folder }}/rabbitmq/ca.config"
+config_ca_https: "{{ pki_confs_folder }}/https/ca.config"
+config_server_https: "{{ pki_confs_folder }}/https/server.config"
+config_ca_psql: "{{ pki_confs_folder }}/psql/ca.config"
+config_server_psql: "{{ pki_confs_folder }}/psql/server.config"
+config_frontend_psql: "{{ pki_confs_folder }}/psql/client.config"

@@ -5,7 +5,7 @@ from unittest import TestCase
 from mock import MagicMock, patch
 
 import api.files.controllers as api_files
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound
 
 
 class TestFilesRoutes(TestCase):

@@ -10,7 +10,7 @@ ensure that, from the installation directory, execute the Celery worker:
 
 On GNU/Linux:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd /opt/irma/irma-probe/current
     $ ./venv/bin/python -m probe.tasks
@@ -42,7 +42,7 @@ On GNU/Linux:
 
 The equivalent command on Microsoft Windows is:
 
-.. code-block:: none
+.. code-block:: console
 
     C:\> cd "C:\IRMA\irma-probe\current"
     C:\> .\venv\Scripts\python.exe -m probe.tasks
@@ -61,7 +61,7 @@ SFTP accounts
 
 Defaut File Transport Protocol since v1.4.0 is now SFTP, you can check whether the configured account is valid.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sftp <user>@<hostname of the brain>
 
@@ -73,7 +73,7 @@ Additionnally, if you have configured IRMA to use FTP-ssl, you can check
 whether the configured account is valid. On Debian, this can be done with the
 ``ftp-ssl`` package:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install ftp-ssl
     [...]

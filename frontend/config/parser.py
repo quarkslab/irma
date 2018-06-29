@@ -25,11 +25,12 @@ from logging.handlers import SysLogHandler
 from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
 
-from lib.irma.common.exceptions import IrmaConfigurationError
-from lib.irma.configuration.ini import TemplatedConfiguration
-from lib.irma.ftp.sftp import IrmaSFTP
-from lib.irma.ftp.ftps import IrmaFTPS
-from lib.irma.common.utils import common_celery_options
+from irma.common.base.utils import common_celery_options
+from irma.common.base.exceptions import IrmaConfigurationError
+from irma.common.configuration.ini import TemplatedConfiguration
+from irma.common.configuration.sql import SQLConf
+from irma.common.ftp.sftp import IrmaSFTP
+from irma.common.ftp.ftps import IrmaFTPS
 
 # ==========
 #  Template
@@ -46,8 +47,13 @@ template_frontend_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
         ('host', TemplatedConfiguration.string, None),
+        ('port', TemplatedConfiguration.string, None),
         ('dbname', TemplatedConfiguration.string, None),
         ('tables_prefix', TemplatedConfiguration.string, None),
+        ('sslmode', TemplatedConfiguration.string, "disable"),
+        ('sslrootcert', TemplatedConfiguration.string, ""),
+        ('sslcert', TemplatedConfiguration.string, ""),
+        ('sslkey', TemplatedConfiguration.string, ""),
     ],
     'samples_storage': [
         ('path', TemplatedConfiguration.string, None)
@@ -93,16 +99,16 @@ template_frontend_config = {
         ('password', TemplatedConfiguration.string, None),
     ],
     'cron_clean_file_age': [
-        ('clean_db_file_max_age', TemplatedConfiguration.integer, 0),
-        ('clean_db_cron_hour', TemplatedConfiguration.string, '0'),
-        ('clean_db_cron_minute', TemplatedConfiguration.string, '0'),
-        ('clean_db_cron_day_of_week', TemplatedConfiguration.string, '*'),
+        ('clean_fs_max_age', TemplatedConfiguration.string, "0"),
+        ('clean_fs_age_cron_hour', TemplatedConfiguration.string, "0"),
+        ('clean_fs_age_cron_minute', TemplatedConfiguration.string, "0"),
+        ('clean_fs_age_cron_day_of_week', TemplatedConfiguration.string, "*"),
     ],
     'cron_clean_file_size': [
-        ('clean_fs_max_size', TemplatedConfiguration.string, '0'),
-        ('clean_fs_size_cron_hour', TemplatedConfiguration.string, '*'),
-        ('clean_fs_size_cron_minute', TemplatedConfiguration.string, '0'),
-        ('clean_fs_size_cron_day_of_week', TemplatedConfiguration.string, '*'),
+        ('clean_fs_max_size', TemplatedConfiguration.string, "0"),
+        ('clean_fs_size_cron_hour', TemplatedConfiguration.string, "*"),
+        ('clean_fs_size_cron_minute', TemplatedConfiguration.string, "0"),
+        ('clean_fs_size_cron_day_of_week', TemplatedConfiguration.string, "*"),
     ],
     'interprocess_lock': [
         ('path', TemplatedConfiguration.string,
@@ -165,18 +171,10 @@ def _conf_celery(app, broker, backend=None, queue=None):
             )
 
     if frontend_config.ssl_config.activate_ssl:
-        ca_certs = frontend_config.ssl_config.ca_certs
-        keyfile = frontend_config.ssl_config.keyfile
-        certfile = frontend_config.ssl_config.certfile
+        ca_certs_path = frontend_config.ssl_config.ca_certs
+        keyfile_path = frontend_config.ssl_config.keyfile
+        certfile_path = frontend_config.ssl_config.certfile
 
-        ssl_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                os.path.pardir))
-        ca_certs_path = '{ssl_path}/ssl/{ca_certs}'.format(ca_certs=ca_certs,
-                                                           ssl_path=ssl_path)
-        keyfile_path = '{ssl_path}/ssl/{keyfile}'.format(keyfile=keyfile,
-                                                         ssl_path=ssl_path)
-        certfile_path = '{ssl_path}/ssl/{certfile}'.format(certfile=certfile,
-                                                           ssl_path=ssl_path)
         app.conf.update(
             BROKER_USE_SSL={
                'ca_certs': ca_certs_path,
@@ -208,12 +206,12 @@ def conf_frontend_celery(app):
     app.conf.update(
         CELERYBEAT_SCHEDULE={
             # File System clean according to file max age
-            'clean_db': {
-                'task': 'frontend_app.clean_db',
+            'clean_fs_age': {
+                'task': 'frontend_app.clean_fs_age',
                 'schedule': crontab(
-                    hour=cron_age_cfg['clean_db_cron_hour'],
-                    minute=cron_age_cfg['clean_db_cron_minute'],
-                    day_of_week=cron_age_cfg['clean_db_cron_day_of_week']
+                    hour=cron_age_cfg['clean_fs_age_cron_hour'],
+                    minute=cron_age_cfg['clean_fs_age_cron_minute'],
+                    day_of_week=cron_age_cfg['clean_fs_age_cron_day_of_week']
                 ),
                 'args': (),
             },
@@ -317,40 +315,8 @@ def setup_debug_logger(logger):
 #  Database helpers
 # ==================
 
-SQL_DBMS = "postgresql"
-SQL_DIALECT = "psycopg2"
 
-
-def get_sql_db_uri_params():
-    return (
-        SQL_DBMS,
-        SQL_DIALECT,
-        frontend_config.sqldb.username,
-        frontend_config.sqldb.password,
-        frontend_config.sqldb.host,
-        frontend_config.sqldb.dbname,
-    )
-
-
-def get_sql_url():
-    dbms = "{0}+{1}".format(SQL_DBMS, SQL_DIALECT)
-    host_and_id = ''
-    if frontend_config.sqldb.host and frontend_config.sqldb.username:
-        if frontend_config.sqldb.password:
-            host_and_id = "{0}:{1}@{2}".format(frontend_config.sqldb.username,
-                                               frontend_config.sqldb.password,
-                                               frontend_config.sqldb.host)
-        else:
-            host_and_id = "{0}@{1}".format(frontend_config.sqldb.username,
-                                           frontend_config.sqldb.host)
-    url = "{0}://{1}/{2}".format(dbms,
-                                 host_and_id,
-                                 frontend_config.sqldb.dbname)
-    return url
-
-
-def get_sql_db_tables_prefix():
-    return frontend_config.sqldb.tables_prefix
+sqldb = SQLConf(dbms="postgresql", dialect="psycopg2", **frontend_config.sqldb)
 
 
 def get_samples_storage_path():

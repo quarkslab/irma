@@ -1,4 +1,4 @@
-#!/bin/sh -e 
+#!/bin/sh -e
 #
 # Copyright (c) 2013-2018 Quarkslab.
 # This file is part of IRMA project.
@@ -15,41 +15,52 @@
 # terms contained in the LICENSE file.
 
 
-## Setting defaults
-DROOTDIR="$PWD"
-DPATTERN="# Copyright (c) 2013-[0-9]\{4\} Quarkslab."
-DRSTRING="# Copyright (c) 2013-$(date +%Y) Quarkslab."
+
+EXE="$0"
 
 usage() {
-    printf "\n"
-    printf "This scripts updates automatically copyright string on files that match a pattern\n"
-    printf "\n"
-    printf "usage: $0 [basedir] [pattern] [new string]\n"
-    printf "\n"
-    printf "       <basedir>    defaults to '.'\n"
-    printf "       [pattern]    defaults to 'Copyright (c) 2013-[] Quarkslab.'\n"
-    printf "       [new string] defaults to 'Copyright (c) 2013-[] Quarkslab.'\n"
-    printf "\n"
+    >&2 cat <<USAGE
+This script updates copyright strings in the IRMA project.
+
+usage: $EXE [DIR] [-y YEAR] [-v]
+usage: $EXE [-h]
+
+    DIR
+        Directory of the project. Defaults to '.'
+    -y, --year YEAR
+        End year of the copyright. Defaults to currentt year.
+    -h, --help
+        Print this help
+    -v, --verbose
+        Be verbose
+USAGE
     exit 1
 }
 
-INFO() {
-    printf "[*] $@\n"
+
+parse() {
+    DIR="."
+    YEAR="$(date +%Y)"
+
+    while [[ $# > 0 ]]; do
+        case $1 in
+            -y|--year) YEAR="$2"; shift 2;;
+            -h|--help) usage;;
+            -v|--verbose) VERBOSE=1; shift;;
+            *) DIR="$1"; shift;;
+        esac
+    done
 }
 
-if [ "$#" -eq 1 ] || [ "$#" -ge 5 ];
-then
-    usage
-fi
+parse "$@"
 
-ROOTDIR="${1:-$DROOTDIR}"
-PATTERN="${2:-$DPATTERN}"
-RSTRING="${3:-$DRSTRING}"
+MATCHPATTERN="\(Copyright (c) \)\?2013-[0-9]\{4\},\? Quarkslab"
 
-INFO "Looking for files matching '$PATTERN' from '$ROOTDIR'.\n    Replacing with '$RSTRING'"
+find "$DIR" -type f ${VERBOSE:+-print} -exec \
+    sed -i -e "/${MATCHPATTERN}/ s/2013-[0-9]\{4\}/2013-$YEAR/g" {} +
 
-for FILE in $(grep -Rle "$PATTERN" "$ROOTDIR");
-do
-    INFO "Pattern found in $FILE"
-    eval "sed -i 's,$PATTERN,$RSTRING,g' $FILE"
-done;
+
+[[ "${VERBOSE}" != "" ]] && cat <<FOOTER
+Copyrights updated
+WARNING: documentation probably need to be regenerated.
+FOOTER

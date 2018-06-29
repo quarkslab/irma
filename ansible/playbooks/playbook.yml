@@ -1,6 +1,6 @@
 ---
 # Master Playbook
 
-- include: provisioning.yml
-- include: updating.yml
-- include: deployment.yml
+- import_playbook: provisioning.yml
+- import_playbook: updating.yml
+- import_playbook: deployment.yml

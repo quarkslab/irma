@@ -16,20 +16,20 @@
 from .bitdefender import BitdefenderForUnices
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
-from lib.plugins import BinaryDependency, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, BinaryDependency, \
+    PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class BitdefenderForUnicesPlugin(PluginBase, BitdefenderForUnices,
-                                 AntivirusPluginInterface):
+class BitdefenderForUnicesPlugin(AntivirusPluginInterface,
+                                 metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "BitdefenderForUnices"
-    _plugin_display_name_ = BitdefenderForUnices._name
+    _plugin_display_name_ = BitdefenderForUnices.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -44,10 +44,8 @@ class BitdefenderForUnicesPlugin(PluginBase, BitdefenderForUnices,
         ),
     ]
 
-    # =============
-    #  constructor
-    # =============
+    # ================
+    #  interface data
+    # ================
 
-    def __init__(self):
-        # load default configuration file
-        self.module = BitdefenderForUnices()
+    module_cls = BitdefenderForUnices

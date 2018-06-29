@@ -15,14 +15,15 @@
 
 import logging
 import re
+from pathlib import Path
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class Clam(Antivirus):
-    _name = "Clam AntiVirus Scanner (Linux)"
+class Clam(AntivirusUnix):
+    name = "Clam AntiVirus Scanner (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -30,17 +31,17 @@ class Clam(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(Clam, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "--infected "    # only print infected files
-            "--fdpass "      # avoid file access problem as clamdameon
+        self.scan_args = (
+            "--infected",    # only print infected files
+            "--fdpass",      # avoid file access problem as clamdameon
                              # is runned by clamav user
-            "--no-summary "  # disable summary at the end of scanning
-            "--stdout "      # do not write to stderr
+            "--no-summary",  # disable summary at the end of scanning
+            "--stdout",      # do not write to stderr
         )
-        self._scan_patterns = [
-            re.compile(b'(?P<file>.*): (?P<name>[^\s]+) FOUND', re.IGNORECASE)
+        self.scan_patterns = [
+            re.compile('(?P<file>.*): (?P<name>\S+) FOUND', re.IGNORECASE),
         ]
 
     # ==========================================
@@ -49,17 +50,10 @@ class Clam(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '--version',
+            regexp='(?P<version>\d+(\.\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
@@ -67,7 +61,7 @@ class Clam(Antivirus):
         # always installed by default. Instead, hardcode some common paths and
         # locate files using predefined patterns
         search_paths = [
-            '/var/lib/clamav',      # default location in debian
+            Path('/var/lib/clamav'),      # default location in debian
         ]
         database_patterns = [
             'main.cvd',
@@ -82,31 +76,22 @@ class Clam(Antivirus):
             '*.ndb',                # clamav extended signature format
             '*.ldb',                # clamav logical signatures
         ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        return self.locate(database_patterns, search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("clamdscan")
-        return paths[0] if paths else None
+        return self.locate_one("clamdscan")
 
     def get_virus_database_version(self):
         """Return the Virus Database version"""
-        paths = self.locate("freshclam")
+        path = self.locate_one("freshclam")
+        retcode, stdout, _ = self.run_cmd(path, '--version')
+        if retcode:
+            raise RuntimeError("Bad return code while getting dbversion")
 
-        if paths:
-            cmd = self.build_cmd(paths[0], '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
+        matches = re.search('\/(?P<version>\d+)\/',
+                            stdout, re.IGNORECASE)
+        if not matches:
+            raise RuntimeError("Cannot read database version in stdout")
 
-            if not retcode:
-                matches = re.search(b'\/(?P<version>\d+)\/',
-                                    stdout,
-                                    re.IGNORECASE)
-
-                if matches:
-                    return matches.group('version').strip()
-
-        return None
+        return matches.group('version').strip()

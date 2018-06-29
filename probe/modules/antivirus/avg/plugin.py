@@ -16,20 +16,20 @@
 from .avg import AVGAntiVirusFree
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
-from lib.plugins import BinaryDependency, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, BinaryDependency, \
+    PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class AVGAntiVirusFreePlugin(PluginBase, AVGAntiVirusFree,
-                             AntivirusPluginInterface):
+class AVGAntiVirusFreePlugin(AntivirusPluginInterface,
+                             metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "AVGAntiVirusFree"
-    _plugin_display_name_ = AVGAntiVirusFree._name
+    _plugin_display_name_ = AVGAntiVirusFree.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -42,10 +42,8 @@ class AVGAntiVirusFreePlugin(PluginBase, AVGAntiVirusFree,
         ),
     ]
 
-    # =============
-    #  constructor
-    # =============
+    # ================
+    #  interface data
+    # ================
 
-    def __init__(self):
-        # load default configuration file
-        self.module = AVGAntiVirusFree()
+    module_cls = AVGAntiVirusFree

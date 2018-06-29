@@ -16,14 +16,15 @@
 import logging
 import re
 import os
+from pathlib import Path
 
-from modules.antivirus.base import Antivirus
+from modules.antivirus.base import AntivirusWindows
 
 log = logging.getLogger(__name__)
 
 
-class KasperskyWin(Antivirus):
-    _name = "Kaspersky Anti-Virus (Windows)"
+class KasperskyWin(AntivirusWindows):
+    name = "Kaspersky Anti-Virus (Windows)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,17 +32,17 @@ class KasperskyWin(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(KasperskyWin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "scan "  # scan command
-            "/i0 "   # report only
+        self.scan_args = (
+            "scan",  # scan command
+            "/i0",   # report only
         )
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [2, 3]
-        self._scan_patterns = [
-            re.compile(b"^[^\s]+\s+[^\s]+" +
-                       b"(?P<file>.+)\s+(detected|suspicion)+" +
-                       b"\s(?P<name>[^\r]*)")
+        self.scan_patterns = [
+            re.compile("^\S+\s+\S+"
+                       "(?P<file>.+)\s+(detected|suspicion)\s+"
+                       "(?P<name>.+)", re.IGNORECASE | re.MULTILINE),
         ]
 
     # ==========================================
@@ -50,69 +51,41 @@ class KasperskyWin(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        try:
-            if self.scan_path:
-                # Latest version do not output
-                # version so extract it from path
-                matches = re.search(r'Kaspersky Lab\\[^\\]+ '
-                                    r'(?P<version>\d+(\.\d+)+)\\',
-                                    self.scan_path,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        except Exception:
-            pass
-        return result
+        # Latest version do not output
+        # version so extract it from path
+        matches = re.search('Kaspersky Lab/Kaspersky Anti-Virus '
+                            '(?P<version>\d+(\.\d+)+)/',
+                            self.scan_path.as_posix(), re.IGNORECASE)
+        if not matches:
+            raise RuntimeError("Cannot read version in the path of the exec")
+        return matches.group('version').strip()
 
     def get_database(self):
         """return list of files in the database"""
         # TODO: We list all files in Bases/*, heuristic to lookup database
         # must be improved
-        search_paths = map(lambda x:
-                           "{path}/Kaspersky Lab/*/Bases".format(path=x),
-                           [os.environ.get('PROGRAMDATA', '')])
+        search_paths = [Path(os.environ['PROGRAMDATA']) / "Kaspersky Lab/", ]
         database_patterns = [
-            '*.avz',
-            '*.dat',
-            '*.dll',
-            '*.esm',
-            '*.kdc',
-            '*.keb',
-            '*.mft',
-            '*.xms',
-            '*.xml',
-            '*.ini',
+            '*/Bases/*.avz',
+            '*/Bases/*.dat',
+            '*/Bases/*.dll',
+            '*/Bases/*.esm',
+            '*/Bases/*.kdc',
+            '*/Bases/*.keb',
+            '*/Bases/*.mft',
+            '*/Bases/*.xms',
+            '*/Bases/*.xml',
+            '*/Bases/*.ini',
         ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        return self.locate(database_patterns, search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        scan_bin = "avp.com"
-        scan_paths = map(lambda x: "{path}/Kaspersky Lab/*".format(path=x),
-                         [os.environ.get('PROGRAMFILES', ''),
-                          os.environ.get('PROGRAMFILES(X86)', '')])
-        paths = self.locate(scan_bin, scan_paths)
-        return paths[0] if paths else None
+        return self.locate_one("Kaspersky Lab/*Anti-Virus*/avp.com")
 
     def get_virus_database_version(self):
         """return the db version of the antivirus"""
-        result = None
-        try:
-            if self.scan_path:
-                cmd = self.scan_cmd(self.scan_path)
-                _, stdout, _ = self.run_cmd(cmd)
-                if stdout:
-                    matches = re.search(b'AV bases release date: '
-                                        b'(?P<version>.+)',
-                                        stdout,
-                                        re.IGNORECASE)
-                    if matches:
-                        result = matches.group('version').strip()
-        except Exception:
-            pass
-        return result
+        regexp = 'AV bases release date: (?P<version>.+)'
+        return self._run_and_parse(*self.scan_args,
+                                   regexp=regexp,
+                                   group='version')

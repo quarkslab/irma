@@ -1,0 +1,21 @@
+---
+
+- name: Check if  certificates already exist
+  shell: "ls -1 clients/*.crt|awk -F'/' '{ print $2 }'|xargs -I % basename % .crt chdir='{{ pki_folder }}/https'"
+  register: ls_running_crt
+  changed_when: False
+
+- name: Generate certificates
+  command: 'bash "{{ pki_scripts_folder }}/add_clients_https.sh" -f "{{ pki_folder }}" -c "{{ pki_confs_folder }}/https" -u "{{ item.name }}"'
+  when: item.name not in ls_running_crt.stdout_lines
+  with_items: "{{ infra.https.clients.running if infra is defined else [] }}"
+
+- name: Check which certificates are already revoked
+  shell: "awk -F'=' '{ print $2 }' '{{ pki_folder }}/https/ca/db/ca.db'"
+  register: grep_revoked_certificates
+  changed_when: False
+
+- name: Revoke  certificate
+  command: "bash '{{ pki_scripts_folder }}/revoke_cert_https.sh' -f '{{ pki_folder }}' -u '{{ item.name }}'"
+  when: item.name not in grep_revoked_certificates.stdout_lines
+  with_items: "{{ infra.https.clients.revoked if infra is defined else [] }}"

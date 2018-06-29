@@ -23,11 +23,12 @@ from logging.handlers import SysLogHandler
 from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
 
-from lib.irma.common.exceptions import IrmaConfigurationError
-from lib.irma.configuration.ini import TemplatedConfiguration
-from lib.irma.ftp.sftp import IrmaSFTP
-from lib.irma.ftp.ftps import IrmaFTPS
-from lib.irma.common.utils import common_celery_options
+from irma.common.base.exceptions import IrmaConfigurationError
+from irma.common.configuration.ini import TemplatedConfiguration
+from irma.common.configuration.sql import SQLConf
+from irma.common.ftp.sftp import IrmaSFTP
+from irma.common.ftp.ftps import IrmaFTPS
+from irma.common.base.utils import common_celery_options
 
 # ==========
 #  TEMPLATE
@@ -75,6 +76,7 @@ template_brain_config = {
         ('username', TemplatedConfiguration.string, None),
         ('password', TemplatedConfiguration.string, None),
         ('host', TemplatedConfiguration.string, None),
+        ('port', TemplatedConfiguration.string, None),
         ('dbname', TemplatedConfiguration.string, None),
         ('tables_prefix', TemplatedConfiguration.string, None),
     ],
@@ -147,18 +149,10 @@ def _conf_celery(app, broker, backend=None, queue=None):
                         )
 
     if brain_config.ssl_config.activate_ssl:
-        ca_certs = brain_config.ssl_config.ca_certs
-        keyfile = brain_config.ssl_config.keyfile
-        certfile = brain_config.ssl_config.certfile
+        ca_certs_path = brain_config.ssl_config.ca_certs
+        keyfile_path = brain_config.ssl_config.keyfile
+        certfile_path = brain_config.ssl_config.certfile
 
-        ssl_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                os.path.pardir))
-        ca_certs_path = '{ssl_path}/ssl/{ca_certs}'.format(ca_certs=ca_certs,
-                                                           ssl_path=ssl_path)
-        keyfile_path = '{ssl_path}/ssl/{keyfile}'.format(keyfile=keyfile,
-                                                         ssl_path=ssl_path)
-        certfile_path = '{ssl_path}/ssl/{certfile}'.format(certfile=certfile,
-                                                           ssl_path=ssl_path)
         app.conf.update(
             BROKER_USE_SSL={
                'ca_certs': ca_certs_path,
@@ -283,39 +277,8 @@ def setup_debug_logger(logger):
 #  Database helpers
 # ==================
 
-def get_sql_db_uri_params():
-    return (
-        brain_config.sqldb.dbms,
-        brain_config.sqldb.dialect,
-        brain_config.sqldb.username,
-        brain_config.sqldb.password,
-        brain_config.sqldb.host,
-        brain_config.sqldb.dbname,
-    )
 
-
-def get_sql_db_tables_prefix():
-    return brain_config.sqldb.tables_prefix
-
-
-def get_sql_url():
-    dbms = brain_config.sqldb.dbms
-    if brain_config.sqldb.dialect:
-        dbms = "{0}+{1}".format(dbms, brain_config.sqldb.dialect)
-
-    host_and_id = ''
-    if brain_config.sqldb.host and brain_config.sqldb.username:
-        if brain_config.sqldb.password:
-            host_and_id = "{0}:{1}@{2}".format(brain_config.sqldb.username,
-                                               brain_config.sqldb.password,
-                                               brain_config.sqldb.host)
-        else:
-            host_and_id = "{0}@{1}".format(brain_config.sqldb.username,
-                                           brain_config.sqldb.host)
-    url = "{0}://{1}/{2}".format(dbms,
-                                 host_and_id,
-                                 brain_config.sqldb.dbname)
-    return url
+sqldb = SQLConf(**brain_config.sqldb)
 
 
 # ==================

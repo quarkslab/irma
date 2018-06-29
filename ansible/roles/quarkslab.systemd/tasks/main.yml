@@ -1,0 +1,47 @@
+---
+
+- name: Systemd | Install user-defined units
+  template:
+    src: unit.j2
+    dest: "/etc/systemd/system/{{ item.name }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - "Systemd | Configure user-defined units"
+  with_items: "{{ systemd_units }}"
+
+- name: Systemd | Install IRMA target
+  copy:
+    src: irma.target
+    dest: "{{ irma_target_path }}"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Systemd | Create IRMA units directory
+  file:
+    state: directory
+    path: "{{ irma_unit_dir }}"
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Systemd | Link IRMA units to IRMA target
+  file:
+    state: link
+    src: "/etc/systemd/system/{{ item.name }}"
+    dest: "{{ irma_unit_dir }}/{{ item.name }}"
+    force: yes
+    owner: root
+    group: root
+  with_items: "{{ systemd_units }}"
+
+- name: Systemd | Define system target
+  file:
+    state: link
+    src: "{{ irma_target_path }}"
+    dest: "/etc/systemd/system/default.target"
+    force: yes
+    owner: root
+    group: root

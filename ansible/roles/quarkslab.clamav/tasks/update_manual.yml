@@ -1,0 +1,9 @@
+---
+
+- name: ClamAV | Download Update and reload daemon
+  get_url:
+    url: "{{ item }}"
+    dest: "/var/lib/clamav"
+    force: yes
+  with_items: "{{ clamav_db_url }}"
+  notify: ClamAV | restart daemon

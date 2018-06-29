@@ -13,36 +13,25 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
+from irma.common.utils import sql
 import config.parser as config
-from lib.irma.common.exceptions import IrmaDatabaseError
 
-db_url = config.get_sql_url()
-engine = create_engine(db_url, echo=config.sql_debug_enabled())
+
+engine = create_engine(config.sqldb.url, echo=config.sql_debug_enabled(),
+                       connect_args={"sslmode": config.sqldb.sslmode,
+                                     "sslrootcert": config.sqldb.sslrootcert,
+                                     "sslcert": config.sqldb.sslcert,
+                                     "sslkey": config.sqldb.sslkey})
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False,
                                          bind=engine))
 
 
-@contextmanager
 def session_transaction():
-    """Provide a transactional scope around a series of operations."""
-    try:
-        yield db_session
-        db_session.commit()
-    except IrmaDatabaseError:
-        db_session.rollback()
-        raise
-    finally:
-        db_session.close()
+    return sql.transaction(db_session)
 
 
-@contextmanager
 def session_query():
-    """Provide a transactional scope around a series of operations."""
-    try:
-        yield db_session
-    except IrmaDatabaseError:
-        raise
+    return sql.query(db_session)

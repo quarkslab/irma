@@ -1,0 +1,13 @@
+# We don't want to prepend default timestamp and hostname because irma services
+# already have this data
+$template irmaFormat,"%msg%\n"
+
+$FileOwner {{ irma_user }}
+$FileGroup {{ irma_group }}
+
+{% for rule in syslog_identifiers.values() if rule.enabled %}
+:rawmsg,contains,"{{ rule.name }}" -{{ rule.logfile }};irmaFormat
+{% endfor %}
+
+# Uncomment the following to stop logging anything that matches the last rule.
+# & stop

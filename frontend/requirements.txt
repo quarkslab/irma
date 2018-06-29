@@ -1,9 +1,8 @@
 PyYAML
 celery<3.2
-pymongo
 SQLAlchemy
 marshmallow<2.0
-hug==2.2.0
+hug==2.3.0
 mock
 coverage
 nose
@@ -15,3 +14,4 @@ falcon-multipart
 https://projects.unbit.it/downloads/uwsgi-lts.tar.gz
 alembic
 humanfriendly
+psycopg2 --no-binary :all:

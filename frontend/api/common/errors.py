@@ -19,7 +19,7 @@ from hug import HTTPInternalServerError, HTTPInvalidParam, HTTPError
 from sqlalchemy.orm.exc import NoResultFound
 from falcon import HTTP_404, HTTP_402
 
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaValueError
 
 log = logging.getLogger(__name__)

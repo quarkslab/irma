@@ -15,8 +15,8 @@
 
 import logging
 import unittest
-from common.utils import UUID, MAC, humanize_time, humanize_time_str
-from irma.common.utils import IrmaFrontendReturn, IrmaTaskReturn, \
+from irma.common.utils.utils import UUID, MAC
+from irma.common.base.utils import IrmaFrontendReturn, IrmaTaskReturn, \
     IrmaReturnCode
 
 
@@ -71,39 +71,6 @@ class TestCommonUtils(unittest.TestCase):
 
     def test_mac_validate(self):
         self.assertFalse(MAC.validate("not a mac"))
-
-    def test_humanize_time(self):
-        self.assertEqual(humanize_time(173, 'hours'),
-                         [(1, 'week'),
-                          (5, 'hours')])
-        self.assertEqual(humanize_time(17313, 'seconds'),
-                         [(4, 'hours'),
-                          (48, 'minutes'),
-                          (33, 'seconds')])
-        self.assertEqual(humanize_time(90, 'weeks'),
-                         [(1, 'year'),
-                          (10, 'months'),
-                          (2, 'weeks')])
-        self.assertEqual(humanize_time(42, 'months'),
-                         [(3, 'years'),
-                         (6, 'months')])
-        self.assertEqual(humanize_time(500, 'days'),
-                         [(1, 'year'),
-                          (5, 'months'),
-                          (3, 'weeks'),
-                          (3, 'days')])
-
-    def test_humanize_time_str(self):
-        self.assertEqual(humanize_time_str(173, 'hours'),
-                         "1 week, 5 hours")
-        self.assertEqual(humanize_time_str(17313, 'seconds'),
-                         "4 hours, 48 minutes, 33 seconds")
-        self.assertEqual(humanize_time_str(90, 'weeks'),
-                         "1 year, 10 months, 2 weeks")
-        self.assertEqual(humanize_time_str(42, 'months'),
-                         "3 years, 6 months")
-        self.assertEqual(humanize_time_str(500, 'days'),
-                         "1 year, 5 months, 3 weeks, 3 days")
 
     def test_irma_taskreturn_success(self):
         ret = IrmaTaskReturn.success("success")
@@ -197,6 +164,7 @@ class TestCommonUtils(unittest.TestCase):
                          dict)
         self.assertEqual(ret['optional']['key'],
                          'value')
+
 
 if __name__ == '__main__':
     enable_logging()

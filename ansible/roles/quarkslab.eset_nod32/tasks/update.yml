@@ -1,4 +1,0 @@
----
-
-- name: EsetNod32 | update
-  debug: msg="Not implemented"

@@ -15,7 +15,7 @@
 
 import logging
 from celery import exceptions as celery_exceptions
-from lib.irma.common.exceptions import IrmaTaskError
+from irma.common.base.exceptions import IrmaTaskError
 
 log = logging.getLogger(__name__)
 

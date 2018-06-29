@@ -1,0 +1,32 @@
+---
+
+- name: Rsyslog | Create IRMA config
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/rsyslog.d/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart rsyslogd
+  with_items:
+    - "1-irma.conf"
+
+- name: Rsyslog | Install logrotate
+  become: yes
+  package:
+    name: logrotate
+    state: latest
+  when: syslog_logrotate
+
+- name: Rsyslog | Configure logrotate
+  template:
+    src: log.conf.j2
+    dest: "/etc/logrotate.d/{{ irma_unit_prefix }}{{ item.key }}"
+    owner: root
+    group: root
+    mode: 0644
+  when:
+    - syslog_logrotate
+    - item.value.enabled
+  with_dict: "{{ syslog_identifiers }}"

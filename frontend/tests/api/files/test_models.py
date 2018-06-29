@@ -5,9 +5,8 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 import api.files.models as module
 from api.tags.models import Tag
-from lib.irma.database.sqlobjects import SQLDatabaseObject
-from lib.irma.common.exceptions import IrmaDatabaseError, IrmaFileSystemError
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+from irma.common.base.exceptions import IrmaDatabaseError, IrmaFileSystemError
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound
 
 
 class TestFileModels(TestCase):
@@ -34,7 +33,6 @@ class TestFileModels(TestCase):
         self.assertEqual(self.file.timestamp_last_scan, self.last_ts)
         self.assertEqual(self.file.tags, list())
         self.assertIsInstance(self.file, module.File)
-        self.assertIsInstance(self.file, SQLDatabaseObject)
 
     def test_classmethod_load_from_sha256_raise_NoResultFound(self):
         sample = "test"
@@ -110,7 +108,7 @@ class TestFileModels(TestCase):
         text = "whatever"
         t = Tag(text=text)
         m_session = MagicMock()
-        m_session.query(Tag).filter().one.return_value = t
+        m_session.query(Tag).filter_by().one.return_value = t
         self.assertEqual(len(self.file.tags), 0)
         self.file.add_tag("id", m_session)
         self.assertEqual(len(self.file.tags), 1)
@@ -120,7 +118,7 @@ class TestFileModels(TestCase):
         text = "whatever"
         t = Tag(text=text)
         m_session = MagicMock()
-        m_session.query(Tag).filter().one.return_value = t
+        m_session.query(Tag).filter_by().one.return_value = t
         self.file.add_tag("id", m_session)
         with self.assertRaises(IrmaDatabaseError):
             self.file.add_tag("id", m_session)
@@ -164,8 +162,8 @@ class TestFileModels(TestCase):
         path = "RandomPath"
         self.file.path = path
         m_os.remove.side_effect = OSError
-        with self.assertRaises(IrmaFileSystemError):
-            self.file.remove_file_from_fs()
+        self.file.remove_file_from_fs()
+        self.assertIsNone(self.file.path)
 
     @patch("api.files.models.os")
     def test_load_from_sha256_no_more_exists(self, m_os):

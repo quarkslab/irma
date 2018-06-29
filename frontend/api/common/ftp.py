@@ -16,7 +16,7 @@
 import os
 import logging
 import config.parser as config
-from lib.irma.common.exceptions import IrmaFileSystemError, \
+from irma.common.base.exceptions import IrmaFileSystemError, \
     IrmaFtpError
 from tempfile import TemporaryFile
 

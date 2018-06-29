@@ -1,0 +1,10 @@
+---
+
+- set_fact:
+    common_deployment_dir: "{{ common_project_dir }}/releases/{{ irma_deployment_release_name }}"
+
+- include: linux/common_deployment.yml
+  when: ansible_distribution in ['Debian', 'Ubuntu']
+
+- include: windows/common_deployment.yml
+  when: "'Windows' in ansible_distribution"

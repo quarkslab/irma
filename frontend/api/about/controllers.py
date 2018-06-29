@@ -14,7 +14,7 @@
 # terms contained in the LICENSE file.
 
 import hug
-from lib.irma import __version__
+from irma.common import __version__
 
 
 @hug.get("/")

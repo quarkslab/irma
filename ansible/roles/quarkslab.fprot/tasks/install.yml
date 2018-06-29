@@ -1,0 +1,27 @@
+---
+
+- name: F-prot | Install dependances
+  apt:
+    name: libc6-i386
+    state: latest
+
+- name: F-prot | Download and install
+  unarchive:
+    remote_src: yes
+    src: "{{ fprot_url }}"
+    dest: "{{ fprot_dir }}"
+    mode: "u=rwX,g=rX,o=rX"
+    owner: root
+    group: root
+    exclude:
+      - doc/
+      - examples/
+      - install-f-prot.pl
+      - rc-scripts/
+      - README
+
+- name: F-prot | Configure
+  file:
+    state: link
+    src: "{{ fprot_dir }}/f-prot/f-prot.conf.default"
+    dest: /etc/f-prot.conf

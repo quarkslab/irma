@@ -3,7 +3,7 @@ from unittest import TestCase
 from mock import patch, MagicMock
 
 import api.common.ftp as module
-from lib.irma.common.exceptions import IrmaFtpError
+from irma.common.base.exceptions import IrmaFtpError
 
 
 class TestModuleFtpctrltasks(TestCase):

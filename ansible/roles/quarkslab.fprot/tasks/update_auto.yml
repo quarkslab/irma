@@ -1,0 +1,4 @@
+---
+
+- name: F-prot | Update
+  command: /opt/f-prot/fpupdate

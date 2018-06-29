@@ -10,6 +10,11 @@ servers:
     cpuexecutioncap: 100
     memory: 2048
     shares:
+      - share_from: ../common
+        share_to: /opt/irma/irma-common/releases/sync
+        share_exclude:
+          - .git/
+          - venv/
       - share_from: ../frontend
         share_to: /opt/irma/irma-frontend/releases/sync
         share_exclude:
@@ -47,7 +52,9 @@ ansible_config:
     sql-server: brain.irma
     brain: brain.irma
     comodo: brain.irma
+    lief: brain.irma
     trid: brain.irma
     "probe:children":
       - comodo
+      - lief
       - trid

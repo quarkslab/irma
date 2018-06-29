@@ -1,8 +1,7 @@
 from unittest import TestCase
-from mock import patch, MagicMock
 
 import api.common.errors as api_errors
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError
 
 

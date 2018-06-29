@@ -1,0 +1,92 @@
+---
+
+# # VirusTotal module configuration
+
+# # Uncomment this to set an apikey to a specific hostname
+# virustotal_configs:
+#   - section: VirusTotal
+#     option: private
+#     value: False
+#   - section: VirusTotal
+#     option: apikey
+#     value: 88eb8e2f869e98ea9b0367cb47c143cb438a5e8d8dfd3b6e3fb6c898374b8fb6
+
+#########################
+#
+# Linux Antivirus Params
+#
+#########################
+
+
+# # Bit Defender Scanner key - Put your licence key here
+# bitdefender_scanner_key:
+
+# # Zoner Antivirus - put you licence key here
+# zoner_license_key: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+
+# # DrWeb Antivirus - put your configurations there
+# drweb_configs:
+#   - section: LinuxSpider
+#     option: Start
+#     value: No
+
+# # Avast! licence file - Put your licence file here
+# avast_license_file: files/license.avastlic
+
+# # if you have a valid Fsecure licence put it here
+# fsecure_license_key: XXXX-XXXX-XXXX-XXXX-XXXX
+# # Check the psb server number on your license ([1-4])
+# fsecure_psb_server: http://psb1-bw.sp.f-secure.com/
+
+# # Virusblokada installer url
+# virusblokada_tgz_url:
+
+# # Sophos
+# sophos_archive_url:
+# sophos_update_username:
+# sophos_update_password:
+
+###########################
+#
+# Windows Antivirus Params
+#
+###########################
+
+
+# # Avast!
+# avast_win_url:
+# avast_win_certfile: files/License.avastlic
+
+# # AVG
+# avg_win_url:
+# avg_win_license_key: "RRRRR-RRRRR-RRRRR-RRRRR-RRRRR-RRRRR"
+
+# # AVIRA Registration - requires a valid key, Identity and email address
+# avira_win_firstname: ''
+# avira_win_lastname: ''
+# avira_win_email: ''
+# avira_win_key: 'XXXXXXXXXXXXXXXXXXXXXXXXX'
+
+# # Emsisoft A2cmd
+# emsisoft_win_url:
+
+# # F-Secure
+# fsecure_win_url:
+# fsecure_win_key: 'XXXX-XXXX-XXXX-XXXX-XXXX'
+
+# # Gdata
+# gdata_win_url:
+# gdata_win_user:
+# gdata_win_pass:
+
+# # Kaspersky
+# kav_win_url:
+# kav_win_license_key: 'XXXX-XXXX-XXXX-XXXX-XXXX'
+
+# # McAfee
+# mcafee_win_url:
+
+# # Sophos
+# sophos_win_url:
+# sophos_win_login:
+# sophos_win_password:

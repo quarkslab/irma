@@ -114,7 +114,7 @@ Vagrant.configure("2") do |config|
       ansible.force_remote_user = false
 
       # NOTE: ansible.limit = 'all' is incompatible when provisioning windows
-      #ansible.limit = 'all'
+      ansible.limit = 'all,localhost'
       #ansible.tags = ['']
       #ansible.skip_tags = ['']
       #ansible.verbose = 'vvvv'

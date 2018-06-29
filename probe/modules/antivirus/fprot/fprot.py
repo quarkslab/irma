@@ -15,15 +15,15 @@
 
 import logging
 import re
-import os
+from pathlib import Path
 
-from modules.antivirus.base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class FProt(Antivirus):
-    _name = "F-PROT Antivirus (Linux)"
+class FProt(AntivirusUnix):
+    name = "F-PROT Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,19 +31,21 @@ class FProt(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(FProt, self).__init__(*args, **kwargs)
-        # scan tool variables
-        # for scan code meanings, do fpscan -x <code>
-        code_infected = self.ScanResult.INFECTED
-        self._scan_retcodes[code_infected] = lambda x: (x and 0xc1) != 0x0
-        self._scan_args = (
-            "--report "     # Only report infections.
+        super().__init__(*args, **kwargs)
+        # NOTE: for scan code meanings, do fpscan -x <code>
+        self._scan_retcodes[self.ScanResult.INFECTED] = \
+            lambda x: (x & 0x3) != 0x0
+        self.scan_args = (
+            "--report",     # Only report infections.
                             # Never disinfect or delete.
-            "--verbose=0 "  # Report infections only.
+            "--verbose=0",  # Report infections only.
         )
-        self._scan_patterns = [
-            re.compile(b'<(?P<name>.*)>\s+(?P<file>.*)', re.IGNORECASE)
+        self.scan_patterns = [
+            re.compile('<(?P<name>.+)>\s+(?P<file>.+?)(?:->.+)?$',
+                       re.IGNORECASE | re.MULTILINE),
         ]
+        self.scan_path = Path("/opt/f-prot/fpscan")
+        self.database = [Path("/opt/f-prot/antivir.def"), ]
 
     # ==========================================
     #  Antivirus methods (need to be overriden)
@@ -51,28 +53,14 @@ class FProt(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '--version',
+            regexp='Engine version:\s+(?P<version>\d+(\.\d+)+)',
+            group='version')
 
-    def get_database(self):
-        """return list of files in the database"""
-        result = None
-        if self.scan_path:
-            dirname = os.path.dirname(self.scan_path)
-            database_path = self.locate('antivir.def', dirname, syspath=False)
-            result = database_path
-        return result
-
-    def get_scan_path(self):
-        """return the full path of the scan tool"""
-        paths = self.locate("fpscan", "/usr/local/f-prot/")
-        return paths[0] if paths else None
+    def get_virus_database_version(self):
+        """Return the Virus Database version"""
+        return self._run_and_parse(
+            '--version',
+            regexp='Virus signatures:\s+(?P<dbversion>\d+)',
+            group='dbversion')

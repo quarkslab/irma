@@ -1,0 +1,21 @@
+---
+
+- name: Check if infra name has been provided by user
+  fail: msg="Please add '-e infra_name=<my_infra_name>' to the command-line to be able to run this playbook"
+  when: infra_name == ""
+
+- name: Check if infra data file exists
+  stat:
+    path: "{{ infra_data_file }}"
+  register: infra_data_file_stat
+  when: frontend_openssl or rabbitmq_ssl or postgresql_ssl
+
+# If infra is brand new
+- name: Create new infra
+  include: create_infra.yml
+  when: (frontend_openssl or rabbitmq_ssl or postgresql_ssl) and not infra_data_file_stat.stat.exists
+
+# Update infra
+- name: Update infra
+  include: update.yml
+  when: frontend_openssl or postgresql_ssl

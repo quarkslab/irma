@@ -17,60 +17,77 @@ probe_venv_dir: "{{ probe_install_dir }}/venv"
 probe_deployment_configs:
   - section: broker_probe
     option: host
-    value: "{{irma_configurations.brain_addr}}"
+    value: "{{ brain_addr }}"
+  - section: broker_probe
+    option: port
+    value: "{{ rabbitmq_configuration.port  }}"
   - section: broker_probe
     option: vhost
-    value: "{{irma_configurations.rabbitmq.probe.vhost}}"
+    value: "{{ rabbitmq_configuration.probe.vhost }}"
   - section: broker_probe
     option: username
-    value: "{{irma_configurations.rabbitmq.probe.user}}"
+    value: "{{ rabbitmq_configuration.probe.user }}"
   - section: broker_probe
     option: password
-    value: "{{irma_configurations.rabbitmq.probe.password}}"
+    value: "{{ rabbitmq_configuration.probe.password }}"
   - section: broker_brain
     option: host
-    value: "{{irma_configurations.brain_addr}}"
+    value: "{{ brain_addr }}"
+  - section: broker_brain
+    option: port
+    value: "{{ rabbitmq_configuration.port }}"
   - section: broker_brain
     option: vhost
-    value: "{{irma_configurations.rabbitmq.brain.vhost}}"
+    value: "{{ rabbitmq_configuration.brain.vhost }}"
   - section: broker_brain
     option: username
-    value: "{{irma_configurations.rabbitmq.brain.user}}"
+    value: "{{ rabbitmq_configuration.brain.user }}"
   - section: broker_brain
     option: password
-    value: "{{irma_configurations.rabbitmq.brain.password}}"
+    value: "{{ rabbitmq_configuration.brain.password }}"
   - section: ftp_brain
     option: host
-    value: "{{irma_configurations.brain_addr}}"
+    value: "{{ brain_addr }}"
   - section: ftp_brain
     option: username
-    value: "{{irma_configurations.ftpd.probe.username}}"
+    value: "{{ ftpd_configuration.probe.username }}"
   - section: ftp_brain
     option: password
-    value: "{{irma_configurations.ftpd.probe.password}}"
+    value: "{{ ftpd_configuration.probe.password }}"
+  - section: ssl_config
+    option: activate_ssl
+    value: "{{ rabbitmq_ssl }}"
+  - section: ssl_config
+    option: ca_certs
+    value: "{{ dst_pki_folder }}/rabbitmq-ca.crt"
+  - section: ssl_config
+    option: keyfile
+    value: "{{ dst_pki_folder }}/probe-client.key"
+  - section: ssl_config
+    option: certfile
+    value: "{{ dst_pki_folder }}/probe-client.crt"
 
-## Supervisor Role
-supervisor_programs_probe:
-  - name: probe_app
-    command: "{{ probe_venv_dir }}/bin/python -m probe.tasks"
-    directory: "{{ probe_install_dir }}"
-    user: "{{ irma_user }}"
-    numprocs: 1
-    stdout_logfile: /var/log/supervisor/probe_app.log
-    stderr_logfile: /var/log/supervisor/probe_app.log
-    autostart: true
-    stopwaitsecs: 600
-    killasgroup: true
+## Systemd role
+systemd_units_probe:
+  - name: "{{ irma_unit_prefix }}probe_app.service"
+    Service:
+      ExecStart: "{{ probe_venv_dir }}/bin/python -m probe.tasks"
+      WorkingDirectory: "{{ probe_install_dir }}"
+      SyslogIdentifier: "{{ syslog_identifiers.probe.name }}"
 
 # VirusTotal module configuration
 # Uncomment this to share an apikey to all virustotal probes
-# virustotal_configs:
-#   - section: VirusTotal
-#     option: private
-#     value: False
-#   - section: VirusTotal
-#     option: apikey
-#     value: 88eb8e2f869e98ea9b0367cb47c143cb438a5e8d8dfd3b6e3fb6c898374b8fb6
+
+virustotal_private_apikey: False
+virustotal_apikey: 88eb8e2f869e98ea9b0367cb47c143cb438a5e8d8dfd3b6e3fb6c898374b8fb6
+
+virustotal_configs:
+  - section: VirusTotal
+    option: private
+    value: "{{ virustotal_private_apikey }}"
+  - section: VirusTotal
+    option: apikey
+    value: "{{ virustotal_apikey }}"
 
 # Bit Defender Scanner key - Put your licence key here
 # bitdefender_scanner_key:
@@ -95,3 +112,7 @@ supervisor_programs_probe:
 
 #Kaspersky license file - Put your license file here
 # kaspersky_license_file: files/license.key
+
+#eset_file_security_user:
+#eset_file_security_pwd:
+#eset_file_security_licence_file:

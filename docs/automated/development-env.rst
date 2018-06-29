@@ -20,7 +20,7 @@ Run Vagrant and create your VMs
 
 To initialize and provision the Virtualbox VM.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd <IRMA_SRC_DIR>/ansible
     $ VM_ENV=your_environment_name vagrant up
@@ -33,7 +33,7 @@ The template will be downloaded automatically and configured using ``environment
     Optionally, if you want to use your own environment, create it in
     ``environments`` directory and run:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ VM_ENV=your_environment_name vagrant up
 
@@ -56,7 +56,7 @@ Modify your host and open IRMA frontend
 
 Then, for proper use, update your `/etc/hosts` file and add:
 
-.. code-block:: bash
+.. code-block:: none
 
 	172.16.1.30    www.frontend.irma
 
@@ -68,7 +68,7 @@ Sync files between host and guest
 
 Once rsync is installed inside your virtual machine and your environment is correctly set. You could easily sync your code with:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ vagrant rsync # or vagrant rsync-auto to automatically initiates an rsync
                     # transfer when changes are detected

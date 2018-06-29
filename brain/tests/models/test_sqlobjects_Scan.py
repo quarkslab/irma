@@ -1,11 +1,10 @@
 from unittest import TestCase
 from mock import MagicMock
-from random import randint
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from brain.models.sqlobjects import Scan
-from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.common.exceptions import IrmaDatabaseError, \
+from irma.common.base.utils import IrmaScanStatus
+from irma.common.base.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 
 

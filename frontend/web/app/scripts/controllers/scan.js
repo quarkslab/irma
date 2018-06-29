@@ -12,6 +12,7 @@
     vm.scanStatusCodes = constants.scanStatusCodes;
     vm.cancel = cancel;
     vm.newScan = newScan;
+    vm.csvReportURI = undefined;
 
     activate();
 
@@ -21,6 +22,8 @@
       }
 
       state.scan.updateScan();
+
+      vm.csvReportURI = constants.baseApi + '/scans/' + state.scan.id + '/report';
     }
 
     function cancel() {

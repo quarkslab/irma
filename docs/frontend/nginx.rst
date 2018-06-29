@@ -10,7 +10,7 @@ Installation
 
 On Debian, installing nginx is done with few commands:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install nginx
     [...]
@@ -25,7 +25,7 @@ We provide several template scripts in the ``extras/`` repository located at the
 root of the installation directory. Templates for nginx are located in
 ``extras/nginx/``. Copy the file to ``sites-available`` in nginx configuration folder:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo cp extras/nginx/frontend /etc/nginx/sites-available/
 
@@ -43,7 +43,7 @@ By default, all websites in ``apps-available`` are not activated. One can
 enable the website described in ``frontend`` configuration file by creating a
 soft-link into the ``sites-enabled`` folder:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo ln -s /etc/nginx/sites-available/frontend /etc/nginx/sites-enabled/frontend
 
@@ -52,7 +52,7 @@ soft-link into the ``sites-enabled`` folder:
     A template to set up a HTTPs server with nginx is also provided in the
     ``extras/nginx`` folder. Here is the way to setup it:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo cp extras/nginx/frontend-https /etc/nginx/sites-available/
         $ sudo ln -s /etc/nginx/sites-available/frontend-https /etc/nginx/sites-enabled/frontend-https
@@ -61,13 +61,13 @@ soft-link into the ``sites-enabled`` folder:
 
     Generate the required Diffie Hellman Ephemeral Parameters:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo openssl dhparam -out dhparam.pem 4096
 
     Finally, generate a self signed certificate:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo openssl req -x509 -nodes -days 365 -newkey rsa:4096 -subj "/CN=$(hostname --fqdn)/" -keyout frontend.key -out frontend.crt
 
@@ -77,6 +77,6 @@ Relaunch the service
 
 The final step is to relaunch the service:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo invoke-rc.d nginx restart

@@ -42,7 +42,7 @@ def list():
 
 
 @hug.post("/")
-def new(text: hug.types.text=None):
+def new(text: hug.types.text = None):
     """ Add a new tag, text is passed as query parameter.
     :return:
         on success new tag object is returned

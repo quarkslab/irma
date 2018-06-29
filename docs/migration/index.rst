@@ -32,7 +32,7 @@ Database migrations are managed in the **frontend** and **brain** IRMA component
 
 The files/directories used are:
 
-.. code-block:: bash
+.. code-block:: none
 
      alembic.ini
      extras/migration/
@@ -59,7 +59,7 @@ downgrade the database schema.
 
 The command:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ alembic current
 
@@ -67,7 +67,7 @@ The command:
 
 The command to get the history of the latest alembic migrations is:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ alembic history --verbose
 
@@ -84,7 +84,7 @@ the frontend or the brain components). Make sure they are accurate.
 
 The database must already exist. This step is quite simple, the SQL command usually being:
 
-.. code-block:: bash
+.. code-block:: none
 
    sql$ CREATE DATABASE <db_name>;
 
@@ -93,7 +93,7 @@ Update your schema with Alembic
 
 If you use a virtualenv, activate it. Then enter:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ alembic upgrade head
 
@@ -125,7 +125,7 @@ You will need to:
    matches your current database state.
 #. Once you known your Alembic revision, run:
 
-   .. code-block:: bash
+   .. code-block:: console
 
       $ alembic stamp <your_alembic_revision_number>
 
@@ -140,7 +140,7 @@ Generating a new revision
 
 Creating a new revision can be done with the command:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ alembic revision -m <revision_message>
 
@@ -153,7 +153,7 @@ and must be completed with the desired modifications (see the
 A revision could be produced automatically, from database metadata defined in the IRMA SQL
 objects description through ``sqlalchemy``, with the command:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ alembic revision --autogenerate -m <revision_message>
 
@@ -184,9 +184,10 @@ files. You should be able to use the ``--autogenerate`` option without further m
 
 .. warning::
 
-   Database modifications using ``ALTER_COLUMN`` (such as changing the type of a column) can't
-   be performed on ``SQLite`` databases. Be aware of this limitation if you **absolutely** want
-to use migration scripts with this SQL engine.
+   Database modifications using ``ALTER_COLUMN`` (such as changing the type of
+   a column) can't be performed on ``SQLite`` databases. Be aware of this
+   limitation if you **absolutely** want to use migration scripts with this SQL
+   engine.
 
 
 .. _revisions:
@@ -196,14 +197,14 @@ Migrating between revisions
 
 Once the revision is properly described, the migration is performed with:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ alembic upgrade head
 
 Alembic allows to migrate the database to any revision, relatively to the current revision
 or absolutely. Several examples:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ alembic upgrade +4
    $ alembic downgrade base
@@ -273,7 +274,7 @@ Tips and tricks
    Rather than managing migrations directly with Alembic, we could generate SQL migration
    revision to be used directly on database with the command:
 
-   .. code-block:: bash
+   .. code-block:: console
 
       $ alembic upgrade <revision> --sql > migration.sql
 
@@ -286,6 +287,7 @@ Tips and tricks
      variable to match the revision number of revision *R-1*;
    * delete the script of the revision *R* you want to delete;
    * upgrade your database.
+
    The deleted revision want be applied any more.
 
 

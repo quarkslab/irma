@@ -12,6 +12,6 @@ user interface or via the command line interface.
    configuration.rst
    uwsgi.rst
    sql.rst
-   supervisor.rst
+   systemd.rst
    nginx.rst
    checks.rst

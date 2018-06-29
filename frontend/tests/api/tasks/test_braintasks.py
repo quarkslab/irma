@@ -4,8 +4,8 @@ from mock import MagicMock, patch
 
 import api.tasks.braintasks as module
 from api.tasks.braintasks import BRAIN_SCAN_TASKS
-from lib.irma.common.exceptions import IrmaCoreError, IrmaTaskError
-from lib.irma.common.utils import IrmaReturnCode
+from irma.common.base.exceptions import IrmaCoreError, IrmaTaskError
+from irma.common.base.utils import IrmaReturnCode
 
 
 class TestModuleBraintasks(TestCase):

@@ -3,14 +3,14 @@ Connect to a vagrant box through ssh
 
 If you don't already have it download vagrant insecure_private_key
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ wget https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant -O insecure_private_key
 
 
 Then change rights on the key otherwise ssh will complains and connect to your vagrant box
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ chmod 700 insecure_private_key
 	$ ssh vagrant@172.16.1.30 -i insecure_private_key
@@ -25,7 +25,7 @@ If you want to activate SSL on the frontend server, you’ll need:
 - modify frontend_openssl variables in `group_vars/frontend`:
 
 
-.. code-block:: bash
+.. code-block:: yaml
 
   frontend_openssl: True # Default is false
   frontend_openssl_dh_param: # put the DH file locations
@@ -46,12 +46,12 @@ Install this softwares:
 
 - vagrant-cachier (more `info on vagrant-cachier <https://github.com/fgrehm/vagrant-cachier>`_)
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ vagrant plugin install vagrant-cachier
 
 - vagrant-vbguest (more `info on vagrant-vbguest <https://github.com/dotless-de/vagrant-vbguest>`_)
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ vagrant plugin install vagrant-vbguest

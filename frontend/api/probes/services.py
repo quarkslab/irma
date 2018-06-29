@@ -14,7 +14,7 @@
 # terms contained in the LICENSE file.
 
 import api.tasks.braintasks as celery_brain
-from lib.irma.common.exceptions import IrmaValueError
+from irma.common.base.exceptions import IrmaValueError
 
 
 def check_probe(probelist):

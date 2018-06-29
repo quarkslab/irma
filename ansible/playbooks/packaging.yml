@@ -1,6 +1,6 @@
 ---
 - name : "Packaging source code archive"
-  hosts: all
+  hosts: all:!localhost
   tasks:
   - name: Gather Common src from current directory
     local_action: shell cd "{{ playbook_dir }}/../../common" && git archive -o "{{ playbook_dir }}/files/{{ irma_common_archive }}" "{{ irma_deployment_code_version }}"

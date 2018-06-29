@@ -17,7 +17,7 @@ import logging
 import ntpath
 
 from sqlalchemy import Column, Integer, ForeignKey, String, \
-    UniqueConstraint, and_, Index, inspect
+    UniqueConstraint, and_, inspect
 from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.orm import relationship, backref, with_polymorphic
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -27,18 +27,17 @@ from api.common.models import Base, tables_prefix
 from api.files.models import File
 from api.scans.models import Scan
 from api.tags.models import Tag
-from lib.common.utils import UUID
-from lib.common.compat import timestamp
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+from irma.common.utils.utils import UUID
+from irma.common.utils.compat import timestamp
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError
-from lib.irma.common.utils import IrmaProbeType
-from lib.irma.database.sqlobjects import SQLDatabaseObject
+from irma.common.base.utils import IrmaProbeType
 
 
 log = logging.getLogger(__name__)
 
 
-class FileExt(Base, SQLDatabaseObject):
+class FileExt(Base):
     submitter_type = "unknown"
     __tablename__ = '{0}fileExt'.format(tables_prefix)
     # Fields
@@ -60,6 +59,7 @@ class FileExt(Base, SQLDatabaseObject):
         Integer,
         ForeignKey('{0}file.id'.format(tables_prefix)),
         nullable=False,
+        index=True,
     )
     file = relationship(
         File,
@@ -75,6 +75,7 @@ class FileExt(Base, SQLDatabaseObject):
     id_scan = Column(
         Integer,
         ForeignKey('{0}scan.id'.format(tables_prefix)),
+        index=True,
     )
     scan = relationship(
         "Scan",
@@ -193,7 +194,7 @@ class FileExt(Base, SQLDatabaseObject):
             query = query.join(File.tags)
             for tagid in tags:
                 # check if tag exists
-                Tag.find_by_id(tagid, session)
+                session.query(Tag).filter_by(id=tagid).one()
                 query = query.filter(File.tags.any(Tag.id == tagid))
 
         return query
@@ -223,7 +224,7 @@ class FileExt(Base, SQLDatabaseObject):
             query = query.join(File.tags)
             for tagid in tags:
                 # check if tag exists
-                Tag.find_by_id(tagid, session)
+                session.query(Tag).filter_by(id=tagid).one()
                 query = query.filter(File.tags.any(Tag.id == tagid))
 
         return query

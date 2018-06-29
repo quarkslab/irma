@@ -13,8 +13,6 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import os
-from brain.helpers.sql import sql_db_connect
 from sqlalchemy import Column, Integer, Float, String, \
     event, ForeignKey, Boolean
 import config.parser as config
@@ -22,18 +20,16 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
-from lib.common.utils import UUID
-from lib.irma.common.exceptions import IrmaDatabaseError, \
+from irma.common.utils.utils import UUID
+from irma.common.base.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
-from lib.irma.common.utils import IrmaScanStatus
-from lib.common.compat import timestamp
-from lib.irma.database.sqlhandler import SQLDatabase
-from lib.irma.database.sqlobjects import SQLDatabaseObject
+from irma.common.base.utils import IrmaScanStatus
+from irma.common.utils.compat import timestamp
 
 
 # SQLite fix for ForeignKey support
 # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-if config.get_sql_db_uri_params()[0] == 'sqlite':
+if config.sqldb.dbms == 'sqlite':
     @event.listens_for(Engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
@@ -41,14 +37,14 @@ if config.get_sql_db_uri_params()[0] == 'sqlite':
         cursor.close()
 
 Base = declarative_base()
-tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
+tables_prefix = '{0}_'.format(config.sqldb.tables_prefix)
 
 
-class Scan(Base, SQLDatabaseObject):
+class Scan(Base):
     __tablename__ = '{0}scan'.format(tables_prefix)
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
+    if config.sqldb.dbms == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
@@ -110,12 +106,12 @@ class Scan(Base, SQLDatabaseObject):
             raise IrmaDatabaseError(e)
 
 
-class User(Base, SQLDatabaseObject):
+class User(Base):
     __tablename__ = '{0}user'.format(tables_prefix)
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
+    if config.sqldb.dbms == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields
@@ -164,7 +160,7 @@ class User(Base, SQLDatabaseObject):
             raise IrmaDatabaseError(e)
 
 
-class Job(Base, SQLDatabaseObject):
+class Job(Base):
     __tablename__ = '{0}job'.format(tables_prefix)
 
     # Fields
@@ -198,12 +194,12 @@ class Job(Base, SQLDatabaseObject):
         self.probename = probename
 
 
-class Probe(Base, SQLDatabaseObject):
+class Probe(Base):
     __tablename__ = '{0}probe'.format(tables_prefix)
 
     # SQLite fix for auto increment on ids
     # see http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html
-    if config.get_sql_db_uri_params()[0] == 'sqlite':
+    if config.sqldb.dbms == 'sqlite':
         __table_args__ = {'sqlite_autoincrement': True}
 
     # Fields

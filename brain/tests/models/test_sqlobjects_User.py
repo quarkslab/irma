@@ -3,7 +3,7 @@ from mock import MagicMock
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from brain.models.sqlobjects import User
-from lib.irma.common.exceptions import IrmaDatabaseError, \
+from irma.common.base.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 
 

@@ -18,8 +18,8 @@ import argparse
 import pprint
 import logging
 
-from lib.plugins import PluginManager
-from lib.common.utils import bytes_to_utf8
+from irma.common.plugins import PluginManager
+from irma.common.utils.utils import bytes_to_utf8
 
 
 def lookup_modules():

@@ -17,16 +17,15 @@ from sqlalchemy import Column, Integer, Numeric, Boolean, ForeignKey, String
 from sqlalchemy.orm import relationship, backref, subqueryload
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaCoreError
-from lib.common import compat
-from lib.common.utils import UUID
-from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.database.sqlobjects import SQLDatabaseObject
+from irma.common.utils import compat
+from irma.common.base.utils import IrmaScanStatus
+from irma.common.utils.utils import UUID
 from api.common.models import Base, tables_prefix
 
 
-class Scan(Base, SQLDatabaseObject):
+class Scan(Base):
     __tablename__ = '{0}scan'.format(tables_prefix)
 
     # Fields
@@ -165,7 +164,7 @@ class Scan(Base, SQLDatabaseObject):
             self.events.append(evt)
 
 
-class ScanEvents(Base, SQLDatabaseObject):
+class ScanEvents(Base):
     __tablename__ = '{0}scanEvents'.format(tables_prefix)
 
     # Fields

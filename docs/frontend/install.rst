@@ -23,7 +23,7 @@ to run the python application.
 
 .. note:: On GNU/Linux, one can create the user (and the group) ``irma`` with:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo adduser --system --no-create-home --group irma
 
@@ -40,7 +40,7 @@ with the following commands. Let us note that there is a common submodule named
 ``common`` that is a soft-link (``lib``), do not forget the ``dereference``
 option of ``cp`` (``-L``):
 
-.. code-block:: bash
+.. code-block:: console
 
     $ git clone https://github.com/quarkslab/irma /opt/irma/src
     $ cp -rL /opt/irma/src/frontend /opt/irma/irma-frontend/current
@@ -52,7 +52,7 @@ We need few dependencies for future steps:
 
 then, we need to install python dependencies manually in a virtualenv :
 
-.. code-block:: bash
+.. code-block:: console
 
     $ virtualenv --system-site-packages /opt/irma/irma-frontend/current/venv
     $ /opt/irma/irma-frontend/current/venv/bin/pip install -r /opt/irma/irma-frontend/current/requirements.txt
@@ -68,7 +68,7 @@ mixed with javascript web framework (in particular, AngularJS).
 One must install first some tools that are necessary to build the whole web
 client:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ curl -sL https://deb.nodesource.com/setup | sudo bash -
     [...]
@@ -81,7 +81,7 @@ Once the tools installed, you can build the static files for the web user
 interface with the following commands, executed from the installation
 directory:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd irma-frontend/current/web
     $ sudo npm install

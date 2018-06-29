@@ -15,10 +15,11 @@
 
 from .skeleton import Skeleton
 
-from lib.plugins import PluginBase, PluginLoadError
-from lib.irma.common.utils import IrmaProbeType
+from ..interface import AntivirusPluginInterface
+from irma.common.plugins import PluginMetaClass
 
-class SkeletonPlugin(PluginBase, Skeleton):
+
+class SkeletonPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
@@ -32,9 +33,17 @@ class SkeletonPlugin(PluginBase, Skeleton):
     _plugin_dependencies_ = []
     _mimetype_regexp = None
 
-    # =============
-    #  constructor
-    # =============
+    # ================
+    #  interface data
+    # ================
 
-    def __init__(self):
-        self.module = Skeleton()
+    module_cls = Skeleton
+
+    # If needed, overload the `verify` classmethod in order to check your class
+    # is instanciable. It should return if everything is alright, otherwise
+    # raise an exception. By default it checks that the module's attribute
+    # `self.scan_path` is an existing file (cf. `super()._chk_scanpath`)
+    #
+    # @classmethod
+    # def verify(cls):
+    #     pass

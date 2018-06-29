@@ -8,6 +8,3 @@
 - name: Enable postgreSQL at boot
   service: name=postgresql enabled=yes
   become: yes
-
-- include: hosts.yml
-

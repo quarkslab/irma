@@ -16,19 +16,19 @@
 from .zoner import Zoner
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
-from lib.plugins import BinaryDependency, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, BinaryDependency, \
+    PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class ZonerPlugin(PluginBase, Zoner, AntivirusPluginInterface):
+class ZonerPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "Zoner"
-    _plugin_display_name_ = Zoner._name
+    _plugin_display_name_ = Zoner.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -41,10 +41,8 @@ class ZonerPlugin(PluginBase, Zoner, AntivirusPluginInterface):
         ),
     ]
 
-    # =============
-    #  constructor
-    # =============
+    # ================
+    #  interface data
+    # ================
 
-    def __init__(self):
-        # load default configuration file
-        self.module = Zoner()
+    module_cls = Zoner

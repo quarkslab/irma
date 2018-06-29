@@ -1,0 +1,132 @@
+---
+
+- hosts: all
+  tasks:
+    - import_tasks: check.yml
+
+- name: Avast update
+  hosts: avast
+  tasks:
+    - include_role: { name: quarkslab.avast, tasks_from: update_auto }
+      tags: avast
+
+- name: AVG update
+  hosts: avg
+  tasks:
+    - include_role: { name: quarkslab.avg, tasks_from: update_auto }
+      tags: avg
+
+- name: Bitdefender update
+  hosts: bitdefender
+  tasks:
+    - include_role: { name: quarkslab.bitdefender, tasks_from: update_auto }
+      tags: bitdefender
+
+- name: ClamAV update
+  hosts: clamav
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.clamav, tasks_from: update_auto }
+      tags: clamav
+
+- name: ComodoCAVL update
+  hosts: comodo
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.comodo_cavl, tasks_from: update_auto }
+      tags: comodo
+
+- name: DrWeb update
+  hosts: drweb
+  tasks:
+    - include_role: { name: quarkslab.drweb, tasks_from: update_auto }
+      tags: drweb
+
+- name: Emsisoft a2cmd update (Windows)
+  hosts: emsisoft-win
+  become: no
+  tasks:
+    - include_role: { name: quarkslab.emsisoft_a2cmd_windows, tasks_from: update_auto }
+      tags: emsisoft-win
+
+- name: EScan update
+  hosts: escan
+  tasks:
+    - include_role: { name: quarkslab.escan, tasks_from: update_auto }
+      tags: escan
+
+- name: EsetFileSecurity update
+  hosts: eset-file-security
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.eset_file_security, tasks_from: update_auto }
+      tags: eset_file_security
+
+- name: F-prot update
+  hosts: fprot
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.fprot, tasks_from: update_auto }
+      tags: fprot
+
+- name: FSecure update
+  hosts: fsecure
+  tasks:
+    - include_role: { name: quarkslab.fsecure, tasks_from: update_auto }
+      tags: fsecure
+
+- name: Kaspersky update (Linux)
+  hosts: kaspersky
+  become: no
+  tasks:
+    - include_role: { name: quarkslab.kaspersky, tasks_from: update_auto }
+      tags: kaspersky
+
+- name: McAfee VSCL update
+  hosts: mcafee
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.mcafee_vscl, tasks_from: update_auto }
+      tags: mcafee
+
+- name: McAfee VSCL update (Windows)
+  hosts: mcafee-win
+  become: no
+  tasks:
+    - include_role: { name: quarkslab.mcafee_vscl_windows, tasks_from: update_auto }
+      tags: mcafee-win
+
+- name: PEiD update
+  hosts: peid
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.peid, tasks_from: update_auto }
+      tags: peid
+
+- name: Sophos update
+  hosts: sophos
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.sophos, tasks_from: update_auto }
+      tags: sophos
+
+- name: TrID update
+  hosts: trid
+  tasks:
+    - include_role: { name: quarkslab.trid, tasks_from: update_auto }
+      tags: trid
+
+- name: Virusblokada update
+  hosts: virusblokada
+  become: yes
+  tasks:
+    - include_role: { name: quarkslab.virusblokada, tasks_from: update_auto }
+      tags: virusblokada
+
+- name: Zoner update
+  hosts: zoner
+  tasks:
+    - include_role: { name: quarkslab.zoner, tasks_from: update_auto }
+      tags: zoner
+
+# vim: sw=2

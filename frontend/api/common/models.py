@@ -18,4 +18,4 @@ from sqlalchemy.ext.declarative import declarative_base
 import config.parser as config
 
 Base = declarative_base()
-tables_prefix = '{0}_'.format(config.get_sql_db_tables_prefix())
+tables_prefix = '{0}_'.format(config.sqldb.tables_prefix)

@@ -10,14 +10,14 @@ Installing sshd
 
 sshd should already been installed but if not install it with:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install openssh-sftp-server
 
 Creating FTP specific users and groups
 ``````````````````````````````````````
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo groupadd sftpusers
     $ sudo useradd -g sftpusers -M -s /etc <frontend username>
@@ -59,7 +59,7 @@ access to all frontends, thus the associated home directory is simply
 ``/sftp/``. For instance, a frontend named ``frontend``, execute
 the following to create the directories:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo mkdir -pv /sftp/frontend/uploads
     mkdir: created directory `/sftp'
@@ -77,6 +77,6 @@ Restart the service
 
 You may want to restart the service:
 
-.. code-block:: bash
+.. code-block:: console
 
-    $ sudo invoke-rc.d sshd restart
+    $ sudo systemctl restart sshd

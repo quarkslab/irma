@@ -14,6 +14,11 @@ web/app/bower_components/
 *~
 venv/
 
+# for source deployment
+build/
+dist/
+*.egg-info/
+
 # for tests
 frontend/tests/results/
 brain/tests/results/
@@ -45,6 +50,7 @@ ansible/roles/mivok0.users/
 ansible/roles/ANXS.postgresql/
 ansible/roles/gdamjan.uwsgi/
 ansible/roles/willshersystems.sshd
+ansible/infras
 
 ansible/files/*
 !files/.gitkeep

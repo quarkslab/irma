@@ -17,19 +17,18 @@ import os
 import logging
 
 from sqlalchemy import Column, BigInteger, Integer, Numeric, String, \
-    UniqueConstraint, inspect, desc, func
+    UniqueConstraint, inspect, desc, func, Index
 
 from sqlalchemy.orm import aliased
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError, IrmaFileSystemError
-from lib.common import compat
-from lib.irma.database.sqlobjects import SQLDatabaseObject
-from lib.common.hash import sha256sum, sha1sum, md5sum
-from lib.common.mimetypes import Magic
-from lib.common.utils import save_to_file
+from irma.common.utils import compat
+from irma.common.utils.hash import sha256sum, sha1sum, md5sum
+from irma.common.utils.mimetypes import Magic
+from irma.common.utils.utils import save_to_file
 
 from api.common.utils import build_sha256_path
 from api.common.models import Base, tables_prefix
@@ -40,7 +39,7 @@ from api.probe_results.models import ProbeResult
 log = logging.getLogger(__name__)
 
 
-class File(Base, SQLDatabaseObject):
+class File(Base):
     __tablename__ = '{0}file'.format(tables_prefix)
 
     # Fields
@@ -78,7 +77,8 @@ class File(Base, SQLDatabaseObject):
     )
     size = Column(
         BigInteger,
-        name='size'
+        name='size',
+        nullable=False
     )
     mimetype = Column(
         String,
@@ -88,7 +88,11 @@ class File(Base, SQLDatabaseObject):
         String(length=255),
         name='path'
     )
-    UniqueConstraint('sha256', name='u_file_sha256')
+    __table_args__ = (UniqueConstraint('sha256', name='u_file_sha256'),
+                      Index('ix_irma_file_ts_pathnotnull',
+                            'timestamp_last_scan',
+                            postgresql_where=(path != None))  # noqa
+                      )
 
     def __init__(self, sha256, sha1, md5, size, mimetype, path,
                  timestamp_first_scan, timestamp_last_scan, tags=None):
@@ -108,20 +112,21 @@ class File(Base, SQLDatabaseObject):
             self.tags = tags
 
     def add_tag(self, tagid, session):
-        asked_tag = Tag.find_by_id(tagid, session)
+        asked_tag = session.query(Tag).filter_by(id=tagid).one()
         if asked_tag in self.tags:
             raise IrmaDatabaseError("Adding an already present Tag")
         self.tags.append(asked_tag)
 
     def remove_tag(self, tagid, session):
-        asked_tag = Tag.find_by_id(tagid, session)
+        asked_tag = session.query(Tag).filter_by(id=tagid).one()
         if asked_tag not in self.tags:
             raise IrmaDatabaseError("Removing a not present Tag")
         self.tags.remove(asked_tag)
 
     @classmethod
     def load_from_sha256(cls, sha256, session):
-        """Find the object in the database, update data if file was previously deleted
+        """Find the object in the database, update data if file
+           was previously deleted
         :param sha256: the sha256 to look for
         :param session: the session to use
         :rtype: cls
@@ -148,11 +153,14 @@ class File(Base, SQLDatabaseObject):
         """
         try:
             if self.path is None:
+                log.debug("%s File already deleted", self.sha256)
                 return
+            log.debug("Removing %s", self.path)
             os.remove(self.path)
+        except OSError:
+            log.info("%s File already deleted", self.sha256)
+        finally:
             self.path = None
-        except OSError as e:
-            raise IrmaFileSystemError(e)
 
     def get_tags(self):
         results = []
@@ -177,6 +185,7 @@ class File(Base, SQLDatabaseObject):
         ).all()
         for f in fl:
             f.remove_file_from_fs()
+        session.commit()
         return len(fl)
 
     @classmethod
@@ -200,6 +209,7 @@ class File(Base, SQLDatabaseObject):
         fl = session.query(cte).filter(subq.c.total >= max_size).all()
         for f in fl:
             f.remove_file_from_fs()
+        session.commit()
         return len(fl)
 
     @property

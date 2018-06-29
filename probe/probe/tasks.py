@@ -27,9 +27,9 @@ from celery import Celery, current_task
 from celery.utils.log import get_task_logger
 from celery.exceptions import TimeoutError
 
-from lib.plugins import PluginManager
-from lib.common.utils import bytes_to_utf8
-from lib.irma.common.exceptions import IrmaTaskError
+from irma.common.plugins import PluginManager
+from irma.common.utils.utils import bytes_to_utf8
+from irma.common.base.exceptions import IrmaTaskError
 
 from probe.controllers.braintasks import register_probe
 import probe.controllers.ftpctrl as ftp_ctrl

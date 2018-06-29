@@ -1,0 +1,38 @@
+---
+
+- name: Ensure that releases directory has been created
+  win_file:
+    path: "{{ common_deployment_dir }}"
+    state: directory
+  when: irma_deployment_code_version != 'local'
+
+- name: Check if common src archive is present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
+  when: irma_deployment_code_version != 'local'
+
+- name: Get windows style path
+  set_fact:
+    common_dest_dir: '{{ common_deployment_dir | regex_replace("/", "\\") }}'
+  when: irma_deployment_code_version != 'local'
+
+- name: Upload Common src archive
+  win_copy:
+    src: "files/{{ irma_common_archive }}"
+    dest: "{{ common_deployment_dir }}\\"
+  when: irma_deployment_code_version != 'local'
+
+- name: Unzip Probe common src archive
+  win_unzip:
+    src: "{{ common_dest_dir }}\\{{ irma_common_archive }}"
+    dest: "{{ common_dest_dir }}\\"
+  when: irma_deployment_code_version != 'local'
+
+- name: Create symlink release -> current
+  raw: cmd /C '"{{ item.cmd }}"'
+  register: result
+  failed_when: result.rc not in {{ item.rc | default([0]) }}
+  with_items:
+    - cmd: rmdir /q /s "{{ common_install_dir }}"
+      rc: [0, 1, 2]
+    - cmd: mklink /d "{{ common_install_dir }}" "{{ common_deployment_dir }}"
+      rc: [0, 2]

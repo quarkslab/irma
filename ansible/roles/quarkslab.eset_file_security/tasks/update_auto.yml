@@ -1,0 +1,5 @@
+---
+
+- name: EsetFileSecurity | update
+  command: "/opt/eset/esets/sbin/esets_update"
+  become: yes

@@ -16,19 +16,19 @@
 from .escan import Escan
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
-from lib.plugins import BinaryDependency, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, BinaryDependency, \
+    PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class EscanPlugin(PluginBase, Escan, AntivirusPluginInterface):
+class EscanPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "EScan"
-    _plugin_display_name_ = Escan._name
+    _plugin_display_name_ = Escan.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -41,10 +41,8 @@ class EscanPlugin(PluginBase, Escan, AntivirusPluginInterface):
         ),
     ]
 
-    # =============
-    #  constructor
-    # =============
+    # ================
+    #  interface data
+    # ================
 
-    def __init__(self):
-        # load default configuration file
-        self.module = Escan()
+    module_cls = Escan

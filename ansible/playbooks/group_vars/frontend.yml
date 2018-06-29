@@ -5,10 +5,9 @@ hostname: frontend.irma
 
 frontend_user: "{{ default_user }}"
 frontend_group: "{{ default_group }}"
-frontend_project_dir: /opt/irma/irma-frontend
+frontend_project_dir: "{{ irma_install_dir }}/irma-frontend"
 
 frontend_install_dir: "{{ frontend_project_dir }}/current"
-frontend_releases_dir: "{{ frontend_project_dir }}/releases"
 frontend_venv_dir: "{{ frontend_install_dir }}/venv"
 frontend_beat_schedule: /var/irma/frontend_beat_schedule
 
@@ -17,40 +16,43 @@ frontend_beat_schedule: /var/irma/frontend_beat_schedule
 frontend_deployment_configs:
   - section: broker_brain
     option: host
-    value: "{{irma_configurations.brain_addr}}"
+    value: "{{ brain_addr }}"
+  - section: broker_brain
+    option: port
+    value: "{{ rabbitmq_configuration.port }}"
   - section: broker_brain
     option: vhost
-    value: "{{irma_configurations.rabbitmq.brain.vhost}}"
+    value: "{{ rabbitmq_configuration.brain.vhost }}"
   - section: broker_brain
     option: username
-    value: "{{irma_configurations.rabbitmq.brain.user}}"
+    value: "{{ rabbitmq_configuration.brain.user }}"
   - section: broker_brain
     option: password
-    value: "{{irma_configurations.rabbitmq.brain.password}}"
+    value: "{{ rabbitmq_configuration.brain.password }}"
   - section: broker_frontend
     option: host
-    value: "{{irma_configurations.brain_addr}}"
+    value: "{{ brain_addr }}"
+  - section: broker_frontend
+    option: port
+    value: "{{ rabbitmq_configuration.port }}"
   - section: broker_frontend
     option: vhost
-    value: "{{irma_configurations.rabbitmq.frontend.vhost}}"
+    value: "{{ rabbitmq_configuration.frontend.vhost }}"
   - section: broker_frontend
     option: username
-    value: "{{irma_configurations.rabbitmq.frontend.user}}"
+    value: "{{ rabbitmq_configuration.frontend.user }}"
   - section: broker_frontend
     option: password
-    value: "{{irma_configurations.rabbitmq.frontend.password}}"
-  - section: backend_brain
-    option: host
-    value: "{{irma_configurations.brain_addr}}"
+    value: "{{ rabbitmq_configuration.frontend.password }}"
   - section: ftp_brain
     option: host
-    value: "{{irma_configurations.brain_addr}}"
+    value: "{{ brain_addr }}"
   - section: ftp_brain
     option: username
-    value: "{{irma_configurations.ftpd.frontend.username}}"
+    value: "{{ ftpd_configuration.frontend.username }}"
   - section: ftp_brain
     option: password
-    value: "{{irma_configurations.ftpd.frontend.password}}"
+    value: "{{ ftpd_configuration.frontend.password }}"
   - section: sqldb
     option: dbms
     value: postgresql
@@ -59,47 +61,77 @@ frontend_deployment_configs:
     value: psycopg2
   - section: sqldb
     option: username
-    value: "{{irma_configurations.postgresql.frontend.username}}"
+    value: "{{  postgresql_configuration.username }}"
   - section: sqldb
     option: password
-    value: "{{irma_configurations.postgresql.frontend.password}}"
+    value: "{{  postgresql_configuration.password }}"
   - section: sqldb
     option: dbname
-    value: "{{irma_configurations.postgresql.frontend.db_name}}"
+    value: "{{  postgresql_configuration.db_name }}"
   - section: sqldb
     option: host
-    value: "{{irma_configurations.postgresql.frontend.host}}"
+    value: "{{  postgresql_configuration.host }}"
+  - section: sqldb
+    option: port
+    value: "{{ postgresql_configuration.port }}"
+  - section: sqldb
+    option: sslmode
+    value: "{{ postgresql_configuration.sslmode }}"
+  - section: sqldb
+    option: sslrootcert
+    value: "{{ postgresql_configuration.sslrootcert }}"
+  - section: sqldb
+    option: sslcert
+    value: "{{ postgresql_configuration.sslcert }}"
+  - section: sqldb
+    option: sslkey
+    value: "{{ postgresql_configuration.sslkey }}"
   - section: cron_clean_file_age
-    option: clean_db_file_max_age
-    value: "{{irma_configurations.cron_clean_file_age.clean_db_file_max_age}}"
+    option: clean_fs_max_age
+    value: "{{ frontend_clean_db_file_max_age }}"
   - section: cron_clean_file_size
     option: clean_fs_max_size
-    value: "{{irma_configurations.cron_clean_file_size.clean_fs_max_size}}"
-
+    value: "{{ frontend_clean_db_file_max_size }}"
+  - section: ssl_config
+    option: activate_ssl
+    value: "{{ rabbitmq_ssl }}"
+  - section: ssl_config
+    option: ca_certs
+    value: "{{ dst_pki_folder }}/rabbitmq-ca.crt"
+  - section: ssl_config
+    option: keyfile
+    value: "{{ dst_pki_folder }}/frontend-client.key"
+  - section: ssl_config
+    option: certfile
+    value: "{{ dst_pki_folder }}/frontend-client.crt"
 
 ## UFW Rules
 frontend_ufw_additional_rules:
   - port: 80
-    rule: allow
+    rule: "{{ 'allow' if nginx_http_enabled|default('True') else 'deny' }}"
   - port: 443
-    rule: "{{ 'allow' if frontend_openssl|default('False') else 'deny' }}"
+    rule: "{{ 'allow' if nginx_https_enabled|default('False') else 'deny' }}"
 
 
 ## HTTPs
-frontend_openssl: False # Default value is False. For HTTPs using OpenSSL,
-                        # change it to True
 frontend_openssl_dh_param: /etc/nginx/certs/{{ hostname }}_dhparam.pem
 
 frontend_openssl_certificates:
   cert:
-    src: files/{{ hostname }}/hostname.crt
+    src: "{{ pki_folder }}/https/server/server-chain.crt"
     dst: /etc/nginx/certs/{{ hostname }}.crt
   key:
-    src: files/{{ hostname }}/hostname.key
+    src: "{{ pki_folder }}/https/server/server.key"
     dst: /etc/nginx/certs/{{ hostname }}.key
   ca:
-    src: files/{{ hostname }}/ca.crt
+    src: "{{ pki_folder }}/https/ca/ca.crt"
     dst: /etc/nginx/certs/ca.crt
+  chain:
+    src: "{{ pki_folder }}/https/ca/ca-chain.crt"
+    dst: /etc/nginx/certs/ca-chain.crt
+  crl:
+    src: "{{ pki_folder }}/https/ca/https.crl"
+    dst: /etc/nginx/certs/https.crl
 
 
 ## Apt role
@@ -114,33 +146,22 @@ nodejs_global_packages:
   - debug
 
 
-## Supervisor role
-supervisor_programs_frontend:
-  - name: frontend_app
-    command: "{{ frontend_venv_dir }}/bin/python -m api.tasks.frontend_app"
-    directory: "{{ frontend_install_dir }}"
-    user: "{{ irma_user }}"
-    numprocs: 1
-    stdout_logfile: /var/log/supervisor/frontend_app.log
-    stderr_logfile: /var/log/supervisor/frontend_app.log
-    autostart: true
-    stopwaitsecs: 600
-    killasgroup: true
-  - name: frontend_api
-    command: >
-      {{ frontend_venv_dir}}/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
-      --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
-      {% if irma_environment == 'development' %}--python-autoreload 1{% endif %}
-      --python-path {{ frontend_install_dir }}/venv --wsgi-file api/base.py --callable __hug_wsgi__ --lazy --offload-threads 4
-    user: "{{ irma_user }}"
-    numprocs: 1
-    stdout_logfile: /var/log/supervisor/frontend_api.log
-    stderr_logfile: /var/log/supervisor/frontend_api.log
-    redirect_stderr: true
-    stopsignal: INT
-    autostart: true
-    stopwaitsecs: 600
-    killasgroup: true
+## Systemd role
+systemd_units_frontend:
+  - name: "{{ irma_unit_prefix }}frontend_app.service"
+    Service:
+      ExecStart: "{{ frontend_venv_dir }}/bin/python -m api.tasks.frontend_app"
+      WorkingDirectory: "{{ frontend_install_dir }}"
+      SyslogIdentifier: "{{ syslog_identifiers.frontend.name }}"
+  - name: "{{ irma_unit_prefix }}frontend_api.service"
+    Service:
+      SyslogIdentifier: "{{ syslog_identifiers.frontend_api.name }}"
+      ExecStart: >
+        {{ frontend_venv_dir}}/bin/uwsgi -s 127.0.0.1:8081 --disable-logging --master --workers 4 --need-app
+        --chdir {{ frontend_install_dir }} --home {{ frontend_install_dir }}/venv
+        {% if irma_environment == 'development' %}--python-autoreload 1{% endif %}
+        --python-path {{ frontend_install_dir }}/venv --wsgi-file api/base.py --callable __hug_wsgi__ --lazy --offload-threads 4
+      KillSignal: SIGQUIT
 
 
 ## Nginx role
@@ -164,120 +185,80 @@ nginx_configs:
   http:
     - server_names_hash_bucket_size 64
 
+nginx_remove_sites:
+  - default
+
 nginx_sites:
-  default:
-    - listen 80
   irma-frontend:
-    - listen 80 default_server
-    - listen [::]:80 default_server ipv6only=on
-    - server_name www.{{ hostname }}
-    - client_max_body_size 100m
-    - location ~ /\.ht {
-        deny all;
-      }
-    - |
-      location /api {
-        if ($request_method ~* "(GET|POST)") {
-          add_header "Access-Control-Allow-Origin"  *;
+    template: files/templates/nginx_irma.conf.j2
+    nginx_common:
+      - server_name www.{{ hostname }}
+      - client_max_body_size 100m
+      - location ~ /\.ht {
+          deny all;
         }
+      - |
+        location /api {
+          if ($request_method ~* "(GET|POST)") {
+            add_header "Access-Control-Allow-Origin"  *;
+           }
 
-        if ($request_method = OPTIONS) {
-          add_header "Access-Control-Allow-Origin"  *;
-          add_header "Access-Control-Allow-Methods" "GET, POST, OPTIONS, HEAD";
-          add_header "Access-Control-Allow-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
-          add_header "Access-Control-Expose-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
-          return 200;
+          if ($request_method = OPTIONS) {
+            add_header "Access-Control-Allow-Origin"  *;
+            add_header "Access-Control-Allow-Methods" "GET, POST, OPTIONS, HEAD";
+            add_header "Access-Control-Allow-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
+            add_header "Access-Control-Expose-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
+            return 200;
+          }
+
+          add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+          include uwsgi_params;
+          rewrite ^/api/v1.1/(.+) /v1/$1 break;
+          rewrite ^/api/(.+) /$1 break;
+          uwsgi_pass 127.0.0.1:8081;
         }
-
-        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        include uwsgi_params;
-        rewrite ^/api/v1.1/(.+) /v1/$1 break;
-        rewrite ^/api/(.+) /$1 break;
-        uwsgi_pass 127.0.0.1:8081;
-      }
-    - location /server-status {
-        stub_status;
-        access_log off;
-        allow 127.0.0.1;
-        deny all;
-      }
-    - location /swagger {
-        alias {{ frontend_install_dir }}/swagger/ui;
-        index index.html;
-      }
-    - location / {
-        expires -1;
-        add_header Pragma "no-cache";
-        add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        root {{ frontend_install_dir }}/web/dist;
-        try_files $uri $uri/ /index.html =404;
-      }
-    - error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
-    - access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
-  # Uncomment the following for HTTPs using OpenSSL support
-  # It can be customize for your needs (add the swagger API, …)
-  #irma-frontend-https:
-    #- listen 443 default_server
-    #- listen [::]:443 default_server ipv6only=on
-    #- server_name www.{{ hostname }}
-    #- client_max_body_size 100m
-    #- location ~ /\.ht {
-        #deny all;
-      #}
-    #- |
-      #location /api {
-        #if ($request_method ~* "(GET|POST)") {
-          #add_header "Access-Control-Allow-Origin"  *;
-         #}
-
-        #if ($request_method = OPTIONS) {
-          #add_header "Access-Control-Allow-Origin"  *;
-          #add_header "Access-Control-Allow-Methods" "GET, POST, OPTIONS, HEAD";
-          #add_header "Access-Control-Allow-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
-          #add_header "Access-Control-Expose-Headers" "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Content-Range,Range";
-          #return 200;
-        #}
-
-        #add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        #include uwsgi_params;
-        #rewrite ^/api/v1.1/(.+) /v1/$1 break;
-        #rewrite ^/api/(.+) /$1 break;
-        #uwsgi_pass 127.0.0.1:8081;
-      #}
-    # - location /server-status {
-    #   stub_status;
-    #   access_log off;
-    #   allow 127.0.0.1;
-    #   deny all;
-    # }
-    # - location /swagger {
-    #     alias {{ frontend_install_dir }}/swagger/ui;
-    #     index index.html;
-    #   }
-    #- location / {
-        # expires -1;
-        # add_header Pragma "no-cache";
-        # add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
-        # root {{ frontend_install_dir }}/web/dist;
-        # try_files $uri $uri/ /index.html =404;
-      #}
-    #- error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
-    #- access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
-    ## TLS configuration
-    #- ssl on
-    #- ssl_certificate {{ frontend_openssl_certificates.cert.dst }}
-    #- ssl_certificate_key {{ frontend_openssl_certificates.key.dst }}
-    #- ssl_client_certificate {{ frontend_openssl_certificates.ca.dst }}
-    #- ssl_verify_client on
-    ## dhparam of 2048 bit or greater (1024 if java6 required)
-    #- ssl_dhparam {{ frontend_openssl_dh_param }}
-    #- ssl_session_timeout 5m
-    #- ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2
-    #- ssl_ciphers 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4'
-    #- ssl_prefer_server_ciphers on
-    ## TLS session cache
-    #- ssl_session_cache shared:SSL:50m
-    ## HSTS record cache for 6 months
-    #- add_header Strict-Transport-Security max-age=15768000
-
+      - location /server-status {
+         stub_status;
+         access_log off;
+         allow 127.0.0.1;
+         deny all;
+       }
+      - location /swagger {
+           alias {{ frontend_install_dir }}/swagger/ui;
+           index index.html;
+         }
+      - location / {
+           expires -1;
+           add_header Pragma "no-cache";
+           add_header Cache-Control "no-store, no-cache, must-revalidate, post-check=0, pre-check=0";
+           root {{ frontend_install_dir }}/web/dist;
+           try_files $uri $uri/ /index.html =404;
+        }
+      - error_log {{ nginx_log_dir }}/{{ hostname }}.error.log
+      - access_log {{ nginx_log_dir }}/{{ hostname }}.access.log
+    nginx_http:
+      - listen 80 default_server
+      - listen [::]:80 default_server ipv6only=on
+    nginx_https_server:
+      - listen 443 default_server
+      - listen [::]:443 default_server ipv6only=on
+      # TLS configuration
+      - ssl on
+      - ssl_certificate {{ frontend_openssl_certificates.cert.dst }}
+      - ssl_certificate_key {{ frontend_openssl_certificates.key.dst }}
+      - ssl_session_timeout 5m
+      - ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2
+      - ssl_ciphers 'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4'
+      - ssl_prefer_server_ciphers on
+      # TLS session cache
+      - ssl_session_cache shared:SSL:50m
+      # HSTS record cache for 6 months
+      - add_header Strict-Transport-Security max-age=15768000
+    nginx_https_client:
+      - ssl_client_certificate {{ frontend_openssl_certificates.chain.dst }}
+      - ssl_verify_client on
+      #- ssl_crl {{ frontend_openssl_certificates.crl.dst }}
+      #dhparam of 2048 bit or greater (1024 if java6 required)
+      - ssl_verify_depth 2
+      - ssl_dhparam {{ frontend_openssl_dh_param }}
 # vim: sw=2

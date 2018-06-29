@@ -15,8 +15,8 @@
 
 import logging
 
-from lib.plugins.manager import PluginManager
-from lib.plugin_result import PluginResult
+from irma.common.plugins.manager import PluginManager
+from irma.common.plugin_result import PluginResult
 
 log = logging.getLogger(__name__)
 

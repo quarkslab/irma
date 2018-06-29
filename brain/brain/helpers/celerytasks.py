@@ -14,7 +14,7 @@
 # terms contained in the LICENSE file.
 
 import celery
-from lib.irma.common.exceptions import IrmaTaskError
+from irma.common.base.exceptions import IrmaTaskError
 
 
 # ================
@@ -56,5 +56,5 @@ def async_call(celery_app, taskpath, taskname, **kwargs):
     try:
         full_task_path = "{0}.{1}".format(taskpath, taskname)
         return celery_app.send_task(full_task_path, **kwargs)
-    except:
+    except Exception:
         raise IrmaTaskError("Celery error - {0}".format(taskname))

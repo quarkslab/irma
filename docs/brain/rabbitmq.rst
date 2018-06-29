@@ -8,7 +8,7 @@ Install RabbitMQ
 
 RabbitMQ server can be installed with this command on Debian:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install rabbitmq-server
 
@@ -23,7 +23,7 @@ To configure RabbitMQ for IRMA platform, you have to create users, vhosts and
 add permissions for each user to corresponding vhost. To easily create virtual
 hosts and users, we provide scripts in ``extras/`` directory:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sh ./extras/scripts/rabbitmq/rmq_adduser.sh
     Usage: sudo rmq_adduser.sh <user> <password> <vhost>
@@ -40,7 +40,7 @@ frontend  frontend-rmq-password mqfrontend   ``sudo ./extras/scripts/rabbitmq/rm
 
 The script simply execute the following three commands:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo rabbitmqctl add_user <username> <password>
     $ sudo rabbitmqctl add_vhost <vhostname>
@@ -67,7 +67,7 @@ with some commands:
 Checking for vhosts
 *******************
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo rabbitmqctl list_vhosts
     Listing vhosts ...
@@ -84,7 +84,7 @@ once more the script.
 Checking for users
 ******************
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo rabbitmqctl list_users
     Listing users ...
@@ -102,7 +102,7 @@ Changing password
 If you do not remember the password you just typed, you can change it with
 ``rabbitmqctl`` command:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo rabbitmqctl change_password brain brain-rmq-password
     Changing password for user "brain" ...
@@ -114,6 +114,6 @@ Restarting the service
 
 You may want to restart the service. Thus, the following command can be done:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo invoke-rc.d rabbitmq-server restart

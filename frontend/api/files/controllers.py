@@ -22,8 +22,8 @@ from api.common.utils import guess_hash_type
 from api.files_ext.models import FileExt
 from api.files_ext.schemas import FileExtSchema
 from api.scans.schemas import ScanSchema
-from lib.common.utils import decode_utf8
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+from irma.common.utils.utils import decode_utf8
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound
 from .models import File
 from .schemas import FileSchema
 
@@ -38,11 +38,11 @@ file_schema = FileSchema()
 
 
 @hug.get('/')
-def list(name: text=None,
-         hash: text=None,
-         tags: comma_separated_list=None,
-         offset: number=0,
-         limit: number=25):
+def list(name: text = None,
+         hash: text = None,
+         tags: comma_separated_list = None,
+         offset: number = 0,
+         limit: number = 25):
     """ Search a file using query filters (tags + hash or name). Support
         pagination.
         :param name: lookup name
@@ -101,7 +101,7 @@ def list(name: text=None,
 @hug.get('/{sha256}')
 def get(response,
         sha256: text,
-        alt: one_of(('media', ''))='',
+        alt: one_of(('media', '')) = '',
         offset: number = 0,
         limit: number = 25):
     """ Detail about one file and all known scans summary where file was

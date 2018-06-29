@@ -13,36 +13,34 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from .nod32 import EsetNod32
+from .eset_file_security import EsetFileSecurity
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
-from lib.plugins import BinaryDependency, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, BinaryDependency, \
+    PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class EsetNod32Plugin(PluginBase, EsetNod32, AntivirusPluginInterface):
+class EsetFileSecurityPlugin(AntivirusPluginInterface,
+                             metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
-    _plugin_name_ = "EsetNod32"
-    _plugin_display_name_ = EsetNod32._name
+    _plugin_name_ = "EsetFileSecurity"
+    _plugin_display_name_ = EsetFileSecurity.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
-    _plugin_description_ = "Plugin for ESET NOD32 Antivirus Business " \
-                           "Edition for Linux Desktop"
+    _plugin_description_ = "Plugin for ESET File Security"
     _plugin_dependencies_ = [
         PlatformDependency('linux'),
         BinaryDependency('/opt/eset/esets/sbin/esets_scan')
     ]
 
-    # =============
-    #  constructor
-    # =============
+    # ================
+    #  interface data
+    # ================
 
-    def __init__(self):
-        # load default configuration file
-        self.module = EsetNod32()
+    module_cls = EsetFileSecurity

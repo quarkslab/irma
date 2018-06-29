@@ -17,8 +17,8 @@ import celery
 
 import config.parser as config
 from api.common.celery import sync_call, async_call
-from lib.irma.common.exceptions import IrmaCoreError, IrmaTaskError
-from lib.irma.common.utils import IrmaReturnCode
+from irma.common.base.exceptions import IrmaCoreError, IrmaTaskError
+from irma.common.base.utils import IrmaReturnCode
 
 timeout = config.get_brain_celery_timeout()
 brain_app = celery.Celery('braintasks')

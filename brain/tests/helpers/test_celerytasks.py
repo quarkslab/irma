@@ -3,7 +3,7 @@ from mock import MagicMock, patch
 from celery.exceptions import TimeoutError
 
 import brain.helpers.celerytasks as module
-from lib.irma.common.exceptions import IrmaTaskError
+from irma.common.base.exceptions import IrmaTaskError
 
 
 class TestModuleCelerytasks(TestCase):

@@ -22,15 +22,14 @@ from celery.utils.log import get_task_logger
 import api.files.services as file_ctrl
 import api.scans.services as scan_ctrl
 import config.parser as config
-from lib.common.utils import humanize_time_str
-from lib.irma.common.exceptions import IrmaDatabaseError, IrmaFileSystemError
+from irma.common.base.exceptions import IrmaDatabaseError, IrmaFileSystemError
 
 import api.common.ftp as ftp_ctrl
 import api.tasks.braintasks as celery_brain
 from api.files_ext.models import FileExt
 from api.scans.models import Scan
-from lib.irma.common.exceptions import IrmaFtpError
-from lib.irma.common.utils import IrmaScanStatus
+from irma.common.base.exceptions import IrmaFtpError
+from irma.common.base.utils import IrmaScanStatus
 from api.common.sessions import session_transaction
 
 log = get_task_logger(__name__)
@@ -73,8 +72,10 @@ def scan_launch(scan_id):
                 scan.set_status(IrmaScanStatus.finished)
                 log.warning("scan %s: finished nothing to do", scan_id)
                 return
+
             # Part for action file_ext by file_ext
             file_ext_id_list = [file.external_id for file in scan.files_ext]
+
             celery.group(scan_launch_file_ext.si(file_ext_id)
                          for file_ext_id in file_ext_id_list)()
             scan.set_status(IrmaScanStatus.launched)
@@ -94,8 +95,10 @@ def scan_launch_file_ext(file_ext_id):
         try:
             file_ext = FileExt.load_from_ext_id(file_ext_id, session)
             scan_id = file_ext.scan.external_id
-            log.debug("scan %s: launch scan for file_ext: %s",
-                      scan_id, file_ext_id)
+            # Have some information of file/probe before scanning
+            for probe in file_ext.probes:
+                log.info("scan %s: file %s send to %s",
+                         scan_id, file_ext_id, probe)
             ftp_ctrl.upload_file(file_ext_id, file_ext.file.path)
             # launch new celery scan task on brain
             celery_brain.scan_launch(file_ext_id, file_ext.probes, scan_id)
@@ -120,23 +123,21 @@ def scan_result(file_ext_id, probe, result):
 
 
 @frontend_app.task()
-def clean_db():
+def clean_fs_age():
     try:
         cron_cfg = config.frontend_config['cron_clean_file_age']
-        max_age_file = cron_cfg['clean_db_file_max_age']
+        max_age_file = cron_cfg['clean_fs_max_age']
         # 0 means disabled
-        if max_age_file == 0:
+        if max_age_file == "0":
             log.debug("disabled by config")
             return 0
-        # days to seconds
-        max_age_file *= 24 * 60 * 60
-        nb_files = file_ctrl.remove_files(max_age_file)
-        hage_file = humanize_time_str(max_age_file, 'seconds')
-        log.info("removed %d files (older than %s)", nb_files, hage_file)
+        # convert to seconds
+        max_age_secs = int(humanfriendly.parse_timespan(max_age_file))
+        nb_files = file_ctrl.remove_files(max_age_secs)
+        log.info("removed %d files (older than %s)", nb_files, max_age_file)
         return nb_files
     except (IrmaDatabaseError, IrmaFileSystemError) as e:
         log.exception(e)
-        raise clean_db.retry(countdown=30, max_retries=3, exc=e)
 
 
 @frontend_app.task()
@@ -154,7 +155,7 @@ def clean_fs_size():
         return nb_files
     except (IrmaDatabaseError, IrmaFileSystemError) as e:
         log.exception(e)
-        raise clean_fs_size.retry(countdown=30, max_retries=3, exc=e)
+
 
 ########################
 # command line launcher

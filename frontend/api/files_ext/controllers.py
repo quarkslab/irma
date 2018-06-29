@@ -18,7 +18,7 @@ import hug
 import json
 from hug.types import one_of, uuid
 from falcon.errors import HTTPInvalidParam
-from lib.common.utils import decode_utf8
+from irma.common.utils.utils import decode_utf8
 
 from api.common.middlewares import db
 
@@ -31,7 +31,7 @@ log = logging.getLogger("hug")
 @hug.get("/{external_id}")
 def get(hug_api_version,
         external_id: uuid,
-        formatted: one_of(("yes", "no"))="yes"):
+        formatted: one_of(("yes", "no")) = "yes"):
     """ Retrieve a single file_ext result, with details.
     """
     session = db.session

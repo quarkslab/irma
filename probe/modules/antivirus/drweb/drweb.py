@@ -15,17 +15,15 @@
 
 import logging
 import re
-import os
-import stat
-import tempfile
+from pathlib import Path
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class DrWeb(Antivirus):
-    _name = "DrWeb Antivirus (Linux)"
+class DrWeb(AntivirusUnix):
+    name = "DrWeb Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,17 +31,19 @@ class DrWeb(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(DrWeb, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "scan "
+        self.scan_args = (
+            "scan",
         )
-        # see man zavcli for return codes
+        # Drweb does not use return value as infection indicator. Distinction
+        # between INFECTED and CLEAN will be done in the 'false positive
+        # handler' of Antivirus.scan()
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [0]
-        self._scan_patterns = [
-            re.compile(b'(?P<file>.*)'
-                       b'\s+-\s+infected with\s+'
-                       b'(?P<name>.+)', re.IGNORECASE),
+        self.scan_patterns = [
+            re.compile('(?P<file>.*)'
+                       '\s+-\s+infected with\s+'
+                       '(?P<name>.+)', re.IGNORECASE),
         ]
 
     # ==========================================
@@ -52,39 +52,27 @@ class DrWeb(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+([.-]\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '--version',
+            regexp='(?P<version>\d+([.-]\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
         # extract folder where are installed definition files
-        drweb_path = "/var/opt/drweb.com/"
-        search_paths = map(lambda x:
-                           '{drweb_path}/lib/{folder}/'
-                           ''.format(drweb_path=drweb_path, folder=x),
-                           ['bases', 'dws'])
+        drwebdir = Path("/var/opt/drweb.com/")
+        search_paths = [
+            drwebdir / "lib/bases",
+            drwebdir / "lib/dws",
+        ]
         database_patterns = [
             'timestamp*',
             '*.drl',
             '*.dws',
             '*.vdb',
         ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        return self.locate(database_patterns, search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("drweb-ctl")
-        return paths[0] if paths else None
+        return self.locate_one("drweb-ctl")

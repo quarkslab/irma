@@ -1,3 +1,30 @@
+2.2.x
+=====
+    * [ansible] Split ansible/vagrant files (break older environments files)
+
+2.1.1 (release 28/02/2018)
+==========================
+
+    * [frontend] fix sqlalchemy import error with v1.2.3
+
+2.1.0 (release 02/02/2018)
+==========================
+
+    * [all] Support PKI generation for nginx/rabbitmq/postgresql
+    * [all] Replace supervisord by systemd
+    * [all] Add logrotate
+    * [all] Common module installed as python package
+    * [UI] Add scan report generation
+    * [frontend] Support easy nginx config (http/https/https+client)
+    * [frontend] File age cleanup settings now humanized (1 day, 2 weeks..)
+    * [probe] Add LIEF Probe
+    * [probe] Rework AV code and support more db versions
+    * [probe] Replace Eset Nod32 by Eset File security
+    * [ansible] Update to v2.4.2.0
+    * [ansible] Allow easy customization (irma_vars.yml)
+    * [fix] Api errors message not shown
+    * [fix] Add indexes for slow SQL queries
+
 2.0.4 (released 22/12/2017)
 ===========================
 

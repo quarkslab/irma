@@ -23,6 +23,7 @@ win_packages:
     url: https://www.python.org/ftp/python/3.5.3/python-3.5.3-amd64.exe
     install_args: "'/quiet', 'InstallAllUsers=1', 'PrependPath=1'"
     type: exe
+  # LDTP requires python2
   - name: python-2.7.12.amd64.msi
     url: https://www.python.org/ftp/python/2.7.12/python-2.7.12.amd64.msi
     install_args: /qn /norestart

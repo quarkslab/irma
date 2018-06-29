@@ -14,14 +14,14 @@ following how to set up pure-ftpd.
 Installing pure-ftpd
 ````````````````````
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install pure-ftpd
 
 Creating FTP specific users and groups
 ``````````````````````````````````````
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo groupadd ftpgroup
     $ sudo useradd -g ftpgroup -d /dev/null -s /etc ftpuser
@@ -33,7 +33,7 @@ We provide some template scripts to configure ``pure-ftpd`` in the
 ``extras/pure-ftpd`` directory. These templates should be copied as is in the
 ``pure-ftpd`` configuration folder.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo cp extras/pure-ftpd/conf/* /etc/pure-ftpd/conf/
     $ sudo ln -s /etc/pure-ftpd/conf/PureDB /etc/pure-ftpd/auth/50puredb
@@ -44,7 +44,7 @@ Generate Certificate
 So far, we have not set up support for TLS yet. To enable TLS, one must
 generate a self signed certificate:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo mkdir -p /etc/ssl/private/
     $ cd /etc/ssl/private/
@@ -57,7 +57,7 @@ Create FTP accounts
 The creation of virtual users (or FTP accounts) could be done through the
 provided script in ``extras/scripts/pure-ftpd/ftpd-adduser.sh``:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sh extras/scripts/pure-ftpd/ftpd-adduser.sh
     Usage: sudo ftpd-adduser.sh <user> <virtualuser> <chroot home>
@@ -68,7 +68,7 @@ access to all frontends, thus the associated home directory is simply
 ``/home/ftpuser/``. For instance, a frontend named ``frontend-irma``, execute
 the following to create the directories:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo mkdir -pv /home/ftpuser/frontend-irma
     mkdir: created directory `/home/ftpuser'
@@ -78,7 +78,7 @@ the following to create the directories:
 These commands create the accounts for this frontend first and secondly for
 probes:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo extras/scripts/pure-ftpd/ftpd-adduser.sh frontend-irma ftpuser /home/ftpuser/frontend-irma
     [ enter twice a password to be used for frontend, for example frontend-ftp-password]
@@ -90,7 +90,7 @@ Checking your configuration
 
 Listing your users should output something like this:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo pure-pw list
     frontend-irma       /home/ftpuser/frontend-irma/./
@@ -101,7 +101,7 @@ Restart the service
 
 You may want to restart the service:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo invoke-rc.d pure-ftpd restart
 
@@ -113,7 +113,7 @@ Additionally, if you have configured IRMA to use FTP-TLS, you can check
 whether the configured account is valid. On Debian, this can be done with the
 ``ftp-ssl`` package:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install ftp-ssl
     [...]

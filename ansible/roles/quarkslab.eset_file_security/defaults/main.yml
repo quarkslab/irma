@@ -1,0 +1,4 @@
+---
+
+eset_file_security_temp_dir: /tmp/eset_file_security
+eset_file_security_url: https://download.eset.com/com/eset/apps/business/es/linux/latest/esets.amd64.deb.bin

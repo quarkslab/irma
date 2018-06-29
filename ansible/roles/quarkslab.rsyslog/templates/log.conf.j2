@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+
+{{ item.value.logfile }} {
+  # 3 months
+  daily
+  rotate 91
+
+  compress
+  delaycompress
+  dateext
+  missingok
+  postrotate
+    kill -HUP $(cat /var/run/rsyslogd.pid)
+  endscript
+}

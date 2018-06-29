@@ -20,11 +20,12 @@ import tempfile
 
 from datetime import datetime
 
-from lib.common.utils import timestamp
-from lib.plugins import PluginBase
-from lib.plugin_result import PluginResult
-from lib.irma.common.utils import IrmaProbeType
-from lib.plugins import ModuleDependency, PlatformDependency, BinaryDependency
+from irma.common.utils.utils import timestamp
+from irma.common.plugins import PluginBase
+from irma.common.plugin_result import PluginResult
+from irma.common.base.utils import IrmaProbeType
+from irma.common.plugins import ModuleDependency, PlatformDependency, \
+    BinaryDependency
 
 
 class UnarchivePlugin(PluginBase):

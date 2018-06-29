@@ -10,7 +10,7 @@ Python version should be at least 3.4 on linux, 3.5 on windows.
    configuration.rst
    analyzers.rst
    checks.rst
-   daemon.rst
+   systemd.rst
 
 ..
    linux.rst

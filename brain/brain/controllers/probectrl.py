@@ -23,9 +23,9 @@ from celery import Celery
 from fasteners import interprocess_locked
 from brain.models.sqlobjects import Probe
 import brain.controllers.probetasks as celery_probe
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound, \
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound, \
     IrmaDatabaseError
-from lib.plugin_result import PluginResult
+from irma.common.plugin_result import PluginResult
 
 log = logging.getLogger(__name__)
 
@@ -50,11 +50,10 @@ def register(name, display_name, category, mimetype_regexp, session):
                  "updating parameters: "
                  "[display_name:%s cat:%s regexp:%s]",
                  name, display_name, category, mimetype_regexp)
-        probe.display_name = display_name
-        probe.category = category
-        probe.mimetype_regexp = mimetype_regexp
-        probe.online = True
-        probe.update(['category', 'mimetype_regexp', 'online'], session)
+        session.query(Probe)\
+            .filter_by(id=probe.id)\
+            .update({'category': category, 'mimetype_regexp': mimetype_regexp,
+                     'online': True, 'display_name': display_name})
     except IrmaDatabaseResultNotFound:
         log.info("register probe %s"
                  " with parameters: "
@@ -65,7 +64,7 @@ def register(name, display_name, category, mimetype_regexp, session):
                       category=category,
                       mimetype_regexp=mimetype_regexp,
                       online=True)
-        probe.save(session)
+        session.add(probe)
         return
 
 

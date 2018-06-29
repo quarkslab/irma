@@ -26,9 +26,9 @@ from api.files_ext.models import FileExt, FileProbeResult
 from api.probe_results.models import ProbeResult
 from api.scans.models import Scan
 from config.parser import get_lock_path
-from lib.irma.common.exceptions import IrmaValueError, IrmaTaskError
-from lib.irma.common.utils import IrmaReturnCode, IrmaScanStatus
-from lib.irma.common.utils import IrmaScanRequest
+from irma.common.base.exceptions import IrmaValueError, IrmaTaskError
+from irma.common.base.utils import IrmaReturnCode, IrmaScanStatus
+from irma.common.base.utils import IrmaScanRequest
 
 
 log = logging.getLogger(__name__)

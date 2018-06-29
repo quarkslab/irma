@@ -15,17 +15,15 @@
 
 import logging
 import re
-import os
-import stat
-import tempfile
+from pathlib import Path
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class Escan(Antivirus):
-    _name = "eScan Antivirus (Linux)"
+class Escan(AntivirusUnix):
+    name = "eScan Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,23 +31,25 @@ class Escan(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(Escan, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "--log-only "
-            "--recursion "
-            "--pack "
-            "--archives "
-            "--heuristic "
-            "--scan-ext "
-            "--display-none "
-            "--display-infected "
+        self.scan_args = (
+            "--log-only",
+            "--recursion",
+            "--pack",
+            "--archives",
+            "--heuristic",
+            "--scan-ext",
+            "--display-none",
+            "--display-infected",
         )
+        # Escan does not use return value as infection indicator. Distinction
+        # between INFECTED and CLEAN will be done in the 'false positive
+        # handler' of Antivirus.scan()
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [0]
-        self._scan_patterns = [
-            re.compile(b'(?P<file>[^\s]+)'
-                       b'\s+\[INFECTED\]'
-                       b'\[(?P<name>[^\]]+)\]', re.IGNORECASE),
+        self.scan_patterns = [
+                re.compile('^(?P<file>\S+?)\s+\[INFECTED\]\[(?P<name>.*)\]$',
+                       re.IGNORECASE | re.MULTILINE),
         ]
 
     # ==========================================
@@ -58,36 +58,43 @@ class Escan(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+([.-]\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '--version',
+            regexp='(?P<version>\d+([.-]\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
         # extract folder where are installed definition files
-        escan_path = "/opt/MicroWorld/"
-        search_paths = map(lambda x:
-                           '{escan_path}/var/{folder}/'
-                           ''.format(escan_path=escan_path, folder=x),
-                           ['avsupd', 'bdplugins'])
-        database_patterns = [
-            '*',
+        escandir = Path("/opt/MicroWorld/")
+        search_paths = [
+                escandir / "var/avsupd",
+                escandir / "var/bdplugins",
         ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        return self.locate('*', search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("escan")
-        return paths[0] if paths else None
+        return self.locate_one("escan")
+
+    def get_virus_database_version(self):
+        """Return the Virus Database version"""
+        retcode, stdout, _ = self.run_cmd(self.scan_path, '-ui')
+        if retcode:
+            raise RuntimeError(
+                "Bad return code while getting database version")
+        matches = re.search('Anti-virus Engine Version : *'
+                            '(?P<version>\d*\.\d*)',
+                            stdout,
+                            re.IGNORECASE)
+        if not matches:
+            raise RuntimeError("Cannot read database version in stdout")
+        version = matches.group('version').strip()
+        matches = re.search('Date of Virus Signature *: *'
+                            '(?P<date>\d\d/\d\d/\d\d\d\d)',
+                            stdout,
+                            re.IGNORECASE)
+        if not matches:
+            return version
+        date = matches.group('date').strip()
+        return version + ' (' + date + ')'

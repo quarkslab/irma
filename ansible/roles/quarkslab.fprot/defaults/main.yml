@@ -1,0 +1,4 @@
+---
+
+fprot_url: "http://files.f-prot.com/files/unix-trial/fp-Linux.x86.32-ws.tar.gz"
+fprot_dir: "/opt" # the archive has ./f-prot/ for root

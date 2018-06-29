@@ -29,6 +29,13 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Download report:</label>
+                    <div class="col-sm-9 form-control-static">
+                        <a class="btn btn-info btn-sm" ng-disabled="state.scan.status != vm.scanStatusCodes.FINISHED" ng-href="{{ vm.csvReportURI }}" target="_blank">csv</a>
+                    </div>
+                </div>
+
                 <div class="form-group scan-id">
                     <label for="scan-id" class="col-sm-3 control-label">Scan Id:</label>
                     <div class="col-sm-6">

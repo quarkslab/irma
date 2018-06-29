@@ -40,3 +40,14 @@
   become: yes
   with_items:
     - /opt/irma
+
+- name: Create IRMA certs directories
+  file:
+    path: "{{ item }}"
+    owner: "{{ irma_user }}"
+    group: "{{ irma_server_group }}"
+    mode: 0750
+    state: directory
+  become: yes
+  with_items:
+    - "{{ dst_pki_folder }}"

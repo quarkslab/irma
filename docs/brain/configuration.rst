@@ -19,7 +19,7 @@ directory. Update it with your specific info.
      |                +-----------------+------------+----------------+----------------------------------------------+
      |                |    sql_debug    | ``boolean``|   False   | enable SQL debug log                              |
      +----------------+-----------------+------------+-----------+---------------------------------------------------+
-     |                |   concurrency   |  `integer` |     0     | number of concurrent workers (0 means nb of cores)|
+     |                |   concurrency   | ``integer``|     0     | number of concurrent workers (0 means nb of cores)|
      |                +-----------------+------------+-----------+---------------------------------------------------+
      | celery_options | soft_time_limit | ``integer``|  300 (sec)| time limit before task soft interrupt             |
      |                +-----------------+------------+-----------+---------------------------------------------------+
@@ -71,6 +71,8 @@ directory. Update it with your specific info.
      |                +-----------------+------------+-----------+---------------------------------------------------+
      |                |      host       | ``string`` |           | database host                                     |
      |                +-----------------+------------+-----------+---------------------------------------------------+
+     |                |      port       | ``integer``|           | database port                                     |
+     |                +-----------------+------------+-----------+---------------------------------------------------+
      |                |     dbname      | ``string`` |/var/irma/ |                                                   |
      |                |                 |            |db/brain.db| database name                                     |
      |                +-----------------+------------+-----------+---------------------------------------------------+
@@ -90,8 +92,8 @@ directory. Update it with your specific info.
      |                +-----------------+------------+-----------+---------------------------------------------------+
      |                |     password    | ``string`` |           | password used by the probe on the FTP server      |
      +----------------+-----------------+------------+-----------+---------------------------------------------------+
-     | interprocess_  |     path        | ``string`` |/var/run/  | Concurrency file lock                             |
-     | lock           |                 |            |lock/irma- |                                                   |
+     | interprocess   |     path        | ``string`` |/var/run/  | Concurrency file lock                             |
+     | _lock          |                 |            |lock/irma- |                                                   |
      |                |                 |            |brain.lock |                                                   |
      +----------------+-----------------+------------+-----------+---------------------------------------------------+
      |                |  activate_ssl   | ``boolean``|    False  | Enable RabbitMQ ssl                               |
@@ -115,7 +117,7 @@ where the database is going to be stored must be created beforehand.
 
     The default path for the database is /var/irma/db/ make sure it exists before creating user database.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd /opt/irma/irma-brain/current/
     $ ./venv/bin/python -m scripts.create_user
@@ -129,7 +131,7 @@ To create an entry in the database for the frontend named ``frontend`` and
 which uses the ``mqfrontend`` virtual host on the RabbitMQ server, simply run
 the following commands:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ ./venv/bin/python -m scripts.create_user frontend mqfrontend frontend
 
@@ -140,7 +142,7 @@ the following commands:
     stored, plus the database file must be writable by the user running the
     worker:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo chown irma:irma /var/irma/db/brain.db
         $ sudo chmod a+w /opt/irma/irma-brain

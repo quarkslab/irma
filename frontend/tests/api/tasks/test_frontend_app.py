@@ -10,10 +10,10 @@ class TestModuleFrontendApp(TestCase):
         self.config = MagicMock()
         self.frontend_config = dict()
         self.frontend_config["cron_clean_file_age"] = {
-            "clean_db_file_max_age": 2,
-            "clean_db_cron_hour": "0",
-            "clean_db_cron_minute": "0",
-            "clean_db_cron_day_of_week": "*",
+            "clean_fs_max_age": "1 week",
+            "clean_fs_age_cron_hour": "0",
+            "clean_fs_age_cron_minute": "0",
+            "clean_fs_age_cron_day_of_week": "*",
         }
         self.frontend_config["cron_clean_file_size"] = {
             "clean_fs_max_size": "100 Mb",
@@ -31,15 +31,15 @@ class TestModuleFrontendApp(TestCase):
     @patch("api.files.services.remove_files")
     def test_clean_max_age(self, m_remove_files):
         m_remove_files.return_value = 1684
-        res = module.clean_db()
-        m_remove_files.assert_called_with(2*24*60*60)
+        res = module.clean_fs_age()
+        m_remove_files.assert_called_with(7*24*60*60)
         self.assertEqual(res, 1684)
 
     @patch("api.files.services.remove_files")
     def test_clean_max_age_disabled(self, m_remove_files):
         self.frontend_config["cron_clean_file_age"][
-            "clean_db_file_max_age"] = 0
-        res = module.clean_db()
+            "clean_fs_max_age"] = "0"
+        res = module.clean_fs_age()
         m_remove_files.assert_not_called()
         self.assertEqual(res, 0)
 

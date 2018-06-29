@@ -5,8 +5,8 @@ from mock import MagicMock, patch
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from api.scans.models import Scan
 from api.files.models import File
-from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.common.exceptions import IrmaCoreError, \
+from irma.common.base.utils import IrmaScanStatus
+from irma.common.base.exceptions import IrmaCoreError, \
     IrmaDatabaseResultNotFound, IrmaDatabaseError
 
 

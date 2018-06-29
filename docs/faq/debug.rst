@@ -11,7 +11,7 @@ is named respectively ``frontend.ini``, ``brain.ini`` and ``probe.ini``.
 To turn on debug log just add the following line:
 
 
-.. code-block:: bash
+.. code-block:: ini
    :emphasize-lines: 3
 
 	[log]
@@ -22,7 +22,7 @@ and restart all related applications.
 
 To turn on SQL debug log (warning: its verbose) just add the following line:
 
-.. code-block:: bash
+.. code-block:: ini
    :emphasize-lines: 4
 
 	[log]
@@ -41,7 +41,7 @@ to see what analyzer is detected and what is its output on a
 file.
 
 
-.. code-block:: bash
+.. code-block:: console
    :emphasize-lines: 7
 
 	$ sudo su deploy
@@ -58,7 +58,7 @@ file.
 Here 4 probes are automatically detected. Now try one on a file:
 
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ ./venv/bin/python -m extras.tools.run_module ClamAV requirements.txt
 	{'database': {'/var/lib/clamav/bytecode.cvd': {'ctime': 1458640823.285298,
@@ -88,7 +88,7 @@ Debug Ansible Provisioning
 To debug errors while provisioning (same goes with deployment) with following typical command:
 
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ ansible-playbook  --private-key=~/.vagrant.d/insecure_private_key --inventory-file=.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory -u vagrant playbooks/provisioning.yml
 
@@ -96,7 +96,7 @@ To debug errors while provisioning (same goes with deployment) with following ty
 Example output:
 
 
-.. code-block:: bash
+.. code-block:: none
 
 	TASK [Mayeu.RabbitMQ : add rabbitmq user and set privileges] *******************
 	[DEPRECATION WARNING]: Using bare variables is deprecated. Update your playbooks so that the environment value uses the
@@ -108,7 +108,7 @@ Example output:
 You could first increase ansible verbosity by adding ``-vvv`` option (``-vvvv`` on windows for winrm debug), it will help is the problem is linked to arguments.
 
 
-.. code-block:: bash
+.. code-block:: console
    :emphasize-lines: 13
 
 	$ ansible-playbook -vvv --private-key=~/.vagrant.d/insecure_private_key --inventory-file=.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory -u vagrant playbooks/provisioning.yml
@@ -131,7 +131,7 @@ In this particular case, verbose doesnt add much information as the problem is l
 Ansible output the temporary script executed on guest (highlighted in previous code block), but delete it just after execution. To further debug it we will set ansible to keep remote files and the debug session will now takes place inside the guest.
 
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ ANSIBLE_KEEP_REMOTE_FILES=1 ansible-playbook -vvv --private-key=~/.vagrant.d/insecure_private_key --inventory-file=.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory -u vagrant playbooks/provisioning.yml
 
@@ -139,14 +139,14 @@ Ansible output the temporary script executed on guest (highlighted in previous c
 in debug log get the temporary ansible path to remote script:
 
 
-.. code-block:: bash
+.. code-block:: console
 
 	/usr/bin/python /home/vagrant/.ansible/tmp/ansible-tmp-1468571039.87-134696488633275/rabbitmq_user
 
 Log in to remote machine and go to the temporary ansible dir. Explode the compressed script and run it locallly:
 
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ vagrant@brain:~/.ansible/tmp/ansible-tmp-1468571039.87-134696488633275$ ls
 	rabbitmq_user

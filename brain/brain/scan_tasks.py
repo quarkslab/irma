@@ -26,7 +26,7 @@ import brain.controllers.probectrl as probe_ctrl
 import brain.controllers.probetasks as celery_probe
 import brain.controllers.frontendtasks as celery_frontend
 from brain.helpers.sql import session_transaction
-from lib.irma.common.utils import IrmaTaskReturn, IrmaScanStatus, \
+from irma.common.base.utils import IrmaTaskReturn, IrmaScanStatus, \
     IrmaScanRequest
 
 RETRY_MAX_DELAY = 30

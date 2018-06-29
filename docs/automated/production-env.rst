@@ -17,7 +17,7 @@ you can:
 
 - Authorize your SSH key for password-less authentication (optional):
 
-.. code-block:: bash
+.. code-block:: console
 
     # On your local machine
     $ ssh-copy-id user@hostname # -i if you want to select your identity file
@@ -25,7 +25,7 @@ you can:
 - If you do not want to have to type your password for ``sudo`` command,
   consider adding your user to sudoers, using ``visudo`` command (optional):
 
-.. code-block:: bash
+.. code-block:: none
 
       user ALL=(ALL) NOPASSWD: ALL
 
@@ -56,7 +56,7 @@ Run the Ansible Playbook
 To run the main playbook with the ``hosts/example`` file you have defined, use
 the following command. Ansible will ask you the sudo password (``-K`` option).
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd <IRMA_SRC_DIR>/ansible
     $ ansible-playbook -i ./hosts/example playbooks/playbook.yml -u <your_sudo_username> -K
@@ -72,7 +72,7 @@ Deploy a new version of IRMA
 Assuming that you have already provisioned and deployed a version of IRMA,
 which you want to upgrade, you will need to run the deployment script:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ ansible-playbook -i ./hosts/example ./playbooks/deployment.yml -u irma
 

@@ -15,17 +15,14 @@
 
 import logging
 import re
-import os
-import stat
-import tempfile
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class FSecure(Antivirus):
-    _name = "FSecure Antivirus (Linux)"
+class FSecure(AntivirusUnix):
+    name = "FSecure Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,22 +30,22 @@ class FSecure(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(FSecure, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "--allfiles=yes ",
-            "--scanexecutables=yes ",
-            "--archive=yes ",
-            "--mime=yes ",
-            # "--riskware=yes ",
-            "--virus-action1=report ",
-            # "--riskware-action1=report ",
-            "--suspected-action1=report ",
-            "--virus-action2=none ",
-            # "--riskware-action2=none ",
-            "--suspected-action2=none ",
-            "--auto=yes ",
-            "--list=no ",
+        self.scan_args = (
+            "--allfiles=yes",
+            "--scanexecutables=yes",
+            "--archive=yes",
+            "--mime=yes",
+            # "--riskware=yes",
+            "--virus-action1=report",
+            # "--riskware-action1=report",
+            "--suspected-action1=report",
+            "--virus-action2=none",
+            # "--riskware-action2=none",
+            "--suspected-action2=none",
+            "--auto=yes",
+            "--list=no",
         )
         # see man zavcli for return codes
         # fsav reports the exit codes in following priority order:
@@ -61,14 +58,13 @@ class FSecure(Antivirus):
         # 7 Out of memory.
         # 8 Suspicious files found (not necessarily infected by a virus)
         # 9 Scan error, at least one file scan failed.
-        INFECTED = self.ScanResult.INFECTED
-        ERROR = self.ScanResult.ERROR
-        self._scan_retcodes[INFECTED] = lambda x: x in [3, 4, 6, 8]
-        self._scan_retcodes[ERROR] = lambda x: x in [1, 7, 9]
-        self._scan_patterns = [
-            re.compile(b'(?P<file>.*)'
-                       b':\s+(Infected|Suspected):\s+'
-                       b'(?P<name>.*)', re.IGNORECASE),
+        self._scan_retcodes[self.ScanResult.INFECTED] = \
+            lambda x: x in [3, 4, 6, 8]
+        self._scan_retcodes[self.ScanResult.ERROR] = lambda x: x in [1, 7, 9]
+        self.scan_patterns = [
+            re.compile('(?P<file>.*):\s+'
+                       '(Infected|Suspected):\s+'
+                       '(?P<name>.*)', re.IGNORECASE),
         ]
 
     # ==========================================
@@ -77,41 +73,18 @@ class FSecure(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, _ = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+([.-]\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
-
-    def get_database(self):
-        """return list of files in the database"""
-        # TODO
-        return None
+        return self._run_and_parse(
+            '--version',
+            regexp='(?P<version>\d+([.-]\d+)+)',
+            group='version')
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("fsav")
-        return paths[0] if paths else None
+        return self.locate_one("fsav")
 
     def get_virus_database_version(self):
         """Return the Virus Database version"""
-        paths = self.locate("fsav")
-
-        if paths:
-            cmd = self.build_cmd(paths[0], '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'Database version: (?P<version>.*)',
-                                    stdout,
-                                    re.IGNORECASE)
-
-                if matches:
-                    return matches.group('version').strip()
-
-        return None
+        return self._run_and_parse(
+            '--version',
+            regexp='Database version: (?P<dbversion>.*)',
+            group='dbversion')

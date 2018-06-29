@@ -17,16 +17,16 @@ import logging
 import re
 import os
 import time
-import glob
 
 from datetime import date
-from modules.antivirus.base import Antivirus
+from modules.antivirus.base import AntivirusWindows
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
 
-class SymantecWin(Antivirus):
-    _name = "Symantec Anti-Virus (Windows)"
+class SymantecWin(AntivirusWindows):
+    name = "Symantec Anti-Virus (Windows)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -34,20 +34,15 @@ class SymantecWin(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(SymantecWin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "/ScanFile "  # scan command
+        self.scan_args = (
+            "/ScanFile",  # scan command
         )
-        self._scan_patterns = [
-            re.compile(b"([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]+).*",
-                       re.IGNORECASE)
+        self.scan_patterns = [
+            re.compile("([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]+)",
+                       re.IGNORECASE),
         ]
-        pdata_path_parts = [os.environ.get('PROGRAMDATA', ''),
-                            r"Symantec\Symantec Endpoint Protection\*.*"]
-        pdata_path = os.path.normcase('\\'.join(pdata_path_parts))
-        self._pdata_path = glob.glob(pdata_path)
-        self._pdata_path = self._pdata_path.pop() if self._pdata_path else None
 
     # ==========================================
     #  Antivirus methods (need to be overriden)
@@ -55,64 +50,55 @@ class SymantecWin(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self._pdata_path:
-            matches = re.search(b'(?P<version>\d+(\.\d+)+)',
-                                self._pdata_path,
-                                re.IGNORECASE)
-            if matches:
-                result = matches.group('version').strip()
-        return result
-
-    def get_database(self):
-        """return list of files in the database"""
-        return None
+        self._pdata_path = self.locate_one(
+            "Symantec/Symantec Endpoint Protection/*.*",
+            [Path(os.environ.get('PROGRAMDATA', '')), ],
+            syspath=False)
+        matches = re.search('(?P<version>\d+(\.\d+)+)',
+                            self._pdata_path.as_posix(),
+                            re.IGNORECASE)
+        if matches is None:
+            raise RuntimeError("Cannot read version in the pdata_path")
+        return matches.group('version').strip()
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        scan_bin = "DoScan.exe"
-        scan_paths = map(lambda x: "{path}/Symantec/*".format(path=x),
-                         [os.environ.get('PROGRAMFILES', ''),
-                          os.environ.get('PROGRAMFILES(X86)', '')])
-        paths = self.locate(scan_bin, scan_paths)
-        return paths[0] if paths else None
+        return self.locate_one("/Symantec/*/DoScan.exe")
 
     ##########################################################################
     # specific scan method
     ##########################################################################
 
     def scan(self, paths):
-        # get log path and modification time
-        log_path_parts = [self._pdata_path,
-                          "Data\Logs\AV",
-                          date.today().strftime('%m%d%Y.Log')]
-        self._log_path = os.path.normcase('\\'.join(log_path_parts))
-        self._log_path = glob.glob(self._log_path)
-        self._log_path = self._log_path[0] if self._log_path else None
-        self._last_log_time = time.time()
-        if self._log_path:
-            self._last_log_time = os.path.getmtime(self._log_path)
-        return super(SymantecWin, self).scan(paths)
+        self._pdata_path = self.locate_one(
+            "Symantec/Symantec Endpoint Protection/*.*",
+            [Path(os.environ.get('PROGRAMDATA', '')), ],
+            syspath=False)
+        self._log_path = (self._pdata_path
+                          / "Data/Logs/AV"
+                          / date.today().strftime('%m%d%Y.log'))
+        self._last_log_time = self._log_path.stat().st_mtime \
+            if self._log_path.exists() else time.time()
+        return super().scan(paths)
 
     def check_scan_results(self, paths, results):
+        # TODO: clean up
         retcode, stdout, stderr = results[0], None, results[2]
         if self._log_path:
+            # TODO: change the way results are fetched.
             # wait for log to be updated
-            mtime = os.path.getmtime(self._log_path)
+            mtime = self._log_path.stat().st_mtime
             delay = 20
             while (mtime - self._last_log_time) <= 1 and delay != 0:
                 time.sleep(0.5)
-                mtime = os.path.getmtime(self._log_path)
+                mtime = self._log_path.stat().st_mtime
                 delay -= 1
-            lines = []
             # look for the line corresponding to this filename
-            with open(self._log_path, 'r') as fd:
-                for line in reversed(fd.readlines()):
-                    pattern = ',{0},'.format(paths.lower())
-                    if pattern in line.lower():
-                        lines.append(line)
-            stdout = "".join(lines)
+            stdout = "".join(
+                line + '\n'
+                for line in self._log_path.read_text().splitlines()
+                if ',' + paths + ',' in line)
             # force scan_result to consider it infected
             retcode = 1 if stdout else 0
             results = (retcode, stdout, stderr)
-        return super(SymantecWin, self).check_scan_results(paths, results)
+        return super().check_scan_results(paths, results)

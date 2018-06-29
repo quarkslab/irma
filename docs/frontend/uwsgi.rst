@@ -10,7 +10,7 @@ Installation
 On Debian, installing uWSGI to serve a python application is pretty
 straightforward:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd /opt/irma/irma-frontend/current
     $ ./venv/bin/pip install https://projects.unbit.it/downloads/uwsgi-lts.tar.gz

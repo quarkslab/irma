@@ -33,6 +33,3 @@ class Skeleton(Antivirus):
         super().__init__(*args, **kwargs)
 
         # do your initialization stuff
-
-        # Finally initialize all the attributes
-        self._init_attributes()

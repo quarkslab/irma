@@ -19,12 +19,12 @@ import sys
 from configparser import ConfigParser
 from datetime import datetime
 
-from lib.common.utils import timestamp
-from lib.plugins import PluginBase
-from lib.plugins import ModuleDependency, FileDependency
-from lib.plugin_result import PluginResult
-from lib.irma.common.utils import IrmaProbeType
-from lib.common.hash import md5sum
+from irma.common.utils.utils import timestamp
+from irma.common.plugins import PluginBase
+from irma.common.plugins import ModuleDependency, FileDependency
+from irma.common.plugin_result import PluginResult
+from irma.common.base.utils import IrmaProbeType
+from irma.common.utils.hash import md5sum
 
 
 class VirusTotalPlugin(PluginBase):
@@ -111,7 +111,7 @@ class VirusTotalPlugin(PluginBase):
                 results.status = self.VirusTotalResult.ERROR
                 results.error = "Access forbidden (wrong key value or type)"
             elif response['response_code'] == 200 and \
-                    response['results']['response_code'] != 1:
+                 response['results']['response_code'] != 1:
                 results.status = self.VirusTotalResult.NOT_FOUND
             else:
                 results.status = self.VirusTotalResult.FOUND

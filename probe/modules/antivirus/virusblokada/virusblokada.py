@@ -15,17 +15,15 @@
 
 import logging
 import re
-import os
-import stat
-import tempfile
+from pathlib import Path
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class VirusBlokAda(Antivirus):
-    _name = "VirusBlokAda Console Scanner (Linux)"
+class VirusBlokAda(AntivirusUnix):
+    name = "VirusBlokAda Console Scanner (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,24 +31,24 @@ class VirusBlokAda(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(VirusBlokAda, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "-AF+ "   # all files
-            "-PM+ "   # thorough scanning mode
-            "-RW+ "   # detect Spyware, Adware, Riskware
-            "-HA=3 "  # heuristic analysis level
-            "-VM+ "   # show macros information in documents
-            "-AR+ "   # enable archives scanning
-            "-ML+ "   # mail scanning
-            "-CH+ "   # switch on cache while scanning objects
-            "-SFX+ "  # detect installers of malware
+        self.scan_args = (
+            "-AF+",   # all files
+            "-PM+",   # thorough scanning mode
+            "-RW+",   # detect Spyware, Adware, Riskware
+            "-HA=3",  # heuristic analysis level
+            "-VM+",   # show macros information in documents
+            "-AR+",   # enable archives scanning
+            "-ML+",   # mail scanning
+            "-CH+",   # switch on cache while scanning objects
+            "-SFX+",  # detect installers of malware
         )
         self._scan_retcodes[self.ScanResult.INFECTED] = lambda x: x in [6, 7]
-        self._scan_patterns = [
-            re.compile(b'(?P<file>[^\s]+)'
-                       b'\s+(: infected)\s+'
-                       b'(?P<name>[^\t]+)', re.IGNORECASE),
+        self.scan_patterns = [
+            re.compile('(?P<file>\S+)'
+                       '\s+(: infected)\s+'
+                       '(?P<name>.+?)$', re.IGNORECASE | re.MULTILINE),
         ]
 
     # ==========================================
@@ -59,51 +57,31 @@ class VirusBlokAda(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '-h')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '-h',
+            regexp='(?P<version>\d+(\.\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
         # extract folder where are installed definition files
-        results = []
         search_paths = [
             # default location in debian
-            '/opt/vba/vbacl/',
+            Path('/opt/vba/vbacl/'),
         ]
         database_patterns = [
             '*.udb',  # data file for virus
             '*.lng',  # data file for virus
         ]
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        return self.locate(database_patterns, search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("vbacl")
-        return paths[0] if paths else None
+        return self.locate_one("vbacl")
 
     def get_virus_database_version(self):
         """Return the Virus Database version"""
-
-        cmd = self.build_cmd(self.scan_path, '-h')
-        retcode, stdout, stderr = self.run_cmd(cmd)
-        if retcode:
-            raise RuntimeError(
-                "Bad return code while getting database version")
-        matches = re.search(b'(?P<version>\d+(\.\d+)+ \d\d:\d\d)',
-                            stdout,
-                            re.IGNORECASE)
-        if not matches:
-            raise RuntimeError("Cannot read database version in stdout")
-        return matches.group('version').strip()
+        return self._run_and_parse(
+            '-h',
+            regexp='(?P<dbversion>\d+(\.\d+)+ \d\d:\d\d)',
+            group='dbversion')

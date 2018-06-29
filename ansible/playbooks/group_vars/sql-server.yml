@@ -6,40 +6,54 @@ irma_standalone_sql_server: "{{ 'frontend' not in group_names }}"
 # Basic settings
 postgresql_version: "9.4"
 postgresql_client_encoding: "UTF8"
-
+postgresql_path: "/etc/postgresql/{{ postgresql_version }}/main"
+postgresql_pki_path: "{{ pki_folder }}/psql"
 
 ## Databases informations
 postgresql_databases:
-  - name: "{{irma_configurations.postgresql.frontend.db_name}}"
+  - name: "{{ postgresql_configuration.db_name }}"
 
 postgresql_users:
-  - name: "{{irma_configurations.postgresql.frontend.username}}"
-    pass: "{{irma_configurations.postgresql.frontend.password}}"
+  - name: "{{ postgresql_configuration.username }}"
+    pass: "{{ postgresql_configuration.password }}"
     encrypted: no
 
 postgresql_user_privileges:
-  - name: "{{irma_configurations.postgresql.frontend.username}}"
-    db: "{{irma_configurations.postgresql.frontend.db_name}}"
+  - name: "{{  postgresql_configuration.username }}"
+    db: "{{  postgresql_configuration.db_name }}"
     priv: "ALL"
 
 postgresql_listen_addresses:
   - "{{ '*' if irma_standalone_sql_server else 'localhost' }}"
 
-postgresql_pg_hba_passwd_hosts:
-  - "{{ irma_configurations.brain_addr if irma_standalone_sql_server else 'localhost' }}"
+postgresql_pg_hba_passwd_hosts_standalone:
+  - localhost
+  - "{{ frontend_addr }}/32"
+
+postgresql_pg_hba_passwd_hosts_not_standalone:
+  - localhost
+
+postgresql_pg_hba_passwd_hosts: "{{ postgresql_pg_hba_passwd_hosts_standalone if irma_standalone_sql_server else postgresql_pg_hba_passwd_hosts_not_standalone }}"
 
 
 # SSL serverside
+postgresql_ssl_cert_file: "{{ postgresql_path }}/psql-server.crt"
+postgresql_ssl_key_file: "{{ postgresql_path }}/psql-server.key"
+postgresql_ssl_ca_file: "{{ postgresql_path }}/psql-ca.crt"
+postgresql_ssl_crl_file: "{{ postgresql_path }}/psql.crl"
+postgresql_ssl_cert_src_path: "{{ postgresql_pki_path }}/server/server.crt"
+postgresql_ssl_key_src_path: "{{ postgresql_pki_path }}/server/server.key"
+postgresql_ssl_ca_src_path: "{{ postgresql_pki_path }}/ca/ca-chain.crt"
+postgresql_ssl_crl_src_path: "{{ postgresql_pki_path }}/ca/psql.crl"
 
-# postgresql_ssl:
-#   - "{{ True if 'frontend' not in group_names else False }}"
-# postgresql_ssl_cert_file: /etc/ssl/certs/ssl-cert-snakeoil.pem
-# postgresql_ssl_key_file: /etc/ssl/private/ssl-cert-snakeoil.key
-# postgresql_ssl_ca_file: ''
-# postgresql_ssl_crl_file: ''
-
-
+postgresql_port: "{{ postgresql_configuration.port }}"
 ## UFW Rules
 sql_server_ufw_additional_rules:
   - port: "{{ postgresql_port }}"
     rule: 'allow'
+
+postgresql_pg_hba_custom_ssl:
+  - { type: hostssl,  database: all, user: all, address: '127.0.0.1/32', method: '{{ postgresql_default_auth_method }} clientcert=1', comment: 'IPv4 local connections:' }
+  - { type: hostssl,  database: all, user: all, address: '::1/128',      method: '{{ postgresql_default_auth_method }} clientcert=1', comment: 'IPv6 local connections:' }
+
+postgresql_pg_hba_custom: "{{ postgresql_pg_hba_custom_ssl if postgresql_ssl else [] }}"

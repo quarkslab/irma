@@ -1,8 +1,8 @@
 from unittest import TestCase
 
 import api.common.format as module
-from lib.irma.common.utils import IrmaProbeType
-from lib.plugin_result import PluginResult
+from irma.common.base.utils import IrmaProbeType
+from irma.common.plugin_result import PluginResult
 
 
 class TestModuleFormatters(TestCase):

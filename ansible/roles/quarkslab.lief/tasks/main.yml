@@ -1,0 +1,10 @@
+---
+
+# As the repositories are not cloned yet, we cannot use requirements.txt
+- name: LIEF | Installing dependencies with pip system-wide
+  pip:
+    name: lief
+    state: "latest"
+    executable: pip3
+    extra_args: "{{ pip_extra_args | default('') }}"
+  become: yes

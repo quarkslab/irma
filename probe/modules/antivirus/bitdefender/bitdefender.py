@@ -17,14 +17,15 @@ import logging
 import re
 import os
 import tempfile
+from pathlib import Path
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class BitdefenderForUnices(Antivirus):
-    _name = "Bitdefender Antivirus Scanner (Linux)"
+class BitdefenderForUnices(AntivirusUnix):
+    name = "Bitdefender Antivirus Scanner (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -32,86 +33,58 @@ class BitdefenderForUnices(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(BitdefenderForUnices, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # create a temporary filename
-        (fd, self._log_path) = tempfile.mkstemp()
+        fd, self._log_path = tempfile.mkstemp()
+        self._log_path = Path(self._log_path)
         os.close(fd)
+
         # scan tool variables
-        self._scan_args = (
-            "--action=ignore "  # action to take for an infected file
-            "--no-list "        # do not display scanned files
+        self.scan_args = (
+            "--action=ignore",  # action to take for an infected file
+            "--no-list",        # do not display scanned files
             "--log={log}".format(log=self._log_path)
         )
-        self._scan_patterns = [
-            re.compile(b'(?P<file>[^\s]+)'
-                       b'\s+(infected:|suspected:)\s+'
-                       b'(?P<name>[^\t]+)', re.IGNORECASE),
+        self.scan_patterns = [
+            re.compile('(?P<file>\S+)\s+(infected:|suspected:)\s+'
+                       '(?P<name>.+?)$', re.IGNORECASE | re.MULTILINE),
         ]
 
     def __del__(self):
-        if os.path.exists(self._log_path):
-            os.remove(self._log_path)
+        if hasattr(self, '_log_path') and self._log_path.exists():
+            self._log_path.unlink()
 
     # ==========================================
     #  Antivirus methods (need to be overriden)
     # ==========================================
 
     def check_scan_results(self, paths, res):
-        retcode, stdout, stderr = res[0], None, res[2]
-        if self._log_path:
-            with open(self._log_path, 'r') as fd:
-                stdout = bytes(fd.read(), 'utf8')
-            res = (retcode, stdout, stderr)
-        return super(BitdefenderForUnices, self).check_scan_results(paths, res)
+        retcode, _, stderr = res
+        stdout = self._log_path.read_text()
+        return super().check_scan_results(paths, (retcode, stdout, stderr))
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+(\.\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '--version',
+            regexp='(?P<version>\d+(\.\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
         # extract folder where are installed definition files
         search_paths = [
-            '/opt/BitDefender-scanner/var/lib/scan/Plugins/'
+            Path('/opt/BitDefender-scanner/var/lib/scan/Plugins/'),
         ]
-        database_patterns = [
-            '*',
-        ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        return self.locate('*', search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("bdscan")
-        return paths[0] if paths else None
+        return self.locate_one("bdscan")
 
     def get_virus_database_version(self):
         """Return the Virus Database version"""
-        paths = self.locate("bdscan")
-
-        if paths:
-            cmd = self.build_cmd(paths[0], '--info')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-
-            if not retcode:
-                matches = re.search(b'Engine signatures: (?P<version>\d+)',
-                                    stdout,
-                                    re.IGNORECASE)
-
-                if matches:
-                    return matches.group('version').strip()
-
-        return None
+        self._run_and_parse(
+            '--info',
+            regexp='Engine signatures: (?P<dbversion>\d+)',
+            group='dbversion')

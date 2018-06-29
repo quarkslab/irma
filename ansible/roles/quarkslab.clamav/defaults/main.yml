@@ -1,0 +1,7 @@
+---
+
+clamav_mirror_url: http://database.clamav.net
+clamav_db_url:
+  - "{{ clamav_mirror_url }}/main.cvd"
+  - "{{ clamav_mirror_url }}/daily.cvd"
+  - "{{ clamav_mirror_url }}/bytecode.cvd"

@@ -3,7 +3,7 @@ import sys
 from frontend.models.sqlobjects import Tag
 
 from api.common.sessions import session_transaction
-from lib.common.utils import decode_utf8
+from irma.common.utils import decode_utf8
 
 if len(sys.argv) != 2:
     print("usage: {0} <tag_list> (comma separated)".format(sys.argv[0]))

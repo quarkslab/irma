@@ -15,7 +15,7 @@ with the following commands. Let us note that there is a common submodule named
 option of ``cp`` [#]_ (``-L``):
 
 
-.. code-block:: bash
+.. code-block:: console
 
     # If src repository not already cloned
     $ git clone https://github.com/quarkslab/irma /opt/irma/src
@@ -35,7 +35,7 @@ to run the python application.
 
 .. note:: On GNU/Linux, one can create the user (and the group) ``irma`` with:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo adduser --system --no-create-home --group irma
 
@@ -47,13 +47,13 @@ On windows system, we will assume that the code for the **Probe** will be
 installed at the root of the ``C:\`` drive, namely in ``C:\irma\irma-probe\current``.
 
 
-.. code-block:: none
+.. code-block:: console
 
     $ C:\Python27\Scripts\pip.exe install virtualenv
     $ C:\Python27\Scripts\virtualenv C:\irma\irma-probe\current\venv
 
 
-.. code-block:: none
+.. code-block:: console
 
     $ cd C:\irma\irma-probe\current\
     $ .\venv\Scripts\pip.exe install -r requirements.txt
@@ -72,7 +72,7 @@ with the following commands. Let us note that there is a common submodule named
 option of ``cp`` (``-L``):
 
 
-.. code-block:: bash
+.. code-block:: console
 
     # If src repository not already cloned
     $ git clone https://github.com/quarkslab/irma /opt/irma/src
@@ -85,7 +85,7 @@ We need few dependencies for future steps:
 
 then, we need to install python dependencies manually in a virtualenv :
 
-.. code-block:: bash
+.. code-block:: console
 
     $ virtualenv --system-site-packages --python=/usr/bin/python3 /opt/irma/irma-probe/current/venv
     $ /opt/irma/irma-probe/current/venv/bin/pip install -r /opt/irma/irma-probe/current/requirements.txt

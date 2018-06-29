@@ -15,7 +15,7 @@ ClamAV - GNU/Linux
 To enable ClamAV on Debian Stable distribution, one should install several
 packages:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install clamav-daemon
     [...]
@@ -34,7 +34,7 @@ binaries are installed in ``/opt/COMODO/`` directory. As ComodoCAVL is not
 packaged for the current Debian Stable distribution, we must install it
 manually:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install binutils
     $ ar x cav-linux_1.1.268025-1_iXXX.deb
@@ -43,7 +43,7 @@ manually:
 
 Updates for the database can be performed with the following command:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ XAUTHORITY="$HOME/.Xauthority" sudo /opt/COMODO/menu/comodo-updater
     [...]
@@ -55,7 +55,7 @@ Updates for the database can be performed with the following command:
     may be missing from the distribution. On Debian Stable system, one can
     install them with:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo apt-get install libqt4-sql libqt4-network libqtgui4
 
@@ -67,7 +67,7 @@ One can request a trial version of Eset Nod32 Business Edition for Linux on the
 Once downloaded, the anti-virus can be installed with the following commands on
 Debian. Just follow the typical installation on the GUI:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo chmod u+x eset_nod32av_64bit_en.linux
     $ sudo apt-get install libgtk2.0-0 libc6-i386
@@ -77,7 +77,7 @@ Debian. Just follow the typical installation on the GUI:
 Binaries should be installed in ``/opt/eset/esets`` directory. Updates are
 performed from the GUI:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ XAUTHORITY="$HOME/.Xauthority" sudo /opt/eset/esets/bin/esets_gui
 
@@ -86,7 +86,7 @@ performed from the GUI:
     To avoid the anti-virus to protect your system at startup, we deliberately
     disabled the script used to launch the anti-virus early at boot:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo service esets stop
         $ sudo mv /etc/init.d/esets /etc/init.d/esets.disable
@@ -101,19 +101,19 @@ A copy of F-PROT anti-virus for Linux workstations is available on the
 The binaries should be installed in ``/usr/local/f-prot`` to make the python
 application detect it automatically.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo tar xvf fp-Linux.x86.32-ws.tar.gz -C /usr/local/
 
 To launch an update, a configuration step is mandatory:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo cp /usr/local/f-prot/f-prot.conf.default /etc/f-prot.conf
 
 An update is launched with:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo ./fpupdate
     ERROR: ld.so: object 'libesets_pac.so' from /etc/ld.so.preload cannot be preloaded: ignored.
@@ -123,7 +123,7 @@ An update is launched with:
 
     If you see an error message like:
 
-    .. code-block:: bash
+    .. code-block:: none
 
         DownloadingWarning: Network - Connection failed (18), trying again...
         Downloading updateError: Update - Bad mergefile
@@ -135,7 +135,7 @@ An update is launched with:
     To be able to update the database using the updater provided with Comodo
     install them with:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo apt-get install libc6-i386
 
@@ -154,7 +154,7 @@ downloaded `here <http://www.mcafee.com/apps/downloads/security-updates/security
 After downloading McAfee Virus Scan archive, create ``/usr/local/uvscan`` and
 extract the archive in it:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo mkdir /usr/local/uvscan
     $ sudo tar xvf vscl-XXX.tar.gz -C /usr/local/uvscan # replace using your values
@@ -162,7 +162,7 @@ extract the archive in it:
 
 Extract also, using unzip program, the database:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo unzip avvepo7536dat.zip -d /usr/local/uvscan
     $ cd /usr/local/uvscan
@@ -183,7 +183,7 @@ On GNU/Linux:
 
 - Download the archive for Linux, then execute:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ tar zxf sav-linux-9-i386.tgz
     $ ./sophos-av/install.sh /opt/sophos-av --acceptlicence --autostart=False --enableOnBoot=False --automatic --ignore-existing-installation
@@ -225,7 +225,7 @@ installation directory, one can execute:
 
 On GNU/Linux:
 
-.. code-block:: none
+.. code-block:: console
 
     $ pip install -r modules/external/virustotal/requirements.txt
     [...]
@@ -253,14 +253,14 @@ database. We use LevelDB as fast key-value storage library.
 
 To build the dabatase, one must install first the dependencies:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ pip install -r modules/database/nsrl/requirements.txt
 
 A (not optimized and very slow) helper script is provided to build the
 database:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ mkdir /home/irma/leveldb
     $ python -m modules.database.nsrl.nsrl create -t os NSRLOS.txt /home/irma/leveldb/os_db
@@ -289,7 +289,7 @@ database by filling the configuration file located at ``modules/database/nsrl/co
 
     If you see an error message like:
 
-    .. code-block:: bash
+    .. code-block:: none
 
         fatal error: Python.h: No such file or directory
 
@@ -299,9 +299,8 @@ database by filling the configuration file located at ``modules/database/nsrl/co
 
     If you encounter this problem, you likely have a problem with unix
     permissions. Please ensure that the folder is owned by the user
-    running the probes. On ``supervisord``-based installation (default for
-    vagrant/ansible scripts), the folder owner should be set to  ``nobody``.
-    For ``init.d``-based installation, it should be ``irma`` instead.
+    running the probes. On ``systemd``-based installation (default for
+    vagrant/ansible scripts), the folder owner should be set to  ``irma``.
 
 
 StaticAnalyzer - GNU/Linux or Microsoft Windows
@@ -313,7 +312,7 @@ directory, one can execute:
 
 On GNU/Linux:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ pip install -r modules/metadata/pe_analyzer/requirements.txt
     [...]
@@ -322,7 +321,7 @@ On Microsoft Windows, you need cygwin to successfully install the requirements
 (see `python3-magic documentation
 <https://github.com/ahupp/python-magic#dependencies>`_ for installation details):
 
-.. code-block:: none
+.. code-block:: console
 
     $ C:\Python27\Scripts\pip.exe install -r modules/metadata/pe_analyzer/requirements.txt
     [...]
@@ -337,13 +336,13 @@ Guide on Debian (credits to Carbonn)
 
 1. Installing dependencies
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sudo apt-get install libtool automake bison
 
 2. Installing Yara python modules
 
-.. code-block:: bash
+.. code-block:: console
 
     $ git clone https://github.com/plusvic/yara.git
     $ autoreconf -i --force
@@ -357,7 +356,7 @@ Guide on Debian (credits to Carbonn)
 
 3. Configuring for IRMA
 
-.. code-block:: bash
+.. code-block:: console
 
     $ mkdir /opt/irma/yara_rules/
     $ cat /opt/irma/yara_rules/yara_rules.yar << EOF

@@ -6,6 +6,7 @@
     - vim
     - aria2
     - git
+    - libssl-dev
     - python-dev
     - python3-dev
     - unzip
@@ -16,7 +17,7 @@
     - libssl-dev
     - libffi-dev
 
-  # Install python-pip (cause the debian version is only 1.1)
+# Install python-pip (cause the debian version is only 1.1)
 - name: Downloading script get-pip.py
   get_url:
     url: 'https://bootstrap.pypa.io/get-pip.py'

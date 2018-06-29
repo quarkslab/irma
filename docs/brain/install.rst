@@ -23,7 +23,7 @@ to run the python application.
 
 .. note:: On GNU/Linux, one can create the user (and the group) ``irma`` with:
 
-    .. code-block:: bash
+    .. code-block:: console
 
         $ sudo adduser --system --no-create-home --group irma
 
@@ -41,7 +41,7 @@ with the following commands. Let us note that there is a common submodule named
 option of ``cp`` (``-L``):
 
 
-.. code-block:: bash
+.. code-block:: console
 
     # If src repository not already cloned
     $ git clone https://github.com/quarkslab/irma /opt/irma/src
@@ -54,7 +54,7 @@ We need few dependencies for future steps:
 
 then, we need to install python dependencies manually in a virtualenv :
 
-.. code-block:: bash
+.. code-block:: console
 
     $ virtualenv --system-site-packages /opt/irma/irma-brain/current/venv
     $ /opt/irma/irma-brain/current/venv/bin/pip install -r /opt/irma/irma-brain/current/requirements.txt

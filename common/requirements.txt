@@ -1,0 +1,5 @@
+xmltodict
+bson
+sqlalchemy
+paramiko
+python-magic

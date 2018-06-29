@@ -25,11 +25,11 @@ from logging.handlers import SysLogHandler
 from celery.log import redirect_stdouts_to_logger
 from celery.signals import after_setup_task_logger, after_setup_logger
 
-from lib.irma.common.exceptions import IrmaConfigurationError
-from lib.irma.configuration.ini import TemplatedConfiguration
-from lib.irma.ftp.sftp import IrmaSFTP
-from lib.irma.ftp.ftps import IrmaFTPS
-from lib.irma.common.utils import common_celery_options
+from irma.common.base.exceptions import IrmaConfigurationError
+from irma.common.configuration.ini import TemplatedConfiguration
+from irma.common.ftp.sftp import IrmaSFTP
+from irma.common.ftp.ftps import IrmaFTPS
+from irma.common.base.utils import common_celery_options
 
 
 # ==========
@@ -128,18 +128,10 @@ def _conf_celery(app, broker, backend=None, queue=None):
                         CELERY_QUEUES=(Queue(queue, routing_key=queue),)
                         )
     if probe_config.ssl_config.activate_ssl:
-        ca_certs = probe_config.ssl_config.ca_certs
-        keyfile = probe_config.ssl_config.keyfile
-        certfile = probe_config.ssl_config.certfile
+        ca_certs_path = probe_config.ssl_config.ca_certs
+        keyfile_path = probe_config.ssl_config.keyfile
+        certfile_path = probe_config.ssl_config.certfile
 
-        ssl_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                os.path.pardir))
-        ca_certs_path = '{ssl_path}/ssl/{ca_certs}'.format(ca_certs=ca_certs,
-                                                           ssl_path=ssl_path)
-        keyfile_path = '{ssl_path}/ssl/{keyfile}'.format(keyfile=keyfile,
-                                                         ssl_path=ssl_path)
-        certfile_path = '{ssl_path}/ssl/{certfile}'.format(certfile=certfile,
-                                                           ssl_path=ssl_path)
         app.conf.update(
             BROKER_USE_SSL={
                'ca_certs': ca_certs_path,

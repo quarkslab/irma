@@ -13,8 +13,8 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-from lib.plugins import PluginBase
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginBase
+from irma.common.base.utils import IrmaProbeType
 
 
 class VirusTotalFormatterPlugin(PluginBase):

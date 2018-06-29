@@ -1,8 +1,17 @@
 ---
-- include: check.yml
 
-- include: packaging.yml
+- hosts: all
+  tasks:
+    - import_tasks: check.yml
+
+- import_playbook: packaging.yml
   when: irma_deployment_code_version != 'local' and irma_code_archive_generation == True
+
+- name: Common deployment
+  hosts: frontend:brain:probe
+  remote_user: "{{ common_user }}"
+  roles:
+    - { role: quarkslab.irma_deployment_common, tags: deployment_common }
 
 - name: Frontend deployment
   hosts: frontend

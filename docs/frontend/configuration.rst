@@ -25,6 +25,8 @@ directory.
      |    sqldb       +-----------------+------------+----------------+---------------------------------------------------------+
      |                |       host      | ``string`` |                | database host                                           |
      |                +-----------------+------------+----------------+---------------------------------------------------------+
+     |                |       port      | ``integer``|                | database port                                           |
+     |                +-----------------+------------+----------------+---------------------------------------------------------+
      |                |      dbname     | ``string`` |                | database name                                           |
      |                +-----------------+------------+----------------+---------------------------------------------------------+
      |                |  tables_prefix  | ``string`` |                | database tables prefix                                  |
@@ -82,22 +84,22 @@ directory.
      |                +-----------------+------------+----------------+---------------------------------------------------------+
      |                |     password    | ``string`` |                | password used by this frontend on the FTP server        |
      +----------------+-----------------+------------+----------------+---------------------------------------------------------+
-     |                |  clean_db_file  | ``integer``|        0       | remove file after X days (0 means disabled)             |
-     |                |    _max_age     |            |                |                                                         |
+     |                |  clean_fs_max   | ``string`` |       "0"      | remove file when not scanned for givent time            |
+     |                |      _age       |            |                | 0 means disabled ("1 hour", "5 days", "3w", "1year")    |
      |                +-----------------+------------+----------------+---------------------------------------------------------+
-     |                |  clean_db_cron  | ``string`` |        0       | cron hour settings                                      |
-     |                |     _hour       |            |                |                                                         |
+     |                |  clean_fs_age   | ``string`` |        0       | cron hour settings                                      |
+     |                |   _cron_hour    |            |                |                                                         |
      |cron_clean_file +-----------------+------------+----------------+---------------------------------------------------------+
-     |     _age       |  clean_db_cron  | ``string`` |        0       | cron minute settings                                    |
-     |                |    _minute      |            |                |                                                         |
+     |     _age       |  clean_fs_age   | ``string`` |        0       | cron minute settings                                    |
+     |                |  _cron_minute   |            |                |                                                         |
      |                +-----------------+------------+----------------+---------------------------------------------------------+
-     |                |  clean_db_scan  | ``string`` |        \*      | cron day of week settings                               |
-     |                |   _day_of_week  |            |                |                                                         |
+     |                |  clean_fs_age   | ``string`` |        \*      | cron day of week settings                               |
+     |                |_cron_day_of_week|            |                |                                                         |
      +----------------+-----------------+------------+----------------+---------------------------------------------------------+
-     |                |  clean_fs_max   | ``string`` |      "0"       | space's maximum size (bytes) dedicated to the file      |
-     |                |     _size       |            |                | system                                                  |
-     |                +-----------------+------------+----------------+---------------------------------------------------------|
-     |                |  clean_fs_size  | ``string`` |       \*       | cron hour settings                                      |
+     |                |  clean_fs_max   | ``string`` |       "0"      | space's maximum size dedicated to the file system       |
+     |                |     _size       |            |                | ("100 Mb", "512 Mb", "1.5Gb")                           |
+     |                +-----------------+------------+----------------+---------------------------------------------------------+
+     |                |  clean_fs_size  | ``string`` |        \*      | cron hour settings                                      |
      |                |   _cron_hour    |            |                |                                                         |
      |cron_clean_file +-----------------+------------+----------------+---------------------------------------------------------+
      |    _size       |  clean_fs_size  | ``string`` |        0       | cron minute settings                                    |
@@ -106,8 +108,8 @@ directory.
      |                |  clean_fs_size  | ``string`` |        \*      | cron day of week settings                               |
      |                |_cron_day_of_week|            |                |                                                         |
      +----------------+-----------------+------------+----------------+---------------------------------------------------------+
-     | interprocess_  |     path        | ``string`` |/var/run/lock/ir| Concurrency file lock                                   |
-     | lock           |                 |            |ma-frontend.lock|                                                         |
+     | interprocess   |     path        | ``string`` |/var/run/lock/ir| Concurrency file lock                                   |
+     | _lock          |                 |            |ma-frontend.lock|                                                         |
      +----------------+-----------------+------------+----------------+---------------------------------------------------------+
      |                |   activate_ssl  | ``boolean``|    False       | Enable RabbitMQ ssl                                     |
      |                +-----------------+------------+----------------+---------------------------------------------------------+

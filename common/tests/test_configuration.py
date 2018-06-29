@@ -17,9 +17,11 @@ import logging
 import unittest
 import os
 import copy
-from irma.configuration.config import ConfigurationSection
-from irma.configuration.ini import IniConfiguration, TemplatedConfiguration
-from irma.common.exceptions import IrmaConfigurationError
+from irma.common.configuration.config import ConfigurationSection
+from irma.common.configuration.ini import IniConfiguration, \
+    TemplatedConfiguration
+from irma.common.configuration.sql import SQLConf
+from irma.common.base.exceptions import IrmaConfigurationError
 
 
 # =================
@@ -148,6 +150,29 @@ class TestTemplatedConfiguration(unittest.TestCase):
                                   None)]
         with self.assertRaises(IrmaConfigurationError):
             TemplatedConfiguration(template_path, template1)
+
+
+class TestSQLConf(unittest.TestCase):
+
+    def test_url(self):
+        conf = SQLConf(dbms='dbms', dialect='dialect', username='username',
+                       password='password', host='host', port='port',
+                       dbname='dbname')
+
+        self.assertEqual(conf.url,
+                         'dbms+dialect://username:password@host:port/dbname')
+
+        conf.dialect = None
+        conf.port = None
+        conf.password = None
+        self.assertEqual(conf.url, 'dbms://username@host/dbname')
+
+        conf.username = None
+        self.assertEqual(conf.url, 'dbms://host/dbname')
+
+        conf.host = None
+        self.assertEqual(conf.url, 'dbms:///dbname')
+
 
 if __name__ == '__main__':
     enable_logging()

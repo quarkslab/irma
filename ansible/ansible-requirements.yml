@@ -1,7 +1,7 @@
 ---
 
 - src: https://github.com/quarkslab/postgresql.git
-  version: a45227559e9c7c1b1e952b53855ec1d631daaad2
+  version: cb93aeb54ac8b6667a0c3ec7e9b18bda9b0c923c
   name: ANXS.postgresql
 
 - src: https://github.com/weareinteractive/ansible-sudo.git
@@ -17,7 +17,7 @@
   name: jdauphant.nginx
 
 - src: https://github.com/quarkslab/ansible-playbook-rabbitmq.git
-  version: 7684af260c06beb010958c9b6ae802690ab26f61
+  version: 30ba105a753bb21eed07c8fa4b2635ff297b54b9
   name: Mayeu.RabbitMQ
 
 - src: https://github.com/mivok/ansible-users.git

@@ -39,12 +39,12 @@
   register: path_out
 
 # Installing pip packages
-- name: Download get-pip.py for pip
+- name: Download Pip
   win_get_url:
-    url: "https://bootstrap.pypa.io/get-pip.py"
-    dest: "{{ remote_tmp }}/get-pip.py"
+    url: "{{ pip_url }}"
+    dest: "{{ remote_tmp }}/pip-9.0.1-py2.py3-none-any.whl"
 
-- name: Run get-pip.py for pip
-  raw: py -3 "{{ remote_tmp }}/get-pip.py"
+- name: Install pip
+  raw: "CMD /C py -3 {{ remote_tmp }}/pip-9.0.1-py2.py3-none-any.whl/pip install --no-index {{ remote_tmp }}/pip-9.0.1-py2.py3-none-any.whl"
 
 - include: pip.yml

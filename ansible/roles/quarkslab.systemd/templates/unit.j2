@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+
+{% set unit = unit_default|combine(item, recursive=True) %}
+{% for section, params in unit.items() if section != 'name' %}
+[{{ section }}]
+  {% for k, v in params.items() %}
+  {{ k }}={{ v }}
+  {% endfor %}
+{% endfor %}

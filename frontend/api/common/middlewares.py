@@ -14,8 +14,7 @@
 # terms contained in the LICENSE file.
 
 import hug
-from api.common.sessions import db_session, engine
-from .models import Base
+from api.common.sessions import db_session
 
 
 class DatabaseSessionManager:
@@ -39,5 +38,6 @@ class DatabaseSessionManager:
             self.close()
 
         return app
+
 
 db = DatabaseSessionManager()

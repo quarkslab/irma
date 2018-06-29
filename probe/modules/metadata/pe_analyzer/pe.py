@@ -17,7 +17,7 @@
 import logging
 import os
 
-from lib.common.mimetypes import Magic
+from irma.common.utils.mimetypes import Magic
 
 log = logging.getLogger(__name__)
 

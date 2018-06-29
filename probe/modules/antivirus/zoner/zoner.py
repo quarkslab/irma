@@ -15,17 +15,15 @@
 
 import logging
 import re
-import os
-import stat
-import tempfile
+from pathlib import Path
 
-from ..base import Antivirus
+from modules.antivirus.base import AntivirusUnix
 
 log = logging.getLogger(__name__)
 
 
-class Zoner(Antivirus):
-    _name = "Zoner Antivirus (Linux)"
+class Zoner(AntivirusUnix):
+    name = "Zoner Antivirus (Linux)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -33,18 +31,18 @@ class Zoner(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(Zoner, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_args = (
-            "--scan-full "
-            "--scan-heuristics "
-            "--scan-emulation "
-            "--scan-archives "
-            "--scan-packers "
-            "--scan-gdl "
-            "--scan-deep "
-            "--show=infected "
-            "--quiet "
+        self.scan_args = (
+            "--scan-full",
+            "--scan-heuristics",
+            "--scan-emulation",
+            "--scan-archives",
+            "--scan-packers",
+            "--scan-gdl",
+            "--scan-deep",
+            "--show=infected",
+            "--quiet",
         )
         # see man zavcli for return codes
         self._scan_retcodes[self.ScanResult.ERROR] = lambda x: x in [1, 2, 16]
@@ -53,10 +51,10 @@ class Zoner(Antivirus):
                 11, 12, 13, 14, 15,  # documented codes
                 -6  # undocumented codes
             ]
-        self._scan_patterns = [
-            re.compile(b'(?P<file>.*)'
-                       b':\s+INFECTED\s+'
-                       b'\[(?P<name>[^\[]+)\]', re.IGNORECASE)
+        self.scan_patterns = [
+            re.compile('(?P<file>.*)'
+                       ':\s+INFECTED\s+'
+                       '\[(?P<name>[^\[]+)\]', re.IGNORECASE),
         ]
 
     # ==========================================
@@ -65,53 +63,35 @@ class Zoner(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path, '--version')
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'(?P<version>\d+([.-]\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            '--version',
+            regexp='(?P<version>\d+([.-]\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
         # extract folder where are installed definition files
         # TODO: make locate() to be reccursive, and to extend selected folders
-        zoner_path = "/opt/zav/"
-        search_paths = map(lambda x:
-                           '{zoner_path}/lib/{folder}/'
-                           ''.format(zoner_path=zoner_path, folder=x),
-                           ['', 'modules'])
+        zoner_path = Path("/opt/zav/")
+        search_paths = [
+            zoner_path / "/lib/",
+            zoner_path / "/lib/modules/",
+        ]
+
         database_patterns = [
             '*.so',
             '*.ver',
             '*.zdb',
         ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        return self.locate(database_patterns, search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        paths = self.locate("zavcli")
-        return paths[0] if paths else None
+        return self.locate_one("zavcli")
 
     def get_virus_database_version(self):
         """Return the Virus Database version"""
-        cmd = self.build_cmd(self.scan_path, '--version-zavd')
-        retcode, stdout, stderr = self.run_cmd(cmd)
-        if retcode:
-            raise RuntimeError(
-                "Bad return code while getting database version")
-        matches = re.search(b'ZAVDB version: *(?P<version>.*)',
-                            stdout,
-                            re.IGNORECASE)
-        if not matches:
-            raise RuntimeError("Cannot read database version in stdout")
-        return matches.group('version').strip()
+        return self._run_and_parse(
+                '--version-zavd',
+                regexp='ZAVDB version: *(?P<dbversion>.*)',
+                group='dbversion')

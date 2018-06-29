@@ -1,0 +1,22 @@
+---
+
+- name: Ensure that releases directory has been created
+  file:
+    path: "{{ common_deployment_dir }}"
+    state: directory
+
+- name: Check if Common src archive is already present
+  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
+  when: irma_deployment_code_version != 'local'
+
+- name: Deploy Common src archive
+  unarchive:
+    src: "files/{{ irma_common_archive }}"
+    dest: "{{ common_deployment_dir }}"
+  when: irma_deployment_code_version != 'local'
+
+- name: Create symlink release -> current
+  file:
+    src: "{{ common_deployment_dir }}"
+    dest: "{{ common_install_dir }}"
+    state: link

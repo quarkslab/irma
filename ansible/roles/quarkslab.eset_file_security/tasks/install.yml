@@ -1,0 +1,55 @@
+---
+- name: EsetFileSecurity | Checking if user/password has been set
+  fail: msg="Please ensure that 'eset_file_security_user' and 'eset_file_security_pwd' are set in your host_vars or group_vars"
+  when: eset_file_security_user is not defined or eset_file_security_pwd is not defined
+
+- name: EsetFileSecurity| Checking licence file
+  fail:
+    msg: "Please ensure that 'eset_file_security_license_file' is set in your host_vars or group_vars"
+  when: eset_file_security_license_file is not defined
+
+- name: EsetFileSecurity | Install dependencies
+  apt: pkg={{ item }} state=present
+  with_items:
+    - ed
+    - libc6-i386
+
+- name: EsetFileSecurity | Create temporary work dir
+  file:
+    path: "{{ eset_file_security_temp_dir }}/"
+    state: directory
+
+- name: EsetFileSecurity | Download install script
+  get_url:
+    url: "{{ eset_file_security_url }}"
+    dest: "{{ eset_file_security_temp_dir }}/esets.amd64.deb.bin"
+    url_username: "{{ eset_file_security_user }}"
+    url_password: "{{ eset_file_security_pwd }}"
+  when: ansible_os_family == "Debian"
+
+- name: EsetFileSecurity | Set permissions
+  file:
+    path: "{{ eset_file_security_temp_dir }}/esets.amd64.deb.bin"
+    mode: "u+x"
+
+
+- name: EsetFileSecurity | Launch install script
+  shell: "{{ eset_file_security_temp_dir }}/esets.amd64.deb.bin --skip-license"
+
+- name: EsetFileSecurity | Install license file
+  copy:
+    src: "{{ eset_file_security_license_file }}"
+    dest: /etc/opt/eset/esets/license/license_eset.lic
+
+- name: EsetFileSecurity | Edit config username
+  command: "sed -i -e 's/#av_update_username = \"\"/av_update_username = \"{{ eset_file_security_user }}\"/' /etc/opt/eset/esets/esets.cfg"
+  become: yes
+
+- name: EsetFileSecurity | Edit config password
+  command: "sed -i -e 's/#av_update_password = \"\"/av_update_password = \"{{ eset_file_security_pwd }}\"/' /etc/opt/eset/esets/esets.cfg"
+  become: yes
+
+- name: EsetFileSecurity | Remove temporary work dir
+  file:
+    path: "{{ eset_file_security_temp_dir }}/"
+    state: absent

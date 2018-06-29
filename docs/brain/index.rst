@@ -14,7 +14,7 @@ task framework for Python.
    install.rst
    configuration.rst
    checks.rst
-   supervisor.rst
+   systemd.rst
 
 .. rubric:: Footnotes
 

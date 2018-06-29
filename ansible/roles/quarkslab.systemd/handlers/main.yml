@@ -1,0 +1,9 @@
+---
+
+- name: Systemd | Configure user-defined units
+  systemd:
+    daemon_reload: yes
+    name: "{{ item.name }}"
+    enabled: yes
+    state: restarted
+  with_items: "{{ systemd_units }}"

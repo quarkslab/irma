@@ -17,21 +17,46 @@ import logging
 import re
 import os
 import sys
-import glob
+from pathlib import Path
 
 from subprocess import Popen, PIPE
 
 log = logging.getLogger(__name__)
 
 
-class Antivirus(object):
-    """Antivirus Base Class"""
+class EarlyInitializer(type):
+    """ Metaclass needed to prevent the latter initialization of Antivirus
+        attributes
+    """
+    def __call__(cls, *args, **kwargs):
+        obj = type.__call__(cls, *args, **kwargs)
+        if kwargs.get("early_init", True):
+            obj._init_attributes()
+        return obj
+
+
+class Antivirus(object, metaclass=EarlyInitializer):
+    """ Antivirus Base Class
+        Abstract class, should not be instanciated directly"""
+
+    # List of attributes to initialize by calling the getter on the sub-class
+    # cf. __getattr__
+    _attributes = {
+        # attr → default value
+        "name": "unavailable",
+        "database": [],
+        "scan_args": (),
+        "scan_path": None,
+        "scan_patterns": [],
+        "version": "unavailable",
+        "virus_database_version": "unavailable",
+    }
 
     # ===========
     #  Constants
     # ===========
 
-    class ScanResult:
+    class ScanResult(object):
         CLEAN = 0
         INFECTED = 1
         ERROR = -1
@@ -41,13 +66,7 @@ class Antivirus(object):
     # ==================================
 
     def __init__(self, *args, **kwargs):
-        # set default antivirus information
-        self._name = None
-        self._version = None
-        self._database = None
         # scan tool variables
-        self._scan_path = None
-        self._scan_args = []
         self._scan_retcodes = {
             self.ScanResult.CLEAN: lambda x: x in [0],
             self.ScanResult.INFECTED: lambda x: x in [1],
@@ -56,236 +75,254 @@ class Antivirus(object):
                 not self._scan_retcodes[self.ScanResult.INFECTED](x),
         }
         # scan pattern-matching
-        self._scan_patterns = []
-        self._scan_results = dict()
-        self._virus_database_version = None
+        self.scan_results = {}
         self._is_windows = sys.platform.startswith('win')
+
+    def __getattr__(self, attr):
+        if attr not in self._attributes:
+            raise AttributeError(attr)
+
+        # eg. if `attr` is "name" then `getter` is self.get_name
+        getter = getattr(self, "get_" + attr, None)
+        if getter is not None:
+            try:
+                # Request the value of the attribute from the subclass
+                value = getter()
+            except Exception as e:
+                log.error(
+                    "Exception raised by AV {} while setting the attribute {}."
+                    " exception: {}".format(self.name, attr, e))
+                value = self._attributes[attr]
+        else:
+            value = self._attributes[attr]
+
+        # `value` cannot not be defined
+        setattr(self, attr, value)
+        return value
+
+    def _init_attributes(self):
+        for attr in self._attributes:
+            getattr(self, attr)
 
     # ====================
     #  Antivirus methods
     # ====================
 
     # TODO: enable multiple paths
-    def scan_cmd(self, paths):
-        cmd = self.scan_path
-        args = self.scan_args
-        return self.build_cmd(cmd, args, paths)
-
     def scan(self, paths):
-        # reset result to an empty dictionary
-        self._scan_results = dict()
-        # check if patterns are set
-        if not self.scan_patterns:
-            raise ValueError("scan_patterns not defined")
-        # build the command to be executed and run it
-        if isinstance(paths, list):
-            paths = list(map(os.path.abspath, paths))
-        else:
-            paths = os.path.abspath(paths)
-        cmd = self.scan_cmd(paths)
-        results = self.run_cmd(cmd)
-        log.debug("Executed command line: {0}, ".format(cmd) +
-                  "results {0}".format(results))
+        if isinstance(paths, (tuple, list, set)):
+            raise NotImplementedError(
+                "Scanning of multiple paths at once is not supported for now")
+
+        # Artifice for python <3.5 compatibility
+        args = list(self.scan_args)
+        args.append(paths)
+
+        results = self.run_cmd(self.scan_path, *args)
         return self.check_scan_results(paths, results)
 
     # ==================
     #  Internal helpers
     # ==================
 
-    @staticmethod
-    def build_cmd(cmd, *args):
-        cmd = [cmd]
-        for param in args:
-            if isinstance(param, (tuple, list)):
-                cmd.extend(param)
-            else:
-                cmd.append(param)
-        return " ".join(cmd)
+    def _run_and_parse(self, *args, regexp=None, group=None):
+        retcode, stdout, _ = self.run_cmd(self.scan_path, *args)
+
+        if retcode:
+            raise RuntimeError(
+                "Bad return code while getting {}".format(group))
+
+        if regexp is None:
+            return stdout
+
+        matches = re.search(regexp, stdout, re.IGNORECASE)
+        if group is None:
+            return matches
+
+        if matches is None:
+            raise RuntimeError("Cannot read {} in stdout".format(group))
+        else:
+            return matches.group(group).strip()
 
     @staticmethod
-    def run_cmd(cmd):
-        # remove whitespace with re.sub, then split()
-        re.sub(r'\s+', ' ', cmd)
-        cmdarray = cmd.split()
+    def _sanitize(elt):
+        if isinstance(elt, str):
+            return elt.strip()
+        elif isinstance(elt, Path):
+            return elt.absolute().as_posix()
+        else:
+            return elt
+
+    @staticmethod
+    def sanitize(iterable):
+        return (Antivirus._sanitize(elt) for elt in iterable)
+
+    @staticmethod
+    def run_cmd(*cmd):
+        """ Run a command
+            :param cmd: The command to run. Either
+                a string: eg. "ls -la /tmp"
+                a sequence: eg. ["ls", "-la", Path("/tmp")]
+                multiple arguments: "ls", "-la", Path("/tmp")
+            :returns: the tuple (retcode, stdout, stderr) of the process. Both
+                stdout and stderr are strings (unencoded data).
+        """
+        assert cmd
+
+        if len(cmd) > 1:
+            # case: multiple arguments
+            cmd = list(Antivirus.sanitize(cmd))
+        else:
+            # Artifice for python <3.5 compatibility
+            # cmd is necessarily a tuple of 1 argument
+            unpckd_cmd = cmd[0]
+            if isinstance(unpckd_cmd, Path): # case: a Path
+                cmd = list(Antivirus.sanitize(cmd))
+            elif isinstance(unpckd_cmd, str):  # case: a string
+                cmd = cmd.split()
+            else:  # last case: a sequence
+                cmd = list(Antivirus.sanitize(unpckd_cmd))
+
         # execute command with popen, clean up outputs
-        pd = Popen(cmdarray, stdout=PIPE, stderr=PIPE)
+        pd = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = (x.strip().decode() for x in pd.communicate())
+        results = pd.returncode, stdout, stderr
 
-        stdout, stderr = [x.strip() if x.strip() else
-                             None for x in pd.communicate()]
-        retcode = pd.returncode
-        # return tuple (retcode, out, err)
-        return retcode, stdout, stderr
-
-    @staticmethod
-    def locate(file, paths=None, syspath=True):
-        # always add system path to search paths
-        search_paths = os.environ.get('PATH', None) if syspath else None
-        search_paths = search_paths.split(os.pathsep) if search_paths else []
-        # append additionnal paths
-        if paths:
-            paths = [paths] if isinstance(paths, str) else list(paths)
-            search_paths.extend(paths)
-        # search path using glob to support meta-characters
-        results = []
-        search_paths = [os.path.join(p, file) for p in search_paths]
-        for path in search_paths:
-            results.extend(glob.glob(path))
-        # convert to absolute paths
-        path = list(map(os.path.abspath, results)) if results else []
-        return path
-
-    def check_scan_results(self, paths, results):
-        log.debug("scan results for {0}: {1}".format(paths, results))
-        # create clean entries for all paths
-        # TODO: add more info
-        self._scan_results[paths] = None
-        # convert path to bytes for comparison
-        bpaths = bytes(paths, "utf8")
-        # unpack results and uniformize return code
-        retcode, stdout, stderr = results
-        if self._scan_retcodes[self.ScanResult.INFECTED](retcode):
-            retcode = self.ScanResult.INFECTED
-        elif self._scan_retcodes[self.ScanResult.ERROR](retcode):
-            retcode = self.ScanResult.ERROR
-            self._scan_results[paths] = stderr if stderr else stdout
-            log.error("command line returned {0}".format(retcode) +
-                      ": {0}".format((stdout, stderr)))
-        elif self._scan_retcodes[self.ScanResult.CLEAN](retcode):
-            retcode = self.ScanResult.CLEAN
-        else:
-            reason = ("unhandled return code {0} ".format(retcode) +
-                      "in class {0}: ".format(type(self).__name__) +
-                      "{0}".format(results))
-            raise RuntimeError(reason)
-        # handle infected and error error codes
-        if retcode in [self.ScanResult.INFECTED, self.ScanResult.ERROR]:
-            is_false_positive = True
-            if stdout:
-                for line in stdout.splitlines():
-                    for pattern in self.scan_patterns:
-                        matches = pattern.finditer(line)
-                        for match in matches:
-                            filename = match.group('file').lower()
-                            # Handle absolute and relative paths in AV outputs
-                            #
-                            # Some filenames possibilities:
-                            #   /absolute-dir/.../filename
-                            #   /absolute-dir/.../name.zip/unzip1.zip/unzip2.zip
-                            #   relative-dir/.../name.zip/unzip1.zip/unzip2.zip
-                            #
-                            # NOTE: as 'filename' does not correspond exactly
-                            # to the filename parsed from the output, we need
-                            # to inverse the conditions.
-                            if bpaths.lower() in filename or \
-                               os.path.relpath(bpaths.lower()) in filename:
-                                name = match.group('name')
-                                # NOTE: get first result, ignore others if
-                                # binary is packed.
-                                if name and self._scan_results[paths] is None:
-                                    self._scan_results[paths] = name
-                                    is_false_positive = False
-                                    # NOTE: break only when a concluding result
-                                    # has been found
-                                    break
-                        # if a match has been found, ignore other patterns
-                        if not is_false_positive:
-                            break
-            # handle false positive
-            if is_false_positive:
-                if stderr or retcode in [self.ScanResult.ERROR]:
-                    retcode = self.ScanResult.ERROR
-                    self._scan_results[paths] = stderr if stderr else stdout
-                else:
-                    retcode = self.ScanResult.CLEAN
-        return retcode
-
-    # =========================================================================
-    #  getters (for RO variable, for late resolution and value uniformisation)
-    # =========================================================================
-
-    @property
-    def name(self):
-        if not self._name:
-            self._name = self.get_name()
-        return self._name
-
-    @property
-    def version(self):
-        if not self._version:
-            try:
-                self._version = self.get_version()
-            except Exception as e:
-                log.error(
-                    "Exception raised by AV {} while getting its version."
-                    " exception: {}".format(self.name, e))
-            finally:
-                if not self._version:
-                    self._version = "unavailable"
-        return self._version
-
-    @property
-    def database(self):
-        if not self._database:
-            self._database = self.get_database()
-            # NOTE: Expecting to have only files, thus filtering folders
-            if self._database:
-                self._database = list(filter(os.path.isfile, self._database))
-        return self._database
-
-    @property
-    def scan_path(self):
-        if not self._scan_path:
-            self._scan_path = self.get_scan_path()
-        return self._scan_path
-
-    @property
-    def scan_args(self):
-        if not self._scan_args:
-            self._scan_args = str(self.get_scan_args())
-        return self._scan_args
-
-    @property
-    def scan_patterns(self):
-        if isinstance(self._scan_patterns, (tuple, list)):
-            results = self._scan_patterns
-        else:
-            results = list(self._scan_patterns)
+        log.debug("Executed command line {},\n got {}".format(cmd, results))
         return results
 
-    @property
-    def scan_results(self):
-        return self._scan_results
+    @classmethod
+    def locate(cls, pattern, paths=None, syspath=True):
+        """ Find a list of files or directories matching a pattern
+            :param pattern: either a unix pattern (eg '*.txt', 'data.d?t',
+                etc.) or a collection of such patterns
+            :param paths: collection of paths to search in
+            :param syspath: if True then also search in the system paths
+                (envvar. PATH), else only search in `paths`
+            :returns: a list of the matching files. Remark: might contains
+                duplicates if `paths` and `pattern` match the same file in
+                different ways
+        """
+        # Ensures that `paths` is a list whatever the collection was before
+        paths = list(paths) if paths is not None else []
 
-    @property
-    def virus_database_version(self):
-        if not self._virus_database_version:
-            self._virus_database_version = self.get_virus_database_version()
-        return self._virus_database_version
+        if isinstance(pattern, str):
+            pattern = [pattern]
 
-    # ==========================================
-    #  Antivirus methods (need to be overriden)
-    # ==========================================
+        # `pattern` is a collection (list, tuple, set, etc.) of patterns
+        results = []
+        for p in pattern:
+            assert isinstance(p, str)
+            results += cls._locate(p, paths, syspath)
+        return results
 
-    def get_name(self):
-        """return the name of the antivirus"""
-        return None
+    def locate_one(cls, pattern, paths=None, syspath=True):
+        results = cls.locate(pattern, paths, syspath)
+        if len(results) == 0:
+            search_paths = paths or []
+            if syspath:
+                search_paths += cls._get_syspaths()
+            raise RuntimeError(
+                "Search for {} in {} does not return any result when one was"
+                " required".format(pattern, search_paths))
+        return results.pop()
 
-    def get_version(self):
-        """return the version of the antivirus"""
-        return None
+    @classmethod
+    def _locate(cls, pattern, paths, syspath):
+        # Add system path to search paths
+        if syspath:
+            # NOTE: requires `paths` to be a list
+            paths += cls._get_syspaths()
+        elif not paths:
+            paths = [Path('/')]
 
-    def get_database(self):
-        """return list of files in the database"""
-        return None
+        return (f for path in paths for f in path.glob(pattern) if f.is_file())
 
-    def get_scan_path(self):
-        """return the full path of the scan tool"""
-        return None
+    def identify_threat(self, filename, out):
+        for pattern in self.scan_patterns:
+            for match in pattern.finditer(out):
+                threat_path = Path(match.group('file').strip())
+                # Some threat possibilities:
+                #   /absolute-dir/.../filename
+                #   /absolute-dir/.../name.zip/unzip1.zip/unzip2.zip
+                #   relative-dir/.../name.zip/unzip1.zip/unzip2.zip
 
-    def get_scan_args(self):
-        """return the scan arguments"""
-        return None
+                if filename == threat_path or filename in threat_path.parents:
+                    threat = match.group('name').strip()
+                    if threat:
+                        return threat
 
-    def get_virus_database_version(self):
-        """return the version of the Virus Database of the Antivirus"""
-        return None
+    def check_scan_results(self, fpath, results):
+        log.debug("scan results for {0}: {1}".format(fpath, results))
+        CLEAN = self.ScanResult.CLEAN
+        INFECTED = self.ScanResult.INFECTED
+        ERROR = self.ScanResult.ERROR
+
+        retcode, stdout, stderr = results
+        self.scan_results = {}
+
+        # 1/ get meaning of retcode
+        if self._scan_retcodes[INFECTED](retcode):
+            retcode = INFECTED
+        elif self._scan_retcodes[ERROR](retcode):
+            retcode = ERROR
+            log.error("command line returned {}: {}".format(
+                retcode, (stdout, stderr)))
+        elif self._scan_retcodes[CLEAN](retcode):
+            retcode = CLEAN
+        else:
+            raise RuntimeError(
+                "unhandled return code {} in class {}: {}".format(
+                    retcode, type(self).__name__, results))
+
+        # 2/ handle the retcode
+        if retcode == INFECTED:
+            threat = self.identify_threat(fpath, stdout)
+            if threat:
+                self.scan_results[fpath] = threat
+            else:
+                retcode = ERROR if stderr else CLEAN
+        if retcode == ERROR:
+            self.scan_results[fpath] = stderr
+        elif retcode == CLEAN:
+            self.scan_results[fpath] = None
+
+        return retcode
+
+
+class AntivirusUnix(Antivirus):
+    """ Unix Antivirus Base Class
+        Abstract class, should not be instanciated directly"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def _get_syspaths(cls):
+        try:
+            return (Path(p) for p in os.environ['PATH'].split(os.pathsep))
+        except KeyError as e:
+            log.error("No environment variable PATH found while looking "
+                      "for system paths. exception: {}".format(e))
+            return []
+
+
+class AntivirusWindows(Antivirus):
+    """ Windows Antivirus Base Class
+        Abstract class, should not be instanciated directly"""
+
+    _envpaths = ['PROGRAMFILES', 'PROGRAMFILES(X86)']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @classmethod
+    def _get_syspaths(cls):
+        syspaths = []
+        for ep in cls._envpaths:
+            try:
+                syspaths.append(Path(os.environ[ep]))
+            except KeyError as e:
+                log.error("No environment variable {} found while looking "
+                          "for system paths. exception: {}".format(ep, e))
+        return syspaths

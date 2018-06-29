@@ -18,6 +18,11 @@ servers:
           - web/dist
           - web/node_modules
           - app/components
+      - share_from: ../common
+        share_to: /opt/irma/irma-common/releases/sync
+        share_exclude:
+          - .git/
+          - venv/
   - name: brain.irma
     box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.31
@@ -32,6 +37,11 @@ servers:
           - .git/
           - venv/
           - db/
+      - share_from: ../common
+        share_to: /opt/irma/irma-common/releases/sync
+        share_exclude:
+          - .git/
+          - venv/
   - name: avs-linux.irma
     box: quarkslab/debian-9.0.0-amd64
     ip: 172.16.1.32
@@ -42,6 +52,11 @@ servers:
     shares:
       - share_from: ../probe
         share_to: /opt/irma/irma-probe/releases/sync
+        share_exclude:
+          - .git/
+          - venv/
+      - share_from: ../common
+        share_to: /opt/irma/irma-common/releases/sync
         share_exclude:
           - .git/
           - venv/
@@ -95,6 +110,7 @@ ansible_config:
     avast: avs-linux.irma
     fsecure: avs-linux.irma
     trid: avs-linux.irma
+    lief: avs-linux.irma
     sophos: avs-linux.irma
     # windows-probe: probe-win.irma
     "probe:children":
@@ -112,6 +128,7 @@ ansible_config:
       - avast
       - fsecure
       - trid
+      - lief
       - sophos
     # - windows-probe
     # "windows:children":

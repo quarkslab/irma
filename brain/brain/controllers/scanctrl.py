@@ -17,8 +17,8 @@ import logging
 from brain.models.sqlobjects import Scan
 import brain.controllers.probetasks as celery_probe
 import brain.controllers.ftpctrl as ftp_ctrl
-from lib.irma.common.utils import IrmaScanStatus
-from lib.irma.common.exceptions import IrmaDatabaseResultNotFound
+from irma.common.base.utils import IrmaScanStatus
+from irma.common.base.exceptions import IrmaDatabaseResultNotFound
 import config.parser as config
 from fasteners import interprocess_locked
 

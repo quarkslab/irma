@@ -3,7 +3,7 @@ from unittest import TestCase
 from mock import patch
 
 import api.common.sessions as module
-from lib.irma.common.exceptions import IrmaDatabaseError
+from irma.common.base.exceptions import IrmaDatabaseError
 
 
 class TestSessions(TestCase):

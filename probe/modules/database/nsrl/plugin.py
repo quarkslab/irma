@@ -20,13 +20,13 @@ import re
 from datetime import datetime
 from configparser import ConfigParser
 
-from lib.common.utils import timestamp
-from lib.plugins import PluginBase
-from lib.plugins import ModuleDependency, FileDependency
-from lib.plugins import PluginLoadError
-from lib.plugin_result import PluginResult
-from lib.common.hash import sha1sum
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.utils.utils import timestamp
+from irma.common.plugins import PluginBase
+from irma.common.plugins import ModuleDependency, FileDependency
+from irma.common.plugins import PluginLoadError
+from irma.common.plugin_result import PluginResult
+from irma.common.utils.hash import sha1sum
+from irma.common.base.utils import IrmaProbeType
 from functools import reduce
 
 
@@ -117,14 +117,13 @@ class NSRLPlugin(PluginBase):
     # ==================
 
     def run(self, paths):
-        results = PluginResult(name=type(self)._plugin_display_name_,
-                               type=type(self)._plugin_category_,
+        results = PluginResult(name=type(self).display_name,
+                               type=type(self).plugin_category,
                                version=None)
         try:
             # lookup the specified sha1
             started = timestamp(datetime.utcnow())
-            with open(paths,"r") as fileobj:
-                response = self.module.lookup_by_sha1(sha1sum(fileobj))
+            response = self.module.lookup_by_sha1(sha1sum(paths).upper())
             stopped = timestamp(datetime.utcnow())
             results.duration = stopped - started
             # check for errors

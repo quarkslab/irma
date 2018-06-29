@@ -16,14 +16,15 @@
 import logging
 import re
 import os
+from pathlib import Path
 
-from modules.antivirus.base import Antivirus
+from modules.antivirus.base import AntivirusWindows
 
 log = logging.getLogger(__name__)
 
 
-class GDataWin(Antivirus):
-    _name = "GData Anti-Virus (Windows)"
+class GDataWin(AntivirusWindows):
+    name = "GData Anti-Virus (Windows)"
 
     # ==================================
     #  Constructor and destructor stuff
@@ -31,10 +32,10 @@ class GDataWin(Antivirus):
 
     def __init__(self, *args, **kwargs):
         # class super class constructor
-        super(GDataWin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # scan tool variables
-        self._scan_patterns = [
-            re.compile(b"Infected:\s+(?P<file>.*); (?P<name>.*)")
+        self.scan_patterns = [
+            re.compile("Infected:\s+(?P<file>.*); (?P<name>.*)"),
         ]
 
     # ==========================================
@@ -43,37 +44,15 @@ class GDataWin(Antivirus):
 
     def get_version(self):
         """return the version of the antivirus"""
-        result = None
-        if self.scan_path:
-            cmd = self.build_cmd(self.scan_path)
-            retcode, stdout, stderr = self.run_cmd(cmd)
-            if not retcode:
-                matches = re.search(b'Version (?P<version>\d+(\.\d+)+)',
-                                    stdout,
-                                    re.IGNORECASE)
-                if matches:
-                    result = matches.group('version').strip()
-        return result
+        return self._run_and_parse(
+            regexp='(?P<version>\d+(\.\d+)+)',
+            group='version')
 
     def get_database(self):
         """return list of files in the database"""
-        search_paths = map(lambda x:
-                           "{path}/G Data/ISDB".format(path=x),
-                           [os.environ.get('PROGRAMDATA', '')])
-        database_patterns = [
-            '*.isdb'
-        ]
-        results = []
-        for pattern in database_patterns:
-            result = self.locate(pattern, search_paths, syspath=False)
-            results.extend(result)
-        return results if results else None
+        search_paths = [Path(os.environ['PROGRAMDATA']), ]
+        return self.locate("G Data/ISDB/*.isdb", search_paths, syspath=False)
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        scan_bin = "avkcmd.exe"
-        scan_paths = map(lambda x: "{path}/G Data/AntiVirus/*".format(path=x),
-                         [os.environ.get('PROGRAMFILES', ''),
-                          os.environ.get('PROGRAMFILES(X86)', '')])
-        paths = self.locate(scan_bin, scan_paths)
-        return paths[0] if paths else None
+        return self.locate_one("G Data/AntiVirus/*/avkcmd.exe")

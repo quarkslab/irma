@@ -16,7 +16,6 @@
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, \
     UniqueConstraint
 from sqlalchemy.orm import relationship
-from lib.irma.database.sqlobjects import SQLDatabaseObject
 from api.common.models import Base, tables_prefix
 
 # Many to many Tag <-> File
@@ -36,7 +35,7 @@ tag_file = Table(
 )
 
 
-class Tag(Base, SQLDatabaseObject):
+class Tag(Base):
     __tablename__ = '{0}tag'.format(tables_prefix)
 
     # Fields
@@ -66,7 +65,9 @@ class Tag(Base, SQLDatabaseObject):
         self.text = text
 
     def to_json(self):
-        return dict((k, v) for (k, v) in self.to_dict().items())
+        # get name and remove tablename prefix
+        columns = (str(c).split('.', 1)[1] for c in self.__table__.columns)
+        return {c: getattr(self, c) for c in columns if getattr(self, c)}
 
     @classmethod
     def query_find_all(cls, session):

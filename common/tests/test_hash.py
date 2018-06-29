@@ -18,8 +18,8 @@ import hashlib
 import unittest
 import os
 import random
-from common.hash import md5sum, sha1sum, sha224sum, sha256sum, sha384sum, \
-    sha512sum
+from irma.common.utils.hash import md5sum, sha1sum, sha224sum, sha256sum, \
+    sha384sum, sha512sum
 from tempfile import TemporaryFile
 
 

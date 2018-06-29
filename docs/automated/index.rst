@@ -17,7 +17,7 @@ Ansible scripts
 
 Get IRMA ansible scripts on github:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ git clone https://github.com/quarkslab/irma
     $ cd irma/ansible

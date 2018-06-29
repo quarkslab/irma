@@ -4,10 +4,10 @@ from unittest import TestCase
 from mock import MagicMock, patch
 
 import api.scans.services as module
-from lib.irma.common.exceptions import IrmaValueError, IrmaTaskError, \
+from irma.common.base.exceptions import IrmaValueError, IrmaTaskError, \
     IrmaFtpError, IrmaDatabaseError
-from lib.irma.common.utils import IrmaReturnCode
-from lib.irma.common.utils import IrmaScanStatus
+from irma.common.base.utils import IrmaReturnCode
+from irma.common.base.utils import IrmaScanStatus
 
 
 class TestModuleScanctrl(TestCase):

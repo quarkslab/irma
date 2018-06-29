@@ -4,7 +4,7 @@ from celery.exceptions import TimeoutError
 from mock import MagicMock
 
 import api.common.celery as module
-from lib.irma.common.exceptions import IrmaTaskError
+from irma.common.base.exceptions import IrmaTaskError
 
 
 class TestModuleCelerytasks(TestCase):

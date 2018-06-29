@@ -27,7 +27,7 @@ except ImportError as e:
     # use type and not metaclass because of the singleton
     LevelDictSerialized = type
 
-from lib.common.oopatterns import ParametricSingletonMetaClass
+from irma.common.utils.oopatterns import ParametricSingletonMetaClass
 
 log = logging.getLogger(__name__)
 

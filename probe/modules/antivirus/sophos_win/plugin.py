@@ -13,23 +13,21 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import os
-
 from .sophos_win import SophosWin
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class SophosWinPlugin(PluginBase, SophosWin, AntivirusPluginInterface):
+class SophosWinPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "SophosWin"
-    _plugin_display_name_ = SophosWin._name
+    _plugin_display_name_ = SophosWin.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -38,22 +36,8 @@ class SophosWinPlugin(PluginBase, SophosWin, AntivirusPluginInterface):
         PlatformDependency('win32')
     ]
 
-    @classmethod
-    def verify(cls):
-        # check if sophos is available
-        module = SophosWin()
-        path = module.scan_path
-        del module
-        # perform checks
-        if not path or not os.path.exists(path):
-            raise PluginLoadError("{0}: verify() failed because "
-                                  "Sophos executable was not found."
-                                  "".format(cls.__name__))
+    # ================
+    #  interface data
+    # ================
 
-    # =============
-    #  constructor
-    # =============
-
-    def __init__(self):
-        # load default configuration file
-        self.module = SophosWin()
+    module_cls = SophosWin

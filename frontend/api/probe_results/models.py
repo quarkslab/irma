@@ -20,7 +20,6 @@ from sqlalchemy.dialects.postgresql.json import JSONB
 from sqlalchemy.orm import relationship, backref
 
 from api.common.models import Base, tables_prefix
-from lib.irma.database.sqlobjects import SQLDatabaseObject
 
 # Many to many ProbeResult <-> FileExt
 probe_result_file_ext = Table(
@@ -30,7 +29,8 @@ probe_result_file_ext = Table(
                 'id_fe',
                 Integer,
                 # see FileExt.id_file
-                ForeignKey('{0}fileExt.id'.format(tables_prefix))
+                ForeignKey('{0}fileExt.id'.format(tables_prefix)),
+                index=True,
         ),
         # should be a PKF in FileExt
         # https://groups.google.com/forum/#!topic/sqlalchemy/TxISzgW7xUg
@@ -54,7 +54,7 @@ probe_result_file_ext = Table(
 )
 
 
-class ProbeResult(Base, SQLDatabaseObject):
+class ProbeResult(Base):
     __tablename__ = '{0}probeResult'.format(tables_prefix)
 
     # Fields
@@ -92,7 +92,8 @@ class ProbeResult(Base, SQLDatabaseObject):
     # Many to one ProbeResult <-> File
     id_file = Column(
             Integer,
-            ForeignKey('{0}file.id'.format(tables_prefix))
+            ForeignKey('{0}file.id'.format(tables_prefix)),
+            index=True
     )
     file = relationship(
             'File',

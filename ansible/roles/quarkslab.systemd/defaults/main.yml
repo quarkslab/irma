@@ -1,0 +1,11 @@
+---
+
+irma_target_path: "/etc/systemd/system/irma.target"
+irma_unit_dir: "{{ irma_target_path }}.wants"
+
+unit_default:
+  Service:
+    StandardOutput: "syslog"
+    StandardError: "syslog"
+    User: "{{ irma_user }}"
+    ProtectSystem: "full" # /usr /boot and /etc mounted RO

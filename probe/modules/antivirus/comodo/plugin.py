@@ -16,19 +16,19 @@
 from .cavl import ComodoCAVL
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase
-from lib.plugins import BinaryDependency, PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, BinaryDependency, \
+    PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class ComodoCAVLPlugin(PluginBase, ComodoCAVL, AntivirusPluginInterface):
+class ComodoCAVLPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "ComodoCAVL"
-    _plugin_display_name_ = ComodoCAVL._name
+    _plugin_display_name_ = ComodoCAVL.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -38,10 +38,8 @@ class ComodoCAVLPlugin(PluginBase, ComodoCAVL, AntivirusPluginInterface):
         BinaryDependency('/opt/COMODO/cmdscan',)
     ]
 
-    # =============
-    #  constructor
-    # =============
+    # ================
+    #  interface data
+    # ================
 
-    def __init__(self):
-        # load default configuration file
-        self.module = ComodoCAVL()
+    module_cls = ComodoCAVL

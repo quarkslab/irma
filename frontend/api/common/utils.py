@@ -17,8 +17,8 @@ import re
 import os
 
 import config.parser as config
-from lib.common.utils import UUID
-from lib.irma.common.exceptions import IrmaValueError, IrmaFileSystemError
+from irma.common.utils.utils import UUID
+from irma.common.base.exceptions import IrmaValueError, IrmaFileSystemError
 
 
 def validate_id(ext_id):

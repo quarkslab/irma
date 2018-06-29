@@ -19,7 +19,7 @@ import tempfile
 import os
 
 import magic
-from common.mimetypes import Magic
+from irma.common.utils.mimetypes import Magic
 
 
 # =================
@@ -45,7 +45,7 @@ def enable_logging(level=logging.INFO, handler=None, formatter=None):
 class MimetypesTestCase(unittest.TestCase):
 
     def create_pdf(self):
-        return "%PDF-1.2"
+        return b"%PDF-1.2"
 
     def setUp(self):
         # build up to 1Mb data buffer
@@ -89,6 +89,7 @@ class TestMimetype(MimetypesTestCase):
                                 keep_going=True)
         mime2 = self.cookie.file(self.filename)
         self.assertEqual(mime1, mime2)
+
 
 if __name__ == '__main__':
     enable_logging()

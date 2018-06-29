@@ -9,7 +9,7 @@ This part is only useful to someone willing to manually upgrade from an older ve
 Install alembic
 +++++++++++++++
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ sudo su deploy
 	$ cd /opt/irma/irma-frontend/current
@@ -31,13 +31,13 @@ Fix nginx configuration
 Introducing multiversion API means python code should receive the api version parameter.
 in file `/etc/nginx/sites-available/irma-frontend.conf` replace:
 
-.. code-block:: bash
+.. code-block:: none
 
     rewrite ^/api/v1/(.+) /$1 break;
 
 by:
 
-.. code-block:: bash
+.. code-block:: none
 
 	rewrite ^/api/(.+) /$1 break;
 
@@ -48,14 +48,14 @@ Migrate Database
 
 First you should tell alembic you are at version 1.2.1:
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ ./venv/bin/alembic stamp 430a70c8aa21
 
 then upgrade model and data:
 
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ ./venv/bin/alembic upgrade head
 
@@ -66,7 +66,7 @@ Regenerate IHM
 to regenerate IHM do the following:
 
 
-.. code-block:: bash
+.. code-block:: console
 
 	$ sudo su deploy
 	$ cd /opt/irma/irma-frontend/current/web

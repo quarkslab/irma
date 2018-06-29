@@ -32,8 +32,7 @@ class GenericAVTest():
     @staticmethod
     def ready(av):
         ready = False
-        if av.scan_path and os.path.exists(av.scan_path) and \
-           os.path.isfile(av.scan_path):
+        if av.scan_path and av.scan_path.exists() and av.scan_path.is_file():
             ready = True
         return ready
 
@@ -49,7 +48,7 @@ class GenericAVTest():
         if not self.ready:
             self.log.warning("{0} seems not to be available, "
                              "skipping all tests ..."
-                             "".format(self.antivirus._name))
+                             "".format(self.antivirus.name))
 
     def scan_and_check(self, filename, refresult):
         code = self.antivirus.scan(filename)

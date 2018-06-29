@@ -8,14 +8,22 @@
     group: root
     mode: 0750
 
-- name: Ensure that directory Frontend project directory is present
+- name: Install common needed packages for IRMA
+  apt: name={{ item }} state=present
+  with_items:
+    - postgresql-server-dev-9.6
+
+- name: Ensure good rights on IRMA-Frontend install directory
   file:
-    path: "{{ frontend_project_dir }}"
+    path: "{{ item }}"
     state: directory
     owner: "{{ frontend_user }}"
     group: "{{ irma_server_group }}"
     mode: "u=rwX,g=rX,o="
     recurse: yes
+  with_items:
+    - "{{ frontend_project_dir }}"
+    - "{{ common_project_dir }}"
 
 - name: Ensure that www-data can access IRMA files and certificates
   user:
@@ -23,15 +31,7 @@
     groups: "{{ irma_server_group }},{{ irma_cert_group }}"
     append: yes
 
-- pip:
-    name: psycopg2
-    state: present
-    executable: pip3
-    extra_args: "{{ pip_extra_args | default('') }}"
-
 - include: openssl_configuration.yml
   when: frontend_openssl|default(False) == True
-
-- include: hosts.yml
 
 # vim: sw=2

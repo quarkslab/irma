@@ -13,18 +13,29 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import os
-
 from datetime import datetime
-from lib.common.utils import timestamp
-from lib.plugin_result import PluginResult
-from lib.common.hash import sha256sum
+from irma.common.utils.hash import sha256sum
+from irma.common.utils.utils import timestamp
+from irma.common.plugins import PluginLoadError
+from irma.common.plugin_result import PluginResult
+
+from pathlib import Path
 
 
 class AntivirusPluginInterface(object):
-    """Antivirus Plugin"""
+    """ Antivirus Plugin Base Class
+        Abstract class, should not be instanciated directly"""
+
+    def __init__(self):
+        self.module = self.module_cls()
 
     def run(self, paths):
+        assert self.module
+        if isinstance(paths, (tuple, list, set)):
+            raise NotImplementedError(
+                "Scanning of multiple paths at once is not supported for now")
+        fpath = Path(paths)
+
         results = PluginResult(name=type(self).plugin_display_name,
                                type=type(self).plugin_category,
                                version=self.module.version)
@@ -32,17 +43,15 @@ class AntivirusPluginInterface(object):
             # add database metadata
             results.database = None
             if self.module.database:
-                results.database = dict()
-                for filename in self.module.database:
-                    results.database[filename] = self.file_metadata(filename)
+                results.database = {str(fp): self.file_metadata(fp)
+                                    for fp in self.module.database}
             # launch an antivirus scan, automatically append scan results
             started = timestamp(datetime.utcnow())
-            results.status = self.module.scan(paths)
+            results.status = self.module.scan(fpath)
             stopped = timestamp(datetime.utcnow())
             results.duration = stopped - started
-            # as only one result is expected, we simply remove the filename
-            # and we return the result got
-            return_results = list(self.module.scan_results.values())[0]
+
+            return_results = self.module.scan_results[fpath]
             # add scan results or append error
             if results.status < 0:
                 results.error = return_results
@@ -57,14 +66,32 @@ class AntivirusPluginInterface(object):
         return results
 
     @staticmethod
-    def file_metadata(filename):
-        result = dict()
-        if os.path.exists(filename):
-            result['mtime'] = os.path.getmtime(filename)
-            result['ctime'] = os.path.getctime(filename)
+    def file_metadata(fpath):
+        metadata = {}
+        if fpath.exists():
+            metadata['mtime'] = fpath.stat().st_mtime
+            metadata['ctime'] = fpath.stat().st_ctime
             try:
-                with open(filename, 'rb') as fd:
-                    result['sha256'] = sha256sum(fd)
+                with fpath.open('rb') as fd:
+                    metadata['sha256'] = sha256sum(fd)
             except Exception:
-                result['sha256'] = None
-        return result
+                metadata['sha256'] = None
+        return metadata
+
+    @classmethod
+    def verify(cls):
+        return cls._chk_scanpath()
+
+    @classmethod
+    def _chk_scanpath(cls):
+        module = cls.module_cls(early_init=False)
+        e = PluginLoadError(
+                "{}: verify() failed because {} executable was not found."
+                .format(cls.__name__, cls._plugin_name_))
+        try:
+            module.scan_path
+        except Exception:
+            raise e
+
+        if not module.scan_path or not module.scan_path.exists():
+            raise e

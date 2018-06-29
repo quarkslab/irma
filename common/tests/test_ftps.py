@@ -17,8 +17,8 @@ import logging
 import hashlib
 import unittest
 import os
-from irma.ftp.ftps import IrmaFTPS
-from irma.common.exceptions import IrmaFtpError
+from irma.common.ftp.ftps import IrmaFTPS
+from irma.common.base.exceptions import IrmaFtpError
 from tempfile import TemporaryFile, mkstemp
 
 
@@ -253,6 +253,7 @@ class FTPSTestCase(unittest.TestCase):
                      self.test_ftp_key,
                      self.test_ftp_user,
                      "random_bar")
+
 
 if __name__ == '__main__':
     enable_logging()

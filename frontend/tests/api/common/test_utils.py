@@ -4,8 +4,8 @@ from unittest import TestCase
 from mock import MagicMock
 
 import api.common.utils as module
-from lib.common.utils import UUID
-from lib.irma.common.exceptions import IrmaValueError, IrmaFileSystemError
+from irma.common.utils.utils import UUID
+from irma.common.base.exceptions import IrmaValueError, IrmaFileSystemError
 
 
 class TestModuleUtils(TestCase):

@@ -4,11 +4,11 @@ from random import choice
 
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from brain.models.sqlobjects import Probe
-from lib.irma.common.exceptions import IrmaDatabaseError, \
+from irma.common.base.exceptions import IrmaDatabaseError, \
     IrmaDatabaseResultNotFound
 
 
-class TestModelsScan(TestCase):
+class TestModelsProbe(TestCase):
     def setUp(self):
         self.name = "name"
         self.display_name = "display_name"

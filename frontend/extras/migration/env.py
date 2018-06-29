@@ -16,7 +16,7 @@ fileConfig(config.config_file_name)
 import sys
 sys.path.append(".")
 
-from config.parser import get_sql_url
+import config.parser as frontend_config
 from api.common.models import Base
 import api.files.models
 import api.files_ext.models
@@ -28,7 +28,7 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-url = get_sql_url()
+url = frontend_config.sqldb.url
 
 
 def run_migrations_offline():
@@ -77,6 +77,7 @@ def run_migrations_online():
 
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

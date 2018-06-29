@@ -12,39 +12,28 @@
   local_action: stat path="{{ playbook_dir }}/files/{{ irma_frontend_archive }}"
   when: irma_deployment_code_version != 'local'
 
-- name: Check if common src archive is already present
-  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
-  when: irma_deployment_code_version != 'local'
-
 - name: Deploy frontend src archive
   unarchive:
     src: "files/{{ irma_frontend_archive }}"
     dest: "{{ frontend_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
-- name: Remove common symlink
-  file:
-    path: "{{ frontend_deployment_dir }}/lib"
-    state: absent
-  when: irma_deployment_code_version != 'local'
+- name: Install irma.common requirements in a Frontend virtualenv
+  pip:
+    requirements: "{{ common_install_dir }}/requirements.txt"
+    virtualenv: "{{ frontend_deployment_dir }}/venv"
+    extra_args: "{{ pip_extra_args | default('') }} --upgrade"
 
-- name: Create lib directory
-  file:
-    path: "{{ frontend_deployment_dir }}/lib"
-    state: directory
-  when: irma_deployment_code_version != 'local'
-
-- name: Deploy frontend-common src archive
-  unarchive:
-    src: "files/{{ irma_common_archive }}"
-    dest: "{{ frontend_deployment_dir }}/lib"
-  when: irma_deployment_code_version != 'local'
+- name: Install irma.common in a Frontend virtualenv
+  pip:
+    name: "{{ common_install_dir }}/"
+    virtualenv: "{{ frontend_deployment_dir }}/venv"
+    extra_args: "{{ pip_extra_args | default('') }} --upgrade"
 
 - name: Install requirements in a Frontend virtualenv
   pip:
     requirements: "{{ frontend_deployment_dir }}/requirements.txt"
     virtualenv: "{{ frontend_deployment_dir }}/venv"
-    virtualenv_site_packages: yes
     extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Configure config/frontend.ini file
@@ -55,23 +44,58 @@
     value: "{{ item.value }}"
   with_items: "{{ frontend_deployment_configs }}"
 
+- name: Copy rabbitmq crypto objects
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ irma_user }}"
+    group: "{{ irma_group }}"
+    mode: 0600
+  with_items:
+    - src: "{{ pki_folder }}/rabbitmq/clients/frontend-client.key"
+      dest: "{{ dst_pki_folder }}/frontend-client.key"
+    - src: "{{ pki_folder }}/rabbitmq/clients/frontend-client.crt"
+      dest: "{{ dst_pki_folder }}/frontend-client.crt"
+    - src: "{{ pki_folder }}/rabbitmq/ca/ca-chain.crt"
+      dest: "{{ dst_pki_folder }}/rabbitmq-ca.crt"
+  when: rabbitmq_ssl
+  become: yes
+
+- name: Copy psql crypto objects
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ irma_user }}"
+    group: "{{ irma_group }}"
+    mode: 0600
+  with_items:
+    - src: "{{ pki_folder }}/psql/clients/frontend.key"
+      dest: "{{ dst_pki_folder }}/frontend-psql.key"
+    - src: "{{ pki_folder }}/psql/clients/frontend.crt"
+      dest: "{{ dst_pki_folder }}/frontend-psql.crt"
+    - src: "{{ pki_folder }}/psql/ca/ca-chain.crt"
+      dest: "{{ dst_pki_folder }}/psql-ca.crt"
+  when: postgresql_ssl
+  become: yes
+
+- name: Initialize Database
+  shell : "{{ frontend_deployment_dir }}/venv/bin/alembic upgrade head"
+  args:
+    chdir: "{{ frontend_deployment_dir }}"
+
 - name: Create symlink release -> current
   file:
     src: "{{ frontend_deployment_dir }}"
     dest: "{{ frontend_install_dir }}"
     state: link
 
-- name: Restart Supervisor services
-  supervisorctl:
+- name: Restart systemd services
+  systemd:
     name: "{{ item.name }}"
+    enabled: yes
     state: restarted
   become: yes
-  with_items: "{{ supervisor_programs_frontend }}"
-
-- name: Initialize Database
-  shell : "{{ frontend_deployment_dir }}/venv/bin/alembic upgrade head"
-  args:
-    chdir: "{{ frontend_deployment_dir }}"
+  with_items: "{{ systemd_units_frontend }}"
 
 - include: webui_build.yml
   when: irma_environment != 'production'

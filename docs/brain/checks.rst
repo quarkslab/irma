@@ -10,7 +10,7 @@ installation directory, execute both Celery workers:
 
 On GNU/Linux:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd /opt/irma/irma-brain/current
     $ ./venv/bin/python -m brain.scan_tasks
@@ -35,7 +35,7 @@ On GNU/Linux:
 This worker is responsible for splitting the whole scan job in multiples job
 per probe per file.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ cd /opt/irma/irma-brain/current
     $ ./venv/bin/python -m brain.results_tasks
@@ -69,7 +69,7 @@ SFTP accounts
 Try to login as ``frontend`` and upload a sample file in home dir (should raise an error as
 it is non writeable) then in ``uploads`` dir.
 
-.. code-block:: bash
+.. code-block:: console
 
     $ sftp frontend@localhost
     frontend@localhost's password:

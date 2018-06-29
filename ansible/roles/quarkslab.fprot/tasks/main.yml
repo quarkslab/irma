@@ -1,0 +1,9 @@
+---
+
+- name: F-prot - check version
+  command: /opt/f-prot/fpscan --version
+  ignore_errors: yes
+  register: fprot_present
+
+- include: install.yml
+  when: fprot_present | failed

@@ -12,33 +12,23 @@
   local_action: stat path="{{ playbook_dir }}/files/{{ irma_brain_archive }}"
   when: irma_deployment_code_version != 'local'
 
-- name: Check if common src archive is present
-  local_action: stat path="{{ playbook_dir }}/files/{{ irma_common_archive }}"
-  when: irma_deployment_code_version != 'local'
-
 - name: Deploy brain src archive
   unarchive:
     src: "files/{{ irma_brain_archive }}"
     dest: "{{ brain_deployment_dir }}"
   when: irma_deployment_code_version != 'local'
 
-- name: Remove common symlink
-  file:
-    path: "{{ brain_deployment_dir }}/lib"
-    state: absent
-  when: irma_deployment_code_version != 'local'
+- name: Install irma.common requirements in a Brain virtualenv
+  pip:
+    requirements: "{{ common_install_dir }}/requirements.txt"
+    virtualenv: "{{ brain_deployment_dir }}/venv"
+    extra_args: "{{ pip_extra_args | default('') }} --upgrade"
 
-- name: Create lib directory
-  file:
-    path: "{{ brain_deployment_dir }}/lib"
-    state: directory
-  when: irma_deployment_code_version != 'local'
-
-- name: Deploy brain-common src archive
-  unarchive:
-    src: "files/{{ irma_common_archive }}"
-    dest: "{{ brain_deployment_dir }}/lib"
-  when: irma_deployment_code_version != 'local'
+- name: Install irma.common in a Brain virtualenv
+  pip:
+    name: "{{ common_install_dir }}/"
+    virtualenv: "{{ brain_deployment_dir }}/venv"
+    extra_args: "{{ pip_extra_args | default('') }} --upgrade"
 
 - name: Install requirements in a virtualenv
   pip:
@@ -47,10 +37,27 @@
     extra_args: "{{ pip_extra_args | default('') }}"
 
 - name: Generate database
-  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user user {{ irma_configurations.rabbitmq.frontend.vhost }} {{ irma_configurations.ftpd.frontend.username }}"
+  command: "{{ brain_deployment_dir }}/venv/bin/python -m scripts.create_user user {{ rabbitmq_configuration.frontend.vhost }} {{ ftpd_configuration.frontend.username }}"
   args:
     chdir: "{{ brain_deployment_dir }}"
   become_user: "{{ irma_user }}"
+  become: yes
+
+- name: Import rabbitmq crypto objects
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ irma_user }}"
+    group: "{{ irma_group }}"
+    mode: 0640
+  with_items:
+    - src: "{{ pki_folder }}/rabbitmq/clients/brain-client.key"
+      dest: "{{ dst_pki_folder }}/brain-client.key"
+    - src: "{{ pki_folder }}/rabbitmq/clients/brain-client.crt"
+      dest: "{{ dst_pki_folder }}/brain-client.crt"
+    - src: "{{ pki_folder }}/rabbitmq/ca/ca-chain.crt"
+      dest: "{{ dst_pki_folder }}/rabbitmq-ca.crt"
+  when: rabbitmq_ssl
   become: yes
 
 - name: Configure config/brain.ini file
@@ -67,9 +74,10 @@
     dest: "{{ brain_install_dir }}"
     state: link
 
-- name: Restart Supervisor services
-  supervisorctl:
+- name: Restart systemd services
+  systemd:
     name: "{{ item.name }}"
+    enabled: yes
     state: restarted
   become: yes
-  with_items: "{{ supervisor_programs_brain }}"
+  with_items: "{{ systemd_units_brain }}"

@@ -19,11 +19,11 @@ import sys
 import logging
 
 from datetime import datetime
-from lib.common.utils import timestamp
-from lib.plugins import PluginBase
-from lib.plugins import ModuleDependency
-from lib.plugin_result import PluginResult
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.utils.utils import timestamp
+from irma.common.plugins import PluginBase
+from irma.common.plugins import ModuleDependency
+from irma.common.plugin_result import PluginResult
+from irma.common.base.utils import IrmaProbeType
 
 
 class PEAnalyzerPlugin(PluginBase):
@@ -56,7 +56,7 @@ class PEAnalyzerPlugin(PluginBase):
             'modules.metadata.pe_analyzer.pe'
         ),
         ModuleDependency(
-            'lib.common.mimetypes'
+            'irma.common.utils.mimetypes'
         ),
     ]
     _plugin_mimetype_regexp = 'PE32'
@@ -77,7 +77,7 @@ class PEAnalyzerPlugin(PluginBase):
         mimetype = None
         if os.path.exists(filename):
             # guess mimetype for file
-            magic = sys.modules['lib.common.mimetypes'].Magic
+            magic = sys.modules['irma.common.utils.mimetypes'].Magic
             mimetype = magic.from_file(filename)
         else:
             raise RuntimeError("file does not exist")

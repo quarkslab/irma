@@ -1,0 +1,11 @@
+---
+
+- name: Check which certificates are already revoked
+  shell: "awk -F'=' '{ print $2 }' '{{ pki_folder }}/psql/ca/db/ca.db'"
+  register: grep_revoked_certificates_psql
+  changed_when: False
+
+- name: Revoke  certificate
+  command: "bash '{{ pki_scripts_folder }}/revoke_cert_psql.sh' -f '{{ pki_folder }}' -u '{{ item.name }}'"
+  when: item.name not in grep_revoked_certificates_psql.stdout_lines
+  with_items: "{{ infra.psql.clients.revoked if infra is defined else [] }}"

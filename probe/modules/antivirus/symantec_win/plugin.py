@@ -13,24 +13,21 @@
 # modified, propagated, or distributed except according to the
 # terms contained in the LICENSE file.
 
-import os
-
 from .symantec_win import SymantecWin
 from ..interface import AntivirusPluginInterface
 
-from lib.plugins import PluginBase, PluginLoadError
-from lib.plugins import PlatformDependency
-from lib.irma.common.utils import IrmaProbeType
+from irma.common.plugins import PluginMetaClass, PlatformDependency
+from irma.common.base.utils import IrmaProbeType
 
 
-class SymantecWinPlugin(PluginBase, SymantecWin, AntivirusPluginInterface):
+class SymantecWinPlugin(AntivirusPluginInterface, metaclass=PluginMetaClass):
 
     # =================
     #  plugin metadata
     # =================
 
     _plugin_name_ = "SymantecWin"
-    _plugin_display_name_ = SymantecWin._name
+    _plugin_display_name_ = SymantecWin.name
     _plugin_author_ = "IRMA (c) Quarkslab"
     _plugin_version_ = "1.0.0"
     _plugin_category_ = IrmaProbeType.antivirus
@@ -39,18 +36,8 @@ class SymantecWinPlugin(PluginBase, SymantecWin, AntivirusPluginInterface):
         PlatformDependency('win32')
     ]
 
-    @classmethod
-    def verify(cls):
-        module = SymantecWin()
-        if not module.scan_path or not os.path.exists(module.scan_path):
-            del module
-            raise PluginLoadError("Unable to find Symantec executable")
-        del module
+    # ================
+    #  interface data
+    # ================
 
-    # =============
-    #  constructor
-    # =============
-
-    def __init__(self):
-        # load default configuration file
-        self.module = SymantecWin()
+    module_cls = SymantecWin
