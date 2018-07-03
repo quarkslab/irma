@@ -63,7 +63,7 @@ class SymantecWin(AntivirusWindows):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        return self.locate_one("/Symantec/*/DoScan.exe")
+        return self.locate_one("Symantec/*/DoScan.exe")
 
     ##########################################################################
     # specific scan method
@@ -94,6 +94,7 @@ class SymantecWin(AntivirusWindows):
                 mtime = self._log_path.stat().st_mtime
                 delay -= 1
             # look for the line corresponding to this filename
+	    paths = str(paths)
             stdout = "".join(
                 line + '\n'
                 for line in self._log_path.read_text().splitlines()

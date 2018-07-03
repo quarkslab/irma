@@ -236,7 +236,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
         elif not paths:
             paths = [Path('/')]
 
-        return (f for path in paths for f in path.glob(pattern) if f.is_file())
+        return (f for path in paths for f in path.glob(pattern) if (f.is_file()) or (f.is_file()))
 
     def identify_threat(self, filename, out):
         for pattern in self.scan_patterns:
