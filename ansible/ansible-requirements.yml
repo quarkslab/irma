@@ -1,7 +1,7 @@
 ---
 
 - src: https://github.com/quarkslab/postgresql.git
-  version: cb93aeb54ac8b6667a0c3ec7e9b18bda9b0c923c
+  version: cec55c974e6020044ef908e2acca9377d470b473
   name: ANXS.postgresql
 
 - src: https://github.com/weareinteractive/ansible-sudo.git
