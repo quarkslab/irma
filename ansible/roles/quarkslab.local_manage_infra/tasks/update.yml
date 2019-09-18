@@ -4,7 +4,8 @@
   include_vars: "{{ infra_data_file }}"
 
 - include_tasks: update_nginx.yml
-  when: frontend_openssl
+  when: frontend_openssl and not pki_https_external
 
 - include_tasks: update_psql.yml
-  when: postgresql_ssl
+  when: postgresql_ssl and not pki_psql_external
+

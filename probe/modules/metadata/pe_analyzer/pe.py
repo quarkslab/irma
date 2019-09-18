@@ -36,7 +36,7 @@ class PE(object):
         try:
             filetype = Magic.from_buffer(data)
         except Exception as e:
-            log.exception(e)
+            log.exception(type(e).__name__ + " : " + str(e))
             filetype = None
         return filetype
 

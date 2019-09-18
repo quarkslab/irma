@@ -6,4 +6,4 @@
   register: esets_present
 
 - include: install.yml
-  when: esets_present|failed
+  when: esets_present is failed

@@ -12,14 +12,15 @@
 
 - name: Add NodeJS Debian
   apt_repository:
-    repo: "deb https://deb.nodesource.com/{{ nodejs_repo }} {{ ansible_distribution_release }} main"
+    repo: "deb https://deb.nodesource.com/node_{{ nodejs_major_version }}.x {{ ansible_distribution_release }} main"
     state: present
-    filename: "nodejs"
+    filename: "nodesource"
     update_cache: yes
 
+  # NodeJS nodesource repo add suffix to the package version (ie
+  # `-1nodesource1`).
+  # A wildcard is added to match the version with the one available in the
+  # repo.
 - apt:
-    name: "{{ item }}"
+    name: "nodejs={{ nodejs_major_version | mandatory }}*"
     state: present
-  with_items:
-    - nodejs
-    - npm

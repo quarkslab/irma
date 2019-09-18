@@ -174,7 +174,8 @@ def remove_tag(sha256: text, tagid: number):
 
 # called by get
 @hug.get('/{sha256}/download', output=hug.output_format.file)
-def download(response, sha256: text):
+def download(response, sha256: text,
+             filename: text = None):
     """Retrieve a file based on its sha256
     """
     session = db.session
@@ -186,7 +187,9 @@ def download(response, sha256: text):
     # Force download
     ctype = 'application/octet-stream; charset=UTF-8'
     # Suggest Filename to sha256
-    cdisposition = "attachment; filename={}".format(sha256)
+    if filename is None:
+        filename = sha256
+    cdisposition = "attachment; filename={}".format(filename)
     response.set_header("Content-Type", ctype)
     response.set_header("Content-Disposition", cdisposition)
     return open(fobj.path)

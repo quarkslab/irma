@@ -112,5 +112,5 @@ class PEiDPlugin(PluginBase):
             results.results = response
         except Exception as e:
             results.status = self.PEiDResult.ERROR
-            results.error = str(e)
+            results.error = type(e).__name__ + " : " + str(e)
         return results

@@ -1,58 +1,59 @@
 (function () {
-  'use strict';
-
   angular
     .module('irma')
     .controller('SearchCtrl', Search);
 
-  Search.$inject = ['$scope', 'ngTableParams', 'dataservice', 'alerts', '$routeParams', '$location', 'tagPrepService'];
-
-  function Search($scope, ngTableParams, dataservice, alerts, $routeParams, $location, tagPrepService) {
-    var vm = this;
-
+  function Search($scope, NgTableParams, dataservice, alerts, $routeParams, $location,
+    tagPrepService) {
+    // Exports
+    const vm = this;
     angular.extend(vm, {
       searchedStr: $routeParams.value || '',
       searchedType: $routeParams.type || 'name',
       searchedTags: getTagsByIds($routeParams.tags),
-      tableParams: new ngTableParams({
+      tableParams: new NgTableParams({
         page: $routeParams.page || 1, // show first page
         count: $routeParams.offset || 25, // count per page
       }, {
         total: 0,
-        getData: getData,
+        getData,
       }),
 
-      // functions
-      loadAvailableTags: loadAvailableTags,
-      doSearch: doSearch,
+      // Functions
+      loadAvailableTags,
+      doSearch,
     });
 
+    // IIFE when entering the controller
+    (function run() {
+      $scope.$on('$routeUpdate', () => {
+        /**
+         * This will update current scope values regarding HTTP GET query params.
+         *
+         * `$routeUpdate` event is trigger when `reloadOnSearch` is set to
+         * `false` and when staying on the same Controller.
+         * In our situation, it happens when using history back/forward or
+         * `$location.search` as in the `doSearch` function.
+         */
+        vm.searchedStr = $routeParams.value;
+        vm.searchedType = $routeParams.type;
+        vm.searchedTags = getTagsByIds($routeParams.tags);
+        vm.tableParams.page($routeParams.page);
+        vm.tableParams.count($routeParams.offset);
+        vm.tableParams.reload();
+      });
+    }());
 
-    $scope.$on('$routeUpdate', function (e) {
-      /**
-       * This will update current scope values regarding HTTP GET query params.
-       *
-       * `$routeUpdate` event is trigger when `reloadOnSearch` is set to
-       * `false` and when staying on the same Controller.
-       * In our situation, it happens when using history back/forward or
-       * `$location.search` as in the `doSearch` function.
-       */
-      vm.searchedStr = $routeParams.value;
-      vm.searchedType = $routeParams.type;
-      vm.searchedTags = getTagsByIds($routeParams.tags);
-      vm.tableParams.page($routeParams.page);
-      vm.tableParams.count($routeParams.offset);
-      vm.tableParams.reload();
-    });
-
-
-    function getData($defer, params) {
+    // Functions
+    function getData(params) {
       alerts.removeAll();
 
-      dataservice.searchFiles(vm.searchedTags, vm.searchedType, vm.searchedStr, (params.page() - 1) * params.count(), params.count())
-        .then(function(data) {
+      return dataservice
+        .searchFiles(vm.searchedTags, vm.searchedType, vm.searchedStr,
+          (params.page() - 1) * params.count(), params.count())
+        .then((data) => {
           params.total(data.total);
-          $defer.resolve(data.items);
+          return data.items;
         });
     }
 
@@ -63,9 +64,7 @@
       }
 
       if (Array.isArray(ids)) {
-        return _.filter(tagPrepService.items, function (e) {
-          return ids.indexOf(e.id.toString()) > -1;
-        });
+        return _.filter(tagPrepService.items, e => ids.indexOf(e.id.toString()) > -1);
       }
 
       /**
@@ -73,14 +72,15 @@
        * `tag=123`, which, using the method before will use ids as an
        * `Array('1', '2', '3')`.
        */
-      return _.filter(tagPrepService.items, function (e) { return e.id == ids});
+      return _.filter(tagPrepService.items, e => e.id === ids);
     }
 
 
     function loadAvailableTags(query) {
-      var results = [];
-      for(var i=0; i < tagPrepService.items.length; i++) {
-        if(tagPrepService.items[i].text.toLowerCase().indexOf(query.toLowerCase()) > -1) {
+      const results = [];
+
+      for (let i = 0; i < tagPrepService.items.length; i += 1) {
+        if (tagPrepService.items[i].text.toLowerCase().indexOf(query.toLowerCase()) > -1) {
           results.push(tagPrepService.items[i]);
         }
       }
@@ -107,4 +107,4 @@
       $location.search('offset', vm.tableParams.count());
     }
   }
-}) ();
+}());

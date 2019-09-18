@@ -6,4 +6,4 @@
   register: fprot_present
 
 - include: install.yml
-  when: fprot_present | failed
+  when: fprot_present is failed

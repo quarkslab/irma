@@ -65,5 +65,5 @@ class TrIDPlugin(PluginBase):
             results.duration = stopped - started
         except Exception as e:
             results.status = self.TrIDResults.ERROR
-            results.error = str(e)
+            results.error = type(e).__name__ + " : " + str(e)
         return results

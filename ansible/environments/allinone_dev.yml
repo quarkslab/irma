@@ -3,7 +3,7 @@
 servers:
   - name: brain.irma
     ip: 172.16.1.30
-    ansible_groups: [frontend, sql-server, brain, comodo, lief, trid]
+    ansible_groups: [frontend, sql-server, brain, eicar, lief, trid]
     box: quarkslab/debian-9.0.0-amd64
     cpus: 2
     memory: 2048
@@ -20,7 +20,6 @@ servers:
           - venv/
           - web/dist
           - web/node_modules
-          - app/components
       - share_from: ../brain
         share_to: /opt/irma/irma-brain/releases/sync
         share_exclude:

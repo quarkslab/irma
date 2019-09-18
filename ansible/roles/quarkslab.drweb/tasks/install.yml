@@ -2,14 +2,8 @@
 
 - name: Dr Web | Install dependencies
   apt:
-    name: "{{ item }}"
+    name: ['libfontconfig1', 'libxrender1', 'libglib2.0-0', 'libxi6', 'xauth']
     state: present
-  with_items:
-    - libfontconfig1
-    - libxrender1
-    - libglib2.0-0
-    - libxi6
-    - xauth
   become: yes
 
 - name: Dr Web | Create temporary work dir

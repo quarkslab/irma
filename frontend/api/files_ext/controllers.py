@@ -68,7 +68,7 @@ def create(request):
     if 'json' not in form_dict:
         raise HTTPInvalidParam("Missing json parameter", "json")
     payload = json.loads(form_dict['json'])
-    submitter = payload.pop('submitter')
+    submitter = payload.pop('submitter', None)
 
     # ByteIO object is in file
     data = form_file.file

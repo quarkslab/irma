@@ -6,14 +6,11 @@
 
 - name: AVG | Install dependencies
   apt:
-    name: "{{ item }}"
+    name: ['libc6-i386', 'libstdc++6']
     state: latest
     update_cache: yes
     cache_valid_time: 0         # force refresh for i386 arch
   become: yes
-  with_items:
-    - libc6-i386
-    - libstdc++6
 
 # Link from http://free.avg.com/fr-fr/download-free-all-product
 - name: AVG | Download Installer

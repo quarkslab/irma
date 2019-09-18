@@ -1,3 +1,5 @@
 ---
 
 clamav_mirror_url: http://database.clamav.net
+clamav_manual_fetch_timeout: 120
+clamav_manual_fetch_retries: 5

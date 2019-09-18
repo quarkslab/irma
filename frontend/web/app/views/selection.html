@@ -1,57 +1,66 @@
-<form class="selection" ng-submit="vm.start()">
-
-  <div class="row">
-    <div class="col-md-6">
-      <div ng-show="state.scan.uploader.isHTML5">
-        <div class="drop-zone" ng-file-over="hover" ng-file-drop>
-          Drop your files in here
+<form class="selection" ng-submit="vm.start()" uploader="state.uploader">
+  <div class="flex">
+    <div class="uploader">
+       <div ng-if="state.uploader.isHTML5">
+        <div class="drop-zone" nv-file-over="hover" nv-file-drop="" uploader="state.uploader" file-trigger>
+          <span>Drop your files in here</span>
+          <span>Click to choose them</span>
         </div>
       </div>
-      <div class="browse">
-        <input id="file-container" class="hidden" type="file" name="file" ng-file-select multiple>
-        Or choose them with this: &nbsp; <button class="btn btn-default" type="button" file-trigger>Choose file</button>
+      <input id="file-container" class="hidden" type="file" name="file" nv-file-select="" uploader="state.uploader" multiple />
+      <div ng-if="!state.uploader.isHTML5" class="browse">
+        Choose your files with this: &nbsp; <button class="btn btn-default" type="button" file-trigger>Choose file</button>
       </div>
     </div>
-    <div class="col-md-6 files">
-      <table class="table table-condensed table-hover" ng-show="state.scan.hasFiles()">
-        <tbody>
-          <tr ng-repeat="item in state.scan.uploader.queue">
-            <td>{{ item.file.name }}</td>
-            <td ng-show="scan.uploader.isHTML5" nowrap>{{ item.file.size/1024/1024|number:2 }} MB</td>
-            <td nowrap>
-              <span class="glyphicon glyphicon-remove" ng-click="item.remove()"></span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="placeholder" ng-show="!state.scan.hasFiles()">
-        Please select the files to scan for malwares
-      </div>
-    </div>
-  </div>
-
-  <div class="toggle-advanced" ng-click="display = !display">{{(display)? 'Hide': 'Display'}} advanced settings</div>
-
-  <div class="settings row" ng-if="display">
-    <div class="col-md-10 col-md-offset-1 params">
-      <h3>Scan parameters</h3>
+    <div class="files">
       <p>
-        You can bypass the cached results and force a new scan for the file
-        <span class="force-scan {{(state.settings.force)? 'active': ''}}" ng-click="state.settings.force = !state.settings.force">
-          <span boolean-display="state.settings.force" color="{{(state.settings.force)? '#fff': '#999'}}"></span> Force scan
-        </span>
+        <ng-pluralize count="state.uploader.uploadedFiles().length"
+          when="{'0': 'Please select the files to scan for malwares',
+            'one': '1 file is being uploaded...',
+            'other': '{} files are being uploaded...'}">
+        </ng-pluralize>
       </p>
-      <p>You can select which probes to scan the file(s) with</p>
-      <ul class="list-inline probes-list">
-        <li ng-repeat="probe in state.probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
-          <span boolean-display="probe.active" color="{{(probe.active)? '#fff': '#999'}}"></span> {{probe.name}}
-        </li>
-      </ul>
+      <div class="progress">
+        <div class="progress-bar" role="progressbar" aria-valuenow="{{ state.uploader.progress}}" aria-valuemin="0" aria-valuemax="100" style="width: {{ state.uploader.progress }}%;">
+          <span class="sr-only">{{ state.uploader.progress }}% Complete</span>
+        </div>
+      </div>
+      <div class="listing">
+        <table class="table table-condensed table-hover">
+          <tbody>
+            <tr ng-repeat="item in state.uploader.queue" ng-if="item.getClass() !== 'danger'" ng-class="item.getClass()">
+              <td>{{ item.file.name }}</td>
+              <td nowrap>{{ item.file.size/1024/1024|number:2 }} MB</td>
+              <td nowrap>
+                <span class="glyphicon glyphicon-remove" ng-click="item.remove()"></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-
-
-  <p>
-    <input type="submit" class="action btn btn-lg btn-success" value="Scan for malwares" ng-disabled="!state.scan.hasFiles() || state.noActiveProbes()">
-  </p>
+  <div class="params-block">
+    <div class="toggle-advanced" ng-click="display = !display">{{(display)? 'Hide': 'Display'}} advanced settings</div>
+    <div class="settings row" ng-if="display">
+      <div class="params">
+        <h3>Scan parameters</h3>
+        <p>
+          You can bypass the cached results and force a new scan for the file
+          <span class="force-scan {{(state.settings.force)? 'active': ''}}" ng-click="state.settings.force = !state.settings.force">
+            <span boolean-display="state.settings.force" color="{{(state.settings.force)? '#fff': '#999'}}"></span> Force scan
+          </span>
+        </p>
+        <p>You can select which probes to scan the file(s) with</p>
+        <ul class="list-inline probes-list">
+          <li ng-repeat="probe in state.probes" ng-click="probe.active = !probe.active" class="{{(probe.active)? 'active': ''}}">
+            <span boolean-display="probe.active" color="{{(probe.active)? '#fff': '#999'}}"></span> {{probe.name}}
+          </li>
+        </ul>
+      </div>
+    </div>
+    <p>
+      <input type="submit" class="action btn btn-lg btn-success" value="Scan for malwares" ng-disabled="!state.uploader.isReady() || state.noActiveProbes()">
+    </p>
+  </div>
 </form>

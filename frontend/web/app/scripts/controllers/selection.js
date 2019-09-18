@@ -1,29 +1,25 @@
 (function () {
-  'use strict';
-
   angular
     .module('irma')
     .controller('SelectionCtrl', Selection);
 
-  Selection.$inject = ['$scope', 'alerts', 'state'];
-
   function Selection($scope, alerts, state) {
-    var vm = this;
-    vm.start = start;
+    // Exports
+    angular.extend(this, { start });
 
-    activate();
+    // IIFE when entering the controller
+    (function run() {
+      state.newUploader();
+    }());
 
-    function activate() {
-      state.newScan();
-    }
-
+    // Functions
     function start() {
-      if(state.noActiveProbes()) {
-        alerts.add({standard: 'noProbes'});
+      if (state.noActiveProbes()) {
+        alerts.add('<strong>Error:</strong> There is no probe available.', 'danger');
       } else {
-        state.lastAction = 'startUpload';
-        $scope.$emit('startUpload');
+        angular.extend(state, { lastAction: 'startScan' });
+        $scope.$emit('startScan');
       }
     }
   }
-}) ();
+}());

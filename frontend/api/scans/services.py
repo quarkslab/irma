@@ -17,7 +17,7 @@ import logging
 
 from fasteners import interprocess_locked
 from sqlalchemy import inspect
-from api.common.sessions import session_transaction
+from api.common.sessions import session_transaction, session_query
 
 import api.common.ftp as ftp_ctrl
 import api.tasks.braintasks as celery_brain
@@ -32,6 +32,7 @@ from irma.common.base.utils import IrmaScanRequest
 
 log = logging.getLogger(__name__)
 interprocess_lock_path = get_lock_path()
+CSV_SEPARATOR = ";"
 
 # ===================
 #  Internals helpers
@@ -311,3 +312,83 @@ def handle_output_files(file_ext_id, result, error_case=False):
                                      new_fw.probes,
                                      scan.external_id)
     return
+
+
+def generate_csv_report_as_stream(scan_proxy):
+    # If you try to use the `scan_proxy` object, it won't be available anymore
+    # as the session (from Hug middleware) has already been closed.
+    with session_query() as session:
+        # Using this `merge` function with `load=False` will prevent the ORM to
+        # entirely query the object from the database.
+        scan = session.merge(scan_proxy, load=False)
+
+        # CSV Header
+        header = [
+            "Date",
+            "MD5",
+            "SHA1",
+            "SHA256",
+            "Filename",
+            "First seen",
+            "Last seen",
+            "Size",
+            "Status",
+            "Submitter",
+            "Submitter's IP address",
+        ]
+
+        if scan.files_ext:
+            # To display the probe list (with the right names), we use an
+            # file_ext value from the database, and iterate over the probes
+            # needed. This is a workaround, as getting the list of Probes
+            # directly from the scan object (using Scan `get_probelist()`
+            # function) doesn't provide the information regarding the Probe
+            # type (Antivirus, External, …).
+            probe_results = scan.files_ext[0].get_probe_results()
+
+            try:
+                # Python3, Dict `.keys()` function doesn't return a list, but
+                # an `dict_keys`.
+                # Casting is needed here for further list concatenation.
+                av_list = list(probe_results['antivirus'].keys())
+            except KeyError:
+                av_list = []
+
+            try:
+                external_list = [name for name in probe_results['external']
+                                 if name == 'VirusTotal']
+            except KeyError:
+                external_list = []
+
+            header += (av_list + external_list)
+
+        # The `str` cast (via the map function) is only there in case a Probe
+        # name isn't a string, which will break the `bytes` convert.
+        yield bytes(CSV_SEPARATOR.join(map(str, header)), 'utf-8')
+        yield b"\r\n"
+
+        # CSV rows
+        for f in scan.files_ext:
+            row = [
+                scan.date,
+                f.file.md5,
+                f.file.sha1,
+                f.file.sha256,
+                f.name,
+                f.file.timestamp_first_scan,
+                f.file.timestamp_last_scan,
+                f.file.size,
+                f.status,
+                f.submitter,
+                scan.ip,
+            ]
+
+            probe_results = f.get_probe_results()
+
+            row.extend(probe_results['antivirus'][name]['status'] for name in
+                       av_list)
+            row.extend(probe_results['external'][name]['results'] for name in
+                       external_list)
+
+            yield bytes(CSV_SEPARATOR.join(map(str, row)), 'utf-8')
+            yield b"\r\n"

@@ -6,10 +6,9 @@
     state: directory
 
 - name: McAfee VSCL | Install dependencies for McAfee installation
-  apt: pkg={{ item }} state=present
-  with_items:
-    - unzip
-    - curl
+  apt:
+    name: ['unzip', 'curl']
+    state: present
 
 - name: McAfee VSCL | Download Update
   command: wget -Nc -r -nd -l1 -A "avvepo????dat.zip" http://download.nai.com/products/DatFiles/4.x/nai/

@@ -118,5 +118,5 @@ class VirusTotalPlugin(PluginBase):
             results.results = response if 'error' not in response else None
         except Exception as e:
             results.status = self.VirusTotalResult.ERROR
-            results.results = str(e)
+            results.results = type(e).__name__ + " : " + str(e)
         return results

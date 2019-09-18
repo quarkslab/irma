@@ -32,13 +32,13 @@ class FileExtSchema(Schema):
                                 only='sha256')
     probe_results = fields.Function(get_context_formatted)
     scan_id = fields.Nested('ScanSchema', attribute="scan",
-                            only='external_id')
+                            only='id')
     scan_date = fields.Nested('ScanSchema', attribute="scan",
                               only='date')
     parent_file_sha256 = fields.Nested('FileSchema', attribute="parent",
                                        only='sha256')
     other_results = fields.Nested('FileExtSchema',
-                                  only=("external_id", "scan_date", "status"),
+                                  only=("result_id", "scan_date", "status"),
                                   many=True)
 
     class Meta:

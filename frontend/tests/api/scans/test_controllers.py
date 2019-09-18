@@ -197,11 +197,11 @@ class TestScansRoutes(TestCase):
         m_check_probe.assert_called_once_with(probes)
         m_celery_frontend.scan_launch.assert_called_once()
         self.assertIsScan(result)
-        self.assertEqual(result["force"], force,
+        self.assertEqual(result["force"], str(force),
                          "force value is wrong")
-        self.assertEqual(result["mimetype_filtering"], mimetype_filtering,
+        self.assertEqual(result["mimetype_filtering"], str(mimetype_filtering),
                          "mimetype_filtering value is wrong")
-        self.assertEqual(result["resubmit_files"], resubmit_files,
+        self.assertEqual(result["resubmit_files"], str(resubmit_files),
                          "resubmit_files value is wrong")
 
     @patch("api.scans.controllers.FileExt")
@@ -398,82 +398,41 @@ class TestScansRoutes(TestCase):
             api_scans.get_results(scan_id)
 
     @patch("api.scans.controllers.Scan")
-    def test_report_as_csv(self, m_Scan):
-        m_scan = MagicMock()
-        m_fe = MagicMock()
-        m_scan.date = "scan_date"
-        m_fe.file.sha256 = "sha256"
-        m_fe.name = "filename"
-        m_fe.file.timestamp_first_scan = "ts_first_scan"
-        m_fe.file.timestamp_last_scan = "ts_last_scan"
-        m_fe.file.size = "size"
-        m_fe.status = "status"
-        m_fe.get_probe_results.return_value = {
-            "antivirus":
-                {
-                    "av1": {"status": "result_av1"},
-                }
-        }
-        m_scan.files_ext = [m_fe]
-        m_Scan.load_from_ext_id.return_value = m_scan
-        request = MagicMock()
-        response = MagicMock()
-        api_scans.report_as_csv("whatever", request, response)
-        expected = [
-            b'Date,SHA256Sum,Filename,First seen,Last seen,Size,Status,av1',
-            b'\r\n',
-            b'scan_date,sha256,filename,ts_first_scan,ts_last_scan,size,'
-            b'status,result_av1',
-            b'\r\n']
-        self.assertEqual(list(response.stream), expected)
-
-    @patch("api.scans.controllers.Scan")
-    def test_report_as_csv_no_avlist(self, m_Scan):
-        m_scan = MagicMock()
-        m_fe = MagicMock()
-        m_scan.date = "scan_date"
-        m_fe.file.sha256 = "sha256"
-        m_fe.name = "filename"
-        m_fe.file.timestamp_first_scan = "ts_first_scan"
-        m_fe.file.timestamp_last_scan = "ts_last_scan"
-        m_fe.file.size = "size"
-        m_fe.status = "status"
-        m_fe.get_probe_results.return_value = {
-            "metadata":
-                {
-                    "probe1": {"status": "result_probe1"},
-                }
-        }
-        m_scan.files_ext = [m_fe]
-        m_Scan.load_from_ext_id.return_value = m_scan
-        request = MagicMock()
-        response = MagicMock()
-        api_scans.report_as_csv("whatever", request, response)
-        expected = [
-            b'Date,SHA256Sum,Filename,First seen,Last seen,Size,Status',
-            b'\r\n',
-            b'scan_date,sha256,filename,ts_first_scan,ts_last_scan,size,'
-            b'status',
-            b'\r\n']
-        self.assertEqual(list(response.stream), expected)
-
-    @patch("api.scans.controllers.Scan")
     def test_get_report(self, m_Scan):
-        scan_id = "whatever"
         request = MagicMock()
         response = MagicMock()
-        self.assertEqual(api_scans.get_report(request, response, scan_id),
-                         scan_id)
+
+        m_scan = MagicMock()
+        m_scan.external_id = "whatever"
+        m_scan.finished.return_value = True
+
+        def side_effect(scan_id, session):
+            if scan_id == m_scan.external_id:
+                return m_scan
+
+        m_Scan.load_from_ext_id.side_effect = side_effect
+
+        self.assertEqual(api_scans.get_report(request, response,
+                                              m_scan.external_id),
+                         m_scan)
 
     @patch("api.scans.controllers.Scan")
     def test_get_report_error(self, m_Scan):
-        m_scan = MagicMock()
-        m_scan.finished.return_value = False
-        m_Scan.load_from_ext_id.return_value = m_scan
         request = MagicMock()
         response = MagicMock()
+
+        m_scan = MagicMock()
+        m_scan.external_id = "whatever"
+        m_scan.finished.return_value = False
+
+        def side_effect(scan_id, session):
+            if scan_id == m_scan.external_id:
+                return m_scan
+
+        m_Scan.load_from_ext_id.side_effect = side_effect
+
         with self.assertRaises(api_scans.HTTPUnauthorized):
-            api_scans.get_report(request, response, "whatever")
+            api_scans.get_report(request, response, m_scan.external_id)
 
     @patch("api.scans.controllers.Scan")
     @patch("api.scans.controllers.FileExt")

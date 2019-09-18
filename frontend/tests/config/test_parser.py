@@ -59,13 +59,6 @@ class TestConfigParser(TestCase):
         path = module.get_samples_storage_path()
         self.assertEqual(path, "/var/irma/samples")
 
-    def test_setup_log(self):
-        log = MagicMock()
-        loglevel = module.logging.DEBUG
-        log.level = module.logging.INFO
-        args = {'logger': log, 'loglevel': loglevel}
-        module.setup_log(**args)
-
     def test_setup_debug_logger(self):
         log = MagicMock()
         module.setup_debug_logger(log)

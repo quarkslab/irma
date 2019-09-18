@@ -4,6 +4,5 @@
 
 - name: Install Puppeteer dependencies
   apt:
-    name: "{{ item }}"
+    name: "{{ puppeteer_apt_requirements }}"
     state: present
-  with_items: "{{ puppeteer_apt_requirements }}"

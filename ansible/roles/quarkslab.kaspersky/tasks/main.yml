@@ -8,10 +8,10 @@
 - name: Kaspersky | Installation already done
   debug:
     msg: "Kaspersky is already installed. Skipping the installation part..."
-  when: kaspersky_present | success
+  when: kaspersky_present is success
 
 - include: install.yml
-  when: (kaspersky_present | failed)
+  when: kaspersky_present is failed
 
 - include: configuration.yml
-  when: (kaspersky_present | failed)
+  when: kaspersky_present is failed

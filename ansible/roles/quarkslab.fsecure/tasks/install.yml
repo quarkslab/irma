@@ -2,12 +2,9 @@
 
 - name: F-Secure | Install dependencies
   apt:
-    name: "{{ item }}"
-    state: latest
+    name: ['lib32stdc++6', 'rpm']
+    state: present
   become: yes
-  with_items:
-    - lib32stdc++6
-    - rpm
 
 - name: F-Secure | Create temporary work dir
   file:

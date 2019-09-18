@@ -1,5 +1,12 @@
 ---
 
+- name: Disable Windows Updates
+  win_regedit:
+    key: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU\
+    value: NoAutoUpdate
+    data: 00000001
+    datatype: dword
+
 - name: Disable WinDefender AntiSpyware
   win_regedit:
     key: HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\

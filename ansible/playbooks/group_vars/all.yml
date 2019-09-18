@@ -37,6 +37,8 @@ provisioning_ssh_key: files/ssh_keys/vagrant.pub
 brain_addr: brain.irma
 sql_addr: localhost
 frontend_addr: localhost
+frontend_public_addr: http://172.16.1.30
+frontend_public_api_addr: "{{ frontend_public_addr }}/api/v2"
 
 rmq_admin_password: admin
 rmq_brain_password: brain
@@ -51,12 +53,13 @@ postgresql_frontend_password: irma
 frontend_clean_db_file_max_age: 0
 frontend_clean_db_file_max_size: 0
 
+monitoring: False
 
 #_____________________________________________________________
 
 
 # Update requirements.txt when changing Ansible required version
-required_ansible_version: 2.4.2.0
+required_ansible_version: 2.7.2
 
 default_ssh_keys:
   - "{{ lookup('file', '{{ provisioning_ssh_key }}') }}"   # Vagrant

@@ -1,25 +1,21 @@
-'use strict';
+(function () {
+  angular
+    .module('irma')
+    .factory('Result', Result);
 
-angular
-  .module('irma')
-  .factory('Result', Result);
+  function Result() {
+    function ResultModel(resultData) {
+      if (resultData) {
+        this.setData(resultData);
+      }
+    }
 
-Result.$inject = ['$http'];
+    angular.extend(ResultModel.prototype, { setData });
 
-function Result($http) {
-  function ResultModel(resultData) {
-    if (resultData) {
-      this.setData(resultData);
+    return ResultModel;
+
+    function setData(resultData) {
+      angular.extend(this, resultData);
     }
   }
-
-  ResultModel.prototype = {
-    setData: setData
-  };
-
-  return ResultModel;
-
-  function setData(resultData) {
-    angular.extend(this, resultData);
-  }
-}
+}());

@@ -1,4 +1,4 @@
-paramiko
-ssh2-python
-python-magic
-mock
+mock==2.0.0
+paramiko==2.4.2
+python-magic==0.4.15
+ssh2-python==0.17.0

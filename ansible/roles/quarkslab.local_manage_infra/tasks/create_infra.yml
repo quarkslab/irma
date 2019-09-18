@@ -4,6 +4,14 @@
     path: "{{ pki_folder }}/root"
     state: directory
 
+- name: Generate root
+  command: "bash '{{ pki_scripts_folder }}/gen_root.sh' -f '{{ pki_folder }}' -c '{{ config_root }}'"
+  when: not root_external
+
+- name: Import root
+  command: "bash '{{ pki_scripts_folder }}/import_root.sh' -f '{{ pki_folder }}' -c '{{ config_root }}' -r '{{ root_external_cert}}' -k '{{ root_external_key}}'"
+  when: root_external
+
 - name: Create infra data folders for RabbitMq
   file:
     path: "{{ item }}"
@@ -12,7 +20,7 @@
     - "{{ pki_folder }}/rabbitmq/ca"
     - "{{ pki_folder }}/rabbitmq/server"
     - "{{ pki_folder }}/rabbitmq/clients"
-  when: rabbitmq_ssl
+  when: rabbitmq_ssl and not pki_rabbitmq_external
 
 - name: Create infra data folders for HTTPS
   file:
@@ -22,7 +30,7 @@
     - "{{ pki_folder }}/https/ca"
     - "{{ pki_folder }}/https/server"
     - "{{ pki_folder }}/https/clients/revoked"
-  when: frontend_openssl
+  when: frontend_openssl and not pki_https_external
 
 - name: Create infra data folders for PSQL
   file:
@@ -32,7 +40,7 @@
     - "{{ pki_folder }}/psql/ca"
     - "{{ pki_folder }}/psql/server"
     - "{{ pki_folder }}/psql/clients/revoked"
-  when: postgresql_ssl
+  when: postgresql_ssl and not pki_psql_external
 
 - name: Create new infra data file
   template:
@@ -40,17 +48,14 @@
     dest: "{{ infra_data_file }}"
     force: no
 
-- name: Generate root
-  command: "bash '{{ pki_scripts_folder }}/gen_root.sh' -f '{{ pki_folder }}' -c '{{ config_root }}'"
-
 - name: Generate HTTPS PKI
   command: 'bash "{{ pki_scripts_folder }}/gen_https_pki.sh" -f "{{ pki_folder }}" -c "{{ config_ca_https }}" -s "{{ config_server_https }}"'
-  when: frontend_openssl
+  when: frontend_openssl and not pki_https_external
 
 - name: Generate RabbitMq PKI
   command: 'bash "{{ pki_scripts_folder }}/gen_rabbitmq_pki.sh" -f "{{ pki_folder }}" -c "{{ config_ca_rabbitmq }}"'
-  when: rabbitmq_ssl
+  when: rabbitmq_ssl and not pki_rabbitmq_external
 
 - name: Generate PSQL PKI
   command: 'bash "{{ pki_scripts_folder }}/gen_psql_pki.sh" -d "{{ pki_folder }}" -c "{{ config_ca_psql }}" -s "{{ config_server_psql }}" -f "{{ config_frontend_psql }}"'
-  when: postgresql_ssl
+  when: postgresql_ssl and not pki_psql_external

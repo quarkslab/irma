@@ -1,19 +1,15 @@
-'use strict';
-
 (function () {
+  angular
+    .module('irma')
+    .directive('fileTrigger', fileTrigger);
 
-  var dependencies = [];
-  var fileTrigger = function () {
-
+  function fileTrigger() {
     return {
-      link: function(scope, element, attr) {
-        element.click(function(){
+      link(scope, element) {
+        element.click(() => {
           angular.element('#file-container').click();
         });
-      }
+      },
     };
-  };
-
-  fileTrigger.$inject = dependencies;
-  angular.module('irma').directive('fileTrigger', fileTrigger);
+  }
 }());

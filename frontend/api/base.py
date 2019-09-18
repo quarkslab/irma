@@ -15,7 +15,6 @@
 
 import logging
 import hug
-from falcon_multipart.middleware import MultipartMiddleware
 
 import api.files.controllers as files_routes
 import api.probes.controllers as probes_routes
@@ -23,7 +22,7 @@ import api.scans.controllers as scans_routes
 import api.tags.controllers as tags_routes
 import api.files_ext.controllers as files_ext_routes
 import api.about.controllers as about_routes
-from api.common.middlewares import db
+from api.common.middlewares import db, MultipartMiddleware
 from api.common.errors import IrmaExceptionHandler
 from config.parser import debug_enabled, setup_debug_logger
 

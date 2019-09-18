@@ -107,65 +107,12 @@ def get(scan_id: uuid):
 
 
 @hug.format.content_type('text/csv; charset=utf-8')
-def report_as_csv(scan_id, request=None, response=None, hug_api_version=2):
-    def gen_stream():
-        s = Scan.load_from_ext_id(scan_id, db.session)
-
-        # CSV Header
-        header = [
-            "Date",
-            "SHA256Sum",
-            "Filename",
-            "First seen",
-            "Last seen",
-            "Size",
-            "Status",
-        ]
-
-        # To display the antivirus list (with the right antivirus name), we use
-        # an file_ext value from the database, and iterate over its antivirus
-        # probes.
-        if s.files_ext:
-            av_list = []
-            try:
-                av_list = (s
-                           .files_ext[0]
-                           .get_probe_results()['antivirus']
-                           .keys())
-            except KeyError:
-                # In case there is no antivirus probes, do nothing, av_list
-                # will be empty.
-                pass
-
-            header += av_list
-
-        yield bytes(",".join(map(str, header)), 'utf-8')
-        yield bytes('\r\n', 'utf-8')
-
-        for f in s.files_ext:
-            row = [
-                s.date,
-                f.file.sha256,
-                f.name,
-                f.file.timestamp_first_scan,
-                f.file.timestamp_last_scan,
-                f.file.size,
-                f.status,
-            ]
-
-            if av_list:
-                av_results = f.get_probe_results()['antivirus']
-                for av_name in av_list:
-                    row += [av_results[av_name]['status'], ]
-
-            yield bytes(",".join(map(str, row)), 'utf-8')
-            yield bytes('\r\n', 'utf-8')
-
+def report_as_csv(scan, request=None, response=None, hug_api_version=2):
     response.append_header('Content-Disposition',
                            ('attachment; filename="Scan report - %s.csv"' %
-                            scan_id))
+                            scan.external_id))
     # Using stream is useful when the report generated contains a lot of files
-    response.stream = gen_stream()
+    response.stream = scan_ctrl.generate_csv_report_as_stream(scan)
 
 
 # For the moment the report is generated in csv format.
@@ -183,7 +130,7 @@ def get_report(request, response, scan_id: uuid):
     scan = Scan.load_from_ext_id(scan_id, db.session)
 
     if scan.finished():
-        return scan_id
+        return scan
 
     raise HTTPUnauthorized('Scan is not finished.')
 

@@ -62,7 +62,7 @@ class AntivirusPluginInterface(object):
             results.virus_database_version = self.module.virus_database_version
         except Exception as e:
             results.status = -1
-            results.error = str(e)
+            results.error = type(e).__name__ + " : " + str(e)
         return results
 
     @staticmethod

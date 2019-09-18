@@ -119,12 +119,6 @@ class Package(_sdist):
         update_ansible_version(version)
         dest_dir = "ansible/playbooks/files"
         extra_files = ["ansible/irma-ansible/irma-ansible.py"]
-        for subproj in ["common", "frontend", "brain", "probe"]:
-            subproj_archive = "{}-{}".format(subproj, version)
-            subproj_archive_path = os.path.join(dest_dir, subproj_archive)
-            print("Packaging {}.zip".format(subproj_archive))
-            extra_files.append(subproj_archive_path + ".zip")
-            shutil.make_archive(subproj_archive_path, "zip", root_dir=subproj)
 
         webui_archive = "core-webui-{}".format(version)
         webui_archive_path = os.path.join(dest_dir, webui_archive)
@@ -135,6 +129,16 @@ class Package(_sdist):
             extra_files.append(webui_archive_path + ".zip")
             shutil.make_archive(webui_archive_path, "zip",
                                 base_dir="frontend/web/dist")
+            cmd = "git clean -fd frontend/web"
+            del_list = subprocess.check_output(cmd, shell=True, )
+
+        for subproj in ["common", "frontend", "brain", "probe"]:
+            subproj_archive = "{}-{}".format(subproj, version)
+            subproj_archive_path = os.path.join(dest_dir, subproj_archive)
+            print("Packaging {}.zip".format(subproj_archive))
+            extra_files.append(subproj_archive_path + ".zip")
+            shutil.make_archive(subproj_archive_path, "zip", root_dir=subproj)
+
         self._create_manifest_git()
         self._append_manifest(extra_files)
         self.distribution.metadata.version = version

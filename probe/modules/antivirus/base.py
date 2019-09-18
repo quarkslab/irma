@@ -109,7 +109,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
     # ====================
 
     # TODO: enable multiple paths
-    def scan(self, paths):
+    def scan(self, paths, env=None):
         if isinstance(paths, (tuple, list, set)):
             raise NotImplementedError(
                 "Scanning of multiple paths at once is not supported for now")
@@ -118,7 +118,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
         args = list(self.scan_args)
         args.append(paths)
 
-        results = self.run_cmd(self.scan_path, *args)
+        results = self.run_cmd(self.scan_path, *args, env=env)
         return self.check_scan_results(paths, results)
 
     # ==================
@@ -158,7 +158,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
         return (Antivirus._sanitize(elt) for elt in iterable)
 
     @staticmethod
-    def run_cmd(*cmd):
+    def run_cmd(*cmd, env=None):
         """ Run a command
             :param cmd: The command to run. Either
                 a string: eg. "ls -la /tmp"
@@ -176,7 +176,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
             # Artifice for python <3.5 compatibility
             # cmd is necessarily a tuple of 1 argument
             unpckd_cmd = cmd[0]
-            if isinstance(unpckd_cmd, Path): # case: a Path
+            if isinstance(unpckd_cmd, Path):  # case: a Path
                 cmd = list(Antivirus.sanitize(cmd))
             elif isinstance(unpckd_cmd, str):  # case: a string
                 cmd = unpckd_cmd.split()
@@ -184,7 +184,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
                 cmd = list(Antivirus.sanitize(unpckd_cmd))
 
         # execute command with popen, clean up outputs
-        pd = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        pd = Popen(cmd, stdout=PIPE, stderr=PIPE, env=env)
         stdout, stderr = (x.strip().decode() for x in pd.communicate())
         results = pd.returncode, stdout, stderr
 
@@ -216,6 +216,7 @@ class Antivirus(object, metaclass=EarlyInitializer):
             results += cls._locate(p, paths, syspath)
         return results
 
+    @classmethod
     def locate_one(cls, pattern, paths=None, syspath=True):
         results = cls.locate(pattern, paths, syspath)
         if len(results) == 0:

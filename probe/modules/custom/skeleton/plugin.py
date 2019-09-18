@@ -67,5 +67,5 @@ class SkeletonPlugin(PluginBase):
             response.status = self.SkeletonResult.SUCCESS
         except Exception as e:
             response.status = self.SkeletonResult.ERROR
-            response.results = str(e)
+            response.results = type(e).__name__ + " : " + str(e)
         return response

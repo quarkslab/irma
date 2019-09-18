@@ -1,5 +1,6 @@
 ---
 
 comodo_cavl_deb_url: http://download.comodo.com/cavmgl/download/installs/1000/standalone/cav-linux_1.1.268025-1_amd64.deb
-comodo_cavl_update_url: http://download.comodo.com/av/updates58/sigs/bases/bases.cav
+# If updating that, modify create_cache.py (from release repo)
+comodo_cavl_update_url: http://cdn.download.comodo.com/av/updates58/sigs/bases/bases.cav
 comodo_cavl_temp_dir: /tmp/comodo

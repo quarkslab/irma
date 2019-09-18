@@ -50,13 +50,13 @@ def new(text: hug.types.text = None):
     """
     session = db.session
 
-    if text is None or text == "":
-        raise HTTPInvalidParam("text", "Text should not be empty")
+    if not text:
+        raise HTTPInvalidParam("Should not be empty", "text")
 
     # Check if a tag with same tag already exists
     available_tags = Tag.query_find_all(session)
     if text in [t.text for t in available_tags]:
-        raise HTTPInvalidParam("text", "Tag already exists")
+        raise HTTPInvalidParam("Tag '{}' already exists".format(text), "text")
 
     # create tag if not already present
     tag = Tag(text)

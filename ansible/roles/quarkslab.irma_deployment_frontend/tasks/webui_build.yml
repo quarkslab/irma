@@ -1,17 +1,6 @@
 ---
 
-- name: Install NPM dependencies
-  npm:
-    path: "{{ frontend_deployment_dir }}/web"
-    state: latest
-    global: no
-
-- name: Install Bower dependencies
-  bower:
-    path: "{{ frontend_deployment_dir }}/web"
-    relative_execpath: "node_modules/.bin"
-
 - name: Generate Web Frontend
-  command: node_modules/.bin/gulp dist
+  command: ./build.sh {{ frontend_ui_build_args|join(" ") }}
   args:
     chdir: "{{ frontend_deployment_dir }}/web"

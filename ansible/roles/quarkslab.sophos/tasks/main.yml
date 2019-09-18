@@ -8,12 +8,12 @@
 - name: Sophos | Installation already done
   debug:
     msg: "Sophos is already installed. Skipping the installation part..."
-  when: sophos_present | success
+  when: sophos_present is success
 
 - name: Sophos | Installation can not proceed
   debug:
     msg: "Sophos won't be installed because you have not provided an archive name ('sophos_archive_name' variable)."
-  when: (sophos_present | failed) and not sophos_archive_name
+  when: (sophos_present is failed) and not sophos_archive_name
 
 - include: install.yml
-  when: (sophos_present | failed) and sophos_archive_name
+  when: (sophos_present is failed) and sophos_archive_name

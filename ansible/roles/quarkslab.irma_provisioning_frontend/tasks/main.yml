@@ -9,11 +9,10 @@
     mode: 0750
 
 - name: Install common needed packages for IRMA
-  apt: name={{ item }} state=present
-  with_items:
-    - postgresql-server-dev-9.6
-    - uwsgi-plugin-python3
-    - python3-psycopg2
+  apt:
+    name: ['postgresql-server-dev-9.6', 'uwsgi-plugin-python3',
+          'python3-psycopg2']
+    state: present
 
 - name: Ensure good rights on IRMA-Frontend install directory
   file:

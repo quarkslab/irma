@@ -183,13 +183,9 @@
 - name: Emsisoft a2cmd provisioning
   hosts: emsisoft-win
   roles:
+    - { role: quarkslab.irma_disable_win_updates, tags: emsisoft-win }
     - { role: quarkslab.emsisoft_a2cmd_windows, tags: emsisoft-win }
 
-- name: Unarchiver provisioning
-  hosts: unarchiver
-  become: yes
-  roles:
-    - { role: quarkslab.unarchiver, tags: unarchiver }
 - name: LIEF provisioning
   hosts: lief
   roles:
@@ -199,5 +195,11 @@
   hosts: dummy
   roles:
     - { role: quarkslab.dummy, tags: dummy }
+
+- name: Eicar provisioning
+  hosts: eicar
+  become: yes
+  roles:
+    - { role: quarkslab.eicar, tags: eicar }
 
 # vim: sw=2

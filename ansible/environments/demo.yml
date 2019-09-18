@@ -11,5 +11,5 @@ servers:
 
 ansible_vars:
   irma_environment: production
-  irma_release: v2.2.2
+  irma_release: v2.4.12-oss
   vagrant: true

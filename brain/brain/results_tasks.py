@@ -53,7 +53,7 @@ def job_success(result, file, probe):
                  file, probe)
         celery_frontend.scan_result(file, probe, result)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise job_success.retry(countdown=5, max_retries=3, exc=e)
 
 
@@ -66,7 +66,7 @@ def job_error(parent_taskid, file, probe):
                                                      session)
             celery_frontend.scan_result(file, probe, result)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise job_error.retry(countdown=5, max_retries=3, exc=e)
 
 

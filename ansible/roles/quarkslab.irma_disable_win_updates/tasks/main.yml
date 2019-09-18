@@ -1,0 +1,15 @@
+---
+- name: Disable windows updates service
+  win_service:
+    name: wuauserv
+    start_mode: disabled
+
+- name: Disable windows background intelligent transfer service
+  win_service:
+    name: bits
+    start_mode: disabled
+
+- name: Restart machine
+  win_reboot:
+    shutdown_timeout_sec: 1500
+    reboot_timeout_sec: 1500

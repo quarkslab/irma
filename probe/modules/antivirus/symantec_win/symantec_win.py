@@ -40,8 +40,8 @@ class SymantecWin(AntivirusWindows):
             "/ScanFile",  # scan command
         )
         self.scan_patterns = [
-            re.compile("([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]+)",
-                       re.IGNORECASE),
+            re.compile("^([^,]*,){6}(?P<name>[^,]+),(?P<file>[^,]+)",
+                       re.IGNORECASE | re.MULTILINE),
         ]
 
     # ==========================================
@@ -51,7 +51,7 @@ class SymantecWin(AntivirusWindows):
     def get_version(self):
         """return the version of the antivirus"""
         self._pdata_path = self.locate_one(
-            "Symantec/Symantec Endpoint Protection/*.*",
+            "Symantec/Symantec Endpoint Protection/*.*/*",
             [Path(os.environ.get('PROGRAMDATA', '')), ],
             syspath=False)
         matches = re.search('(?P<version>\d+(\.\d+)+)',
@@ -63,20 +63,19 @@ class SymantecWin(AntivirusWindows):
 
     def get_scan_path(self):
         """return the full path of the scan tool"""
-        return self.locate_one("/Symantec/*/DoScan.exe")
+        return self.locate_one("Symantec/*/DoScan.exe")
 
     ##########################################################################
     # specific scan method
     ##########################################################################
 
     def scan(self, paths):
-        self._pdata_path = self.locate_one(
-            "Symantec/Symantec Endpoint Protection/*.*",
-            [Path(os.environ.get('PROGRAMDATA', '')), ],
-            syspath=False)
-        self._log_path = (self._pdata_path
-                          / "Data/Logs/AV"
-                          / date.today().strftime('%m%d%Y.log'))
+        log_name = date.today().strftime('%m%d%Y.log')
+        self._log_path = self.locate_one(
+                "Symantec/Symantec Endpoint Protection/*.*/" +
+                "Data/Logs/AV/" + log_name,
+                [Path(os.environ.get('PROGRAMDATA', '')), ],
+                syspath=False)
         self._last_log_time = self._log_path.stat().st_mtime \
             if self._log_path.exists() else time.time()
         return super().scan(paths)
@@ -97,7 +96,7 @@ class SymantecWin(AntivirusWindows):
             stdout = "".join(
                 line + '\n'
                 for line in self._log_path.read_text().splitlines()
-                if ',' + paths + ',' in line)
+                if ',' + paths.as_posix() + ',' in line)
             # force scan_result to consider it infected
             retcode = 1 if stdout else 0
             results = (retcode, stdout, stderr)

@@ -1,0 +1,4 @@
+{
+  "presets": ["@babel/env", "minify"],
+  "plugins": ["angularjs-annotate"]
+}

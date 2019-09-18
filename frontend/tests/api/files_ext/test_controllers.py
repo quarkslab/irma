@@ -1,7 +1,7 @@
 import io
 from unittest import TestCase
 
-from mock import MagicMock, patch
+from mock import MagicMock, PropertyMock, patch
 
 import api.files_ext.controllers as api_files_ext
 from api.files_ext.models import FileExt
@@ -36,7 +36,20 @@ class TestFilesExtRoutes(TestCase):
         m_file = MagicMock()
         m_fw = FileExt(m_file, "filename")
         m_FileExt.load_from_ext_id.return_value = m_fw
-        result = api_files_ext.get(api_version, resultid)
+
+        # As FileExt.other_results value is normally retrieve from database,
+        # when requesting it, the API will not return it, and will break the
+        # test.
+        # A solution is to patch the property as mentionned in the
+        # documentation:
+        # (https://docs.python.org/3/library/unittest.mock.html#unittest.mock.PropertyMock)
+        # Mocking the type object other_results property will break other tests
+        # (the database one) as it will globally mocking it.
+        with patch('api.files_ext.models.FileExt.other_results',
+                   new_callable=PropertyMock) as m_other_results:
+            m_other_results.return_value = [m_fw]
+            result = api_files_ext.get(api_version, resultid)
+
         m_FileExt.load_from_ext_id.assert_called_once_with(resultid,
                                                            self.session)
         self.assertIsFileExt(result)

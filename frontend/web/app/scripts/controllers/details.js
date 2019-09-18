@@ -1,16 +1,13 @@
 (function () {
-  'use strict';
-
   angular
     .module('irma')
     .controller('DetailsCtrl', Details);
 
-  Details.$inject = ['$routeParams', 'state', 'resultsManager', 'api'];
+  function Details($routeParams, state, resultsManager, api) {
+    const vm = this;
+    let availableTags = [];
 
-  function Details($routeParams, state, resultManager, api) {
-    var vm = this;
-    var availableTags = [];
-
+    // Exports
     angular.extend(vm, {
       // variables
       results: undefined, // set in the activate function
@@ -18,75 +15,82 @@
 
       // methods
       goTo: state.goTo,
-
-      searchTags: function(query) {
-        var results = [];
-
-        for(var i=0; i < availableTags.length; i++) {
-          if(availableTags[i].text.toLowerCase().indexOf(query.toLowerCase()) > -1) {
-            results.push(availableTags[i]);
-          }
-        }
-
-        return results;
-      },
-
-      tagAdded: function(tag) {
-        api.tag.addTag(vm.results.file_infos.sha256, tag.id);
-      },
-
-      tagRemoved: function(tag) {
-        api.tag.removeTag(vm.results.file_infos.sha256, tag.id);
-      },
+      searchTags,
+      tagAdded,
+      tagRemoved,
     });
 
-    activate();
-
-    function activate() {
-      if(!state.scan) {
+    // IIFE when entering the controller
+    (function run() {
+      if (!state.scan) {
         state.newScan($routeParams.scanId);
       }
 
-      resultManager.getResult($routeParams.resultId).then(function(results) {
+      resultsManager.getResult($routeParams.resultId).then((results) => {
         vm.results = results;
         calculateTimelineVariables(results);
       });
 
-      resultManager.getAvailableTags().then(function(results) {
+      resultsManager.getAvailableTags().then((results) => {
         availableTags = results.items;
       });
-    }
+    }());
 
+    // Functions
     function calculateTimelineVariables(results) {
-      var startDate = moment(results.file_infos.timestamp_first_scan * 1000) // * 1000 is used to convert from a unix timestmap
+      // * 1000 is used to convert from a unix timestmap
+      const startDate = moment(results.file_infos.timestamp_first_scan * 1000)
         .startOf('year');
-      var startDateUnix = startDate.unix();
-      var endDate = moment(results.file_infos.timestamp_last_scan * 1000).endOf('year');
-      var nbOfYears = endDate.year() - startDate.year() + 1;
-      var diffStartEndDatesUnix = endDate.diff(startDate, 'seconds'); // seconds is similar to the Unix timestamp
-      var indexResultId = _.findIndex(results.other_results, function(o) { return o.external_id === results.result_id; });
+      const startDateUnix = startDate.unix();
+      const endDate = moment(results.file_infos.timestamp_last_scan * 1000).endOf('year');
+      const nbOfYears = endDate.year() - startDate.year() + 1;
+      // seconds is similar to the Unix timestamp
+      const diffStartEndDatesUnix = endDate.diff(startDate, 'seconds');
+      const indexResultId = _.findIndex(results.other_results,
+        o => o.result_id === results.result_id);
+      const labels = [];
 
-      var labels = [];
-      _.forOwn(_.range(startDate.year(), endDate.year() + 1), function(year, key) {
+      _.forOwn(_.range(startDate.year(), endDate.year() + 1), (year, key) => {
         labels.push({
-          'year': year,
+          year,
           // Calculate the left shift used in the timeline in percentage
-          'leftShiftPercentage': key / nbOfYears * 100,
+          leftShiftPercentage: key / nbOfYears * 100,
         });
       });
 
-
       vm.timeline = {
         // vars
-        labels: labels,
-        nextResultId: ((indexResultId + 1) < results.other_results.length) ? results.other_results[indexResultId + 1].external_id : false,
-        previousResultId: (indexResultId > 0) ? results.other_results[indexResultId - 1].external_id : false,
+        labels,
+        nextResultId: ((indexResultId + 1) < results.other_results.length)
+          ? results.other_results[indexResultId + 1].result_id : false,
+        previousResultId: (indexResultId > 0)
+          ? results.other_results[indexResultId - 1].result_id : false,
 
         // functions
-        getMarkerLeftShiftPercentage: function(scanDateTs) {
+        getMarkerLeftShiftPercentage(scanDateTs) {
           return (scanDateTs - startDateUnix) / diffStartEndDatesUnix * 100;
         },
       };
     }
+
+    function searchTags(query) {
+      const results = [];
+
+      for (let i = 0; i < availableTags.length; i += 1) {
+        if (availableTags[i].text.toLowerCase().indexOf(query.toLowerCase()) > -1) {
+          results.push(availableTags[i]);
+        }
+      }
+
+      return results;
+    }
+
+    function tagAdded(tag) {
+      api.tag.addTag(vm.results.file_infos.sha256, tag.id);
+    }
+
+    function tagRemoved(tag) {
+      api.tag.removeTag(vm.results.file_infos.sha256, tag.id);
+    }
   }
-}) ();
+}());

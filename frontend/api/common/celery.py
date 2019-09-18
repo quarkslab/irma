@@ -32,7 +32,7 @@ def sync_call(celery_app, taskpath, taskname, timeout, **kwargs):
         (status, res) = task.get(timeout=timeout)
         return status, res
     except celery_exceptions.TimeoutError as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise IrmaTaskError("Celery timeout - {0}".format(taskname))
 
 
@@ -46,5 +46,5 @@ def async_call(celery_app, taskpath, taskname, **kwargs):
         full_task_path = "{0}.{1}".format(taskpath, taskname)
         return celery_app.send_task(full_task_path, **kwargs)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise IrmaTaskError("Celery error - {0}".format(taskname))

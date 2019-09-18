@@ -16,13 +16,10 @@
     mode: 0644
 
 - name: ClamAV | Install package
-  apt: name={{ item }} state=latest
-  with_items:
-    - clamav
-    - clamav-base
-    - clamav-freshclam
-    - clamav-daemon
-    - clamav-unofficial-sigs
+  apt:
+    name: ['clamav', 'clamav-base', 'clamav-freshclam', 'clamav-daemon',
+           'clamav-unofficial-sigs']
+    state: latest
   register: clamav_install
 
 - lineinfile:

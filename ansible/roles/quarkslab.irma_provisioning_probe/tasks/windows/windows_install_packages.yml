@@ -45,6 +45,6 @@
     dest: "{{ remote_tmp }}/pip-9.0.1-py2.py3-none-any.whl"
 
 - name: Install pip
-  raw: "CMD /C py -3 {{ remote_tmp }}/pip-9.0.1-py2.py3-none-any.whl/pip install --no-index {{ remote_tmp }}/pip-9.0.1-py2.py3-none-any.whl"
+  raw: "CMD /C py -3 {{ remote_tmp }}/{{ offline_pip_file }}/pip install --no-index {{ remote_tmp }}/{{ offline_pip_file }}"
 
 - include: pip.yml

@@ -10,4 +10,4 @@
   register: zoner_present
 
 - include: install.yml
-  when: zoner_present | failed
+  when: zoner_present is failed

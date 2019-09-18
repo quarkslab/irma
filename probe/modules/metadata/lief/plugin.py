@@ -106,5 +106,5 @@ class LiefAnalyzerPlugin(PluginBase):
                 results.results = response
         except Exception as e:
             results.status = self.LiefAnalyzerResult.ERROR
-            results.results = str(e)
+            results.results = type(e).__name__ + " : " + str(e)
         return results

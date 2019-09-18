@@ -394,7 +394,7 @@ class FileKiosk(FileExt):
         (path, name) = ntpath.split(filepath)
         super(FileKiosk, self).__init__(file, name)
         self.path = path
-        self.submitter_id = payload.pop('submitter_id')
+        self.submitter_id = payload.pop('submitter_id', None)
 
 
 class FileSuricata(FileExt):

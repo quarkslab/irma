@@ -63,7 +63,7 @@ class FSecure(AntivirusUnix):
         self._scan_retcodes[self.ScanResult.ERROR] = lambda x: x in [1, 7, 9]
         self.scan_patterns = [
             re.compile('(?P<file>.*):\s+'
-                       '(Infected|Suspected):\s+'
+                       '(Infected|Suspected|Riskware):\s+'
                        '(?P<name>.*)', re.IGNORECASE),
         ]
 

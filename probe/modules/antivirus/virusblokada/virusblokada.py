@@ -35,7 +35,8 @@ class VirusBlokAda(AntivirusUnix):
         # scan tool variables
         self.scan_args = (
             "-AF+",   # all files
-            "-PM+",   # thorough scanning mode
+            # Displayed in help message but raises an error
+            # "-PM+",   # thorough scanning mode
             "-RW+",   # detect Spyware, Adware, Riskware
             "-HA=3",  # heuristic analysis level
             "-VM+",   # show macros information in documents

@@ -7,15 +7,10 @@
 
 - name: TrID | Install dependencies
   apt:
-    name: "{{ item }}"
+    name: ['libc6-i386', 'libstdc++6', 'libncurses5:i386', 'unzip']
     state: "latest"
     update_cache: yes
     cache_valid_time: 0         # force refresh for i386 arch
-  with_items:
-    - libc6-i386
-    - libstdc++6
-    - libncurses5:i386
-    - unzip
   become: yes
 
 - name: TrID | Creating temp directory

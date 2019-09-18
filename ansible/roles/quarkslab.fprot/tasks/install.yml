@@ -25,3 +25,4 @@
     state: link
     src: "{{ fprot_dir }}/f-prot/f-prot.conf.default"
     dest: /etc/f-prot.conf
+

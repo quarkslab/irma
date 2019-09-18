@@ -204,7 +204,7 @@ def probe_scan(frontend, filename):
         handle_output_files(results, frontend, filename)
         return bytes_to_utf8(results)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise probe_scan.retry(countdown=2, max_retries=3, exc=e)
     finally:
         # Some AV always delete suspicious file

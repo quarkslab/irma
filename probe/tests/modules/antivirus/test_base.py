@@ -87,6 +87,7 @@ class TestAntivirusBase(TestCase):
         a = module.Antivirus()
         res = a.run_cmd("ls", "-la", "/tmp")
         m_Popen.assert_called_once_with(['ls', '-la', '/tmp'],
+                                        env=None,
                                         stderr=module.PIPE,
                                         stdout=module.PIPE)
         self.assertEquals(res, (0, "stdout", "stderr"))
@@ -102,6 +103,7 @@ class TestAntivirusBase(TestCase):
         a = module.Antivirus()
         res = a.run_cmd(["ls", "-la", "/tmp"])
         m_Popen.assert_called_once_with(['ls', '-la', '/tmp'],
+                                        env=None,
                                         stderr=module.PIPE,
                                         stdout=module.PIPE)
         self.assertEquals(res, (0, "stdout", "stderr"))
@@ -117,6 +119,7 @@ class TestAntivirusBase(TestCase):
         a = module.Antivirus()
         res = a.run_cmd(module.Path('/usr/bin/ls'))
         m_Popen.assert_called_once_with(['/usr/bin/ls'],
+                                        env=None,
                                         stderr=module.PIPE,
                                         stdout=module.PIPE)
         self.assertEquals(res, (0, "stdout", "stderr"))
@@ -132,6 +135,7 @@ class TestAntivirusBase(TestCase):
         a = module.Antivirus()
         res = a.run_cmd("/usr/bin/ls")
         m_Popen.assert_called_once_with(['/usr/bin/ls'],
+                                        env=None,
                                         stderr=module.PIPE,
                                         stdout=module.PIPE)
         self.assertEquals(res, (0, "stdout", "stderr"))

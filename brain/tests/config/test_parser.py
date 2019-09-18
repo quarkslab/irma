@@ -72,13 +72,6 @@ class TestConfigParser(TestCase):
         m_after_setup_task_logger.connect.\
             assert_called_once_with(module.setup_log)
 
-    def test_setup_log(self):
-        log = MagicMock()
-        loglevel = module.logging.DEBUG
-        log.level = module.logging.INFO
-        args = {'logger': log, 'loglevel': loglevel}
-        module.setup_log(**args)
-
     def test_setup_debug_logger(self):
         log = MagicMock()
         module.setup_debug_logger(log)

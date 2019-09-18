@@ -3,10 +3,8 @@
 # As the repositories are not cloned yet, we cannot get requirements.txt
 - name: "Installing dependencies with pip system-wide"
   pip:
-    name: "{{ item }}"
+    name: ['https://github.com/erocarrera/pefile/releases/download/v2017.5.26/pefile-2017.5.26.zip',
+           'python-magic']
     state: "latest"
     executable: pip3
     extra_args: "{{ pip_extra_args | default('') }}"
-  with_items:
-    - https://github.com/erocarrera/pefile/releases/download/v2017.5.26/pefile-2017.5.26.zip
-    - python-magic

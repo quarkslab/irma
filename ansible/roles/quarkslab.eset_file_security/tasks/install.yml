@@ -9,10 +9,9 @@
   when: eset_file_security_license_file is not defined
 
 - name: EsetFileSecurity | Install dependencies
-  apt: pkg={{ item }} state=present
-  with_items:
-    - ed
-    - libc6-i386
+  apt:
+    name: ['ed', 'libc6-i386']
+    state: present
 
 - name: EsetFileSecurity | Create temporary work dir
   file:

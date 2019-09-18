@@ -78,7 +78,7 @@ def register_probe(name, display_name, category, mimetype_filter):
             probe_ctrl.register(name, display_name, category,
                                 mimetype_filter, session)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise register_probe.retry(countdown=5, max_retries=3, exc=e)
 
 
@@ -95,7 +95,7 @@ def probe_list_refresh():
         with session_transaction() as session:
             probe_ctrl.refresh_probelist(session)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         return IrmaTaskReturn.error("Error getting probelist")
 
 
@@ -127,7 +127,7 @@ def mimetype_filter_scan_request(scan_request_dict):
                 scan_request.set_probelist(file, filtered_probelist)
             return IrmaTaskReturn.success(scan_request.to_dict())
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         return IrmaTaskReturn.error("Brain error")
 
 
@@ -164,7 +164,7 @@ def scan(file, probelist, frontend_scan):
                      len(probe_ctrl.available_probes),
                      len(scan.jobs))
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise
 
 
@@ -178,7 +178,7 @@ def scan_cancel(scan_id):
             res = scan_ctrl.cancel(scan, session)
             return IrmaTaskReturn.success(res)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         return IrmaTaskReturn.error("cancel error on brain")
 
 
@@ -191,7 +191,7 @@ def scan_flush(scan_id):
             scan = Scan.get_scan(scan_id, user.id, session)
             scan_ctrl.flush(scan, session)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         return
 
 
@@ -205,7 +205,7 @@ def files_flush(files, scan_id):
             log.debug("Flushing files %s", files)
             ftp_ctrl.flush(ftpuser, files)
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         return
 
 ########################

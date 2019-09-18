@@ -1,6 +1,6 @@
 ---
 
 fsecure_version: "11.10.68"
-fsecure_url: "https://download.f-secure.com/corpro/ls/current/fsls-{{ fsecure_version }}-rtm.tar.gz"
+fsecure_url: "https://download.f-secure.com/corpro/ls/ls11.10/fsls-{{ fsecure_version }}-rtm.tar.gz"
 fsecure_temp_dir: "/tmp/fsecure"
 fsecure_signatures_url: "https://download.f-secure.com/latest/fsdbupdate9.run"

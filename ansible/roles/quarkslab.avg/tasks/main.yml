@@ -6,4 +6,4 @@
   register: avg_present
 
 - include: install.yml
-  when: avg_present | failed
+  when: avg_present is failed

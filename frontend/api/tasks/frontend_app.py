@@ -83,7 +83,7 @@ def scan_launch(scan_id):
             log.info("scan %s: launched", scan_id)
             return
         except Exception as e:
-            log.exception(e)
+            log.exception(type(e).__name__ + " : " + str(e))
             if scan is not None:
                 scan.set_status(IrmaScanStatus.error)
 
@@ -105,7 +105,7 @@ def scan_launch_file_ext(file_ext_id):
             if file_ext is not None:
                 file_ext.scan.set_status(IrmaScanStatus.error_ftp_upload)
         except Exception as e:
-            log.exception(e)
+            log.exception(type(e).__name__ + " : " + str(e))
 
 
 @frontend_app.task(bind=True, acks_late=True)
@@ -117,7 +117,7 @@ def scan_result(self, file_ext_id, probe, result):
         scan_ctrl.handle_output_files(file_ext_id, result)
         scan_ctrl.set_result(file_ext_id, probe, result)
     except IrmaDatabaseError as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         raise self.retry(countdown=2, max_retries=max_retries, exc=e)
 
 
@@ -145,7 +145,7 @@ def clean_fs_age():
         log.info("removed %d files (older than %s)", nb_files, max_age_file)
         return nb_files
     except (IrmaDatabaseError, IrmaFileSystemError) as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
 
 
 @frontend_app.task()
@@ -162,7 +162,7 @@ def clean_fs_size():
         log.info("removed %d files", nb_files)
         return nb_files
     except (IrmaDatabaseError, IrmaFileSystemError) as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
 
 
 ########################

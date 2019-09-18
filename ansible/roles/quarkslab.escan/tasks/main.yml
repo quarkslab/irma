@@ -6,4 +6,4 @@
   register: escan_present
 
 - include: install.yml
-  when: escan_present | failed
+  when: escan_present is failed

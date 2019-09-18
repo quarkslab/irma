@@ -1,0 +1,7 @@
+---
+
+- name: Eicar
+  file:
+    path: /opt/Eicar_probe_activated
+    state: touch
+  become: yes

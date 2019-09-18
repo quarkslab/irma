@@ -6,4 +6,4 @@
   register: avast_present
 
 - include: install.yml
-  when: avast_present | failed
+  when: avast_present is failed

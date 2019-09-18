@@ -474,3 +474,53 @@ class TestModuleScanctrl(TestCase):
                                                            m_session)
         m_append_new_files_to_scan.assert_not_called()
         self.assertCountEqual(m_parentfile.children, [])
+
+    @patch("api.scans.services.session_query")
+    def test_generate_csv_report_as_stream(self, m_session_query):
+        m_session = MagicMock()
+        m_scan = MagicMock()
+        m_fe = MagicMock()
+
+        m_session_query().__enter__.return_value = m_session
+        m_session.merge.return_value = m_scan
+
+        m_fe.file.md5 = "md5"
+        m_fe.file.sha1 = "sha1"
+        m_fe.file.sha256 = "sha256"
+        m_fe.name = "filename"
+        m_fe.file.timestamp_first_scan = "ts_first_scan"
+        m_fe.file.timestamp_last_scan = "ts_last_scan"
+        m_fe.file.size = "size"
+        m_fe.status = "status"
+        m_fe.submitter = "submitter"
+        m_fe.get_probe_results.return_value = {
+            "antivirus": {"av1": {"status": "result_av1"}},
+            "external": {
+                "VirusTotal": {"results": "result_vt"},
+                # Ext1 should not appear in the result.
+                "Ext1": {"results": "ext1"},
+            },
+            # Metadata should not appear in the result.
+            "metadata": {"meta1": {"status": "result_meta1"}},
+        }
+
+        m_scan.date = "scan_date"
+        m_scan.ip = "IP"
+        m_scan.files_ext = [m_fe]
+
+        # list function is only used there to retrieve all the information
+        # return by the generator.
+        # In this case, the parameter is not important as the scan variable
+        # will be return by the `session.merge` function which is Mock to
+        # return `m_scan`.
+        actual = list(module.generate_csv_report_as_stream(None))
+        expected = [
+            (b"Date;MD5;SHA1;SHA256;Filename;First seen;Last seen;Size;Status;"
+             b"Submitter;Submitter's IP address;av1;VirusTotal"),
+            b"\r\n",
+            (b"scan_date;md5;sha1;sha256;filename;ts_first_scan;ts_last_scan;"
+             b"size;status;submitter;IP;result_av1;result_vt"),
+            b"\r\n",
+        ]
+
+        self.assertEqual(actual, expected)

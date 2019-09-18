@@ -55,11 +55,11 @@
     group: "{{ irma_group }}"
     mode: 0600
   with_items:
-    - src: "{{ pki_folder }}/rabbitmq/clients/frontend-client.key"
+    - src: "{{ rabbitmq_frontend_key }}"
       dest: "{{ dst_pki_folder }}/frontend-client.key"
-    - src: "{{ pki_folder }}/rabbitmq/clients/frontend-client.crt"
+    - src: "{{ rabbitmq_frontend_cert }}"
       dest: "{{ dst_pki_folder }}/frontend-client.crt"
-    - src: "{{ pki_folder }}/rabbitmq/ca/ca-chain.crt"
+    - src: "{{ rabbitmq_cacert }}"
       dest: "{{ dst_pki_folder }}/rabbitmq-ca.crt"
   when: rabbitmq_ssl
   become: yes

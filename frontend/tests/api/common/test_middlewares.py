@@ -9,13 +9,13 @@ class TestCommonMiddlewares(TestCase):
         middleware = module.DatabaseSessionManager()
         self.assertIsNone(middleware.session)
 
-    @patch("api.common.middlewares.db_session")
+    @patch("api.common.middlewares.database_session.db_session")
     def test_connect(self, m_db_session):
         middleware = module.DatabaseSessionManager()
         middleware.connect()
         self.assertEquals(middleware.session, m_db_session())
 
-    @patch("api.common.middlewares.db_session")
+    @patch("api.common.middlewares.database_session.db_session")
     def test_close(self, m_db_session):
         middleware = module.DatabaseSessionManager()
         middleware.connect()

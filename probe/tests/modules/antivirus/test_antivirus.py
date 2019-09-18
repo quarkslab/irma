@@ -51,7 +51,7 @@ class AbstractTests(object):
             res = self.plugin.scan(file)
             m_run_cmd.assert_called_with(self.plugin.scan_path,
                                          *self.scan_args,
-                                         file)
+                                         file, env=None)
             self.assertEquals(res, 0)
             self.assertIsNone(self.plugin.scan_results[file])
 
@@ -66,7 +66,7 @@ class AbstractTests(object):
             res = self.plugin.scan(file)
             m_run_cmd.assert_called_with(self.plugin.scan_path,
                                          *self.scan_args,
-                                         file)
+                                         file, env=None)
             self.assertEquals(res, 1)
             self.assertEquals(self.plugin.scan_results[file], self.virusname)
 

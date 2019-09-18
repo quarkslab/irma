@@ -1,12 +1,9 @@
 ---
 
 - name: ComodoCAVL | Install dependencies
-  apt: pkg="{{ item }}" state=present
-  with_items:
-    - binutils
-    - libqt4-sql
-    - libqt4-network
-    - libqtgui4
+  apt:
+    name: ['binutils', 'libqt4-sql', 'libqt4-network', 'libqtgui4']
+    state: present
 
 - name: ComodoCAVL | Create temporary work dir
   file:

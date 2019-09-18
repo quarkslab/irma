@@ -1,22 +1,12 @@
 ---
 
 - name: Install common needed packages for IRMA
-  apt: name={{ item }} state=present
-  with_items:
-    - vim
-    - aria2
-    - git
-    - libssl-dev
-    - python-dev
-    - python3-dev
-    - unzip
-    - make
-    - python-setuptools
-    - python3-setuptools
-    - build-essential
-    - libssl-dev
-    - libffi-dev
-    - psmisc
+  apt:
+    name: ['vim', 'aria2', 'git', 'python-dev', 'python3-dev',
+           'unzip', 'make', 'python-setuptools', 'python3-setuptools',
+           'build-essential', 'libssl-dev', 'cmake', 'libz-dev',
+           'libffi-dev', 'psmisc']
+    state: present
 
 # Install python-pip (cause the debian version is only 1.1)
 - name: Downloading script get-pip.py
@@ -27,7 +17,7 @@
 - name: Installing pip for python2
   command: python get-pip.py
   args:
-   chdir: '/tmp'
+     chdir: '/tmp'
 
 - name: Installing pip for python3
   command: python3 get-pip.py
@@ -37,8 +27,6 @@
 # Install virtualenv
 - name: Install virtualenv with pip
   pip:
-    name: "{{ item }}"
+    name: virtualenv
     state: present
     executable: pip3
-  with_items:
-    - virtualenv

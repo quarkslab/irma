@@ -6,4 +6,4 @@
   register: bitdefender_present
 
 - include: install.yml
-  when: bitdefender_present | failed
+  when: bitdefender_present is failed

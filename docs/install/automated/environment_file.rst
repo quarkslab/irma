@@ -64,7 +64,6 @@ Example of a development environment with vagrant:
               - venv/
               - web/dist
               - web/node_modules
-              - app/components
           - share_from: ../brain
             share_to: /opt/irma/irma-brain/releases/sync
             share_exclude:

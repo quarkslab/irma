@@ -1,16 +1,11 @@
-'use strict';
-
 (function () {
+  angular
+    .module('irma')
+    .controller('MaintenanceCtrl', Maintenance);
 
-  var dependencies = ['$scope', 'state'];
-  var Ctrl = function ($scope, state) {
-
-    // Initialize controller
-    for (var i = 0; i < dependencies.length; i++){ this[dependencies[i]] = arguments[i];}
-
-    // We can do things here
-  };
-
-  Ctrl.$inject = dependencies;
-  angular.module('irma').controller('MaintenanceCtrl', Ctrl);
+  function Maintenance(state) {
+    // It should be a getter/setter system instead of accessing directly to state variables.
+    // eslint-disable-next-line no-param-reassign
+    state.settings.maintenance = true;
+  }
 }());

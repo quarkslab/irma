@@ -1,41 +1,36 @@
-
-'use strict';
-
-angular
+(function () {
+  angular
     .module('irma')
     .factory('dataservice', dataservice);
 
-dataservice.$inject = ['bridge'];
-
-function dataservice(bridge) {
-    return {
-        searchFiles: searchFiles
-    };
+  function dataservice(bridge) {
+    return { searchFiles };
 
     function searchFiles(tags, type, name, offset, limit) {
-       var url = '/files?';
-    		
-    	if (tags.length > 0) {
-    		url += 'tags=';
-    	}
-    	
-		for (var i = 0; i < tags.length; i++) {
-			if(i > 0) {
-				url += ',';
-			}
-		    url += tags[i].id;
-		}
-		
-    	if (tags.length > 0) {
-    		url += '&';
-    	}
-		
-		url += type + '=' + name + '&offset=' + offset + '&limit=' + limit;
-		
-        return bridge.get({url: url}).then(searchComplete);
+      let url = '/files?';
 
-        function searchComplete(response) {
-            return response;
+      if (tags.length > 0) {
+        url += 'tags=';
+      }
+
+      for (let i = 0; i < tags.length; i += 1) {
+        if (i > 0) {
+          url += ',';
         }
+        url += tags[i].id;
+      }
+
+      if (tags.length > 0) {
+        url += '&';
+      }
+
+      url += `${type}=${name}&offset=${offset}&limit=${limit}`;
+
+      return bridge.get({ url }).then(searchComplete);
+
+      function searchComplete(response) {
+        return response;
+      }
     }
-}
+  }
+}());

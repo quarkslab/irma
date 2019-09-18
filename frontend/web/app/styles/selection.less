@@ -1,6 +1,19 @@
-
-
 .selection {
+  .flex {
+    display: flex;
+    min-height: 300px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+
+    > div {
+      flex: 1 0 50%;
+    }
+  }
+
+  .params-block {
+    margin-top: 40px;
+  }
 
   .drop-zone {
     border: 2px dashed #999999;
@@ -8,9 +21,29 @@
     border-radius: 15px;
     text-align: center;
     margin: 0px 50px;
+    cursor: pointer;
+    transition: 0.5s all ease;
+    opacity: 0.7;
+    color: #999;
+    text-align: center;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
 
-    &.hover {
-      border-color: #333;
+    &:hover, &:focus, &:active {
+      border-radius: 50px;
+      box-shadow: 0px 0px 20px 4px rgba(153, 153, 153, 0.5);
+      opacity: 1;
+    }
+
+    > span {
+      flex: 1 1 auto;
+      padding: 10px 20px;
+
+      + span {
+        border-width: 0px 0 0 2px;
+        border-style: dashed;
+      }
     }
   }
 
@@ -19,22 +52,37 @@
     margin: 10px;
   }
 
-  .placeholder {
-    padding: 40px;
+  .alert {
+    padding: 5px;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar {
+    background-color: #999;
   }
 
   .files {
-    padding-right: 65px;
     table {
+      margin-bottom: 0;
+
       tbody > tr:first-child > td {
         border: none;
       }
       tbody > tr > td:last-child {
         text-align: right;
       }
+
       .glyphicon-remove {
         color: #d9534f;
       }
+    }
+
+
+    .listing {
+      max-height: 250px;
+      overflow: auto;
+      border-radius: 5px;
+      box-shadow: 5px 5px 10px -2px rgba(153, 153, 153, 0.5);
     }
   }
 
@@ -44,12 +92,10 @@
     color: #999999;
     margin-bottom: -5px;
     cursor: pointer;
-    margin-top: 15px;
+    margin-top: 40px;
   }
 
   .settings {
-
-    width: 800px;
     background-color: #ffffff;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
@@ -109,6 +155,17 @@
       color: #fff;
       background-color: #333;
       border-color: #fff;
+    }
+  }
+}
+@media screen and (max-width: 480px) {
+  .selection {
+    .drop-zone {
+      flex-wrap: wrap;
+
+      > span + span {
+        border-width: 2px 0 0;
+      }
     }
   }
 }

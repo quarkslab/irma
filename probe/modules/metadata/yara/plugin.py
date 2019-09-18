@@ -74,7 +74,7 @@ class YaraPlugin(PluginBase):
         try:
             results = (False, self.rules.match(filename, timeout=60))
         except Exception as e:
-            results = (True, str(e))
+            results = (True, type(e).__name__ + " : " + str(e))
         finally:
             return results
 
@@ -112,5 +112,5 @@ class YaraPlugin(PluginBase):
                 results.results = {'Matches': matches}
         except Exception as e:
             results.status = self.YaraResult.ERROR
-            results.results = str(e)
+            results.results = type(e).__name__ + " : " + str(e)
         return results

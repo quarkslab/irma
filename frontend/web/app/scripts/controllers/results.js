@@ -1,28 +1,24 @@
 (function () {
-  'use strict';
-
   angular
     .module('irma')
     .controller('ResultsCtrl', Results);
 
-  Results.$inject = ['$scope', '$routeParams', 'state'];
+  function Results($routeParams, state) {
+    // Exports
+    angular.extend(this, { newScan });
 
-  function Results($scope, $routeParams, state) {
-    var vm = this;
-    vm.newScan = newScan;
-
-    activate();
-
-    function activate() {
+    // IIFE when entering the controller
+    (function run() {
       if (state.status !== 'results') {
         state.newScan($routeParams.scan);
         state.scan.getResults();
       }
-    }
+    }());
 
+    // Functions
     function newScan() {
       state.newScan();
       state.goTo('selection');
     }
   }
-}) ();
+}());

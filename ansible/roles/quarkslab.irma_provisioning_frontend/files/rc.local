@@ -25,7 +25,7 @@ cat > /etc/issue <<EOF
    WEB UI: http://$IP/
    default credentials: vagrant/vagrant
    api-documentation: http://$IP/swagger/
-   irma-documentation: http://irma.readthedocs.org
+   irma-documentation: https://irma.readthedocs.org/
 
    -----------------------------
 

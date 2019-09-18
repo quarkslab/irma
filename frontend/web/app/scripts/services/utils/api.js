@@ -1,42 +1,48 @@
 (function () {
-  'use strict';
-
   angular
     .module('irma')
     .service('api', API);
 
-  API.$inject = ['$q', 'bridge'];
-
   function API($q, bridge) {
-    var service = this;
-    service.ping = ping;
-    service.getProbes = getProbes;
-    service.scan = {
-        createNew: createNew,
-        getAddUrl: getAddUrl,
-        launch: launch,
-        cancel: cancel,
-        getInfos: getInfos,
-        getResults: getResults,
-    };
-    service.tag = {
-    		addTag: addTag,
-    		removeTag: removeTag,
-	};
+    const service = this;
 
-    function ping() { return bridge.get({url: '/probes', noAlerts: true}); }
-    function getProbes() { return bridge.get({url: '/probes'}); }
+    angular.extend(service, {
+      ping,
+      getProbes,
+      scan: {
+        launch,
+        cancel,
+        getInfos,
+        getResults,
+      },
+      files: {
+        upload,
+        details,
+      },
+      tag: {
+        list,
+        addTag,
+        removeTag,
+      },
+    });
+
+    function ping() { return bridge.get({ url: '/about', noAlerts: true }); }
+    function getProbes() { return bridge.get({ url: '/probes' }); }
 
     // Scan functions
-    function createNew() { return bridge.post({url: '/scans'}); }
-    function getAddUrl(scan) {  return bridge.rootUrl + '/scans/' + scan.id + '/files'; }
-    function launch(scan, params) { return bridge.post({url: '/scans/' + scan.id + '/launch', payload: params}); }
-    function cancel(scan, params) { return bridge.post({url: '/scans/' + scan.id + '/cancel', payload: params}); }
-    function getInfos(scan) { return bridge.get({url: '/scans/' + scan.id }); }
-    function getResults(scan) { return bridge.get({url: '/scans/' + scan.id + '/results'}); }
-    
+    function launch(params) { return bridge.post({ url: '/scans', payload: params }); }
+    function cancel(scan, params) { return bridge.post({ url: `/scans/${scan.id}/cancel`, payload: params }); }
+    function getInfos(scan) { return bridge.get({ url: `/scans/${scan.id}` }); }
+    function getResults(scan) { return bridge.get({ url: `/scans/${scan.id}/results` }); }
+
+    // Files functions
+    function upload(playload) { return bridge.post({ url: '/files_ext', playload }); }
+    function details(id) { return bridge.get({ url: `/files_ext/${id}` }); }
+
+
     // Tag functions
-    function addTag(sha256, tagid) { return bridge.get({url: '/files/' + sha256 + '/tags/' + tagid + '/add'}); }
-    function removeTag(sha256, tagid) { return bridge.get({url: '/files/' + sha256 + '/tags/' + tagid + '/remove'}); }
+    function list() { return bridge.get({ url: '/tags' }); }
+    function addTag(sha256, tagid) { return bridge.get({ url: `/files/${sha256}/tags/${tagid}/add` }); }
+    function removeTag(sha256, tagid) { return bridge.get({ url: `/files/${sha256}/tags/${tagid}/remove` }); }
   }
-}) ();
+}());

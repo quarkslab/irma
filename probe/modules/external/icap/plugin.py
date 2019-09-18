@@ -149,5 +149,5 @@ class ICAPPlugin(PluginBase):
                 results.results = response
         except Exception as e:
             results.status = self.ICAPResult.ERROR
-            results.error = str(e)
+            results.error = type(e).__name__ + " : " + str(e)
         return results

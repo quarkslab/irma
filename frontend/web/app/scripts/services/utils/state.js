@@ -1,271 +1,131 @@
 (function () {
-  'use strict';
-
   angular
     .module('irma')
     .service('state', State);
 
-  State.$inject = ['$q', '$rootScope', '$route', '$location', '$timeout', '$log', 'alerts', 'api', 'constants', 'scanModel'];
-
-  function State($q, $rootScope, $route, $location, $timeout, $log, alerts, api, constants, Scan) {
-    var vm = this;
-    // Controller Functions definitions
-    vm.goTo = goTo;
-    vm.getLaunchParams = getLaunchParams;
-    vm.newScan = newScan;
-    vm.nbFiles = nbFiles;
-    vm.loadProbes = loadProbes;
-    vm.noActiveProbes = noActiveProbes;
-    vm.probesForScan = probesForScan;
-    vm.checkForMaintenance = checkForMaintenance;
-    vm.pingApi = pingApi;
-    vm.noPingApi = noPingApi;
-    vm.updateTitle = updateTitle;
+  function State(
+    $q, $rootScope, $route, $location, $timeout, $log,
+    api, constants, UploadModel, ScanModel,
+  ) {
+    // Exports
+    const service = this;
+    angular.extend(service, {
+      // Variables
+      uploader: undefined,
+      scan: undefined,
+      location: undefined,
+      status: undefined,
+      lastAction: undefined,
+      domain: `${$location.protocol()}://${$location.host()}`,
+      title: 'IRMA',
+      probes: [],
+      settings: {
+        force: true,
+        loading: true,
+        maintenance: false,
+      },
+      // Functions
+      goTo,
+      newUploader,
+      newScan,
+      noActiveProbes,
+      updateTitle,
+    });
     // Controller variables definitions
-    vm.scan = undefined;
-    vm.location = undefined;
-    vm.status = undefined;
-    vm.lastAction = undefined;
-    vm.domain = $location.protocol() + "://" + $location.host();
-    vm.title;
-    vm.probes = [];
-    vm.settings = {
-      force: true,
-      maintenance: true,
-      loading: true
-    };
 
-    // Init function
-    activate();
+    // IIFE when entering the service
+    (function run() {
+      angular.extend($rootScope, { state: service });
 
-    function activate() {
-      $rootScope.state = vm;
-      vm.loadProbes();
-    }
+      api
+        .ping()
+        .then(() => { loadProbes(); })
+        .catch(() => { $rootScope.$broadcast('maintenance'); })
+        .finally(() => { service.settings.loading = false; });
+    }());
 
     // Switch to a new location
     function goTo(path, tail) {
-      vm.status = path;
-      $location.path('/' + path + ((tail) ? '/' + tail : ''));
+      service.status = path;
+      $location.path(`/${path}${(tail) ? `/${tail}` : ''}`);
     }
 
-    // Returns the launch params
-    function getLaunchParams() {
-      var params = {};
-
-      if(vm.settings.force) {
-        params.force = true;
-      }
-
-      if(!!_.find(vm.probes, {active: false})) {
-        params.probes = _.pluck(_.filter(vm.probes, {active: true}), 'name').join(',');
-      }
-
-      return params;
+    // Creates new Uploader
+    function newUploader() {
+      service.uploader = new UploadModel();
     }
 
     // Creates new scan
     function newScan(id) {
-      vm.scan = new Scan(id);
-      vm.scan.setState(vm);
-    }
-
-    // Retrieves the number of files
-    function nbFiles() {
-      if(!vm.scan){
-        return 0;
-      } else if(!vm.scan.results){
-        return vm.scan.uploader.queue.length;
-      } else {
-        return _.size(vm.scan.results);
-      }
+      service.scan = new ScanModel(id);
     }
 
     function loadProbes() {
-      return api.getProbes().then(function(response) {
-
-        if(response.total > 0) {
-          _.forEach(response.data, function(probe) {
-            vm.probes.push({
+      return api.getProbes().then((response) => {
+        if (response.total > 0) {
+          _.forEach(response.data, (probe) => {
+            service.probes.push({
               name: probe,
               active: true,
               tag: 'Gentille',
-              version: 'No version information available'
+              version: 'No version information available',
             });
           });
         } else {
           $rootScope.$broadcast('maintenance');
         }
-      }, function() {
+      }, () => {
         $rootScope.$broadcast('maintenance');
       });
     }
 
     function noActiveProbes() {
-      return !_.find(vm.probes, 'active');
-    }
-
-    function probesForScan(scan) {
-      if(!scan.probes){
-        $log.info('No probes');
-      } else {
-        return scan.probes;
-      }
-    }
-
-    /*
-     *  Maintenance check
-     */
-    function checkForMaintenance() {
-      return api.ping().then(function() {
-        vm.settings.maintenance = false;
-        vm.settings.loading = false;
-      }, function() {
-        vm.settings.loading = false;
-      });
-    }
-
-    function pingApi() {
-      var deferred = $q.defer();
-
-      if(!vm.settings.maintenance) {
-        // The status was already checked, maintenance mode is OFF
-        deferred.resolve();
-      } else {
-        // Checking API status
-        vm.checkForMaintenance().then(function() {
-          // Successfully pinged the API
-          deferred.resolve();
-        }, function() {
-          // Switching to maintenance mode
-          deferred.reject();
-          vm.goTo('maintenance');
-        });
-      }
-
-      return deferred.promise;
-    }
-
-    function noPingApi() {
-      var deferred = $q.defer();
-
-      if(!vm.settings.maintenance){
-        // The status was already checked, maintenance mode is OFF
-        deferred.reject();
-        vm.goTo('selection');
-      } else if(vm.settings.maintenance && !vm.settings.loading) {
-        deferred.resolve();
-      } else {
-        // Checking API status
-        vm.checkForMaintenance().then(function() {
-          // Successfully pinged the API
-          deferred.reject();
-          vm.goTo('selection');
-        }, function() {
-          // Switching to maintenance mode
-          deferred.resolve();
-        });
-      }
-
-      return deferred.promise;
+      return !_.find(service.probes, 'active');
     }
 
     function updateTitle() {
-      vm.title = (vm.location)? 'IRMA | '+vm.location[0].toUpperCase() + vm.location.slice(1): 'IRMA';
+      service.title = (service.location) ? `IRMA | ${service.location[0].toUpperCase()}${service.location.slice(1)}` : 'IRMA';
     }
 
     /**
-     * Route events
+     * Private methods
      */
-    $rootScope.$on('$routeChangeStart', function(event, newOne, oldOne) {
-      alerts.removeAll();
-      $log.debug('route change started from ' + oldOne.originalPath + ' to ' + newOne.originalPath);
-    });
 
-    $rootScope.$on('$routeChangeSuccess', function(event, newOne) {
-      $log.debug('route change success to '+ newOne.originalPath);
-      vm.location = newOne.location;
-      vm.updateTitle();
-    });
+    // Returns the launch params
+    function getLaunchParams() {
+      const params = {
+        force: service.settings.force,
+        probes: [],
+      };
 
-    $rootScope.$on('$routeChangeError', function(event, newOne) {
-      $log.debug('route change error to ' + newOne.originalPath);
-    });
+      service.probes.forEach((probe) => {
+        if (probe.active) {
+          params.probes.push(probe.name);
+        }
+      });
 
-    /*
-     * Upload events
-     */
-    $rootScope.$on('startUpload', function() {
-      $log.debug('Start upload');
-
-      alerts.add({standard: 'uploadStart'});
-      vm.scan.startUpload();
-      vm.goTo('upload');
-    });
-
-    $rootScope.$on('cancelUpload', function() {
-      $log.debug('Cancel upload');
-
-      alerts.add({standard: 'uploadCancel'});
-      vm.goTo('selection');
-      vm.scan.cancelUpload();
-    });
-
-    $rootScope.$on('successUpload', function() {
-      $log.info('Upload was successful');
-
-      if(vm.lastAction === 'startUpload'){
-        alerts.add({standard: 'uploadSuccess'});
-        $rootScope.$broadcast('startScan');
-      }
-    });
-
-    $rootScope.$on('errorUpload', function(event, msg) {
-      $log.info('Upload encountered an error');
-      vm.goTo('selection');
-      alerts.add({standard: 'apiErrorWithMsg', apiMsg: msg});
-    });
+      return params;
+    }
 
     /*
      * Scan events
      */
-    $rootScope.$on('startScan', function() {
-      $timeout(function(){
-        if(vm.lastAction === 'startUpload') {
-          alerts.add({standard: 'scanStart'});
-          vm.scan.startScan();
-          vm.goTo('scan', vm.scan.id);
-        } else {
-          $rootScope.$broadcast('cancelScan');
-        }
-      }, constants.speed);
+    $rootScope.$on('startScan', () => {
+      newScan();
+      service.scan.launch({
+        files: service.uploader.extractFilesExtId(),
+        options: getLaunchParams(),
+      }).then(() => {
+        service.goTo('scan', service.scan.id);
+      });
     });
 
-    $rootScope.$on('cancelScan', function() {
-      alerts.add({standard: 'scanCancel'});
-      vm.goTo('selection');
-      vm.scan.cancelScan();
+    $rootScope.$on('cancelScan', () => {
+      service.goTo('selection');
+      service.scan.cancelScan();
     });
 
-    $rootScope.$on('successScan', function() {
-      alerts.add({standard: 'scanSuccess'});
-    });
-
-    $rootScope.$on('errorScan', function() {
-      $log.info('Error during scan…');
-    });
-
-    $rootScope.$on('newScan', function() {
-      $log.info('New scan launched');
-    });
-
-    $rootScope.$on('errorResults', function(event, data) {
-      vm.goTo('selection');
-    });
-
-    $rootScope.$on('maintenance', function(){
-      vm.settings.maintenance = true;
-      vm.goTo('maintenance');
-    });
+    $rootScope.$on('errorScan', () => { $log.info('Error during scan!'); });
+    $rootScope.$on('errorResults', () => { service.goTo('selection'); });
   }
-}) ();
+}());

@@ -1,3 +1,43 @@
+2.4.12 (release 18/09/2019)
+==========================
+    * [all] Fix python dependencies
+    * [all] Support python3 for packaging
+    * [ansible] Add frontend DNS in PKI
+    * [ansible] Fix dependency issue with latest ssh2-python
+    * [ansible] Fix irma-ansible verbose option support
+    * [ansible] Fix PostgreSQL SSL deployment
+    * [ansible] Fix problem with rabbitmq
+    * [ansible] Fix Webui dependency
+    * [ansible] Support external PKI
+    * [ansible]: update Comodo URL
+    * [ansible] Update dependency to 2.7.2
+    * [ci] update gitlab ci
+    * [docs] Fix /etc/issue message
+    * [docs] Fix pdf build
+    * [fix] Explicit non-explicit exception's log
+    * [fix] Fix parameters order in HTTPInvalidParam
+    * [fix] Fix symantec win probe
+    * [fix] Offline mode when installing PIP packages on Windows
+    * [frontend] add fields in CSV report (MD5, SHA1, Submitter, VT results)
+    * [frontend] Add functional tests for IRMA Search pages
+    * [frontend] Add probes sorting in ui and api
+    * [frontend] Allow empty submitter_id
+    * [frontend] Improve WebUI generation using Babel and simplifying Gulp tasks
+    * [frontend] Integrate falcon-multipart middleware
+    * [frontend] Modification upload message
+    * [frontend] new API plugin Scan Retrieval Code
+    * [frontend] Update manual doc nginx templates
+    * [frontend] Update marshmallow to 2.16.3
+    * [frontend] Update project dependencies (Python and Javascript)
+    * [probe] add fake EICAR probe for dev purpose
+    * [probe] add Fsecure riskware to suspicious files
+    * [probe] Fix VirusBlokAda
+    * [UI] Enable custom logo settings
+    * [UI] remove external dependencies
+    * [UI] Update API to v2 (new files upload mechanism)
+    * [UI] update doc theme, favicon
+    * [UI] update nodejs
+
 2.2.2 (release 13/06/2018)
 ==========================
     * [frontend] Add /scan/quick api endpoint

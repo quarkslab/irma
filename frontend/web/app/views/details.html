@@ -20,8 +20,8 @@
         <div class="t-line">
           <div
              ng-repeat="res in vm.results.other_results"
-             class="t-marker {{ (vm.results.result_id === res.external_id) ? 'active' : '' }} {{ (res.status === 1) ? 't-danger' : 't-ok' }}"
-             ng-click="vm.goTo('results/' + res.external_id)"
+             class="t-marker {{ (vm.results.result_id === res.result_id) ? 'active' : '' }} {{ (res.status === 1) ? 't-danger' : 't-ok' }}"
+             ng-click="vm.goTo('results/' + res.result_id)"
              data-toggle="tooltip"
              title="{{ res.scan_date | amDateFormat:'lll' }}"
              style="left: {{ vm.timeline.getMarkerLeftShiftPercentage(res.scan_date) }}%;">
@@ -56,42 +56,42 @@
         <tbody>
           <tr>
             <th>Filename</th>
-            <td>{{vm.results.name}}</td>
+            <td>{{ vm.results.name }}</td>
           </tr>
           <tr>
             <th>Size (bytes)</th>
-            <td>{{vm.results.file_infos.size}}</td>
+            <td>{{ vm.results.file_infos.size }}</td>
           </tr>
           <tr>
             <th>Mimetype</th>
-            <td>{{vm.results.file_infos.mimetype}}</td>
+            <td>{{ vm.results.file_infos.mimetype }}</td>
           </tr>
           <tr>
             <th>MD5</th>
-            <td>{{vm.results.file_infos.md5}}</td>
+            <td>{{ vm.results.file_infos.md5 }}</td>
           </tr>
           <tr>
             <th>SHA1</th>
-            <td>{{vm.results.file_infos.sha1}}</td>
+            <td>{{ vm.results.file_infos.sha1 }}</td>
           </tr>
           <tr>
             <th>SHA256</th>
-            <td>{{vm.results.file_infos.sha256}}</td>
+            <td>{{ vm.results.file_infos.sha256 }}</td>
           </tr>
           <tr>
             <th>First Scan</th>
-            <td>{{vm.results.file_infos.timestamp_first_scan | amDateFormat:'lll'}}</td>
+            <td>{{ vm.results.file_infos.timestamp_first_scan | amDateFormat:'lll' }}</td>
           </tr>
           <tr>
             <th>Last Scan</th>
-            <td>{{vm.results.file_infos.timestamp_last_scan | amDateFormat:'lll'}}</td>
+            <td>{{ vm.results.file_infos.timestamp_last_scan | amDateFormat:'lll' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="result-section">
-      <div ng-show="probesAntivirus.length">
+      <div ng-show="probesAntivirus">
           <h2 id="antivirus">Antivirus</h2>
           <table class="table table-bordered">
             <thead>
@@ -104,29 +104,29 @@
               </tr>
             </thead>
             <tbody>
-              <tr ng-repeat="output in probesAntivirus = (vm.results.probe_results | filter:{type:'antivirus'})" ng-class="(output.status == 0) ? 'success' : (output.status == 1) ? 'danger' : 'warning' ">
-                <th>{{output.name}}</th>
-                <td ng-if="output.status == 1">{{output.results}}</td>
-                <td ng-if="output.status == 0"></td>
-                <td ng-if="output.status == -1"><i style="text-align: center;" class="glyphicon glyphicon-exclamation-sign" title="Antivirus scan ended up in an error state :("></i></td>
-                <td>{{output.version}}</td>
-                <td>{{output.virus_database_version || ''}}</td>
-                <td>{{output.duration}}</td>
+              <tr ng-repeat="(name, probe) in probesAntivirus = vm.results.probe_results.antivirus" ng-class="(probe.status == 0) ? 'success' : (probe.status == 1) ? 'danger' : 'warning' ">
+                <th>{{ name }}</th>
+                <td ng-if="probe.status == 1">{{ probe.results }}</td>
+                <td ng-if="probe.status == 0"></td>
+                <td ng-if="probe.status == -1"><i style="text-align: center;" class="glyphicon glyphicon-exclamation-sign" title="Antivirus scan ended up in an error state :("></i></td>
+                <td>{{ probe.version }}</td>
+                <td>{{ probe.virus_database_version || '' }}</td>
+                <td>{{ probe.duration }}</td>
               </tr>
             </tbody>
           </table>
       </div>
 
-      <div ng-show="probesMetadata.length">
+      <div ng-show="probesMetadata">
           <h2 id="metadata">Metadata</h2>
-          <h3 ng-repeat-start="output in probesMetadata = (vm.results.probe_results | filter:{type:'metadata'})" id="{{output.name | lowercase}}">{{output.name}} <small>{{output.version}}</small></h3>
-          <h5>Responded in {{output.duration}} s</h5>
+          <h3 ng-repeat-start="(name, probe) in probesMetadata = vm.results.probe_results.metadata" id="{{ name | lowercase }}">{{ name }} <small>{{ probe.version }}</small></h3>
+          <h5>Responded in {{ probe.duration }} s</h5>
 
-          <div ng-switch on="output.status" ng-repeat-end>
+          <div ng-switch on="probe.status" ng-repeat-end>
             <div ng-switch-when="1">
-               <div ng-switch on="output.name">
-                  <pre ng-switch-when="PE Static Analyzer"><json-formatter json="output.results" open="1"></json-formatter></pre>
-                  <pre ng-switch-when="LIEF"><json-formatter json="output.results" open="1"></json-formatter></pre>
+               <div ng-switch on="name">
+                  <pre ng-switch-when="PE Static Analyzer"><json-formatter json="probe.results" open="1"></json-formatter></pre>
+                  <pre ng-switch-when="LIEF"><json-formatter json="probe.results" open="1"></json-formatter></pre>
                   <table class="table table-bordered" ng-switch-when="TrID File Identifier">
                     <thead>
                       <tr>
@@ -136,64 +136,64 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr ng-repeat="(id, output) in output.results">
-                        <td>{{output.desc}}</td>
-                        <td>{{output.ext}}</td>
-                        <td>{{output.ratio}}</td>
+                      <tr ng-repeat="(id, output) in probe.results">
+                        <td>{{ output.desc }}</td>
+                        <td>{{ output.ext }}</td>
+                        <td>{{ output.ratio }}</td>
                       </tr>
                     </tbody>
                   </table>
-                  <pre ng-switch-default>{{output.results}}</pre>
+                  <pre ng-switch-default>{{ probe.results }}</pre>
                </div>
             </div>
 
             <div ng-switch-when="0" class="bs-callout bs-callout-warning">
               <h4>Warning:</h4>
-              <samp>"{{output.results}}"</samp>
+              <samp>"{{ probe.results }}"</samp>
             </div>
 
             <div ng-switch-when="-1" class="bs-callout bs-callout-danger">
               <h4>Error:</h4>
-              <samp>"{{output.error}}"</samp>
+              <samp>"{{ probe.error }}"</samp>
             </div>
           </div>
       </div>
 
 
-      <div ng-show="probesExternal.length">
+      <div ng-show="probesExternal">
           <h2 id="external">External</h2>
-          <h3 ng-repeat-start="output in probesExternal = (vm.results.probe_results | filter:{type:'external'})" id="{{output.name | lowercase}}">{{output.name}} <small>{{output.version}}</small></h3>
-          <h5>Responded in {{output.duration}} s</h5>
-          <h5 ng-show="output.external_url">Full result is available <a href="{{output.external_url}}">here <span class="glyphicon glyphicon-new-window"></span></a>.</h5>
+          <h3 ng-repeat-start="(name, probe) in probesExternal = vm.results.probe_results.external" id="{{ name | lowercase }}">{{ name }} <small>{{ probe.version }}</small></h3>
+          <h5>Responded in {{ probe.duration }} s</h5>
+          <h5 ng-show="probe.external_url">Full result is available <a href="{{ probe.external_url }}">here <span class="glyphicon glyphicon-new-window"></span></a>.</h5>
 
-          <div ng-switch on="output.status" ng-repeat-end>
-            <pre ng-switch-when="1">{{output.results}}</pre>
+          <div ng-switch on="probe.status" ng-repeat-end>
+            <pre ng-switch-when="1">{{ probe.results }}</pre>
 
             <div ng-switch-when="0" class="bs-callout bs-callout-warning">
               <h4>Warning:</h4>
-              <samp>"{{output.results}}"</samp>
+              <samp>"{{ probe.results }}"</samp>
             </div>
 
             <div ng-switch-when="-1" class="bs-callout bs-callout-danger">
               <h4>Error:</h4>
-              <samp>"{{output.error}}"</samp>
+              <samp>"{{ probe.error }}"</samp>
             </div>
           </div>
       </div>
 
 
-      <div ng-show="probesDatabase.length">
+      <div ng-show="probesDatabase">
           <h2 id="database">Database</h2>
-          <h3 ng-repeat-start="output in probesDatabase = (vm.results.probe_results | filter:{type:'database'})" id="{{output.name | lowercase}}">{{output.name}} <small>{{output.version}}</small></h3>
-          <h5>Responded in {{output.duration}} s</h5>
+          <h3 ng-repeat-start="(name, probe) in probesDatabase = vm.results.probe_results.database" id="{{ name | lowercase }}">{{ name }} <small>{{ probe.version }}</small></h3>
+          <h5>Responded in {{ probe.duration }} s</h5>
 
-          <div ng-switch on="output.status" ng-repeat-end>
+          <div ng-switch on="probe.status" ng-repeat-end>
             <div ng-switch-when="-1" class="bs-callout bs-callout-danger">
               <h4>Error:</h4>
-              <samp>"{{output.error}}"</samp>
+              <samp>"{{ probe.error }}"</samp>
             </div>
 
-            <pre ng-switch-default>{{output.results}}</pre>
+            <pre ng-switch-default>{{ probe.results }}</pre>
           </div>
       </div>
     </div>
@@ -204,31 +204,37 @@
       <ul class="nav" bs-scrollspy-list>
         <li><a href="#file-informations">File informations</a></li>
 
-        <li ng-show="probesAntivirus.length">
+        <li ng-show="probesAntivirus">
           <a href="#antivirus">Antivirus</a>
           <ul class="nav">
-            <li ng-repeat="output in probesAntivirus">{{output.name}}</li>
+            <li ng-repeat="(name, probe) in probesAntivirus">{{ name }}</li>
           </ul>
         </li>
 
-        <li ng-show="probesMetadata.length">
+        <li ng-show="probesMetadata">
           <a href="#metadata">Metadata</a>
           <ul class="nav">
-            <li ng-repeat="output in probesMetadata"><a href="#{{output.name | lowercase}}">{{output.name}}</a></li>
+            <li ng-repeat="(name, probe) in probesMetadata">
+              <a href="#{{ name | lowercase }}">{{ name }}</a>
+            </li>
           </ul>
         </li>
 
-        <li ng-show="probesExternal.length">
+        <li ng-show="probesExternal">
           <a href="#external">External</a>
           <ul class="nav">
-            <li ng-repeat="output in probesExternal"><a href="#{{output.name | lowercase}}">{{output.name}}</a></li>
+            <li ng-repeat="(name, probe) in probesExternal">
+              <a href="#{{ name | lowercase }}">{{ name }}</a>
+            </li>
           </ul>
         </li>
 
-        <li ng-show="probesDatabase.length">
+        <li ng-show="probesDatabase">
           <a href="#database">Database</a>
           <ul class="nav">
-            <li ng-repeat="output in probesDatabase"><a href="#{{output.name | lowercase}}">{{output.name}}</a></li>
+            <li ng-repeat="(name, probe) in probesDatabase">
+              <a href="#{{ name | lowercase }}">{{ name }}</a>
+            </li>
           </ul>
         </li>
       </ul>

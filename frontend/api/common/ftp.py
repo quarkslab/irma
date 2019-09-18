@@ -48,7 +48,7 @@ def upload_file(upload_path, file_path):
             ftp.upload_file(upload_path, file_path)
         return
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         reason = "Ftp upload Error"
         raise IrmaFtpError(reason)
 
@@ -61,7 +61,7 @@ def download_file_data(filename):
             ftp.download_fobj(".", filename, fobj)
         return fobj
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         reason = "Ftp download Error"
         raise IrmaFtpError(reason)
 
@@ -74,6 +74,6 @@ def rename_file(srcname, dstname):
             ftp.rename(srcname, dstname)
         return
     except Exception as e:
-        log.exception(e)
+        log.exception(type(e).__name__ + " : " + str(e))
         reason = "Ftp upload Error"
         raise IrmaFtpError(reason)

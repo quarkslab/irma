@@ -15,7 +15,6 @@ servers:
           - venv/
           - web/dist
           - web/node_modules
-          - app/components
       - share_from: ../common
         share_to: /opt/irma/irma-common/releases/sync
         share_exclude:
@@ -41,7 +40,7 @@ servers:
           - venv/
   - name: avs-linux.irma
     ip: 172.16.1.32
-    ansible_groups: [comodo, trid]
+    ansible_groups: [eicar, trid]
     box: quarkslab/debian-9.0.0-amd64
     cpus: 2
     memory: 2048

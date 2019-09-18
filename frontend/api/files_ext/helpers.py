@@ -15,9 +15,9 @@ file_ext_schemas = {
 }
 
 
-def get_file_ext_schemas(submitter):
+def get_file_ext_schemas(submitter, **kwargs):
     schema = file_ext_schemas[submitter]
-    return schema()
+    return schema(**kwargs)
 
 
 def new_file_ext(submitter, file, filename, payload):

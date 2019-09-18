@@ -2,12 +2,11 @@
 *.pyc
 
 # for web
-web/node_modules
-web/app/components
-web/dist
+frontend/web/node_modules
+frontend/web/dist
+frontend/web/app/styles/main.css
 web/.sass-cache/
 web/.tmp/
-web/app/bower_components/
 
 # other
 .idea/
@@ -28,17 +27,20 @@ probe/tests/results/
 */coverage.xml
 */nosetests.xml
 
+# for docs
+docs/_build
+
 # configuration
 frontend/config/*.ini
 brain/config/*.ini
 probe/config/*.ini
 
-#ssl certificate
+# ssl certificate
 frontend/ssl/*.pem
 brain/ssl/*.pem
 probe/ssl/*.pem
 
-# ansible 
+# ansible
 ansible/.vagrant/
 ansible/hosts/*
 ansible/vagrant_ansible_inventory_default
@@ -66,3 +68,9 @@ ansible/group_vars/brain
 ansible/group_vars/frontend
 ansible/group_vars/probe
 
+# For packaging
+MANIFEST
+MANIFEST.in
+
+# OSX files
+.DS_STORE

@@ -5,3 +5,12 @@
     src: "{{ core_webui_archive }}"
     dest: "{{ frontend_deployment_dir }}/web/"
 
+- name: Customize IRMA Webui logo
+  copy:
+    src: "{{ frontend_custom_logo }}"
+    dest: "{{ frontend_deployment_dir }}/web/dist/resources/logo.jpg"
+    owner: "{{ irma_user }}"
+    group: "{{ irma_group }}"
+    mode: 0644
+  when: frontend_custom_logo is defined
+  become: yes

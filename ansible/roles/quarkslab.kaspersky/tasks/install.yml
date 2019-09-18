@@ -6,11 +6,9 @@
 
 - name: Kaspersky | Install dependencies
   apt:
-    name: "{{ item }}"
+    name: libc6-i386
     state: latest
   become: yes
-  with_items:
-    - libc6-i386
 
 - name: Kaspersky | Create temporary work dir
   file:

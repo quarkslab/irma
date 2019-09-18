@@ -139,5 +139,5 @@ class NSRLPlugin(PluginBase):
             results.results = response
         except Exception as e:
             results.status = self.NSRLPluginResult.ERROR
-            results.error = str(e)
+            results.error = type(e).__name__ + " : " + str(e)
         return results

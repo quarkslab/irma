@@ -70,5 +70,5 @@ class DummyPlugin(PluginBase):
             response.status = self.DummyResult.SUCCESS
         except Exception as e:
             response.status = self.DummyResult.ERROR
-            response.results = str(e)
+            response.results = type(e).__name__ + " : " + str(e)
         return response

@@ -6,6 +6,6 @@
   register: drweb_present
 
 - include: install.yml
-  when: drweb_present | failed
+  when: drweb_present is failed
 
 - include: configuration.yml

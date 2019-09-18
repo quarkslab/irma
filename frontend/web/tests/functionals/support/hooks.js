@@ -3,7 +3,9 @@
 /* eslint func-names: "off" */
 
 const puppeteer = require('puppeteer');
-const { After, AfterAll, Before, BeforeAll, setDefaultTimeout, Status } = require('cucumber');
+const {
+  After, AfterAll, Before, BeforeAll, setDefaultTimeout, Status,
+} = require('cucumber');
 
 const SLOW_MOTION_DELAY = 0; // Slows down Puppeteer operations (in milliseconds)
 const HEADLESS = true; // Toggle this value if you want Puppeteer to launch a real browser

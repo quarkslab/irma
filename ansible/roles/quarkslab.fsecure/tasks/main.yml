@@ -7,5 +7,4 @@
   register: fsecure_present
 
 - include: install.yml
-  when: fsecure_present | failed
-
+  when: fsecure_present is failed

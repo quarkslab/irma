@@ -4,4 +4,5 @@ trid_install_dir: "/opt/trid"
 trid_temp_dir: "/tmp/trid"
 
 trid_zip_url: "http://mark0.net/download/trid_linux.zip"
+# If updating that, modify create_cache.py (from release repo)
 tridupdate_zip_url: "http://mark0.net/download/tridupdate.zip"

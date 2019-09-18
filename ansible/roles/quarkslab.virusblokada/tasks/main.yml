@@ -1,4 +1,3 @@
-
 ---
 
 - name: VBA32 | Check version
@@ -9,5 +8,4 @@
   register: virusblokada_present
 
 - include: install.yml
-  when: virusblokada_present | failed
-
+  when: virusblokada_present is failed

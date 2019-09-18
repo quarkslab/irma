@@ -279,5 +279,19 @@ class File(Base):
             session.add(file)
             session.commit()
             return file
-        except IntegrityError:
+        except IntegrityError as e:
+            try:
+                session.rollback()
+                file = File.load_from_sha256(sha256, session)
+                log.debug("Integrity error but load "
+                          "successful for file.%s", sha256)
+                return file
+            except NoResultFound:
+                log.debug("Integrity error load failed for file.%s", sha256)
+                pass
+            log.error(
+                "Database integrity error: refuse to insert file.%s. %s",
+                sha256,
+                e,
+            )
             raise IrmaDatabaseError("Integrity error")
