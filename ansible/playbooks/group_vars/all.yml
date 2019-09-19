@@ -59,7 +59,7 @@ monitoring: False
 
 
 # Update requirements.txt when changing Ansible required version
-required_ansible_version: 2.7.2
+required_ansible_version: 2.7.12
 
 default_ssh_keys:
   - "{{ lookup('file', '{{ provisioning_ssh_key }}') }}"   # Vagrant
