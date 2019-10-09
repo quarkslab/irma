@@ -1,3 +1,7 @@
+2.4.13 (release 09/10/2019)
+==========================
+    * [fix] update dependencies
+
 2.4.12 (release 18/09/2019)
 ==========================
     * [all] Fix python dependencies
@@ -276,5 +280,3 @@
         * NSRL
         * Virustotal API
         * PE static analyzer
-
-
