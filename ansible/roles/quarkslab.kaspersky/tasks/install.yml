@@ -1,15 +1,5 @@
 ---
 
-- name: Kaspersky | Adding i386 repositories
-  command: dpkg --add-architecture i386
-  become: yes
-
-- name: Kaspersky | Install dependencies
-  apt:
-    name: libc6-i386
-    state: latest
-  become: yes
-
 - name: Kaspersky | Create temporary work dir
   file:
     path: "{{kaspersky_tmp_dir}}"
@@ -24,12 +14,6 @@
 - name: Kaspersky | Run installer
   apt:
     deb: "{{kaspersky_tmp_dir}}/kaspersky.deb"
-  become: yes
-
-- name: Kaspersky | Changing permision of kav4fs-control
-  file:
-    dest: "{{kaspersky_bin}}"
-    mode: a+s
   become: yes
 
 - name: Kaspersky | Remove temporary work dir
