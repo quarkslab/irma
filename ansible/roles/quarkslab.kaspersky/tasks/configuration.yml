@@ -22,10 +22,6 @@
     src: "{{kaspersky_license_file}}"
     dest: "{{kaspersky_etc_dir}}/license.key"
 
-- name: Kaspersky| Installing license key
-  command: "{{kaspersky_bin}} --install-active-key {{kaspersky_etc_dir}}/license.key"
-  become: yes
-
 - name: Kaspersky| Configuration
-  command: "{{kaspersky_setup}} --auto-install {{kaspersky_etc_dir}}/conf.txt"
+  command: "{{kaspersky_setup}} --autoinstall {{kaspersky_etc_dir}}/conf.txt"
   become: yes
