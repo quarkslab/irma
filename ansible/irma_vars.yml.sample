@@ -82,7 +82,7 @@ sophos_update_password:
 # Eset File Security
 eset_file_security_user:
 eset_file_security_pwd:
-eset_file_security_licence_file:
+eset_file_security_license_file:
 
 ###########################
 #
