@@ -1,7 +1,7 @@
 ---
 
-kaspersky_url: "https://products.s.kaspersky-labs.com/multilanguage/file_servers/kavlinuxserver8.0/kav4fs_8.0.4-312_i386.deb"
+kaspersky_url: "https://products.s.kaspersky-labs.com/endpoints/keslinux10/10.1.1.6421/multilanguage-10.1.1.6421/babce9ef/kesl_10.1.1-6421_amd64.deb"
 kaspersky_tmp_dir: "/tmp/kaspersky"
 kaspersky_etc_dir: "/etc/kaspersky"
-kaspersky_bin: "/opt/kaspersky/kav4fs/bin/kav4fs-control"
-kaspersky_setup: "/opt/kaspersky/kav4fs/bin/kav4fs-setup.pl"
+kaspersky_bin: "/opt/kaspersky/kesl/bin/kesl-control"
+kaspersky_setup: "/opt/kaspersky/kesl/bin/kesl-setup.pl"
