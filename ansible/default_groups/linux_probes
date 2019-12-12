@@ -19,7 +19,7 @@
 
 [escan]
 
-[eset-nod32]
+[eset-file-security]
 
 [fsecure]
 
@@ -56,7 +56,7 @@ drweb
 dummy
 eicar
 escan
-eset-nod32
+eset-file-security
 fsecure
 kaspersky
 lief
