@@ -1,5 +1,5 @@
 ---
 
 # If updating that, modify create_cache.py (from release repo)
-peid_sig_url: https://raw.githubusercontent.com/viper-framework/viper/master/data/peid/UserDB.TXT
+peid_sig_url: https://raw.githubusercontent.com/viper-framework/viper/master/viper/data/peid/UserDB.TXT
 sig_dir: /opt/irma/peid_sig
