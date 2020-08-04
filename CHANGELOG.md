@@ -1,3 +1,7 @@
+2.4.14 (release 04/08/2020)
+==========================
+    * [fix] update PEiD dependency
+
 2.4.13 (release 09/10/2019)
 ==========================
     * [fix] update dependencies
