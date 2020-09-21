@@ -53,3 +53,5 @@ Feature: Basic use of IRMA
     Given I am on the previous_searched page
     Then I should see "eicar.com" in the search results
     And I should not see "hello_world.txt" in the search results
+
+    
