@@ -11,7 +11,7 @@
 # Install python-pip (cause the debian version is only 1.1)
 - name: Downloading script get-pip.py
   get_url:
-    url: 'https://bootstrap.pypa.io/get-pip.py'
+    url: 'https://bootstrap.pypa.io/2.7/get-pip.py'
     dest: '/tmp'
 
 - name: Installing pip for python2
