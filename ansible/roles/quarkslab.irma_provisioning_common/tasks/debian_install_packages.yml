@@ -5,7 +5,7 @@
     name: ['vim', 'aria2', 'git', 'python-dev', 'python3-dev',
            'unzip', 'make', 'python-setuptools', 'python3-setuptools',
            'build-essential', 'libssl-dev', 'cmake', 'libz-dev',
-           'libffi-dev', 'psmisc']
+           'libffi-dev', 'psmisc', 'acl']
     state: present
 
 # Install python-pip (cause the debian version is only 1.1)
