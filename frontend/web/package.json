@@ -14,7 +14,7 @@
     "lint": "eslint **/*.js"
   },
   "dependencies": {
-    "angular": "1.7.8",
+    "angular": "1.8.0",
     "angular-capitalize-filter": "3.0.0",
     "angular-file-upload": "2.5.0",
     "angular-moment": "1.3.0",
