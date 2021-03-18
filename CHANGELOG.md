@@ -1,3 +1,8 @@
+2.4.15 (release 18/03/2021)
+==========================
+    * [fix] update get-pip for python2
+    * [fix] add missing acl package on AWS default debian stretch image
+
 2.4.14 (release 04/08/2020)
 ==========================
     * [fix] update PEiD dependency
