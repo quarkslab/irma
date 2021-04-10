@@ -93,6 +93,7 @@ class SymantecWin(AntivirusWindows):
                 mtime = self._log_path.stat().st_mtime
                 delay -= 1
             # look for the line corresponding to this filename
+	    paths = str(paths)
             stdout = "".join(
                 line + '\n'
                 for line in self._log_path.read_text().splitlines()
