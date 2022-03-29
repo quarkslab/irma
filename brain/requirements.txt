@@ -3,7 +3,7 @@ coverage==4.5.2
 fasteners==0.14.1
 mock==2.0.0
 nose==1.3.7
-paramiko==2.4.2
+paramiko==2.10.1
 pylint==2.2.2
 sqlalchemy==1.3.8
 ssh2-python==0.17.0
