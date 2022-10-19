@@ -1,5 +1,5 @@
 alembic==1.0.7
-celery==3.1.26.post2
+celery==5.2.2
 coverage==4.5.2
 fasteners==0.14.1
 hug==2.4.1
