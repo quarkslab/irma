@@ -1,4 +1,4 @@
-celery==3.1.26.post2
+celery==5.2.2
 coverage==4.5.2
 fasteners==0.14.1
 mock==2.0.0
