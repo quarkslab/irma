@@ -46,6 +46,7 @@ class AntivirusPluginInterface(object):
                 results.database = {str(fp): self.file_metadata(fp)
                                     for fp in self.module.database}
             # launch an antivirus scan, automatically append scan results
+	    fpath = str(fpath)
             started = timestamp(datetime.utcnow())
             results.status = self.module.scan(fpath)
             stopped = timestamp(datetime.utcnow())
